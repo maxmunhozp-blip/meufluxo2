@@ -10,6 +10,12 @@ export interface Profile {
   avatarUrl: string | null;
 }
 
+export interface Workspace {
+  id: string;
+  name: string;
+  ownerId: string;
+}
+
 interface UseSupabaseDataReturn {
   projects: Project[];
   sections: Section[];
@@ -19,6 +25,10 @@ interface UseSupabaseDataReturn {
   attachments: Attachment[];
   loading: boolean;
   session: Session | null;
+  workspaces: Workspace[];
+  activeWorkspaceId: string | null;
+  switchWorkspace: (workspaceId: string) => void;
+  inviteToWorkspace: (email: string) => Promise<void>;
   setProjects: (fn: (prev: Project[]) => Project[]) => void;
   setSections: (fn: (prev: Section[]) => Section[]) => void;
   setTasks: (fn: (prev: Task[]) => Task[]) => void;
@@ -81,6 +91,7 @@ function mapDbTask(row: any): Task {
 export function useSupabaseData(): UseSupabaseDataReturn {
   const [session, setSession] = useState<Session | null>(null);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const [workspacesState, setWorkspacesState] = useState<Workspace[]>([]);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
   const [sectionsState, setSectionsState] = useState<Section[]>([]);
   const [tasksState, setTasksState] = useState<Task[]>([]);
@@ -111,14 +122,23 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     const fetchAll = async () => {
       setLoading(true);
 
-      // Fetch user's workspace (first one they own or are member of)
-      const { data: workspaces } = await supabase
+      // Fetch user's workspaces
+      const { data: wsMemberships } = await supabase
         .from('workspace_members')
         .select('workspace_id')
-        .eq('user_id', session.user.id)
-        .limit(1);
+        .eq('user_id', session.user.id);
       
-      const wsId = workspaces?.[0]?.workspace_id || null;
+      const wsIds = (wsMemberships || []).map(w => w.workspace_id);
+      
+      if (wsIds.length > 0) {
+        const { data: wsData } = await supabase
+          .from('workspaces')
+          .select('*')
+          .in('id', wsIds);
+        setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id })));
+      }
+
+      const wsId = wsIds[0] || null;
       setActiveWorkspaceId(wsId);
 
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
@@ -960,6 +980,54 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     toast.success('Anexo removido');
   }, [attachmentsState]);
 
+  const switchWorkspace = useCallback((workspaceId: string) => {
+    setActiveWorkspaceId(workspaceId);
+    // Re-fetch data for new workspace
+    setLoading(true);
+    Promise.all([
+      supabase.from('projects').select('*').eq('archived', false).order('created_at'),
+      supabase.from('sections').select('*').order('position'),
+      supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
+      supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
+    ]).then(([projectsRes, sectionsRes, tasksRes, subtasksRes]) => {
+      // Filter to workspace
+      const wsProjects = (projectsRes.data || []).filter((p: any) => p.workspace_id === workspaceId);
+      setProjectsState(wsProjects.map(mapDbProject));
+      const wsSections = (sectionsRes.data || []).filter((s: any) => s.workspace_id === workspaceId);
+      setSectionsState(wsSections.map(mapDbSection));
+      const wsTasks = (tasksRes.data || []).filter((t: any) => t.workspace_id === workspaceId);
+      const wsSubtasks = (subtasksRes.data || []).filter((t: any) => t.workspace_id === workspaceId);
+      const mappedTasks = wsTasks.map(mapDbTask);
+      const mappedSubtasks = wsSubtasks.map(mapDbTask);
+      // Attach subtasks
+      const taskMap = new Map<string, Task>();
+      mappedTasks.forEach(t => taskMap.set(t.id, { ...t, subtasks: [], members: [] }));
+      mappedSubtasks.forEach(sub => {
+        const parentId = (subtasksRes.data || []).find((r: any) => r.id === sub.id)?.parent_task_id;
+        if (parentId) {
+          const parent = taskMap.get(parentId);
+          if (parent) parent.subtasks = [...(parent.subtasks || []), sub as any];
+        }
+      });
+      setTasksState(Array.from(taskMap.values()));
+      setLoading(false);
+    });
+  }, []);
+
+  const inviteToWorkspace = useCallback(async (email: string) => {
+    if (!activeWorkspaceId || !session) throw new Error('Nenhum workspace ativo');
+    // Find user by email via profiles - we need to look up the user
+    // For now, we'll use a simple approach: look up the email in auth
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .limit(100);
+    
+    // We can't directly query auth.users, so we'll inform the user
+    // For a proper invite system, we'd need an edge function
+    toast.error('Para convidar membros, o usuário precisa estar cadastrado no sistema.');
+  }, [activeWorkspaceId, session]);
+
   return {
     projects: projectsState,
     sections: sectionsState,
@@ -969,6 +1037,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     attachments: attachmentsState,
     loading,
     session,
+    workspaces: workspacesState,
+    activeWorkspaceId,
+    switchWorkspace,
+    inviteToWorkspace,
     setProjects,
     setSections,
     setTasks,

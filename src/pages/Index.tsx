@@ -43,6 +43,7 @@ const Index = () => {
     setProjects, setSections, setTasks,
     exportData, importData,
     loading, session,
+    workspaces, activeWorkspaceId, switchWorkspace, inviteToWorkspace,
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
     createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn,
@@ -577,6 +578,10 @@ const Index = () => {
     isMyWeekView,
     onToggleMyWeek: () => { setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
     tasks: taskList,
+    workspaces,
+    activeWorkspaceId,
+    onSwitchWorkspace: switchWorkspace,
+    onInviteToWorkspace: inviteToWorkspace,
   };
 
   // Determine active view for bottom nav
