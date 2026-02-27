@@ -204,10 +204,15 @@ export function WeekTimelineView({
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile landscape hint */}
+        <div className="md:hidden flex items-center justify-center h-8 text-[10px] text-nd-text-muted border-b border-nd-border" style={{ background: 'hsl(var(--bg-surface))' }}>
+          📱 Rotacione para paisagem para melhor visualização
+        </div>
+
         {/* Sticky header row with day labels */}
         <div className="flex border-b border-border flex-shrink-0 sticky top-0 z-20" style={{ background: 'hsl(var(--bg-app))' }}>
           {/* Client name column spacer */}
-          <div className="w-[160px] flex-shrink-0 border-r border-border" />
+          <div className="w-[100px] md:w-[160px] flex-shrink-0 border-r border-border sticky left-0 z-30" style={{ background: 'hsl(var(--bg-app))' }} />
           {/* Day headers */}
           {weekDates.map((d, i) => {
             const dateStr = format(d, 'yyyy-MM-dd');
@@ -216,7 +221,7 @@ export function WeekTimelineView({
             return (
               <div
                 key={dateStr}
-                className={`flex-1 min-w-[100px] flex flex-col items-center justify-center h-12 border-r border-border last:border-r-0 relative ${
+                className={`flex-1 min-w-[80px] md:min-w-[100px] flex flex-col items-center justify-center h-12 border-r border-border last:border-r-0 relative ${
                   current ? 'border-t-2 border-t-primary' : ''
                 }`}
                 style={overload ? { background: 'hsla(42, 60%, 55%, 0.08)' } : undefined}
@@ -266,7 +271,7 @@ export function WeekTimelineView({
                 }}
               >
                 {/* Client label (sticky left) */}
-                <div className="w-[160px] flex-shrink-0 border-r border-border flex items-center gap-2 px-3 sticky left-0 z-10"
+                <div className="w-[100px] md:w-[160px] flex-shrink-0 border-r border-border flex items-center gap-2 px-2 md:px-3 sticky left-0 z-10"
                   style={{
                     background: rowIdx % 2 === 0
                       ? 'hsl(240 15% 11%)'
