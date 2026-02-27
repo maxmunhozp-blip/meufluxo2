@@ -1,18 +1,18 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
-  startOfWeek, addDays, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
+  addDays, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
+  startOfWeek,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  DndContext, closestCenter, pointerWithin, PointerSensor, useSensor, useSensors,
+  DndContext, pointerWithin, PointerSensor, useSensor, useSensors,
   DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay,
   useDroppable,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles, Plus, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, BarChart3, Repeat, ChevronDown, List, X } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
-import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
 import { ProBadge } from '@/components/ProBadge';
 
@@ -29,95 +29,96 @@ interface MyWeekViewProps {
   onUpgrade?: () => void;
 }
 
-const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+type ViewMode = '3days' | 'week' | 'timeline';
 
-// -- Sortable task card inside a day column --
-function SortableWeekTaskCard({
+const DAY_LABELS_UPPER = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+
+// ── Task card in day column — colored, no checkbox ──
+function WeekTaskCard({
   task,
   projectColor,
-  projectName,
   isSelected,
   onSelect,
-  onStatusChange,
-  isDragOverlay,
+  truncate,
 }: {
   task: Task;
   projectColor: string;
-  projectName: string;
   isSelected: boolean;
   onSelect: () => void;
-  onStatusChange: (id: string, s: TaskStatus) => void;
-  isDragOverlay?: boolean;
-  rolloverBadge?: boolean;
+  truncate?: boolean;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: task.id, data: { type: 'week-task', task } });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isDone = task.status === 'done';
+
+  // Parse hex/hsl color to rgba for background
+  const bgColor = projectColor.startsWith('#')
+    ? `${projectColor}14` // ~0.08 opacity
+    : `color-mix(in srgb, ${projectColor} 8%, transparent)`;
+  const bgHover = projectColor.startsWith('#')
+    ? `${projectColor}26` // ~0.15 opacity
+    : `color-mix(in srgb, ${projectColor} 15%, transparent)`;
+  const borderColor = projectColor.startsWith('#')
+    ? `${projectColor}66` // ~0.4 opacity
+    : projectColor;
+
   return (
     <div
       ref={setNodeRef}
-      style={isDragOverlay ? undefined : style}
-      className={`flex items-center gap-1.5 h-[36px] px-2 rounded-md cursor-pointer transition-colors group border border-transparent ${
-        isSelected ? 'bg-nd-active border-nd-border' : 'hover:bg-nd-hover'
-      } ${isDragOverlay ? 'shadow-lg border-primary/30' : ''}`}
+      style={style}
+      className="group cursor-pointer"
       onClick={onSelect}
       {...attributes}
       {...listeners}
     >
-      {/* Project color bar — sole project identifier (Apple: single glanceable signal) */}
-      <div className="w-[3px] h-5 rounded-full flex-shrink-0" style={{ background: projectColor }} />
-
-      <StatusCheckbox
-        status={task.status}
-        onChange={(s) => { onStatusChange(task.id, s); }}
-      />
-
-      <span className={`flex-1 text-[12px] truncate leading-tight ${
-        task.status === 'done' ? 'text-nd-text-completed line-through opacity-60' : 'text-nd-text'
-      }`}>
-        {task.name}
-      </span>
-      {task.recurrenceType && <Repeat className="w-2.5 h-2.5 text-primary/50 flex-shrink-0" />}
+      <div
+        className={`rounded-md px-2 py-1.5 transition-colors ${isSelected ? 'ring-1 ring-white/10' : ''}`}
+        style={{
+          background: bgColor,
+          borderLeft: `2px solid ${borderColor}`,
+          borderRadius: 6,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = bgHover; }}
+        onMouseLeave={e => { e.currentTarget.style.background = bgColor; }}
+      >
+        <span
+          className={`text-[12px] leading-[1.4] block ${isDone ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
+          style={{ color: '#E8E8F0', fontWeight: 400 }}
+        >
+          {task.name}
+        </span>
+      </div>
     </div>
   );
 }
 
-// -- Droppable day column --
+// ── Droppable day column ──
 function DayColumn({
   dayDate,
-  dayLabel,
-  dayNumber,
   tasks,
   projects,
   isCurrentDay,
   isDragOver,
   onSelectTask,
   selectedTaskId,
-  onStatusChange,
-  rolloverTaskIds,
-  rolloverDaysMap,
-  isGhostDay,
+  truncateText,
 }: {
   dayDate: Date;
-  dayLabel: string;
-  dayNumber: string;
   tasks: Task[];
   projects: Project[];
   isCurrentDay: boolean;
   isDragOver: boolean;
   onSelectTask: (t: Task) => void;
   selectedTaskId?: string;
-  onStatusChange: (id: string, s: TaskStatus) => void;
-  rolloverTaskIds: Set<string>;
-  rolloverDaysMap: Map<string, number>;
-  isGhostDay?: boolean;
+  truncateText?: boolean;
 }) {
   const dateStr = format(dayDate, 'yyyy-MM-dd');
   const { setNodeRef, isOver } = useDroppable({
@@ -126,83 +127,66 @@ function DayColumn({
   });
 
   const highlight = isDragOver || isOver;
+  const dayOfWeek = (dayDate.getDay() + 6) % 7; // Mon=0
+  const dayLabel = DAY_LABELS_UPPER[dayOfWeek];
+  const dayNumber = format(dayDate, 'd');
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col flex-shrink-0 w-[85vw] md:w-auto md:min-w-[120px] md:flex-1 snap-center border-r border-nd-border last:border-r-0 transition-colors ${
-        highlight ? 'bg-nd-hover/50' : ''
-      }`}
+      className="flex flex-col flex-1 min-w-0 transition-colors"
+      style={{
+        background: isCurrentDay ? '#1A1A28' : 'transparent',
+        borderRight: '1px solid rgba(255,255,255,0.04)',
+        ...(highlight ? {
+          border: '1px dashed #6C9CFC',
+          background: 'rgba(108,156,252,0.04)',
+        } : {}),
+      }}
     >
-      {/* Day header */}
-      <div className={`h-12 flex flex-col items-center justify-center border-b flex-shrink-0 ${
-        isCurrentDay
-          ? 'border-b-2 border-b-primary bg-primary/5'
-          : 'border-nd-border'
-      }`}>
-        <span className={`text-[11px] uppercase tracking-wider ${
-          isCurrentDay ? 'text-primary font-bold' : 'text-nd-text-muted'
-        }`}>
-          {dayLabel}
+      {/* Column header */}
+      <div className="flex flex-col items-center justify-center py-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <span style={{
+          fontSize: 11,
+          fontWeight: 500,
+          color: isCurrentDay ? '#6C9CFC' : '#8888A0',
+          textTransform: 'uppercase' as const,
+          letterSpacing: 0.5,
+        }}>
+          {isCurrentDay ? 'HOJE' : dayLabel}
         </span>
-        <span className={`text-[14px] font-semibold ${
-          isCurrentDay ? 'text-primary' : 'text-nd-text'
-        }`}>
+        <span style={{
+          fontSize: 18,
+          fontWeight: 600,
+          color: isCurrentDay ? '#E8E8F0' : '#8888A0',
+        }}>
           {dayNumber}
         </span>
       </div>
 
       {/* Tasks */}
-      <div className="flex-1 p-1.5 space-y-1 overflow-y-auto min-h-[120px]">
+      <div className="flex-1 p-1.5 space-y-1 overflow-y-auto min-h-[80px]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
-            const isRollover = rolloverTaskIds.has(task.id);
-            const rolloverDays = rolloverDaysMap.get(task.id);
-            const isGhost = isGhostDay && isRollover;
             return (
-              <div key={task.id} className={`relative ${isGhost ? 'opacity-40' : ''}`}>
-                {isRollover && !isGhostDay && rolloverDays != null && (
-                  <span className={`absolute -top-0.5 right-1 text-[9px] font-medium rounded px-1 z-10 ${
-                    rolloverDays > 2
-                      ? 'bg-orange-500/15 text-orange-400'
-                      : 'bg-yellow-500/15 text-yellow-400'
-                  }`}>
-                    ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
-                  </span>
-                )}
-                {isGhost ? (
-                  <div className="flex items-center gap-1.5 h-[36px] px-2 rounded-md">
-                    <div className="w-[3px] h-5 rounded-full flex-shrink-0" style={{ background: project?.color || '#4A90D9' }} />
-                    <span className="flex-1 text-[12px] truncate leading-tight text-nd-text-muted line-through">
-                      {task.name}
-                    </span>
-                  </div>
-                ) : (
-                  <SortableWeekTaskCard
-                    task={task}
-                    projectColor={project?.color || '#4A90D9'}
-                    projectName={project?.name || ''}
-                    isSelected={selectedTaskId === task.id}
-                    onSelect={() => onSelectTask(task)}
-                    onStatusChange={onStatusChange}
-                  />
-                )}
-              </div>
+              <WeekTaskCard
+                key={task.id}
+                task={task}
+                projectColor={project?.color || '#6C9CFC'}
+                isSelected={selectedTaskId === task.id}
+                onSelect={() => onSelectTask(task)}
+                truncate={truncateText}
+              />
             );
           })}
         </SortableContext>
-        {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-full min-h-[80px] group/empty">
-            <Plus className="w-4 h-4 text-muted-foreground/0 group-hover/empty:text-muted-foreground/40 transition-colors" />
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-// -- Master List sidebar for dragging tasks from (and back to unschedule) --
+// ── Master List sidebar ──
 function WeekSourceSidebar({
   projects,
   sections,
@@ -223,7 +207,6 @@ function WeekSourceSidebar({
     } catch { return {}; }
   });
 
-  // Persist expanded projects
   const toggleProject = (id: string) => {
     setExpandedProjects(prev => {
       const next = { ...prev, [id]: !prev[id] };
@@ -231,25 +214,20 @@ function WeekSourceSidebar({
       return next;
     });
   };
+
   const [searchQuery, setSearchQuery] = useState('');
 
-  // toggleProject is now defined above with persistence
-
-  // Only show non-subtask pending tasks without scheduledDate (not yet scheduled)
   const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate), [tasks]);
 
-  // Filter by search
   const filteredTasks = useMemo(() => {
     if (!searchQuery.trim()) return pendingTasks;
     const q = searchQuery.toLowerCase();
     return pendingTasks.filter(t => t.name.toLowerCase().includes(q));
   }, [pendingTasks, searchQuery]);
 
-  // Group by project, then by section
   const groupedData = useMemo(() => {
     return projects.map(project => {
       const projectTasks = filteredTasks.filter(t => t.projectId === project.id);
-      // Group by section
       const sectionGroups = sections
         .filter(s => s.projectId === project.id)
         .map(s => ({
@@ -268,14 +246,22 @@ function WeekSourceSidebar({
     data: { type: 'master-list-drop' },
   });
 
+  // Hint persistence
+  const [hintDismissed, setHintDismissed] = useState(() => {
+    try { return localStorage.getItem('meufluxo_drag_hint_seen') === 'true'; } catch { return false; }
+  });
+
   if (collapsed) {
     return (
-      <div className="hidden md:flex w-10 flex-shrink-0 border-r border-nd-border flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))' }}>
-        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
+      <div className="hidden md:flex w-10 flex-shrink-0 flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded transition-colors" style={{ color: '#8888A0' }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+        >
           <ChevronRight className="w-4 h-4" />
         </button>
         {totalPending > 0 && (
-          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center">
+          <span className="text-[10px] font-bold rounded-full w-6 h-6 flex items-center justify-center" style={{ color: '#6C9CFC', background: 'rgba(108,156,252,0.1)' }}>
             {totalPending}
           </span>
         )}
@@ -286,59 +272,64 @@ function WeekSourceSidebar({
   return (
     <div
       ref={masterListDropRef}
-      className={`hidden md:flex w-[260px] flex-shrink-0 border-r flex-col transition-colors duration-200 ${
-        isMasterListOver ? 'border-primary/40' : 'border-nd-border'
-      }`}
-      style={{ background: isMasterListOver ? 'hsl(var(--primary) / 0.04)' : 'hsl(var(--bg-sidebar))' }}
+      className="hidden md:flex w-[280px] flex-shrink-0 flex-col transition-colors duration-200"
+      style={{
+        background: isMasterListOver ? 'rgba(108,156,252,0.04)' : 'hsl(var(--bg-sidebar))',
+        borderRight: isMasterListOver ? '1px solid rgba(108,156,252,0.4)' : '1px solid rgba(255,255,255,0.04)',
+      }}
     >
       {/* Header */}
-      <div className="px-3 pt-3 pb-2 border-b border-nd-border">
+      <div className="px-3 pt-3 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-bold text-nd-text">Master List</span>
-            <span className="text-[10px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E8F0' }}>Master List</span>
+            <span style={{ fontSize: 10, fontWeight: 500, color: '#6C9CFC', background: 'rgba(108,156,252,0.1)', borderRadius: 10, padding: '1px 7px' }}>
               {totalPending}
             </span>
           </div>
-          <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
+          <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded transition-colors" style={{ color: '#8888A0' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+          >
             <ChevronLeft className="w-4 h-4" />
           </button>
         </div>
-        {/* Search */}
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar tarefa..."
-          className="w-full h-7 px-2.5 text-[12px] text-nd-text bg-nd-input rounded-md border border-nd-border focus:outline-none focus:border-primary/50 placeholder:text-nd-text-muted transition-colors"
+          className="w-full h-7 px-2.5 text-[12px] bg-transparent rounded-md border focus:outline-none placeholder:text-[#555570] transition-colors"
+          style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.06)' }}
         />
       </div>
 
-      {/* Task list grouped by project > section */}
+      {/* Task list */}
       <div className="flex-1 overflow-y-auto py-1">
         {groupedData.map(({ project, totalCount, sectionGroups }) => {
           const expanded = expandedProjects[project.id] !== false;
-
           return (
             <div key={project.id} className="mb-1">
               <button
                 onClick={() => toggleProject(project.id)}
-                className="w-full h-9 px-3 flex items-center gap-2 hover:bg-nd-hover transition-colors"
+                className="w-full h-8 px-3 flex items-center gap-2 transition-colors"
+                style={{ color: project.color }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <Play className={`w-2.5 h-2.5 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: project.color }} />
-                <span className="text-[12px] font-semibold truncate flex-1 text-left" style={{ color: project.color }}>{project.name}</span>
-                <span className="text-[10px] font-medium text-nd-text-muted bg-nd-hover rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
-                  {totalCount}
+                <Play className={`w-2.5 h-2.5 fill-current transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
+                <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.3 }} className="truncate flex-1 text-left">
+                  {project.name}
                 </span>
+                <span style={{ fontSize: 10, color: '#555570' }}>{totalCount}</span>
               </button>
               {expanded && (
-                <div className="ml-1">
+                <div>
                   {sectionGroups.map(({ section, tasks: sectionTasks }) => (
                     <div key={section.id}>
                       {sectionGroups.length > 1 && (
-                        <div className="px-4 py-1">
-                          <span className="text-[10px] uppercase tracking-wider text-nd-text-muted font-medium">
+                        <div className="px-5 py-1">
+                          <span style={{ fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: '#555570', fontWeight: 500 }}>
                             {section.title}
                           </span>
                         </div>
@@ -358,24 +349,88 @@ function WeekSourceSidebar({
         })}
         {groupedData.length === 0 && (
           <div className="px-3 py-8 text-center">
-            <span className="text-[12px] text-nd-text-muted">
+            <span style={{ fontSize: 12, color: '#555570' }}>
               {searchQuery ? 'Nenhuma tarefa encontrada' : 'Nenhuma tarefa pendente'}
             </span>
           </div>
         )}
       </div>
 
-      {/* Footer hint — contextual */}
-      <div className="px-3 py-2 border-t border-nd-border">
-        <span className="text-[10px] text-nd-text-muted">
-          {isMasterListOver ? '← Solte para desagendar' : 'Arraste tarefas para agendar na semana'}
-        </span>
-      </div>
+      {/* Footer hint */}
+      {!hintDismissed && totalPending > 0 && (
+        <div className="px-3 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <span style={{ fontSize: 11, color: '#555570' }}>
+            {isMasterListOver ? '← Solte para desagendar' : 'Arraste tarefas para agendar na semana'}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
-// Draggable source task item with optional subtask expansion
+// ── Master List mobile overlay ──
+function MasterListOverlay({
+  projects, sections, tasks, onClose,
+}: {
+  projects: Project[];
+  sections: Section[];
+  tasks: Task[];
+  onClose: () => void;
+}) {
+  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate), [tasks]);
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const toggleProject = (id: string) => setExpandedProjects(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const groupedData = useMemo(() => {
+    return projects.map(project => {
+      const projectTasks = pendingTasks.filter(t => t.projectId === project.id);
+      const sectionGroups = sections
+        .filter(s => s.projectId === project.id)
+        .map(s => ({ section: s, tasks: projectTasks.filter(t => t.section === s.id) }))
+        .filter(g => g.tasks.length > 0);
+      return { project, totalCount: projectTasks.length, sectionGroups };
+    }).filter(g => g.totalCount > 0);
+  }, [projects, pendingTasks, sections]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
+      <div
+        className="fixed left-0 top-0 bottom-0 z-50 w-[300px] flex flex-col animate-slide-in-left"
+        style={{ background: '#1A1A28', boxShadow: '4px 0 16px rgba(0,0,0,0.3)' }}
+      >
+        <div className="h-12 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E8F0' }}>Master List</span>
+          <button onClick={onClose} style={{ color: '#8888A0' }}><X className="w-4 h-4" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto py-2">
+          {groupedData.map(({ project, sectionGroups }) => {
+            const expanded = expandedProjects[project.id] !== false;
+            return (
+              <div key={project.id} className="mb-1">
+                <button onClick={() => toggleProject(project.id)} className="w-full h-8 px-4 flex items-center gap-2">
+                  <Play className={`w-2.5 h-2.5 transition-transform ${expanded ? 'rotate-90' : ''}`} style={{ color: project.color, fill: project.color }} />
+                  <span style={{ fontSize: 11, fontWeight: 500, color: project.color, letterSpacing: 0.3 }} className="truncate flex-1 text-left">{project.name}</span>
+                </button>
+                {expanded && sectionGroups.map(({ section, tasks: sTasks }) => (
+                  <div key={section.id} className="pl-6">
+                    {sTasks.map(t => (
+                      <div key={t.id} className="h-8 flex items-center px-2" style={{ fontSize: 13, color: '#E8E8F0' }}>
+                        {t.name}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Source task item (draggable, no checkbox) ──
 function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; projectColor: string; subtasks?: Subtask[] }) {
   const [expanded, setExpanded] = useState(false);
   const {
@@ -385,10 +440,11 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
     data: { type: 'source-task', task },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.5 : 1,
+    outline: isDragging ? '1px dashed #6C9CFC' : 'none',
   };
 
   return (
@@ -398,22 +454,23 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
         style={style}
         {...attributes}
         {...listeners}
-        className={`flex items-center gap-1.5 h-[34px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
-          isDragging ? 'ring-1 ring-primary/30' : ''
-        }`}
+        className="flex items-center gap-1.5 h-[32px] px-4 mx-1 rounded-md cursor-grab active:cursor-grabbing transition-colors"
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         {subtasks.length > 0 ? (
           <button
             onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0"
+            style={{ color: '#555570' }}
           >
             <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
           </button>
         ) : (
           <div className="w-3.5 flex-shrink-0" />
         )}
-        <span className="text-[11px] text-nd-text truncate flex-1">{task.name}</span>
+        <span style={{ fontSize: 13, color: '#E8E8F0' }} className="truncate flex-1">{task.name}</span>
       </div>
       {expanded && subtasks.length > 0 && (
         <div className="ml-4">
@@ -426,7 +483,7 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
   );
 }
 
-// Draggable subtask item in the Master List
+// ── Source subtask item ──
 function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; task: Task; projectColor: string }) {
   const [expanded, setExpanded] = useState(false);
   const nestedSubs = (subtask.subtasks || []).filter(s => s.status !== 'done');
@@ -437,10 +494,11 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
     data: { type: 'source-subtask', subtask, parentTask: task, projectColor },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.5 : 1,
+    outline: isDragging ? '1px dashed #6C9CFC' : 'none',
   };
 
   return (
@@ -450,22 +508,23 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
         style={style}
         {...attributes}
         {...listeners}
-        className={`flex items-center gap-1.5 h-[30px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
-          isDragging ? 'ring-1 ring-primary/30' : ''
-        }`}
+        className="flex items-center gap-1.5 h-[28px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing transition-colors"
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         {nestedSubs.length > 0 ? (
           <button
             onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="w-3 h-3 flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            className="w-3 h-3 flex items-center justify-center flex-shrink-0"
+            style={{ color: '#555570' }}
           >
             <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
           </button>
         ) : (
           <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: `${projectColor}80` }} />
         )}
-        <span className="text-[10px] text-muted-foreground truncate flex-1">{subtask.name}</span>
+        <span style={{ fontSize: 11, color: '#8888A0' }} className="truncate flex-1">{subtask.name}</span>
       </div>
       {expanded && nestedSubs.length > 0 && (
         <div className="ml-4">
@@ -478,6 +537,7 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
   );
 }
 
+// ── Main MyWeekView ──
 export function MyWeekView({
   tasks,
   projects,
@@ -490,7 +550,7 @@ export function MyWeekView({
   isPro,
   onUpgrade,
 }: MyWeekViewProps) {
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [dayOffset, setDayOffset] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem('meufluxo_masterlist_collapsed') === 'true'; } catch { return false; }
   });
@@ -501,12 +561,29 @@ export function MyWeekView({
   });
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'columns' | 'timeline'>(() => {
-    try { return (localStorage.getItem('meufluxo_week_view') as 'columns' | 'timeline') || 'columns'; }
-    catch { return 'columns'; }
+  const [activeDragSubtask, setActiveDragSubtask] = useState<{ subtask: Subtask; projectColor: string } | null>(null);
+  const [mobileOverlay, setMobileOverlay] = useState(false);
+
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    try {
+      const saved = localStorage.getItem('meufluxo_week_view') as ViewMode;
+      if (saved === 'timeline' || saved === 'week') return saved;
+      return '3days';
+    } catch { return '3days'; }
   });
 
-  const toggleViewMode = (mode: 'columns' | 'timeline') => {
+  // Window width for responsive
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400);
+  useEffect(() => {
+    const handler = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  // Force 3days if narrow
+  const effectiveView = windowWidth < 1200 && viewMode === 'week' ? '3days' : viewMode;
+
+  const toggleViewMode = (mode: ViewMode) => {
     if (mode === 'timeline' && !isPro) {
       onUpgrade?.();
       return;
@@ -517,27 +594,50 @@ export function MyWeekView({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // Calculate week dates (Mon–Sun)
-  const weekDates = useMemo(() => {
+  // Calculate visible dates
+  const visibleDates = useMemo(() => {
+    const today = startOfDay(new Date());
+    if (effectiveView === '3days') {
+      const base = addDays(today, dayOffset);
+      return Array.from({ length: 3 }, (_, i) => addDays(base, i));
+    } else {
+      // Week view: Mon–Sun
+      const weekStart = startOfWeek(addDays(today, dayOffset * 7), { weekStartsOn: 1 });
+      return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    }
+  }, [dayOffset, effectiveView]);
+
+  // Full week dates for timeline
+  const weekDatesForTimeline = useMemo(() => {
     const today = new Date();
-    const weekStart = startOfWeek(addDays(today, weekOffset * 7), { weekStartsOn: 1 });
+    const weekStart = startOfWeek(addDays(today, (effectiveView === 'week' ? dayOffset : 0) * 7), { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  }, [weekOffset]);
+  }, [dayOffset, effectiveView]);
 
-  // Get yesterday for rollover detection
-  const yesterday = useMemo(() => subDays(startOfDay(new Date()), 1), []);
+  // Date range label
+  const dateRangeLabel = useMemo(() => {
+    const first = visibleDates[0];
+    const last = visibleDates[visibleDates.length - 1];
+    const fStr = format(first, 'dd MMM', { locale: ptBR });
+    const lStr = format(last, "dd MMM yyyy", { locale: ptBR });
+    return `${fStr} — ${lStr}`;
+  }, [visibleDates]);
 
-  // Tasks grouped by day (using scheduledDate, fallback to dueDate for backward compat)
+  // Is "today" visible?
+  const todayVisible = useMemo(() => {
+    const todayStr = format(startOfDay(new Date()), 'yyyy-MM-dd');
+    return visibleDates.some(d => format(d, 'yyyy-MM-dd') === todayStr);
+  }, [visibleDates]);
+
+  // Tasks grouped by day
   const tasksByDay = useMemo(() => {
     const map: Record<string, Task[]> = {};
     const todayStart = startOfDay(new Date());
 
-    weekDates.forEach(d => {
-      const key = format(d, 'yyyy-MM-dd');
-      map[key] = [];
+    visibleDates.forEach(d => {
+      map[format(d, 'yyyy-MM-dd')] = [];
     });
 
-    // Non-subtask tasks with scheduledDate or dueDate in this week
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       const dateKey = t.scheduledDate || t.dueDate;
@@ -547,94 +647,72 @@ export function MyWeekView({
       }
     });
 
-    // Collect scheduled subtasks and show them as pseudo-tasks in the week
+    // Scheduled subtasks
     tasks.forEach(t => {
       if (t.parentTaskId) return;
-      const collectScheduledSubs = (subs: Subtask[], parentTask: Task) => {
+      const collectSubs = (subs: Subtask[], parent: Task) => {
         for (const sub of subs) {
           const dateKey = sub.scheduledDate || sub.dueDate;
           if (dateKey && map[dateKey] !== undefined) {
-            // Convert subtask to a pseudo-Task so it renders in the day column
-            const pseudoTask: Task = {
-              id: sub.id,
-              name: sub.name,
-              status: sub.status,
-              priority: sub.priority || 'low',
-              description: sub.description,
-              dueDate: sub.dueDate,
-              scheduledDate: sub.scheduledDate,
-              section: sub.section,
-              projectId: sub.projectId,
-              parentTaskId: sub.parentTaskId,
-              members: sub.members,
-              subtasks: sub.subtasks,
+            const pseudo: Task = {
+              id: sub.id, name: sub.name, status: sub.status,
+              priority: sub.priority || 'low', description: sub.description,
+              dueDate: sub.dueDate, scheduledDate: sub.scheduledDate,
+              section: sub.section, projectId: sub.projectId || parent.projectId,
+              parentTaskId: sub.parentTaskId, members: sub.members, subtasks: sub.subtasks,
             };
-            if (!map[dateKey].some(existing => existing.id === sub.id)) {
-              map[dateKey].push(pseudoTask);
-            }
+            if (!map[dateKey].some(e => e.id === sub.id)) map[dateKey].push(pseudo);
           }
-          if (sub.subtasks) collectScheduledSubs(sub.subtasks, parentTask);
+          if (sub.subtasks) collectSubs(sub.subtasks, parent);
         }
       };
-      collectScheduledSubs(t.subtasks || [], t);
+      collectSubs(t.subtasks || [], t);
     });
 
-    // Auto-rollover: tasks from yesterday (or earlier in the week) that aren't done
-    // should appear at the top of today's column
+    // Rollover overdue to today
     const todayKey = format(todayStart, 'yyyy-MM-dd');
     if (map[todayKey] !== undefined) {
-      // Find overdue tasks from earlier in the week
-      const rolloverTasks: Task[] = [];
-      weekDates.forEach(d => {
+      const rollover: Task[] = [];
+      visibleDates.forEach(d => {
         const key = format(d, 'yyyy-MM-dd');
         if (isBefore(d, todayStart)) {
-          const overdueTasks = (map[key] || []).filter(t => t.status !== 'done');
-          overdueTasks.forEach(t => {
-            if (!map[todayKey].some(existing => existing.id === t.id)) {
-              rolloverTasks.push(t);
-            }
+          (map[key] || []).filter(t => t.status !== 'done').forEach(t => {
+            if (!map[todayKey].some(e => e.id === t.id)) rollover.push(t);
           });
         }
       });
-      // Prepend rollover tasks to today
-      map[todayKey] = [...rolloverTasks, ...map[todayKey]];
+      map[todayKey] = [...rollover, ...map[todayKey]];
     }
 
     return map;
-  }, [tasks, weekDates]);
+  }, [tasks, visibleDates]);
 
-  // Track which tasks are rollovers + how many days
-  const { rolloverTaskIds, rolloverDaysMap } = useMemo(() => {
-    const ids = new Set<string>();
-    const daysMap = new Map<string, number>();
-    const todayStart = startOfDay(new Date());
-    const todayKey = format(todayStart, 'yyyy-MM-dd');
+  // Pending count for mobile FAB
+  const pendingCount = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate).length, [tasks]);
 
-    tasks.forEach(t => {
-      if (!t.dueDate || t.parentTaskId || t.status === 'done') return;
-      const dueDate = parseISO(t.dueDate);
-      if (isBefore(startOfDay(dueDate), todayStart)) {
-        const todayTasks = tasksByDay[todayKey] || [];
-        if (todayTasks.some(tt => tt.id === t.id)) {
-          ids.add(t.id);
-          daysMap.set(t.id, differenceInCalendarDays(todayStart, dueDate));
-        }
-      }
-    });
+  // Navigation handlers
+  const navigateBack = () => {
+    if (effectiveView === '3days') setDayOffset(p => p - 3);
+    else setDayOffset(p => p - 1);
+  };
+  const navigateForward = () => {
+    if (effectiveView === '3days') setDayOffset(p => p + 3);
+    else setDayOffset(p => p + 1);
+  };
+  const goToToday = () => setDayOffset(0);
 
-    return { rolloverTaskIds: ids, rolloverDaysMap: daysMap };
-  }, [tasks, tasksByDay]);
-
-  const [activeDragSubtask, setActiveDragSubtask] = useState<{ subtask: Subtask; projectColor: string } | null>(null);
-
+  // DnD handlers
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
     if (data?.type === 'week-task' || data?.type === 'source-task') {
       setActiveDragId(data.task.id);
       setActiveDragSubtask(null);
+      // Mark hint as seen
+      localStorage.setItem('meufluxo_drag_hint_seen', 'true');
     } else if (data?.type === 'source-subtask') {
       setActiveDragId(null);
       setActiveDragSubtask({ subtask: data.subtask as Subtask, projectColor: data.projectColor as string });
+      localStorage.setItem('meufluxo_drag_hint_seen', 'true');
     }
   };
 
@@ -649,7 +727,6 @@ export function MyWeekView({
 
   const handleDragEnd = (event: DragEndEvent) => {
     setDragOverDay(null);
-    const draggedSubtask = activeDragSubtask;
     setActiveDragId(null);
     setActiveDragSubtask(null);
     const { active, over } = event;
@@ -658,23 +735,16 @@ export function MyWeekView({
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // Source subtask dropped onto a day column → schedule it
     if (activeData?.type === 'source-subtask' && overData?.type === 'day-drop') {
       const subtask = activeData.subtask as Subtask;
-      const targetDate = overData.date as string;
-      onScheduleSubtask?.(subtask.id, targetDate);
+      onScheduleSubtask?.(subtask.id, overData.date as string);
       return;
     }
-
-    // Source task dropped onto a day column
     if (activeData?.type === 'source-task' && overData?.type === 'day-drop') {
       const task = activeData.task as Task;
-      const targetDate = overData.date as string;
-      onUpdateTask({ ...task, scheduledDate: targetDate });
+      onUpdateTask({ ...task, scheduledDate: overData.date as string });
       return;
     }
-
-    // Week task dropped onto a different day column
     if (activeData?.type === 'week-task' && overData?.type === 'day-drop') {
       const task = activeData.task as Task;
       const targetDate = overData.date as string;
@@ -683,11 +753,8 @@ export function MyWeekView({
       }
       return;
     }
-
-    // Week task dropped onto Master List → unschedule
     if (activeData?.type === 'week-task' && overData?.type === 'master-list-drop') {
       const task = activeData.task as Task;
-      // If it's a subtask (has parentTaskId), unschedule via subtask handler
       if (task.parentTaskId) {
         onScheduleSubtask?.(task.id, null);
       } else {
@@ -695,67 +762,92 @@ export function MyWeekView({
       }
       return;
     }
-
-    // Reorder within same day
-    if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
-      return;
-    }
   };
 
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header with week navigation + view toggle */}
-      <div className="h-12 px-3 md:px-4 flex items-center justify-between border-b border-border flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
-        <h1 className="text-[16px] md:text-[18px] font-bold text-foreground whitespace-nowrap">Minha Semana</h1>
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
+      {/* Header */}
+      <div className="h-12 px-3 md:px-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <h1 style={{ fontSize: 16, fontWeight: 700, color: '#E8E8F0' }} className="whitespace-nowrap md:text-[18px]">
+          Minha Semana
+        </h1>
+
         <div className="flex items-center gap-1 md:gap-2">
-          <button
-            onClick={() => setWeekOffset(prev => prev - 1)}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          {/* Nav arrows */}
+          <button onClick={navigateBack} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+            style={{ color: '#8888A0' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
+
+          {/* Hoje button */}
           <button
-            onClick={() => setWeekOffset(0)}
-            className={`px-2 md:px-3 h-7 text-[11px] md:text-[12px] font-medium rounded transition-colors ${
-              weekOffset === 0
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
+            onClick={goToToday}
+            className="h-7 px-3 text-[12px] rounded-md transition-colors"
+            style={{
+              border: '1px solid #333350',
+              borderRadius: 6,
+              color: todayVisible ? '#E8E8F0' : '#8888A0',
+              background: todayVisible ? '#2A2A42' : 'transparent',
+            }}
+            onMouseEnter={e => {
+              if (!todayVisible) { e.currentTarget.style.borderColor = '#6C9CFC'; e.currentTarget.style.color = '#E8E8F0'; }
+            }}
+            onMouseLeave={e => {
+              if (!todayVisible) { e.currentTarget.style.borderColor = '#333350'; e.currentTarget.style.color = '#8888A0'; }
+            }}
           >
             Hoje
           </button>
-          <button
-            onClick={() => setWeekOffset(prev => prev + 1)}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+
+          <button onClick={navigateForward} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+            style={{ color: '#8888A0' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-          <span className="hidden md:inline text-[12px] text-muted-foreground ml-2">
-            {format(weekDates[0], "dd MMM", { locale: ptBR })} – {format(weekDates[6], "dd MMM yyyy", { locale: ptBR })}
+
+          {/* Date range */}
+          <span className="hidden md:inline text-[13px] ml-1" style={{ color: '#8888A0' }}>
+            {dateRangeLabel}
           </span>
 
           {/* View toggle */}
-          <div className="ml-1 md:ml-3 flex items-center rounded-md border border-border overflow-hidden">
+          <div className="ml-1 md:ml-3 flex items-center rounded-md overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
             <button
-              onClick={() => toggleViewMode('columns')}
-              className={`flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors ${
-                viewMode === 'columns'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
+              onClick={() => toggleViewMode('3days')}
+              className="px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
+              style={{
+                background: effectiveView === '3days' ? '#6C9CFC' : 'transparent',
+                color: effectiveView === '3days' ? '#0F0F17' : '#8888A0',
+              }}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Colunas</span>
+              3 dias
             </button>
+            {windowWidth >= 1200 && (
+              <button
+                onClick={() => toggleViewMode('week')}
+                className="px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
+                style={{
+                  background: effectiveView === 'week' ? '#6C9CFC' : 'transparent',
+                  color: effectiveView === 'week' ? '#0F0F17' : '#8888A0',
+                }}
+              >
+                Semana
+              </button>
+            )}
             <button
               onClick={() => toggleViewMode('timeline')}
-              className={`flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors ${
-                viewMode === 'timeline'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
+              className="flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
+              style={{
+                background: effectiveView === 'timeline' ? '#6C9CFC' : 'transparent',
+                color: effectiveView === 'timeline' ? '#0F0F17' : '#8888A0',
+              }}
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Timeline</span>
@@ -765,12 +857,12 @@ export function MyWeekView({
         </div>
       </div>
 
-      {/* Views with crossfade */}
+      {/* Content */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Columns view */}
+        {/* Columns view (3days or week) */}
         <div
           className={`absolute inset-0 flex transition-opacity duration-200 ${
-            viewMode === 'columns' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+            effectiveView !== 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
           <DndContext
@@ -784,33 +876,25 @@ export function MyWeekView({
               projects={projects}
               sections={sections}
               tasks={tasks}
-              
               collapsed={sidebarCollapsed}
               onToggle={toggleSidebar}
             />
 
-            <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory md:snap-none">
-              {weekDates.map((dayDate, i) => {
+            <div className="flex-1 flex overflow-x-auto md:overflow-hidden">
+              {visibleDates.map((dayDate) => {
                 const dateKey = format(dayDate, 'yyyy-MM-dd');
                 const dayTasks = tasksByDay[dateKey] || [];
-                const todayStart = startOfDay(new Date());
-                const isPastDay = isBefore(dayDate, todayStart);
                 return (
                   <DayColumn
                     key={dateKey}
                     dayDate={dayDate}
-                    dayLabel={DAY_LABELS[i]}
-                    dayNumber={format(dayDate, 'dd')}
                     tasks={dayTasks}
                     projects={projects}
                     isCurrentDay={isToday(dayDate)}
                     isDragOver={dragOverDay === dateKey}
                     onSelectTask={onSelectTask}
                     selectedTaskId={selectedTaskId}
-                    onStatusChange={onStatusChange}
-                    rolloverTaskIds={rolloverTaskIds}
-                    rolloverDaysMap={rolloverDaysMap}
-                    isGhostDay={isPastDay}
+                    truncateText={effectiveView === 'week'}
                   />
                 );
               })}
@@ -819,25 +903,25 @@ export function MyWeekView({
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
               {activeDragTask ? (
                 <div
-                  className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg border border-primary/30"
-                  style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+                  className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg"
+                  style={{
+                    background: 'hsl(var(--bg-surface))',
+                    borderLeft: `2px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`,
+                    opacity: 0.95,
+                  }}
                 >
-                  <div
-                    className="w-[3px] h-5 rounded-full"
-                    style={{ background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9' }}
-                  />
-                  <span className="text-[12px] text-foreground truncate">{activeDragTask.name}</span>
+                  <span className="text-[12px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
                 </div>
               ) : activeDragSubtask ? (
                 <div
-                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md shadow-lg border border-primary/30"
-                  style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md shadow-lg"
+                  style={{
+                    background: 'hsl(var(--bg-surface))',
+                    borderLeft: `2px solid ${activeDragSubtask.projectColor}`,
+                    opacity: 0.95,
+                  }}
                 >
-                  <div
-                    className="w-[3px] h-4 rounded-full"
-                    style={{ background: activeDragSubtask.projectColor }}
-                  />
-                  <span className="text-[11px] text-foreground truncate">{activeDragSubtask.subtask.name}</span>
+                  <span className="text-[11px] truncate" style={{ color: '#E8E8F0' }}>{activeDragSubtask.subtask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>
@@ -847,14 +931,14 @@ export function MyWeekView({
         {/* Timeline view */}
         <div
           className={`absolute inset-0 transition-opacity duration-200 ${
-            viewMode === 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+            effectiveView === 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
           <WeekTimelineView
             tasks={tasks}
             projects={projects}
             sections={sections}
-            weekDates={weekDates}
+            weekDates={weekDatesForTimeline}
             onUpdateTask={onUpdateTask}
             onStatusChange={onStatusChange}
             onSelectTask={onSelectTask}
@@ -862,6 +946,30 @@ export function MyWeekView({
           />
         </div>
       </div>
+
+      {/* Mobile FAB for Master List */}
+      {windowWidth < 768 && pendingCount > 0 && effectiveView !== 'timeline' && (
+        <button
+          onClick={() => setMobileOverlay(true)}
+          className="fixed bottom-20 left-4 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+          style={{ background: '#2A2A42', border: '1px solid #333350' }}
+        >
+          <List className="w-5 h-5" style={{ color: '#8888A0' }} />
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: '#6C9CFC', color: '#0F0F17' }}>
+            {pendingCount > 99 ? '99' : pendingCount}
+          </span>
+        </button>
+      )}
+
+      {/* Mobile overlay */}
+      {mobileOverlay && (
+        <MasterListOverlay
+          projects={projects}
+          sections={sections}
+          tasks={tasks}
+          onClose={() => setMobileOverlay(false)}
+        />
+      )}
     </div>
   );
 }
