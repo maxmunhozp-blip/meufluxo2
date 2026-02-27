@@ -237,12 +237,14 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          original_due_date: string | null
           parent_task_id: string | null
           position: number
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string
           recurrence_config: Json | null
           recurrence_type: string | null
+          rollover_count: number
           section_id: string
           status: Database["public"]["Enums"]["task_status"]
           title: string
@@ -255,12 +257,14 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          original_due_date?: string | null
           parent_task_id?: string | null
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id: string
           recurrence_config?: Json | null
           recurrence_type?: string | null
+          rollover_count?: number
           section_id: string
           status?: Database["public"]["Enums"]["task_status"]
           title: string
@@ -273,12 +277,14 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          original_due_date?: string | null
           parent_task_id?: string | null
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string
           recurrence_config?: Json | null
           recurrence_type?: string | null
+          rollover_count?: number
           section_id?: string
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
