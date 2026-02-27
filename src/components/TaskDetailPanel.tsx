@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -436,6 +436,134 @@ function ServiceTagPicker({
   );
 }
 
+// Rich description editor — bold + yellow highlight only
+function RichDescription({ value, onChange, placeholder }: { value: string; onChange: (html: string) => void; placeholder: string }) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isBold, setIsBold] = useState(false);
+  const [isHighlight, setIsHighlight] = useState(false);
+
+  // Sync external value only when not focused (avoid cursor jump)
+  useEffect(() => {
+    if (!isFocused && editorRef.current) {
+      const current = editorRef.current.innerHTML;
+      if (current !== value) editorRef.current.innerHTML = value || '';
+    }
+  }, [value, isFocused]);
+
+  const checkFormats = () => {
+    setIsBold(document.queryCommandState('bold'));
+    const bg = document.queryCommandValue('backColor');
+    setIsHighlight(bg === 'rgb(255, 255, 0)' || bg === 'rgba(255, 255, 0, 0.35)' || bg === '#ffff00');
+  };
+
+  const handleInput = () => {
+    if (!editorRef.current) return;
+    onChange(editorRef.current.innerHTML);
+    checkFormats();
+  };
+
+  const toggleBold = (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    document.execCommand('bold');
+    checkFormats();
+  };
+
+  const toggleHighlight = (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    if (isHighlight) {
+      document.execCommand('backColor', false, 'transparent');
+    } else {
+      document.execCommand('backColor', false, 'rgba(255, 255, 0, 0.35)');
+    }
+    checkFormats();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Allow bold shortcut
+    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+      // native execCommand handles it
+      setTimeout(checkFormats, 0);
+      return;
+    }
+    // Ctrl+Shift+H for highlight
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
+      e.preventDefault();
+      if (isHighlight) {
+        document.execCommand('backColor', false, 'transparent');
+      } else {
+        document.execCommand('backColor', false, 'rgba(255, 255, 0, 0.35)');
+      }
+      checkFormats();
+    }
+    // Block all other formatting shortcuts (italic, underline)
+    if ((e.metaKey || e.ctrlKey) && ['i', 'u'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+    }
+  };
+
+  const isEmpty = !value || value === '<br>' || value.replace(/<[^>]*>/g, '').trim() === '';
+
+  return (
+    <div className="relative group">
+      {/* Toolbar — appears on focus */}
+      {isFocused && (
+        <div className="flex items-center gap-1 mb-2">
+          <button
+            onMouseDown={toggleBold}
+            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            style={{
+              color: isBold ? '#E8E8F0' : '#555570',
+              background: isBold ? 'rgba(255,255,255,0.08)' : 'transparent',
+            }}
+            title="Negrito (Ctrl+B)"
+          >
+            <Bold className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onMouseDown={toggleHighlight}
+            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            style={{
+              color: isHighlight ? '#FFFF00' : '#555570',
+              background: isHighlight ? 'rgba(255,255,0,0.1)' : 'transparent',
+            }}
+            title="Destaque amarelo (Ctrl+Shift+H)"
+          >
+            <Highlighter className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        onFocus={() => { setIsFocused(true); checkFormats(); }}
+        onBlur={() => setIsFocused(false)}
+        onKeyDown={handleKeyDown}
+        onKeyUp={checkFormats}
+        onMouseUp={checkFormats}
+        className="w-full min-h-[36px] bg-transparent border-none focus:outline-none"
+        style={{ fontSize: 14, color: '#8888A0', lineHeight: 1.6, padding: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+      />
+      {isEmpty && !isFocused && (
+        <div
+          className="absolute top-0 left-0 pointer-events-none"
+          style={{ fontSize: 14, color: '#555570', lineHeight: 1.6 }}
+        >
+          {placeholder}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
@@ -622,15 +750,12 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             style={{ fontSize: 18, fontWeight: 600, color: '#E8E8F0', lineHeight: 1.4, padding: 0 }}
           />
 
-          {/* 2. Description */}
+          {/* 2. Description — Rich text with bold + yellow highlight */}
           <div className="mb-5">
-            <textarea
-              ref={descRef}
+            <RichDescription
               value={localTask.description || ''}
-              onChange={(e) => { pushUpdateDebounced({ ...localTask, description: e.target.value }); autoResize(e.target); }}
+              onChange={(html) => pushUpdateDebounced({ ...localTask, description: html })}
               placeholder="Adicionar notas..."
-              className="w-full min-h-[36px] bg-transparent border-none focus:outline-none resize-none"
-              style={{ fontSize: 14, color: '#8888A0', lineHeight: 1.6, padding: 0 }}
             />
           </div>
 
