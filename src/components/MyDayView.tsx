@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { format, isToday, parseISO, startOfDay, isBefore, differenceInCalendarDays } from 'date-fns';
+import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, CheckCircle2 } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -54,64 +54,23 @@ function getPeriodOrder(period: DayPeriod): number {
   return 2;
 }
 
-/* ── Progress summary — ADHD principle: celebrate progress ── */
-function ProgressSummary({ total, done }: { total: number; done: number }) {
-  if (total === 0) return null;
-  const pct = Math.round((done / total) * 100);
-  const remaining = total - done;
-
-  return (
-    <div className="flex items-center gap-3 px-1 py-2">
-      {/* Progress bar */}
-      <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'hsl(var(--bg-active))' }}>
-        <div
-          className="h-full rounded-full transition-all duration-500 ease-out"
-          style={{
-            width: `${pct}%`,
-            background: done === total
-              ? 'hsl(var(--status-done))'
-              : 'hsl(var(--primary))',
-          }}
-        />
-      </div>
-      {/* Count */}
-      <span className="text-[12px] font-medium tabular-nums flex-shrink-0" style={{ color: 'hsl(var(--text-secondary))' }}>
-        {done === total ? (
-          <span className="flex items-center gap-1" style={{ color: 'hsl(var(--status-done))' }}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Tudo feito!
-          </span>
-        ) : (
-          `${remaining} ${remaining === 1 ? 'pendente' : 'pendentes'}`
-        )}
-      </span>
-    </div>
-  );
-}
-
-/* ── Sortable task card ── 
- * ADHD research: max 1 auxiliary badge per card.
- * - Project identity = left color bar (already there)
- * - Deadline only when TODAY or OVERDUE (reduce anticipatory anxiety)
- * - No service tag / project name text badge (available in detail panel)
- * - Rollover: subtle icon, not a colored chip
- */
+/* ── Task card — pencil-on-paper aesthetic ── */
 function DayTaskCard({
   task,
   projectColor,
   isSelected,
   onSelect,
   onStatusChange,
-  rolloverDays,
-  subtaskCount,
+  showProjectBadge,
+  projectName,
 }: {
   task: Task;
   projectColor: string;
   isSelected: boolean;
   onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
-  rolloverDays?: number;
-  subtaskCount?: { done: number; total: number };
+  showProjectBadge?: boolean;
+  projectName?: string;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -121,11 +80,8 @@ function DayTaskCard({
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || `transform 150ms cubic-bezier(0.22,1,0.36,1)`,
+    transition: transition || 'transform 150ms cubic-bezier(0.22,1,0.36,1)',
     opacity: isDragging ? 0.9 : 1,
-    scale: isDragging ? '1.02' : completing ? '0.98' : '1',
-    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.4)' : 'none',
-    borderLeft: `3px solid ${projectColor}`,
   };
 
   const handleStatus = (s: TaskStatus) => {
@@ -142,31 +98,30 @@ function DayTaskCard({
 
   const isDone = task.status === 'done';
 
-  // Deadline logic: only show when TODAY or OVERDUE — no "em Xd" anxiety
-  const deadlineHint = useMemo(() => {
-    if (isDone || !task.dueDate) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const [y, m, d] = task.dueDate.split('-').map(Number);
-    const due = new Date(y, m - 1, d);
-    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return 'atrasado';
-    if (diffDays === 0) return 'prazo hoje';
-    return null; // Don't show future deadlines — reduces anticipatory anxiety
-  }, [task.dueDate, isDone]);
-
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 px-4 h-[44px] rounded-lg cursor-pointer group transition-all ${
-        completing ? 'opacity-50' : ''
-      } ${isSelected ? 'ring-1 ring-accent/30' : ''}`}
+      className="flex items-center h-[44px] cursor-pointer group"
       onClick={onSelect}
       role="button"
       tabIndex={0}
+      onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      {/* Drag handle + checkbox */}
+      {/* Project color bar */}
+      <div
+        className="flex-shrink-0 self-stretch rounded-sm"
+        style={{
+          width: 3,
+          borderRadius: 2,
+          background: projectColor,
+          opacity: 0.4,
+        }}
+      />
+      <div className="w-3 flex-shrink-0" />
+
+      {/* Checkbox */}
       <div
         {...attributes}
         {...listeners}
@@ -175,74 +130,59 @@ function DayTaskCard({
       >
         <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
       </div>
+      <div className="w-3 flex-shrink-0" />
 
-      {/* Title — ADHD: always fully legible */}
-      <span className={`flex-1 min-w-0 text-[13px] leading-tight truncate transition-all duration-200 ${
-        isDone ? 'line-through' : ''
-      }`} style={{ color: isDone ? 'hsl(var(--text-muted))' : 'hsl(var(--text-primary))' }}>
+      {/* Title */}
+      <span
+        className={`flex-1 min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${
+          isDone ? 'line-through' : ''
+        }`}
+        style={{
+          color: isDone ? '#E8E8F0' : '#E8E8F0',
+          opacity: isDone || completing ? 0.4 : 1,
+          fontWeight: 400,
+        }}
+      >
         {task.name}
       </span>
 
-      {/* Subtask count — minimal, numeric only */}
-      {subtaskCount && subtaskCount.total > 0 && (
-        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }}>
-          {subtaskCount.done}/{subtaskCount.total}
+      {/* Project badge — only when grouping by service */}
+      {showProjectBadge && projectName && (
+        <span
+          className="flex-shrink-0 ml-2 px-1.5 py-0.5 rounded"
+          style={{ fontSize: 10, color: '#8888A0', background: '#1A1A28' }}
+        >
+          {projectName}
         </span>
       )}
 
-      {/* Rollover — subtle, non-punitive */}
-      {rolloverDays != null && rolloverDays > 0 && (
-        <span className="text-[10px] flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }}>
-          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays}d`}
-        </span>
+      {/* Recurrence — icon only */}
+      {task.recurrenceType && (
+        <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: '#555570' }} />
       )}
-
-      {/* Deadline — only today/overdue, gentle tone */}
-      {deadlineHint && (
-        <span className="text-[10px] font-medium flex-shrink-0" style={{ 
-          color: deadlineHint === 'atrasado' 
-            ? 'hsl(var(--status-overdue))' 
-            : 'hsl(var(--text-secondary))',
-        }}>
-          {deadlineHint}
-        </span>
-      )}
-
-      {/* Recurrence — icon only, ultra-subtle */}
-      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }} />}
     </div>
   );
 }
 
-/* ── Period drop zone ──────────────────── 
- * Research-backed redesign:
- * - NO opacity dimming on past periods (Object Permanence principle)
- * - Current period: subtle accent indicator, NOT spotlight that diminishes others
- * - Past periods with pending tasks: gentle "still available" treatment
- * - All tasks remain equally visible and actionable
- */
+/* ── Period section — minimal, paper-like ── */
 function PeriodSection({
   period,
   tasks,
   projects,
-  isCurrentPeriod,
-  hasPendingTasks,
+  periodState,
   selectedTaskId,
   onSelectTask,
   onStatusChange,
-  rolloverMap,
-  serviceTagMap,
+  showProjectBadge,
 }: {
   period: typeof PERIODS[number];
   tasks: Task[];
   projects: Project[];
-  isCurrentPeriod: boolean;
-  hasPendingTasks: boolean;
+  periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string;
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
-  rolloverMap: Map<string, number>;
-  serviceTagMap: Map<string, string>;
+  showProjectBadge?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `period-${period.key}`,
@@ -250,79 +190,72 @@ function PeriodSection({
   });
 
   const PeriodIcon = period.icon;
-  const doneCount = tasks.filter(t => t.status === 'done').length;
-  const totalCount = tasks.length;
+
+  // Header opacity based on period state
+  const headerOpacity = periodState === 'past' ? 0.4 : periodState === 'current' ? 1 : 0.7;
+  const headerColor = periodState === 'current' ? '#8888A0' : '#555570';
+  const iconColor = periodState === 'current' ? '#8888A0' : '#555570';
 
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl transition-all duration-200 ${
-        isOver ? 'ring-1 ring-primary/40' : ''
-      }`}
-      style={{
-        /* ADHD-friendly: all periods equally visible. 
-         * Current period gets a subtle surface elevation — not a spotlight that diminishes others.
-         * Past periods are NEVER dimmed (Object Permanence). */
-        background: isCurrentPeriod ? 'hsl(var(--bg-surface))' : 'transparent',
-        borderLeft: isCurrentPeriod ? '2px solid hsl(var(--primary))' : '2px solid transparent',
-      }}
+      className={`transition-all duration-200 ${isOver ? 'ring-1 ring-primary/30 rounded-lg' : ''}`}
+      style={{ marginBottom: 24 }}
     >
-      {/* Section header */}
-      <div className="flex items-center gap-2 px-4 py-3">
-        <PeriodIcon className="w-4 h-4 flex-shrink-0" style={{ 
-          color: isCurrentPeriod ? 'hsl(var(--text-primary))' : 'hsl(var(--text-secondary))' 
-        }} />
-        <span className="text-[13px] font-semibold" style={{ 
-          color: isCurrentPeriod ? 'hsl(var(--text-primary))' : 'hsl(var(--text-secondary))' 
-        }}>
+      {/* Section header — floating text only */}
+      <div
+        className="flex items-center gap-1.5 mb-2"
+        style={{ opacity: headerOpacity, height: 20 }}
+      >
+        <PeriodIcon
+          className="flex-shrink-0"
+          style={{ width: 14, height: 14, color: iconColor }}
+        />
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            color: headerColor,
+            letterSpacing: 0.5,
+          }}
+        >
           {period.label}
         </span>
-        {/* Inline micro-progress: non-intrusive count */}
-        {totalCount > 0 && (
-          <span className="text-[11px] ml-auto tabular-nums" style={{ color: 'hsl(var(--text-secondary))' }}>
-            {doneCount === totalCount ? (
-              <span style={{ color: 'hsl(var(--status-done))' }}>✓ {totalCount}</span>
-            ) : (
-              `${doneCount}/${totalCount}`
-            )}
-          </span>
-        )}
       </div>
 
-      {/* Task list */}
-      <div className="px-2 pb-3 space-y-0.5 min-h-[48px]">
-        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map(task => {
-            const project = projects.find(p => p.id === task.projectId);
-            const subtasks = task.subtasks || [];
-            const subtaskCount = subtasks.length > 0
-              ? { done: subtasks.filter(s => s.status === 'done').length, total: subtasks.length }
-              : undefined;
-            return (
-              <DayTaskCard
-                key={task.id}
-                task={task}
-                projectColor={project?.color || 'hsl(var(--primary))'}
-                isSelected={selectedTaskId === task.id}
-                onSelect={() => onSelectTask(task)}
-                onStatusChange={onStatusChange}
-                rolloverDays={rolloverMap.get(task.id)}
-                subtaskCount={subtaskCount}
-              />
-            );
-          })}
-        </SortableContext>
-        {tasks.length === 0 && (
-          <div className="flex items-center h-[40px] px-4">
-            <span className="text-[12px] italic" style={{ color: 'hsl(var(--text-muted))' }}>Sem tarefas</span>
-          </div>
-        )}
-      </div>
+      {/* Tasks */}
+      {tasks.length > 0 && (
+        <div className="space-y-0.5">
+          <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            {tasks.map(task => {
+              const project = projects.find(p => p.id === task.projectId);
+              const isDone = task.status === 'done';
+              // Past period: completed tasks at 0.3 opacity, incomplete normal
+              const taskOpacity = periodState === 'past' && isDone ? 0.3 : 1;
+
+              return (
+                <div key={task.id} style={{ opacity: taskOpacity }}>
+                  <DayTaskCard
+                    task={task}
+                    projectColor={project?.color || '#6C9CFC'}
+                    isSelected={selectedTaskId === task.id}
+                    onSelect={() => onSelectTask(task)}
+                    onStatusChange={onStatusChange}
+                    showProjectBadge={showProjectBadge}
+                    projectName={project?.name}
+                  />
+                </div>
+              );
+            })}
+          </SortableContext>
+        </div>
+      )}
+      {/* Empty section: nothing rendered — intentional silence */}
     </div>
   );
 }
 
-/* ── Main MyDayView ────────────────────── */
+/* ── Main MyDayView ── */
 export function MyDayView({
   tasks,
   projects,
@@ -338,26 +271,25 @@ export function MyDayView({
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
-  // Tasks for today + overdue rollover tasks
+  // Tasks for today + overdue rollover
   const { todayTasks, rolloverMap } = useMemo(() => {
     const todayStart = startOfDay(new Date());
     const scheduled: Task[] = [];
-    
+
     tasks.forEach(t => {
       if (t.parentTaskId) return;
-      
+
       let isScheduled = false;
       if (t.scheduledDate === todayStr) isScheduled = true;
       else if (t.dueDate === todayStr && !t.scheduledDate) isScheduled = true;
-      
-      if (isScheduled) {
-        scheduled.push(t);
-      }
+
+      if (isScheduled) scheduled.push(t);
 
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach(sub => {
@@ -376,7 +308,7 @@ export function MyDayView({
           if (sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
         });
       };
-      
+
       if (t.subtasks) findScheduledSubtasks(t.subtasks, t);
     });
 
@@ -387,7 +319,7 @@ export function MyDayView({
       if (t.parentTaskId || t.status === 'done' || !t.dueDate) return;
       if (scheduled.some(s => s.id === t.id)) return;
       if (t.scheduledDate) return;
-      
+
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
         const days = t.rolloverCount && t.rolloverCount > 0
@@ -410,18 +342,14 @@ export function MyDayView({
     return map;
   }, [todayTasks, rolloverMap]);
 
-  // Global progress for summary
-  const globalProgress = useMemo(() => {
-    const total = todayTasks.length;
-    const done = todayTasks.filter(t => t.status === 'done').length;
-    return { total, done };
+  // All done detection
+  const allDone = useMemo(() => {
+    return todayTasks.length > 0 && todayTasks.every(t => t.status === 'done');
   }, [todayTasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
-    if (data?.type === 'day-task') {
-      setActiveDragId(data.task.id);
-    }
+    if (data?.type === 'day-task') setActiveDragId(data.task.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -452,12 +380,7 @@ export function MyDayView({
 
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
   const firstName = userName?.split(' ')[0] || 'Usuário';
-
-  const serviceTagMap = useMemo(() => {
-    const map = new Map<string, string>();
-    serviceTags.forEach(t => map.set(t.id, t.name));
-    return map;
-  }, [serviceTags]);
+  const allEmpty = todayTasks.length === 0;
 
   const tasksByService = useMemo(() => {
     const map: Record<string, Task[]> = {};
@@ -469,79 +392,109 @@ export function MyDayView({
     return map;
   }, [todayTasks]);
 
-  const allEmpty = todayTasks.length === 0;
-
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
-      <div className="px-6 pt-6 pb-2 flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
-        <div className="flex items-center justify-between">
+      <div className="px-6 pt-6 flex-shrink-0">
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-[22px] font-bold" style={{ color: 'hsl(var(--text-primary))' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 600, color: '#E8E8F0', lineHeight: 1.3 }}>
               {getGreeting()}, {firstName}
             </h1>
-            <p className="text-[13px] mt-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
+            <p style={{ fontSize: 13, fontWeight: 400, color: '#8888A0', marginTop: 4 }}>
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Dropdown "Por seção" */}
             {serviceTags.length > 0 && (
-              <select
-                value={groupMode}
-                onChange={e => setGroupMode(e.target.value as GroupMode)}
-                className="h-8 px-2 text-[11px] bg-transparent border rounded-lg focus:outline-none cursor-pointer [color-scheme:dark]"
-                style={{ color: 'hsl(var(--text-secondary))', borderColor: 'hsl(var(--border-subtle))' }}
-              >
-                <option value="period">Por seção</option>
-                <option value="service">Por serviço</option>
-              </select>
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-1 h-8 px-2 transition-colors"
+                  style={{ color: '#555570', fontSize: 12 }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+                  onMouseLeave={e => { if (!dropdownOpen) e.currentTarget.style.color = '#555570'; }}
+                >
+                  {groupMode === 'period' ? 'Por seção' : 'Por serviço'}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {dropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+                    <div
+                      className="absolute right-0 top-9 z-50 w-32 rounded-lg border overflow-hidden py-1"
+                      style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                    >
+                      <button
+                        onClick={() => { setGroupMode('period'); setDropdownOpen(false); }}
+                        className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-white/5"
+                        style={{ color: groupMode === 'period' ? '#E8E8F0' : '#8888A0' }}
+                      >
+                        Por seção
+                      </button>
+                      <button
+                        onClick={() => { setGroupMode('service'); setDropdownOpen(false); }}
+                        className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-white/5"
+                        style={{ color: groupMode === 'service' ? '#E8E8F0' : '#8888A0' }}
+                      >
+                        Por serviço
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
+
+            {/* Focar button */}
             <button
-              className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium transition-colors"
-              style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}
+              className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[13px] transition-colors"
+              style={{ background: 'transparent', border: '1px solid #333350', color: '#8888A0', borderRadius: 8 }}
               onClick={() => setFocusModeOpen(true)}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#6C9CFC';
+                e.currentTarget.style.color = '#E8E8F0';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#333350';
+                e.currentTarget.style.color = '#8888A0';
+              }}
             >
               <Target className="w-3.5 h-3.5" />
               Focar
             </button>
           </div>
         </div>
-
-        {/* Progress summary — ADHD: celebrate progress, show remaining clearly */}
-        <div className="mt-3 max-w-[640px] mx-auto">
-          <ProgressSummary total={globalProgress.total} done={globalProgress.done} />
-        </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-6 pb-8">
+      <div className="flex-1 overflow-y-auto px-6 pb-8" style={{ paddingTop: 32 }}>
         {groupMode === 'service' ? (
-          <div className="space-y-6 max-w-[640px] mx-auto">
+          /* ── Service grouping ── */
+          <div className="max-w-[640px] mx-auto">
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem serviço';
               return (
-                <div key={tagId} className="rounded-xl" style={{ background: 'hsl(var(--bg-surface))' }}>
-                  <div className="flex items-center gap-2 px-4 py-3">
-                    {TagIcon && <TagIcon className="w-4 h-4" style={{ color: 'hsl(var(--text-secondary))' }} />}
-                    <span className="text-[13px] font-semibold" style={{ color: 'hsl(var(--text-primary))' }}>{label}</span>
-                    <span className="text-[11px] ml-auto" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {tagTasks.filter(t => t.status !== 'done').length} {tagTasks.filter(t => t.status !== 'done').length === 1 ? 'tarefa' : 'tarefas'}
-                    </span>
+                <div key={tagId} style={{ marginBottom: 24 }}>
+                  <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
+                    {TagIcon && <TagIcon style={{ width: 14, height: 14, color: '#555570' }} />}
+                    <span style={{ fontSize: 12, fontWeight: 500, color: '#555570', letterSpacing: 0.5 }}>{label}</span>
                   </div>
-                  <div className="px-2 pb-3 space-y-0.5">
+                  <div className="space-y-0.5">
                     {tagTasks.map(task => {
                       const project = projects.find(p => p.id === task.projectId);
                       return (
                         <DayTaskCard
                           key={task.id}
                           task={task}
-                          projectColor={project?.color || 'hsl(var(--primary))'}
+                          projectColor={project?.color || '#6C9CFC'}
                           isSelected={selectedTaskId === task.id}
                           onSelect={() => onSelectTask(task)}
                           onStatusChange={onStatusChange}
-                          rolloverDays={rolloverMap.get(task.id)}
+                          showProjectBadge
+                          projectName={project?.name}
                         />
                       );
                     })}
@@ -550,47 +503,49 @@ export function MyDayView({
               );
             })}
             {allEmpty && (
-              <div className="flex flex-col items-center justify-center h-full gap-3 pt-12">
-                <p className="text-[14px]" style={{ color: 'hsl(var(--text-secondary))' }}>Nenhuma tarefa para hoje.</p>
-                <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: 'hsl(var(--primary))' }}>
-                  Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <EmptyState onNavigateToWeek={onNavigateToWeek} />
             )}
           </div>
         ) : (
+          /* ── Period grouping (default) ── */
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="space-y-4 max-w-[640px] mx-auto">
+            <div className="max-w-[640px] mx-auto">
               {PERIODS.map(period => {
                 const periodTasks = tasksByPeriod[period.key];
-                const hasPending = periodTasks.some(t => t.status !== 'done');
+                const periodOrder = getPeriodOrder(period.key);
+                const periodState: 'past' | 'current' | 'future' =
+                  periodOrder < currentPeriodOrder ? 'past' :
+                  periodOrder === currentPeriodOrder ? 'current' : 'future';
+
                 return (
                   <PeriodSection
                     key={period.key}
                     period={period}
                     tasks={periodTasks}
                     projects={projects}
-                    isCurrentPeriod={currentPeriod === period.key}
-                    hasPendingTasks={hasPending}
+                    periodState={periodState}
                     selectedTaskId={selectedTaskId}
                     onSelectTask={onSelectTask}
                     onStatusChange={onStatusChange}
-                    rolloverMap={rolloverMap}
-                    serviceTagMap={serviceTagMap}
                   />
                 );
               })}
 
               {allEmpty && (
-                <div className="flex flex-col items-center gap-3 pt-4">
-                  <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: 'hsl(var(--primary))' }}>
-                    Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                <EmptyState onNavigateToWeek={onNavigateToWeek} />
+              )}
+
+              {/* All done message — calm acknowledgment */}
+              {allDone && (
+                <div className="flex items-center justify-center pt-4">
+                  <span style={{ fontSize: 14, fontWeight: 400, color: '#50FA7B', opacity: 0.6 }}>
+                    Tudo feito por hoje ✓
+                  </span>
                 </div>
               )}
             </div>
@@ -598,10 +553,14 @@ export function MyDayView({
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
               {activeDragTask ? (
                 <div
-                  className="h-[40px] flex items-center gap-2 px-3 rounded-lg shadow-lg"
-                  style={{ background: 'hsl(var(--bg-surface))', borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'hsl(var(--primary))'}`, opacity: 0.95 }}
+                  className="h-[44px] flex items-center gap-2 px-3 rounded-lg shadow-lg"
+                  style={{
+                    background: 'hsl(var(--bg-surface))',
+                    borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`,
+                    opacity: 0.95,
+                  }}
                 >
-                  <span className="text-[13px] truncate" style={{ color: 'hsl(var(--text-primary))' }}>{activeDragTask.name}</span>
+                  <span className="text-[14px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>
@@ -618,6 +577,21 @@ export function MyDayView({
           onClose={() => setFocusModeOpen(false)}
         />
       )}
+    </div>
+  );
+}
+
+/* ── Empty state — minimal link ── */
+function EmptyState({ onNavigateToWeek }: { onNavigateToWeek: () => void }) {
+  return (
+    <div className="flex items-center justify-center pt-8">
+      <button
+        onClick={onNavigateToWeek}
+        className="text-[13px] transition-colors hover:underline"
+        style={{ color: '#6C9CFC' }}
+      >
+        Planeje na Minha Semana →
+      </button>
     </div>
   );
 }
