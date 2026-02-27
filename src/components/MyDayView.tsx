@@ -245,7 +245,10 @@ export function MyDayView({
       if (t.parentTaskId || t.status === 'done' || !t.dueDate || t.dueDate === todayStr) return;
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
-        const days = differenceInCalendarDays(todayStart, dueDate);
+        // Use server-side rollover_count if available, fall back to calculation
+        const days = t.rolloverCount && t.rolloverCount > 0
+          ? t.rolloverCount
+          : differenceInCalendarDays(todayStart, dueDate);
         rMap.set(t.id, days);
         overdue.push(t);
       }
