@@ -52,7 +52,7 @@ const Index = () => {
     createTask, updateTask, deleteTask: deleteTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
-    addSubtask, updateSubtask, deleteSubtask, reorderSubtasks,
+    addSubtask, updateSubtask, deleteSubtask, reorderSubtasks, scheduleSubtask,
     duplicateProject,
     uploadAttachment, deleteAttachment,
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
@@ -700,6 +700,7 @@ const Index = () => {
             onUpdateTask={handleUpdateTask}
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
+            onScheduleSubtask={scheduleSubtask}
             selectedTaskId={selectedTaskId || undefined}
             isPro={planLimits.isPro}
             onUpgrade={() => setShowUpgradeModal(true)}

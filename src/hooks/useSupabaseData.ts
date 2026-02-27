@@ -74,6 +74,7 @@ interface UseSupabaseDataReturn {
   duplicateProject: (projectId: string, mode: 'sections' | 'tasks' | 'both') => Promise<string>;
   addSubtask: (parentTaskId: string, name: string) => Promise<void>;
   updateSubtask: (subtaskId: string, updates: { name?: string; status?: TaskStatus }) => Promise<void>;
+  scheduleSubtask: (subtaskId: string, scheduledDate: string) => Promise<void>;
   deleteSubtask: (parentTaskId: string, subtaskId: string) => Promise<void>;
   reorderSubtasks: (parentTaskId: string, subtaskIds: string[]) => Promise<void>;
   uploadAttachment: (taskId: string, file: File) => Promise<void>;
@@ -982,6 +983,23 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     })));
   }, []);
 
+  const scheduleSubtaskFn = useCallback(async (subtaskId: string, scheduledDate: string) => {
+    await supabase.from('tasks').update({ scheduled_date: scheduledDate }).eq('id', subtaskId);
+    // Update local state — find the subtask in any parent and set its dueDate (used as display)
+    setTasksState(prev => prev.map(t => ({
+      ...t,
+      subtasks: (t.subtasks || []).map(s => {
+        if (s.id === subtaskId) return { ...s, dueDate: scheduledDate };
+        return {
+          ...s,
+          subtasks: (s.subtasks || []).map(ss =>
+            ss.id === subtaskId ? { ...ss, dueDate: scheduledDate } : ss
+          ),
+        };
+      }),
+    })));
+  }, []);
+
   const deleteSubtaskFn = useCallback(async (parentTaskId: string, subtaskId: string) => {
     await supabase.from('tasks').delete().eq('id', subtaskId);
     setTasksState(prev => prev.map(t => {
@@ -1318,6 +1336,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     duplicateProject: duplicateProjectFn,
     addSubtask: addSubtaskFn,
     updateSubtask: updateSubtaskFn,
+    scheduleSubtask: scheduleSubtaskFn,
     deleteSubtask: deleteSubtaskFn,
     reorderSubtasks: reorderSubtasksFn,
     uploadAttachment,
