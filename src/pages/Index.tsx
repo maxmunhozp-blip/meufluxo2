@@ -792,6 +792,7 @@ const Index = () => {
                         action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection })}>Desfazer</ToastAction>,
                       });
                     }}
+                    onAddSubtask={addSubtask}
                   />
                 );
               })}
