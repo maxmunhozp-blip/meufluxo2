@@ -35,6 +35,7 @@ interface TaskSectionProps {
   taskDropPosition?: 'top' | 'bottom' | null;
   allSections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
+  projectColor?: string;
 }
 
 export function TaskSection({
@@ -63,6 +64,7 @@ export function TaskSection({
   taskDropPosition,
   allSections,
   onMoveToSection,
+  projectColor,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -193,6 +195,7 @@ export function TaskSection({
                 selectedSubtaskId={selectedTaskId}
                 isDragSource={activeTaskId === task.id}
                 dropIndicator={overTaskId === task.id ? taskDropPosition : null}
+                projectColor={projectColor}
                 onSelect={onSelectTask}
                 onStatusChange={onStatusChange}
                 onSubtaskStatusChange={onSubtaskStatusChange}

@@ -16,6 +16,7 @@ interface SortableTaskRowProps {
   selectedSubtaskId?: string;
   isDragSource?: boolean;
   dropIndicator?: 'top' | 'bottom' | null;
+  projectColor?: string;
   onSelect: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
@@ -144,7 +145,7 @@ function SubtaskDndWrapper({ subtasks, taskId, selectedSubtaskId, onSelectSubtas
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection }: SortableTaskRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(task.name);
@@ -183,136 +184,142 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   return (
     <div ref={setNodeRef} data-task-id={task.id} className="relative">
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
-      <div
-        onClick={() => {
-          if (isRenaming) return;
-          if (clickTimer.current) clearTimeout(clickTimer.current);
-          clickTimer.current = setTimeout(() => { onSelect(task); clickTimer.current = null; }, 250);
-        }}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-          if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
-          startRename();
-        }}
-        onContextMenu={handleContextMenu}
-        className={`group h-9 md:h-9 min-h-[44px] md:min-h-0 border-b border-nd-border cursor-pointer transition-all duration-300 ease-out relative ${
-          isSelected ? 'bg-nd-active' : 'hover:bg-nd-hover'
-        } ${isDragSource ? 'opacity-40' : ''}`}
-        style={{ opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined }}
-      >
-        {/* Drag handle */}
+      <div className="flex">
+        {/* Project color bar */}
+        {projectColor && (
+          <div className="w-[3px] flex-shrink-0 rounded-l-sm" style={{ background: projectColor }} />
+        )}
         <div
-          {...attributes}
-          {...listeners}
-          className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
-        >
-          <GripVertical className="w-4 h-4 text-nd-text-muted" />
-        </div>
-
-        <div
-          className="h-full px-4 md:px-6"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr minmax(60px, auto) minmax(40px, auto)',
-            alignItems: 'center',
+          className={`flex-1 min-w-0 group h-9 md:h-9 min-h-[44px] md:min-h-0 border-b border-border cursor-pointer transition-all duration-300 ease-out relative ${
+            isSelected ? 'bg-accent' : 'hover:bg-accent/50'
+          } ${isDragSource ? 'opacity-40' : ''}`}
+          style={{ opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined }}
+          onClick={() => {
+            if (isRenaming) return;
+            if (clickTimer.current) clearTimeout(clickTimer.current);
+            clickTimer.current = setTimeout(() => { onSelect(task); clickTimer.current = null; }, 250);
           }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+            startRename();
+          }}
+          onContextMenu={handleContextMenu}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            {hasSubtasks ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                className="w-5 h-5 flex items-center justify-center rounded hover:bg-nd-hover transition-colors duration-100 flex-shrink-0"
-              >
-                <Play
-                  className={`w-3 h-3 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
-                />
-              </button>
-            ) : (
-              <span className="w-5 flex-shrink-0" />
-            )}
-            <StatusCheckbox
-              status={task.status}
-              onChange={(s) => onStatusChange(task.id, s)}
-            />
-            {isRenaming ? (
-              <input
-                ref={renameRef}
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') confirmRename();
-                  if (e.key === 'Escape') setIsRenaming(false);
-                }}
-                onBlur={confirmRename}
-                onClick={(e) => e.stopPropagation()}
-                onDoubleClick={(e) => e.stopPropagation()}
-                className="flex-1 h-6 px-1 text-[14px] text-nd-text bg-nd-input rounded border border-primary focus:outline-none min-w-0"
-              />
-            ) : (
-              <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
-                {task.name}
-              </span>
-            )}
-            {task.recurrenceType && (
-              <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
-            )}
-            {task.members && task.members.length > 0 && (
-              <div className="flex items-center -space-x-1.5 flex-shrink-0">
-                {task.members.slice(0, 3).map((m) => (
-                  <div
-                    key={m.userId}
-                    title={m.fullName || ''}
-                    className="w-5 h-5 rounded-full border border-nd-bg-surface flex items-center justify-center text-[9px] font-medium bg-primary/20 text-primary overflow-hidden"
-                  >
-                    {m.avatarUrl ? (
-                      <img src={m.avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      (m.fullName || '?').charAt(0).toUpperCase()
-                    )}
-                  </div>
-                ))}
-                {task.members.length > 3 && (
-                  <div className="w-5 h-5 rounded-full border border-nd-bg-surface flex items-center justify-center text-[9px] font-medium bg-nd-hover text-nd-text-secondary">
-                    +{task.members.length - 3}
-                  </div>
-                )}
-              </div>
-            )}
-            {hasSubtasks && !expanded && (() => {
-              const subs = task.subtasks!;
-              const done = subs.filter(s => s.status === 'done').length;
-              const inProg = subs.filter(s => s.status === 'in_progress').length;
-              const total = subs.length;
-              const donePct = (done / total) * 100;
-              const progPct = (inProg / total) * 100;
-              const allDone = done === total;
-              return (
-                <span className="flex items-center gap-1 flex-shrink-0">
-                  <span className="w-8 h-[2.5px] rounded-full bg-nd-hover overflow-hidden flex">
-                    <span className="h-full" style={{ width: `${donePct}%`, background: 'hsl(var(--status-done))' }} />
-                    <span className="h-full" style={{ width: `${progPct}%`, background: 'hsl(var(--status-progress))' }} />
-                  </span>
-                  {allDone && <span className="text-[10px] text-nd-done">✓</span>}
-                </span>
-              );
-            })()}
-            {task.comments && task.comments.length > 0 && (
-              <span className="flex items-center gap-1 flex-shrink-0">
-                <MessageSquare className="w-3.5 h-3.5 text-nd-text-secondary" />
-                <span className="text-[12px] text-nd-text-secondary">{task.comments.length}</span>
-              </span>
-            )}
+          {/* Drag handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
+          >
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
 
-          <span className={`text-[12px] truncate hidden md:block ${isDone ? 'text-nd-text-completed' : 'text-nd-text-secondary'}`}>
-            {task.assignee || ''}
-          </span>
+          <div
+            className="h-full px-4 md:px-6"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr minmax(60px, auto) minmax(40px, auto)',
+              alignItems: 'center',
+            }}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              {hasSubtasks ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-accent/50 transition-colors duration-100 flex-shrink-0"
+                >
+                  <Play
+                    className={`w-3 h-3 text-muted-foreground fill-muted-foreground transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
+                  />
+                </button>
+              ) : (
+                <span className="w-5 flex-shrink-0" />
+              )}
+              <StatusCheckbox
+                status={task.status}
+                onChange={(s) => onStatusChange(task.id, s)}
+              />
+              {isRenaming ? (
+                <input
+                  ref={renameRef}
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmRename();
+                    if (e.key === 'Escape') setIsRenaming(false);
+                  }}
+                  onBlur={confirmRename}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  className="flex-1 h-6 px-1 text-[14px] text-foreground bg-input rounded border border-primary focus:outline-none min-w-0"
+                />
+              ) : (
+                <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : 'text-foreground'}`}>
+                  {task.name}
+                </span>
+              )}
+              {task.recurrenceType && (
+                <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
+              )}
+              {task.members && task.members.length > 0 && (
+                <div className="flex items-center -space-x-1.5 flex-shrink-0">
+                  {task.members.slice(0, 3).map((m) => (
+                    <div
+                      key={m.userId}
+                      title={m.fullName || ''}
+                      className="w-5 h-5 rounded-full border border-background flex items-center justify-center text-[9px] font-medium bg-primary/20 text-primary overflow-hidden"
+                    >
+                      {m.avatarUrl ? (
+                        <img src={m.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        (m.fullName || '?').charAt(0).toUpperCase()
+                      )}
+                    </div>
+                  ))}
+                  {task.members.length > 3 && (
+                    <div className="w-5 h-5 rounded-full border border-background flex items-center justify-center text-[9px] font-medium bg-muted text-muted-foreground">
+                      +{task.members.length - 3}
+                    </div>
+                  )}
+                </div>
+              )}
+              {hasSubtasks && !expanded && (() => {
+                const subs = task.subtasks!;
+                const done = subs.filter(s => s.status === 'done').length;
+                const inProg = subs.filter(s => s.status === 'in_progress').length;
+                const total = subs.length;
+                const donePct = (done / total) * 100;
+                const progPct = (inProg / total) * 100;
+                const allDone = done === total;
+                return (
+                  <span className="flex items-center gap-1 flex-shrink-0">
+                    <span className="w-8 h-[2.5px] rounded-full bg-muted overflow-hidden flex">
+                      <span className="h-full" style={{ width: `${donePct}%`, background: 'hsl(var(--status-done))' }} />
+                      <span className="h-full" style={{ width: `${progPct}%`, background: 'hsl(var(--status-progress))' }} />
+                    </span>
+                    {allDone && <span className="text-[10px]" style={{ color: 'hsl(var(--status-done))' }}>✓</span>}
+                  </span>
+                );
+              })()}
+              {task.comments && task.comments.length > 0 && (
+                <span className="flex items-center gap-1 flex-shrink-0">
+                  <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[12px] text-muted-foreground">{task.comments.length}</span>
+                </span>
+              )}
+            </div>
 
-          <span className={`text-[12px] hidden md:block ${
-            isDone ? 'text-nd-text-completed' : overdue ? 'text-nd-overdue font-medium' : 'text-nd-text-secondary'
-          }`}>
-            {formatDate(task.dueDate)}
-          </span>
+            <span className={`text-[12px] truncate hidden md:block ${isDone ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+              {task.assignee || ''}
+            </span>
+
+            <span className={`text-[12px] hidden md:block ${
+              isDone ? 'text-muted-foreground' : overdue ? 'font-medium' : 'text-muted-foreground'
+            }`} style={overdue && !isDone ? { color: 'hsl(var(--status-overdue))' } : undefined}>
+              {formatDate(task.dueDate)}
+            </span>
+          </div>
         </div>
       </div>
 
