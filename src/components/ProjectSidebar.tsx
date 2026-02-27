@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -9,6 +9,7 @@ import { ContextMenu } from './ContextMenu';
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { ProjectMembersModal } from './ProjectMembersModal';
 import type { Workspace, WorkspaceMember } from '@/hooks/useSupabaseData';
+import { HowToUseModal } from './HowToUseModal';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
@@ -150,6 +151,7 @@ export function ProjectSidebar({
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showHowToUse, setShowHowToUse] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -402,6 +404,14 @@ export function ProjectSidebar({
             >
               Importar dados (JSON)
             </button>
+            <div className="h-px mx-2 my-1" style={{ background: 'hsl(var(--border))' }} />
+            <button
+              onClick={() => { setShowHowToUse(true); setShowSettings(false); }}
+              className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors flex items-center gap-2"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+              Como usar
+            </button>
           </div>
         )}
 
@@ -534,6 +544,8 @@ export function ProjectSidebar({
           onClose={() => setProjectMembersModal(null)}
         />
       )}
+
+      <HowToUseModal isOpen={showHowToUse} onClose={() => setShowHowToUse(false)} />
     </aside>
   );
 }
