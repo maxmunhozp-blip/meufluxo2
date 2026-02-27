@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -205,7 +205,7 @@ export function ProjectSidebar({
           className={navItemClass(!!isMyDayView)}
           style={{ minHeight: 44, background: isMyDayView ? 'hsl(var(--sidebar-active))' : undefined }}
         >
-          <span className="text-[18px] flex-shrink-0 leading-none">☀️</span>
+          <Sun className="w-[18px] h-[18px] flex-shrink-0 text-muted-foreground" />
           <span className="truncate flex-1 text-left">Meu Dia</span>
           {dayCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{dayCount}</span>
@@ -218,7 +218,7 @@ export function ProjectSidebar({
           className={navItemClass(!!isMyWeekView)}
           style={{ minHeight: 44, background: isMyWeekView ? 'hsl(var(--sidebar-active))' : undefined }}
         >
-          <span className="text-[18px] flex-shrink-0 leading-none">📅</span>
+          <CalendarDays className="w-[18px] h-[18px] flex-shrink-0 text-muted-foreground" />
           <span className="truncate flex-1 text-left">Minha Semana</span>
           {weekCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{weekCount}</span>
