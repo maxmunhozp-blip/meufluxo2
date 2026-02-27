@@ -4,7 +4,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  DndContext, closestCenter, pointerWithin, PointerSensor, useSensor, useSensors,
   DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay,
   useDroppable,
 } from '@dnd-kit/core';
@@ -23,7 +23,7 @@ interface MyWeekViewProps {
   onUpdateTask: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
-  onScheduleSubtask?: (subtaskId: string, scheduledDate: string) => Promise<void>;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => Promise<void>;
   selectedTaskId?: string;
   isPro?: boolean;
   onUpgrade?: () => void;
@@ -219,7 +219,7 @@ function DayColumn({
   );
 }
 
-// -- Master List sidebar for dragging tasks from --
+// -- Master List sidebar for dragging tasks from (and back to unschedule) --
 function WeekSourceSidebar({
   projects,
   sections,
@@ -283,8 +283,19 @@ function WeekSourceSidebar({
     );
   }
 
+  const { setNodeRef: masterListDropRef, isOver: isMasterListOver } = useDroppable({
+    id: 'master-list-drop',
+    data: { type: 'master-list-drop' },
+  });
+
   return (
-    <div className="hidden md:flex w-[260px] flex-shrink-0 border-r border-nd-border flex-col" style={{ background: 'hsl(var(--bg-sidebar))' }}>
+    <div
+      ref={masterListDropRef}
+      className={`hidden md:flex w-[260px] flex-shrink-0 border-r flex-col transition-colors duration-200 ${
+        isMasterListOver ? 'border-primary/40' : 'border-nd-border'
+      }`}
+      style={{ background: isMasterListOver ? 'hsl(var(--primary) / 0.04)' : 'hsl(var(--bg-sidebar))' }}
+    >
       {/* Header */}
       <div className="px-3 pt-3 pb-2 border-b border-nd-border">
         <div className="flex items-center justify-between mb-2">
@@ -330,7 +341,6 @@ function WeekSourceSidebar({
                 <div className="ml-1">
                   {sectionGroups.map(({ section, tasks: sectionTasks }) => (
                     <div key={section.id}>
-                      {/* Section label (only show if more than one section) */}
                       {sectionGroups.length > 1 && (
                         <div className="px-4 py-1">
                           <span className="text-[10px] uppercase tracking-wider text-nd-text-muted font-medium">
@@ -360,9 +370,11 @@ function WeekSourceSidebar({
         )}
       </div>
 
-      {/* Footer hint */}
+      {/* Footer hint — contextual */}
       <div className="px-3 py-2 border-t border-nd-border">
-        <span className="text-[10px] text-nd-text-muted">Arraste tarefas para agendar na semana</span>
+        <span className="text-[10px] text-nd-text-muted">
+          {isMasterListOver ? '← Solte para desagendar' : 'Arraste tarefas para agendar na semana'}
+        </span>
       </div>
     </div>
   );
@@ -670,6 +682,18 @@ export function MyWeekView({
       return;
     }
 
+    // Week task dropped onto Master List → unschedule
+    if (activeData?.type === 'week-task' && overData?.type === 'master-list-drop') {
+      const task = activeData.task as Task;
+      // If it's a subtask (has parentTaskId), unschedule via subtask handler
+      if (task.parentTaskId) {
+        onScheduleSubtask?.(task.id, null);
+      } else {
+        onUpdateTask({ ...task, scheduledDate: undefined });
+      }
+      return;
+    }
+
     // Reorder within same day
     if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
       return;
@@ -749,7 +773,7 @@ export function MyWeekView({
         >
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={pointerWithin}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
