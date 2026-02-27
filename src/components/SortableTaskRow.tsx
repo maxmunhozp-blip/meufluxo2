@@ -280,16 +280,9 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   )}
                 </div>
               )}
-              {hasSubtasks && !expanded && (() => {
-                const subs = task.subtasks!;
-                const done = subs.filter(s => s.status === 'done').length;
-                const total = subs.length;
-                return (
-                  <span className="text-[11px] flex-shrink-0" style={{ color: '#8888A0' }}>
-                    {done}/{total}
-                  </span>
-                );
-              })()}
+              {/* Subtask count removed: research shows fraction counters (0/3) trigger 
+                 "completion anxiety" in ADHD — the expand chevron already signals subtasks exist.
+                 Progressive disclosure: expand to see individual statuses. */}
               {task.comments && task.comments.length > 0 && (
                 <span className="flex items-center gap-1 flex-shrink-0">
                   <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
