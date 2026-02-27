@@ -109,6 +109,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          workspace_id: string | null
         }
         Insert: {
           archived?: boolean
@@ -116,6 +117,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          workspace_id?: string | null
         }
         Update: {
           archived?: boolean
@@ -123,8 +125,17 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sections: {
         Row: {
@@ -133,6 +144,7 @@ export type Database = {
           name: string
           position: number
           project_id: string
+          workspace_id: string | null
         }
         Insert: {
           created_at?: string
@@ -140,6 +152,7 @@ export type Database = {
           name: string
           position?: number
           project_id: string
+          workspace_id?: string | null
         }
         Update: {
           created_at?: string
@@ -147,6 +160,7 @@ export type Database = {
           name?: string
           position?: number
           project_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -154,6 +168,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -248,6 +269,7 @@ export type Database = {
           section_id: string
           status: Database["public"]["Enums"]["task_status"]
           title: string
+          workspace_id: string | null
         }
         Insert: {
           assignee?: string | null
@@ -268,6 +290,7 @@ export type Database = {
           section_id: string
           status?: Database["public"]["Enums"]["task_status"]
           title: string
+          workspace_id?: string | null
         }
         Update: {
           assignee?: string | null
@@ -288,6 +311,7 @@ export type Database = {
           section_id?: string
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -311,18 +335,115 @@ export type Database = {
             referencedRelation: "sections"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workspace_members: {
+        Row: {
+          accepted_at: string | null
+          id: string
+          invited_at: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_workspace_member: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "super_admin" | "admin" | "member"
       task_priority: "high" | "medium" | "low"
       task_status: "pending" | "in_progress" | "done"
+      workspace_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -450,8 +571,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["super_admin", "admin", "member"],
       task_priority: ["high", "medium", "low"],
       task_status: ["pending", "in_progress", "done"],
+      workspace_role: ["owner", "admin", "member"],
     },
   },
 } as const
