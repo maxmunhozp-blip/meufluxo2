@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -52,6 +52,41 @@ function getPeriodOrder(period: DayPeriod): number {
   if (period === 'morning') return 0;
   if (period === 'afternoon') return 1;
   return 2;
+}
+
+/* ── Progress summary — ADHD principle: celebrate progress ── */
+function ProgressSummary({ total, done }: { total: number; done: number }) {
+  if (total === 0) return null;
+  const pct = Math.round((done / total) * 100);
+  const remaining = total - done;
+
+  return (
+    <div className="flex items-center gap-3 px-1 py-2">
+      {/* Progress bar */}
+      <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'hsl(var(--bg-active))' }}>
+        <div
+          className="h-full rounded-full transition-all duration-500 ease-out"
+          style={{
+            width: `${pct}%`,
+            background: done === total
+              ? 'hsl(var(--status-done))'
+              : 'hsl(var(--primary))',
+          }}
+        />
+      </div>
+      {/* Count */}
+      <span className="text-[12px] font-medium tabular-nums flex-shrink-0" style={{ color: 'hsl(var(--text-secondary))' }}>
+        {done === total ? (
+          <span className="flex items-center gap-1" style={{ color: 'hsl(var(--status-done))' }}>
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Tudo feito!
+          </span>
+        ) : (
+          `${remaining} ${remaining === 1 ? 'pendente' : 'pendentes'}`
+        )}
+      </span>
+    </div>
+  );
 }
 
 /* ── Sortable task card ────────────────── */
@@ -126,35 +161,35 @@ function DayTaskCard({
         <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
       </div>
 
-      {/* Title */}
+      {/* Title — ADHD: always fully legible, done tasks get gentle style */}
       <span className={`flex-1 min-w-0 text-sm leading-tight truncate transition-all duration-200 ${
-        isDone ? 'line-through opacity-50' : ''
-      }`} style={{ color: isDone ? '#555570' : '#E8E8F0' }}>
+        isDone ? 'line-through' : ''
+      }`} style={{ color: isDone ? 'hsl(var(--text-muted))' : 'hsl(var(--text-primary))' }}>
         {task.name}
       </span>
 
       {/* Subtask count */}
       {subtaskCount && subtaskCount.total > 0 && (
-        <span className="text-[11px] flex-shrink-0" style={{ color: '#8888A0' }}>
+        <span className="text-[11px] flex-shrink-0" style={{ color: 'hsl(var(--text-secondary))' }}>
           {subtaskCount.done}/{subtaskCount.total}
         </span>
       )}
 
-      {/* Rollover badge */}
+      {/* Rollover badge — compassionate: "still here", not "overdue" */}
       {rolloverDays != null && rolloverDays > 0 && (
         <span className="text-[10px] font-medium rounded px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
-          style={{ background: 'hsl(30 100% 71% / 0.15)', color: '#FFB86C' }}
+          style={{ background: 'hsl(var(--status-overdue) / 0.12)', color: 'hsl(var(--status-overdue))' }}
         >
           ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
         </span>
       )}
 
       {/* Recurrence icon */}
-      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: '#6C9CFC50' }} />}
+      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--primary) / 0.35)' }} />}
 
       {/* Service tag badge */}
       {serviceTagName && (
-        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[80px] truncate" style={{ color: '#8888A0' }}>
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[80px] truncate" style={{ color: 'hsl(var(--text-secondary))' }}>
           {serviceTagName}
         </span>
       )}
@@ -170,13 +205,19 @@ function DayTaskCard({
   );
 }
 
-/* ── Period drop zone ──────────────────── */
+/* ── Period drop zone ──────────────────── 
+ * Research-backed redesign:
+ * - NO opacity dimming on past periods (Object Permanence principle)
+ * - Current period: subtle accent indicator, NOT spotlight that diminishes others
+ * - Past periods with pending tasks: gentle "still available" treatment
+ * - All tasks remain equally visible and actionable
+ */
 function PeriodSection({
   period,
   tasks,
   projects,
   isCurrentPeriod,
-  isPast,
+  hasPendingTasks,
   selectedTaskId,
   onSelectTask,
   onStatusChange,
@@ -187,7 +228,7 @@ function PeriodSection({
   tasks: Task[];
   projects: Project[];
   isCurrentPeriod: boolean;
-  isPast: boolean;
+  hasPendingTasks: boolean;
   selectedTaskId?: string;
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
@@ -200,6 +241,8 @@ function PeriodSection({
   });
 
   const PeriodIcon = period.icon;
+  const doneCount = tasks.filter(t => t.status === 'done').length;
+  const totalCount = tasks.length;
 
   return (
     <div
@@ -208,17 +251,33 @@ function PeriodSection({
         isOver ? 'ring-1 ring-primary/40' : ''
       }`}
       style={{
-        opacity: isPast ? 0.5 : 1,
-        background: isCurrentPeriod ? '#1A1A28' : 'transparent',
-        borderLeft: isCurrentPeriod ? '2px solid #6C9CFC' : '2px solid transparent',
+        /* ADHD-friendly: all periods equally visible. 
+         * Current period gets a subtle surface elevation — not a spotlight that diminishes others.
+         * Past periods are NEVER dimmed (Object Permanence). */
+        background: isCurrentPeriod ? 'hsl(var(--bg-surface))' : 'transparent',
+        borderLeft: isCurrentPeriod ? '2px solid hsl(var(--primary))' : '2px solid transparent',
       }}
     >
       {/* Section header */}
       <div className="flex items-center gap-2 px-4 py-3">
-        <PeriodIcon className="w-4 h-4 flex-shrink-0" style={{ color: isCurrentPeriod ? '#E8E8F0' : '#8888A0' }} />
-        <span className="text-[13px] font-semibold" style={{ color: isCurrentPeriod ? '#E8E8F0' : '#8888A0' }}>
+        <PeriodIcon className="w-4 h-4 flex-shrink-0" style={{ 
+          color: isCurrentPeriod ? 'hsl(var(--text-primary))' : 'hsl(var(--text-secondary))' 
+        }} />
+        <span className="text-[13px] font-semibold" style={{ 
+          color: isCurrentPeriod ? 'hsl(var(--text-primary))' : 'hsl(var(--text-secondary))' 
+        }}>
           {period.label}
         </span>
+        {/* Inline micro-progress: non-intrusive count */}
+        {totalCount > 0 && (
+          <span className="text-[11px] ml-auto tabular-nums" style={{ color: 'hsl(var(--text-secondary))' }}>
+            {doneCount === totalCount ? (
+              <span style={{ color: 'hsl(var(--status-done))' }}>✓ {totalCount}</span>
+            ) : (
+              `${doneCount}/${totalCount}`
+            )}
+          </span>
+        )}
       </div>
 
       {/* Task list */}
@@ -234,7 +293,7 @@ function PeriodSection({
               <DayTaskCard
                 key={task.id}
                 task={task}
-                projectColor={project?.color || '#6C9CFC'}
+                projectColor={project?.color || 'hsl(var(--primary))'}
                 projectName={project?.name || ''}
                 isSelected={selectedTaskId === task.id}
                 onSelect={() => onSelectTask(task)}
@@ -248,7 +307,7 @@ function PeriodSection({
         </SortableContext>
         {tasks.length === 0 && (
           <div className="flex items-center h-[40px] px-4">
-            <span className="text-[12px] italic" style={{ color: '#555570' }}>Sem tarefas</span>
+            <span className="text-[12px] italic" style={{ color: 'hsl(var(--text-muted))' }}>Sem tarefas</span>
           </div>
         )}
       </div>
@@ -282,9 +341,8 @@ export function MyDayView({
     const todayStart = startOfDay(new Date());
     const scheduled: Task[] = [];
     
-    // 1. Top-level tasks
     tasks.forEach(t => {
-      if (t.parentTaskId) return; // Skip if it's a subtask at top level (shouldn't happen but safe)
+      if (t.parentTaskId) return;
       
       let isScheduled = false;
       if (t.scheduledDate === todayStr) isScheduled = true;
@@ -294,13 +352,9 @@ export function MyDayView({
         scheduled.push(t);
       }
 
-      // 2. Scheduled subtasks (promoted to top level for My Day)
-      // Recursive function to find scheduled subtasks
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach(sub => {
-          // Check if subtask is scheduled for today
           if (sub.scheduledDate === todayStr && sub.status !== 'done') {
-            // Promote to Task
             const promotedTask: Task = {
               ...sub,
               id: sub.id,
@@ -308,16 +362,7 @@ export function MyDayView({
               projectId: sub.projectId || parent.projectId,
               section: sub.section || parent.section,
               status: sub.status,
-              // Ensure we don't treat it as a subtask visually in the card (no indentation, etc)
-              // but we need to know it's a subtask to update it correctly?
-              // Actually DayTaskCard just renders it.
-              // Important: We strip parentTaskId so it doesn't get filtered out later or cause issues
-              // But wait, if we strip parentTaskId, updates might fail if they rely on it?
-              // The update handler needs to know. But MyDayView uses onUpdateTask which expects a Task.
-              // We'll keep parentTaskId but MyDayView renders them flat anyway.
-              parentTaskId: sub.parentTaskId, 
-              // Add a visual indicator in the name or tag?
-              // The card has client badge.
+              parentTaskId: sub.parentTaskId,
             };
             scheduled.push(promotedTask);
           }
@@ -332,9 +377,6 @@ export function MyDayView({
     const rMap = new Map<string, number>();
 
     tasks.forEach(t => {
-      // Only check top-level for rollover for now to keep it simple, or should subtasks rollover?
-      // Requirement says: "Se a tarefa já foi arrastada para um dia..."
-      // Let's keep rollover logic for top-level tasks only for now unless requested.
       if (t.parentTaskId || t.status === 'done' || !t.dueDate) return;
       if (scheduled.some(s => s.id === t.id)) return;
       if (t.scheduledDate) return;
@@ -360,6 +402,13 @@ export function MyDayView({
     });
     return map;
   }, [todayTasks, rolloverMap]);
+
+  // Global progress for summary
+  const globalProgress = useMemo(() => {
+    const total = todayTasks.length;
+    const done = todayTasks.filter(t => t.status === 'done').length;
+    return { total, done };
+  }, [todayTasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
@@ -418,13 +467,13 @@ export function MyDayView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 flex-shrink-0" style={{ background: '#0F0F17' }}>
+      <div className="px-6 pt-6 pb-2 flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[22px] font-bold" style={{ color: '#E8E8F0' }}>
+            <h1 className="text-[22px] font-bold" style={{ color: 'hsl(var(--text-primary))' }}>
               {getGreeting()}, {firstName}
             </h1>
-            <p className="text-[13px] mt-0.5" style={{ color: '#8888A0' }}>
+            <p className="text-[13px] mt-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
@@ -434,7 +483,7 @@ export function MyDayView({
                 value={groupMode}
                 onChange={e => setGroupMode(e.target.value as GroupMode)}
                 className="h-8 px-2 text-[11px] bg-transparent border rounded-lg focus:outline-none cursor-pointer [color-scheme:dark]"
-                style={{ color: '#8888A0', borderColor: '#2A2A42' }}
+                style={{ color: 'hsl(var(--text-secondary))', borderColor: 'hsl(var(--border-subtle))' }}
               >
                 <option value="period">Por seção</option>
                 <option value="service">Por serviço</option>
@@ -442,13 +491,18 @@ export function MyDayView({
             )}
             <button
               className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium transition-colors"
-              style={{ background: '#6C9CFC1A', color: '#6C9CFC' }}
+              style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}
               onClick={() => setFocusModeOpen(true)}
             >
               <Target className="w-3.5 h-3.5" />
               Focar
             </button>
           </div>
+        </div>
+
+        {/* Progress summary — ADHD: celebrate progress, show remaining clearly */}
+        <div className="mt-3 max-w-[640px] mx-auto">
+          <ProgressSummary total={globalProgress.total} done={globalProgress.done} />
         </div>
       </div>
 
@@ -461,11 +515,11 @@ export function MyDayView({
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem serviço';
               return (
-                <div key={tagId} className="rounded-xl" style={{ background: '#1A1A28' }}>
+                <div key={tagId} className="rounded-xl" style={{ background: 'hsl(var(--bg-surface))' }}>
                   <div className="flex items-center gap-2 px-4 py-3">
-                    {TagIcon && <TagIcon className="w-4 h-4" style={{ color: '#8888A0' }} />}
-                    <span className="text-[13px] font-semibold" style={{ color: '#E8E8F0' }}>{label}</span>
-                    <span className="text-[11px] ml-auto" style={{ color: '#8888A0' }}>
+                    {TagIcon && <TagIcon className="w-4 h-4" style={{ color: 'hsl(var(--text-secondary))' }} />}
+                    <span className="text-[13px] font-semibold" style={{ color: 'hsl(var(--text-primary))' }}>{label}</span>
+                    <span className="text-[11px] ml-auto" style={{ color: 'hsl(var(--text-secondary))' }}>
                       {tagTasks.filter(t => t.status !== 'done').length} {tagTasks.filter(t => t.status !== 'done').length === 1 ? 'tarefa' : 'tarefas'}
                     </span>
                   </div>
@@ -476,7 +530,7 @@ export function MyDayView({
                         <DayTaskCard
                           key={task.id}
                           task={task}
-                          projectColor={project?.color || '#6C9CFC'}
+                          projectColor={project?.color || 'hsl(var(--primary))'}
                           projectName={project?.name || ''}
                           isSelected={selectedTaskId === task.id}
                           onSelect={() => onSelectTask(task)}
@@ -491,8 +545,8 @@ export function MyDayView({
             })}
             {allEmpty && (
               <div className="flex flex-col items-center justify-center h-full gap-3 pt-12">
-                <p className="text-[14px]" style={{ color: '#8888A0' }}>Nenhuma tarefa para hoje.</p>
-                <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: '#6C9CFC' }}>
+                <p className="text-[14px]" style={{ color: 'hsl(var(--text-secondary))' }}>Nenhuma tarefa para hoje.</p>
+                <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: 'hsl(var(--primary))' }}>
                   Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -507,16 +561,16 @@ export function MyDayView({
           >
             <div className="space-y-4 max-w-[640px] mx-auto">
               {PERIODS.map(period => {
-                const periodOrder = getPeriodOrder(period.key);
-                const isPast = periodOrder < currentPeriodOrder;
+                const periodTasks = tasksByPeriod[period.key];
+                const hasPending = periodTasks.some(t => t.status !== 'done');
                 return (
                   <PeriodSection
                     key={period.key}
                     period={period}
-                    tasks={tasksByPeriod[period.key]}
+                    tasks={periodTasks}
                     projects={projects}
                     isCurrentPeriod={currentPeriod === period.key}
-                    isPast={isPast}
+                    hasPendingTasks={hasPending}
                     selectedTaskId={selectedTaskId}
                     onSelectTask={onSelectTask}
                     onStatusChange={onStatusChange}
@@ -526,10 +580,9 @@ export function MyDayView({
                 );
               })}
 
-              {/* "Planeje" link only if ALL sections empty */}
               {allEmpty && (
                 <div className="flex flex-col items-center gap-3 pt-4">
-                  <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: '#6C9CFC' }}>
+                  <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: 'hsl(var(--primary))' }}>
                     Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -540,9 +593,9 @@ export function MyDayView({
               {activeDragTask ? (
                 <div
                   className="h-[40px] flex items-center gap-2 px-3 rounded-lg shadow-lg"
-                  style={{ background: '#1A1A28', borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`, opacity: 0.95 }}
+                  style={{ background: 'hsl(var(--bg-surface))', borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'hsl(var(--primary))'}`, opacity: 0.95 }}
                 >
-                  <span className="text-[13px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
+                  <span className="text-[13px] truncate" style={{ color: 'hsl(var(--text-primary))' }}>{activeDragTask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>
