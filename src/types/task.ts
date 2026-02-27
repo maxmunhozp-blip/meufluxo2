@@ -18,6 +18,7 @@ export interface Subtask {
   priority?: Priority;
   description?: string;
   dueDate?: string;
+  scheduledDate?: string;
   assignee?: string;
   section: string;
   projectId: string;
