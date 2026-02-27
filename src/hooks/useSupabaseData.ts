@@ -478,8 +478,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       created_by: session?.user?.id || null,
     }).select().single();
     if (error) throw error;
-    const task = mapDbTask(data);
-    // Don't add optimistically — let the realtime INSERT handler add it to avoid duplicates
+    const task = { ...mapDbTask(data), members: [], subtasks: [] };
+    // Add optimistically with dedup
+    setTasksState(prev => prev.some(x => x.id === task.id) ? prev : [task, ...prev]);
     return task.id;
   }, [tasksState, session]);
 
