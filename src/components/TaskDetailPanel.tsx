@@ -517,57 +517,64 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               />
             </MetaRow>
 
-            {/* "Fazer em" = primary date (when you'll work on it) */}
+            {/* "Fazer em" + "Entregar até" — compact date display */}
             <MetaRow label="Fazer em">
-              <input
-                type="date"
-                value={localTask.scheduledDate || ''}
-                onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
-                className="h-8 w-full bg-transparent text-[13px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
-                style={{ color: localTask.scheduledDate ? 'hsl(var(--text-primary))' : 'hsl(var(--text-muted))' }}
-              />
+              <div className="flex items-center gap-2 relative">
+                <input
+                  type="date"
+                  value={localTask.scheduledDate || ''}
+                  onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
+                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
+                />
+                {(() => {
+                  if (!localTask.scheduledDate) {
+                    return <span className="text-[13px] cursor-pointer" style={{ color: '#555570' }}>Quando vai fazer?</span>;
+                  }
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const [y, m, d] = localTask.scheduledDate.split('-').map(Number);
+                  const sd = new Date(y, m - 1, d);
+                  const isToday = sd.getTime() === today.getTime();
+                  if (isToday) {
+                    return <span className="text-[13px] font-medium" style={{ color: '#6C9CFC' }}>Hoje</span>;
+                  }
+                  const weekDays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+                  const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[sd.getDay()]})`;
+                  return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
+                })()}
+              </div>
             </MetaRow>
 
-            {/* "Prazo" = secondary date (external deadline, optional) */}
-            <MetaRow label="Prazo">
-              <div className="flex items-center gap-2">
+            <MetaRow label="Entregar até">
+              <div className="flex items-center gap-2 relative">
                 <input
                   type="date"
                   value={localTask.dueDate || ''}
                   onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
-                  className="h-8 flex-1 bg-transparent text-[12px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
-                  style={{ color: localTask.dueDate ? 'hsl(var(--text-secondary))' : 'hsl(var(--text-muted))' }}
+                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
                 />
-                {localTask.dueDate && (() => {
+                {(() => {
+                  if (!localTask.dueDate) {
+                    return <span className="text-[13px] cursor-pointer" style={{ color: '#555570' }}>Sem prazo</span>;
+                  }
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
-                  const [y, m, d] = localTask.dueDate!.split('-').map(Number);
+                  const [y, m, d] = localTask.dueDate.split('-').map(Number);
                   const due = new Date(y, m - 1, d);
                   const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  const weekDays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
                   if (diffDays < 0) {
-                    return (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0"
-                        style={{ background: 'hsl(var(--status-overdue) / 0.12)', color: 'hsl(var(--status-overdue))' }}>
-                        {Math.abs(diffDays) === 1 ? 'ontem' : `${Math.abs(diffDays)}d atrás`}
-                      </span>
-                    );
+                    const label = Math.abs(diffDays) === 1 ? 'Ontem' : `${Math.abs(diffDays)}d atrás`;
+                    return <span className="text-[13px] font-medium" style={{ color: 'hsl(var(--status-overdue))' }}>{label}</span>;
                   }
-                  if (diffDays <= 7) {
-                    return (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0"
-                        style={{ 
-                          background: diffDays <= 2 
-                            ? 'hsl(var(--status-overdue) / 0.12)' 
-                            : 'hsl(var(--primary) / 0.1)', 
-                          color: diffDays <= 2 
-                            ? 'hsl(var(--status-overdue))' 
-                            : 'hsl(var(--primary))' 
-                        }}>
-                        {diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : `em ${diffDays}d`}
-                      </span>
-                    );
+                  if (diffDays === 0) {
+                    return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Hoje</span>;
                   }
-                  return null;
+                  if (diffDays === 1) {
+                    return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Amanhã</span>;
+                  }
+                  const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[due.getDay()]})`;
+                  return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
                 })()}
               </div>
             </MetaRow>
