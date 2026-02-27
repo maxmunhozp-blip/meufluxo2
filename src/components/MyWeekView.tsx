@@ -10,9 +10,10 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3 } from 'lucide-react';
 import { Task, TaskStatus, Project, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
+import { WeekTimelineView } from './WeekTimelineView';
 
 interface MyWeekViewProps {
   tasks: Task[];
@@ -302,6 +303,15 @@ export function MyWeekView({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'columns' | 'timeline'>(() => {
+    try { return (localStorage.getItem('meufluxo_week_view') as 'columns' | 'timeline') || 'columns'; }
+    catch { return 'columns'; }
+  });
+
+  const toggleViewMode = (mode: 'columns' | 'timeline') => {
+    setViewMode(mode);
+    localStorage.setItem('meufluxo_week_view', mode);
+  };
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -433,13 +443,13 @@ export function MyWeekView({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header with week navigation */}
-      <div className="h-12 px-4 flex items-center justify-between border-b border-nd-border flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
-        <h1 className="text-[18px] font-bold text-nd-text">Minha Semana</h1>
+      {/* Header with week navigation + view toggle */}
+      <div className="h-12 px-4 flex items-center justify-between border-b border-border flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
+        <h1 className="text-[18px] font-bold text-foreground">Minha Semana</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setWeekOffset(prev => prev - 1)}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted hover:text-nd-text transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -448,80 +458,129 @@ export function MyWeekView({
             className={`px-3 h-7 text-[12px] font-medium rounded transition-colors ${
               weekOffset === 0
                 ? 'bg-primary/10 text-primary'
-                : 'text-nd-text-secondary hover:bg-nd-hover hover:text-nd-text'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             Hoje
           </button>
           <button
             onClick={() => setWeekOffset(prev => prev + 1)}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted hover:text-nd-text transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-          <span className="text-[12px] text-nd-text-secondary ml-2">
+          <span className="text-[12px] text-muted-foreground ml-2">
             {format(weekDates[0], "dd MMM", { locale: ptBR })} – {format(weekDates[6], "dd MMM yyyy", { locale: ptBR })}
           </span>
+
+          {/* View toggle */}
+          <div className="ml-3 flex items-center rounded-md border border-border overflow-hidden">
+            <button
+              onClick={() => toggleViewMode('columns')}
+              className={`flex items-center gap-1.5 px-2.5 h-7 text-[11px] font-medium transition-colors ${
+                viewMode === 'columns'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Colunas
+            </button>
+            <button
+              onClick={() => toggleViewMode('timeline')}
+              className={`flex items-center gap-1.5 px-2.5 h-7 text-[11px] font-medium transition-colors ${
+                viewMode === 'timeline'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              Timeline
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main content: sidebar + columns */}
-      <div className="flex-1 flex overflow-hidden">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
+      {/* Views with crossfade */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Columns view */}
+        <div
+          className={`absolute inset-0 flex transition-opacity duration-200 ${
+            viewMode === 'columns' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          }`}
         >
-          <WeekSourceSidebar
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <WeekSourceSidebar
+              projects={projects}
+              sections={sections}
+              tasks={tasks}
+              collapsed={sidebarCollapsed}
+              onToggle={() => setSidebarCollapsed(prev => !prev)}
+            />
+
+            <div className="flex-1 flex overflow-x-auto">
+              {weekDates.map((dayDate, i) => {
+                const dateKey = format(dayDate, 'yyyy-MM-dd');
+                const dayTasks = tasksByDay[dateKey] || [];
+                return (
+                  <DayColumn
+                    key={dateKey}
+                    dayDate={dayDate}
+                    dayLabel={DAY_LABELS[i]}
+                    dayNumber={format(dayDate, 'dd')}
+                    tasks={dayTasks}
+                    projects={projects}
+                    isCurrentDay={isToday(dayDate)}
+                    isDragOver={dragOverDay === dateKey}
+                    onSelectTask={onSelectTask}
+                    selectedTaskId={selectedTaskId}
+                    onStatusChange={onStatusChange}
+                    rolloverTaskIds={rolloverTaskIds}
+                  />
+                );
+              })}
+            </div>
+
+            <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+              {activeDragTask ? (
+                <div
+                  className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg border border-primary/30"
+                  style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+                >
+                  <div
+                    className="w-[3px] h-5 rounded-full"
+                    style={{ background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9' }}
+                  />
+                  <span className="text-[12px] text-foreground truncate">{activeDragTask.name}</span>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
+
+        {/* Timeline view */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-200 ${
+            viewMode === 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          }`}
+        >
+          <WeekTimelineView
+            tasks={tasks}
             projects={projects}
             sections={sections}
-            tasks={tasks}
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(prev => !prev)}
+            weekDates={weekDates}
+            onUpdateTask={onUpdateTask}
+            onStatusChange={onStatusChange}
+            onSelectTask={onSelectTask}
+            selectedTaskId={selectedTaskId}
           />
-
-          {/* Day columns */}
-          <div className="flex-1 flex overflow-x-auto">
-            {weekDates.map((dayDate, i) => {
-              const dateKey = format(dayDate, 'yyyy-MM-dd');
-              const dayTasks = tasksByDay[dateKey] || [];
-
-              return (
-                <DayColumn
-                  key={dateKey}
-                  dayDate={dayDate}
-                  dayLabel={DAY_LABELS[i]}
-                  dayNumber={format(dayDate, 'dd')}
-                  tasks={dayTasks}
-                  projects={projects}
-                  isCurrentDay={isToday(dayDate)}
-                  isDragOver={dragOverDay === dateKey}
-                  onSelectTask={onSelectTask}
-                  selectedTaskId={selectedTaskId}
-                  onStatusChange={onStatusChange}
-                  rolloverTaskIds={rolloverTaskIds}
-                />
-              );
-            })}
-          </div>
-
-          <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
-            {activeDragTask ? (
-              <div
-                className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg border border-primary/30"
-                style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
-              >
-                <div
-                  className="w-[3px] h-5 rounded-full"
-                  style={{ background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9' }}
-                />
-                <span className="text-[12px] text-nd-text truncate">{activeDragTask.name}</span>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        </div>
       </div>
     </div>
   );
