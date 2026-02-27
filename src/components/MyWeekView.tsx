@@ -132,7 +132,7 @@ function DayColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col min-w-[160px] flex-1 border-r border-nd-border last:border-r-0 transition-colors ${
+      className={`flex flex-col flex-shrink-0 w-[85vw] md:w-auto md:min-w-[120px] md:flex-1 snap-center border-r border-nd-border last:border-r-0 transition-colors ${
         highlight ? 'bg-nd-hover/50' : ''
       }`}
     >
@@ -254,7 +254,7 @@ function WeekSourceSidebar({
 
   if (collapsed) {
     return (
-      <div className="w-10 flex-shrink-0 border-r border-nd-border flex flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))' }}>
+      <div className="hidden md:flex w-10 flex-shrink-0 border-r border-nd-border flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))' }}>
         <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -268,7 +268,7 @@ function WeekSourceSidebar({
   }
 
   return (
-    <div className="w-[260px] flex-shrink-0 border-r border-nd-border flex flex-col" style={{ background: 'hsl(var(--bg-sidebar))' }}>
+    <div className="hidden md:flex w-[260px] flex-shrink-0 border-r border-nd-border flex-col" style={{ background: 'hsl(var(--bg-sidebar))' }}>
       {/* Header */}
       <div className="px-3 pt-3 pb-2 border-b border-nd-border">
         <div className="flex items-center justify-between mb-2">
@@ -545,9 +545,9 @@ export function MyWeekView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header with week navigation + view toggle */}
-      <div className="h-12 px-4 flex items-center justify-between border-b border-border flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
-        <h1 className="text-[18px] font-bold text-foreground">Minha Semana</h1>
-        <div className="flex items-center gap-2">
+      <div className="h-12 px-3 md:px-4 flex items-center justify-between border-b border-border flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
+        <h1 className="text-[16px] md:text-[18px] font-bold text-foreground whitespace-nowrap">Minha Semana</h1>
+        <div className="flex items-center gap-1 md:gap-2">
           <button
             onClick={() => setWeekOffset(prev => prev - 1)}
             className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
@@ -556,7 +556,7 @@ export function MyWeekView({
           </button>
           <button
             onClick={() => setWeekOffset(0)}
-            className={`px-3 h-7 text-[12px] font-medium rounded transition-colors ${
+            className={`px-2 md:px-3 h-7 text-[11px] md:text-[12px] font-medium rounded transition-colors ${
               weekOffset === 0
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -570,33 +570,33 @@ export function MyWeekView({
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-          <span className="text-[12px] text-muted-foreground ml-2">
+          <span className="hidden md:inline text-[12px] text-muted-foreground ml-2">
             {format(weekDates[0], "dd MMM", { locale: ptBR })} – {format(weekDates[6], "dd MMM yyyy", { locale: ptBR })}
           </span>
 
           {/* View toggle */}
-          <div className="ml-3 flex items-center rounded-md border border-border overflow-hidden">
+          <div className="ml-1 md:ml-3 flex items-center rounded-md border border-border overflow-hidden">
             <button
               onClick={() => toggleViewMode('columns')}
-              className={`flex items-center gap-1.5 px-2.5 h-7 text-[11px] font-medium transition-colors ${
+              className={`flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors ${
                 viewMode === 'columns'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              Colunas
+              <span className="hidden md:inline">Colunas</span>
             </button>
             <button
               onClick={() => toggleViewMode('timeline')}
-              className={`flex items-center gap-1.5 px-2.5 h-7 text-[11px] font-medium transition-colors ${
+              className={`flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors ${
                 viewMode === 'timeline'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              Timeline
+              <span className="hidden md:inline">Timeline</span>
             </button>
           </div>
         </div>
@@ -625,7 +625,7 @@ export function MyWeekView({
               onToggle={() => setSidebarCollapsed(prev => !prev)}
             />
 
-            <div className="flex-1 flex overflow-x-auto">
+            <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory md:snap-none">
               {weekDates.map((dayDate, i) => {
                 const dateKey = format(dayDate, 'yyyy-MM-dd');
                 const dayTasks = tasksByDay[dateKey] || [];

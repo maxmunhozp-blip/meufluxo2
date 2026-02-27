@@ -9,6 +9,7 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { Menu } from 'lucide-react';
 import { StatusCheckbox } from '@/components/StatusCheckbox';
 import { ProjectSidebar } from '@/components/ProjectSidebar';
+import { BottomNav } from '@/components/BottomNav';
 import { TaskListHeader, FilterMode } from '@/components/TaskListHeader';
 import { ColumnHeader } from '@/components/ColumnHeader';
 import { TaskSection } from '@/components/TaskSection';
@@ -577,41 +578,60 @@ const Index = () => {
     onToggleMyWeek: () => { setIsMyWeekView(prev => !prev); setIsMyTasksView(false); setIsMyDayView(false); },
   };
 
+  // Determine active view for bottom nav
+  const activeBottomView = isMyDayView ? 'day' as const : isMyWeekView ? 'week' as const : isMyTasksView ? 'tasks' as const : 'project' as const;
+
+  const handleBottomNav = (view: 'day' | 'tasks' | 'week' | 'project') => {
+    setIsMyDayView(view === 'day');
+    setIsMyTasksView(view === 'tasks');
+    setIsMyWeekView(view === 'week');
+    if (view === 'project') {
+      setIsMyDayView(false);
+      setIsMyTasksView(false);
+      setIsMyWeekView(false);
+      setMobileSidebarOpen(true);
+    }
+  };
+
   if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView) {
     return (
       <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
-        <div className="hidden md:block"><ProjectSidebar {...sidebarProps} /></div>
+        <div className="hidden lg:block"><ProjectSidebar {...sidebarProps} /></div>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[14px] text-nd-text-secondary">Crie um projeto para começar.</p>
         </div>
+        <BottomNav activeView="project" onNavigate={handleBottomNav} />
       </div>
     );
   }
 
   return (
     <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
-      <div className="hidden md:block flex-shrink-0" style={{ width: Math.min(sidebarWidth, 240), minWidth: 120, maxWidth: '25vw' }}>
+      {/* Desktop sidebar (always visible >1024px) */}
+      <div className="hidden lg:block flex-shrink-0" style={{ width: Math.min(sidebarWidth, 240), minWidth: 120, maxWidth: '25vw' }}>
         <ProjectSidebar {...sidebarProps} />
       </div>
-      {/* Sidebar resize handle */}
+      {/* Sidebar resize handle (desktop only) */}
       <div
-        className="hidden md:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
+        className="hidden lg:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
         onMouseDown={(e) => handleResizeMouseDown('sidebar', e)}
       >
         <div className="w-[2px] mx-auto h-full group-hover:bg-primary/40 transition-colors" />
       </div>
 
+      {/* Tablet sidebar (collapsible overlay 768-1024px) + Mobile sidebar (overlay <768px) */}
       {mobileSidebarOpen && (
         <>
-          <div className="fixed inset-0 z-[90] md:hidden" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setMobileSidebarOpen(false)} />
-          <div className="fixed inset-y-0 left-0 z-[100] md:hidden animate-slide-in-left">
+          <div className="fixed inset-0 z-[90] lg:hidden" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setMobileSidebarOpen(false)} />
+          <div className="fixed inset-y-0 left-0 z-[100] lg:hidden animate-slide-in-left" style={{ width: 240 }}>
             <ProjectSidebar {...sidebarProps} />
           </div>
         </>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 transition-none">
-        <div className="md:hidden flex items-center h-12 px-3 border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
+      <div className="flex-1 flex flex-col min-w-0 transition-none pb-14 md:pb-0">
+        {/* Tablet hamburger (768-1024px) */}
+        <div className="hidden md:flex lg:hidden items-center h-12 px-3 border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
           <button
             onClick={() => setMobileSidebarOpen(true)}
             className="w-11 h-11 flex items-center justify-center rounded-md text-nd-text-secondary hover:text-nd-text"
@@ -788,7 +808,7 @@ const Index = () => {
           <>
             {/* Detail panel resize handle */}
             <div
-              className="hidden md:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
+              className="hidden lg:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
               onMouseDown={(e) => handleResizeMouseDown('detail', e)}
             >
               <div className="w-[2px] mx-auto h-full group-hover:bg-primary/40 transition-colors" />
@@ -821,6 +841,9 @@ const Index = () => {
           </>
         );
       })()}
+
+      {/* Mobile bottom navigation */}
+      <BottomNav activeView={activeBottomView} onNavigate={handleBottomNav} />
     </div>
   );
 };
