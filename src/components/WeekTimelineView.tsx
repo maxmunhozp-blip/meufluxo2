@@ -266,16 +266,16 @@ export function WeekTimelineView({
                 style={{
                   minHeight: `${rowHeight}px`,
                   background: rowIdx % 2 === 0
-                    ? 'hsl(240 15% 11%)'
-                    : 'hsl(240 12% 12.5%)',
+                    ? '#1A1A28'
+                    : '#1E1E30',
                 }}
               >
                 {/* Client label (sticky left) */}
                 <div className="w-[100px] md:w-[160px] flex-shrink-0 border-r border-border flex items-center gap-2 px-2 md:px-3 sticky left-0 z-10"
                   style={{
                     background: rowIdx % 2 === 0
-                      ? 'hsl(240 15% 11%)'
-                      : 'hsl(240 12% 12.5%)',
+                      ? '#1A1A28'
+                      : '#1E1E30',
                   }}
                 >
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: row.project.color }} />
