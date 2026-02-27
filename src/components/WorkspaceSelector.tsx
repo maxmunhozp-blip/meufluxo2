@@ -65,18 +65,18 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   };
 
   return (
-    <div className="relative px-4 pt-4 pb-2">
-      {/* Trigger */}
+    <div className="relative px-4 pt-3">
+      {/* Trigger — discrete, functional */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 group transition-colors"
+        className="flex items-center gap-1 group transition-colors"
       >
-        <span className="text-[11px] font-medium" style={{ color: '#555570', letterSpacing: 0 }}>
+        <span className="text-[12px] font-medium" style={{ color: '#8888A0' }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-          style={{ color: '#555570' }}
+          style={{ color: '#8888A0' }}
         />
       </button>
 
