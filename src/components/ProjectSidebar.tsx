@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -45,6 +45,7 @@ interface ProjectSidebarProps {
   onAddProjectMember?: (projectId: string, userId: string) => Promise<void>;
   onRemoveProjectMember?: (projectId: string, userId: string) => Promise<void>;
   getProjectMembers?: (projectId: string) => WorkspaceMember[];
+  isSuperAdmin?: boolean;
 }
 
 function SortableProjectItem({
@@ -138,6 +139,7 @@ export function ProjectSidebar({
   onAddProjectMember,
   onRemoveProjectMember,
   getProjectMembers,
+  isSuperAdmin,
 }: ProjectSidebarProps) {
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
   const [creatingProject, setCreatingProject] = useState(false);
@@ -360,6 +362,15 @@ export function ProjectSidebar({
 
       {/* Bottom settings */}
       <div className="px-3 pb-3 pt-2 border-t border-border relative flex items-center gap-1">
+        {isSuperAdmin && (
+          <a
+            href="/admin"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
+            title="Admin"
+          >
+            <Shield className="w-3.5 h-3.5" />
+          </a>
+        )}
         <button
           onClick={() => setShowSettings(!showSettings)}
           className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
