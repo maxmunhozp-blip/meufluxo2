@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -148,6 +149,7 @@ export function ProjectSidebar({
   getProjectMembers,
   isSuperAdmin,
 }: ProjectSidebarProps) {
+  const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -393,6 +395,13 @@ export function ProjectSidebar({
               Importar dados (JSON)
             </button>
             <div className="h-px mx-2 my-1" style={{ background: 'hsl(var(--border))' }} />
+            <button
+              onClick={() => { navigate('/plans'); setShowSettings(false); }}
+              className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors flex items-center gap-2"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
+              Planos
+            </button>
             <button
               onClick={() => { setShowHowToUse(true); setShowSettings(false); }}
               className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors flex items-center gap-2"
