@@ -41,6 +41,7 @@ interface ProjectSidebarProps {
   onRenameWorkspace?: (id: string, name: string) => Promise<void>;
   onDeleteWorkspace?: (id: string) => Promise<void>;
   onAcceptInvite?: (workspaceId: string) => Promise<void>;
+  onGenerateInviteLink?: () => Promise<string>;
   onAddProjectMember?: (projectId: string, userId: string) => Promise<void>;
   onRemoveProjectMember?: (projectId: string, userId: string) => Promise<void>;
   getProjectMembers?: (projectId: string) => WorkspaceMember[];
@@ -133,6 +134,7 @@ export function ProjectSidebar({
   onRenameWorkspace,
   onDeleteWorkspace,
   onAcceptInvite,
+  onGenerateInviteLink,
   onAddProjectMember,
   onRemoveProjectMember,
   getProjectMembers,
@@ -217,6 +219,7 @@ export function ProjectSidebar({
         onCreate={onCreateWorkspace || (async () => '')}
         onRename={onRenameWorkspace || (async () => {})}
         onDelete={onDeleteWorkspace || (async () => {})}
+        onGenerateInviteLink={onGenerateInviteLink || (async () => '')}
       />
 
       {/* Workspace members avatars */}

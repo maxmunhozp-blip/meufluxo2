@@ -39,6 +39,7 @@ interface UseSupabaseDataReturn {
   workspaceMembers: WorkspaceMember[];
   switchWorkspace: (workspaceId: string) => void;
   inviteToWorkspace: (email: string) => Promise<void>;
+  generateInviteLink: () => Promise<string>;
   createWorkspace: (name: string) => Promise<string>;
   renameWorkspace: (id: string, name: string) => Promise<void>;
   deleteWorkspace: (id: string) => Promise<void>;
@@ -1089,6 +1090,24 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     toast.success('Convite enviado com sucesso!');
   }, [activeWorkspaceId, session]);
 
+  const generateInviteLink = useCallback(async (): Promise<string> => {
+    if (!activeWorkspaceId || !session) throw new Error('Nenhum workspace ativo');
+    
+    const inviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+    
+    const { error } = await supabase
+      .from('workspace_invites' as any)
+      .insert({
+        workspace_id: activeWorkspaceId,
+        invite_code: inviteCode,
+        created_by: session.user.id,
+      });
+    
+    if (error) { toast.error('Erro ao gerar link de convite'); throw error; }
+    
+    return `${window.location.origin}/invite/${inviteCode}`;
+  }, [activeWorkspaceId, session]);
+
   const acceptWorkspaceInvite = useCallback(async (workspaceId: string) => {
     if (!session) return;
     await supabase
@@ -1177,6 +1196,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     workspaceMembers: workspaceMembersState,
     switchWorkspace,
     inviteToWorkspace,
+    generateInviteLink,
     createWorkspace,
     renameWorkspace,
     deleteWorkspace,

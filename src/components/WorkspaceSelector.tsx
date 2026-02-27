@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Plus, Users, Check, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, Plus, Users, Check, Pencil, Trash2, MoreHorizontal, Link2, Copy, CheckCircle } from 'lucide-react';
 import type { Workspace } from '@/hooks/useSupabaseData';
 
 interface WorkspaceSelectorProps {
@@ -10,27 +10,39 @@ interface WorkspaceSelectorProps {
   onCreate: (name: string) => Promise<string>;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onGenerateInviteLink: () => Promise<string>;
 }
 
-export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite, onCreate, onRename, onDelete }: WorkspaceSelectorProps) {
+export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite, onCreate, onRename, onDelete, onGenerateInviteLink }: WorkspaceSelectorProps) {
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-  const [email, setEmail] = useState('');
-  const [inviting, setInviting] = useState(false);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [menuWsId, setMenuWsId] = useState<string | null>(null);
 
+  // Invite link state
+  const [inviteLink, setInviteLink] = useState('');
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
 
-  const handleInvite = async () => {
-    if (!email.trim()) return;
-    setInviting(true);
-    try { await onInvite(email.trim()); setEmail(''); setInviteOpen(false); } catch {}
-    setInviting(false);
+  const handleGenerateLink = async () => {
+    setGeneratingLink(true);
+    try {
+      const link = await onGenerateInviteLink();
+      setInviteLink(link);
+    } catch {}
+    setGeneratingLink(false);
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCreate = async () => {
@@ -54,7 +66,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
 
   return (
     <div className="relative px-4 pt-4 pb-2">
-      {/* Trigger — subtle label */}
+      {/* Trigger */}
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 group transition-colors"
@@ -80,7 +92,6 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
               boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
             }}
           >
-            {/* Workspace list */}
             {workspaces.map(ws => (
               <div key={ws.id} className="relative group/item flex items-center">
                 <button
@@ -93,7 +104,6 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
-                  {/* Checkmark for active */}
                   <span className="w-4 flex items-center justify-center flex-shrink-0">
                     {ws.id === activeWorkspaceId && <Check className="w-3.5 h-3.5" />}
                   </span>
@@ -111,7 +121,6 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
                   <MoreHorizontal className="w-3.5 h-3.5" />
                 </button>
 
-                {/* Sub-menu */}
                 {menuWsId === ws.id && (
                   <div
                     className="absolute left-full top-0 ml-1 z-[100] rounded-[10px] py-1 min-w-[130px]"
@@ -146,9 +155,8 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
 
             <div className="h-px mx-2 my-1.5" style={{ background: 'hsl(var(--dropdown-border))' }} />
 
-            {/* Secondary actions */}
             <button
-              onClick={() => { setInviteOpen(true); setOpen(false); }}
+              onClick={() => { setInviteOpen(true); setInviteLink(''); setCopied(false); setOpen(false); }}
               className="w-full flex items-center gap-2.5 px-3 text-[13px] transition-colors rounded-md mx-1"
               style={{ minHeight: 36, color: 'hsl(var(--muted-foreground))' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
@@ -171,16 +179,55 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         </>
       )}
 
-      {/* Invite modal */}
+      {/* Invite modal — link-based */}
       {inviteOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+          <div className="rounded-xl border border-border p-5 w-[400px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
             <h3 className="text-[15px] font-semibold text-foreground mb-1">Convidar Membro</h3>
-            <p className="text-[13px] text-muted-foreground mb-4">Adicione um membro ao workspace <strong>{activeWs?.name}</strong></p>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleInvite(); }} placeholder="email@exemplo.com" autoFocus className="w-full h-10 px-3 text-[14px] text-foreground bg-input rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground mb-3" />
-            <div className="flex gap-2">
-              <button onClick={() => { setInviteOpen(false); setEmail(''); }} className="flex-1 h-9 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors">Cancelar</button>
-              <button onClick={handleInvite} disabled={inviting || !email.trim()} className="flex-1 h-9 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">{inviting ? 'Enviando...' : 'Convidar'}</button>
+            <p className="text-[13px] text-muted-foreground mb-4">
+              Gere um link de convite para <strong>{activeWs?.name}</strong>. O link expira em 7 dias.
+            </p>
+
+            {!inviteLink ? (
+              <button
+                onClick={handleGenerateLink}
+                disabled={generatingLink}
+                className="w-full h-10 flex items-center justify-center gap-2 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <Link2 className="w-4 h-4" />
+                {generatingLink ? 'Gerando...' : 'Gerar link de convite'}
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={inviteLink}
+                    className="flex-1 h-10 px-3 text-[13px] text-foreground bg-input rounded-lg border border-border focus:outline-none truncate"
+                  />
+                  <button
+                    onClick={handleCopy}
+                    className="h-10 px-3 flex items-center gap-1.5 text-[13px] font-medium rounded-lg border border-border transition-colors hover:bg-muted"
+                    style={{ color: copied ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
+                  >
+                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Envie este link por WhatsApp, email ou qualquer outro meio. Cada link só pode ser usado uma vez.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => { setInviteOpen(false); setInviteLink(''); }}
+                className="h-9 px-4 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
