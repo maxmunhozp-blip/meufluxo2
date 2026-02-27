@@ -148,6 +148,11 @@ export function ProjectSidebar({
   onRemoveProjectMember,
   getProjectMembers,
   isSuperAdmin,
+  serviceTags = [],
+  onCreateServiceTag,
+  onRenameServiceTag,
+  onChangeServiceTagIcon,
+  onDeleteServiceTag,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -160,6 +165,7 @@ export function ProjectSidebar({
   const [renameValue, setRenameValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
+  const [showServiceTags, setShowServiceTags] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -403,6 +409,13 @@ export function ProjectSidebar({
               Planos
             </button>
             <button
+              onClick={() => { setShowServiceTags(true); setShowSettings(false); }}
+              className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors flex items-center gap-2"
+            >
+              <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+              Serviços
+            </button>
+            <button
               onClick={() => { setShowHowToUse(true); setShowSettings(false); }}
               className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors flex items-center gap-2"
             >
@@ -543,6 +556,17 @@ export function ProjectSidebar({
       )}
 
       <HowToUseModal isOpen={showHowToUse} onClose={() => setShowHowToUse(false)} />
+
+      {showServiceTags && onCreateServiceTag && onRenameServiceTag && onChangeServiceTagIcon && onDeleteServiceTag && (
+        <ServiceTagsManager
+          tags={serviceTags}
+          onAdd={onCreateServiceTag}
+          onRename={onRenameServiceTag}
+          onChangeIcon={onChangeServiceTagIcon}
+          onDelete={onDeleteServiceTag}
+          onClose={() => setShowServiceTags(false)}
+        />
+      )}
     </aside>
   );
 }
