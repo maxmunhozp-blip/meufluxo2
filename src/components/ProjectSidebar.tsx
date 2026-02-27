@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GripVertical, Settings, LogOut, CheckCircle2 } from 'lucide-react';
+import { GripVertical, Settings, LogOut, CheckCircle2, CalendarDays } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -24,6 +24,8 @@ interface ProjectSidebarProps {
   onLogout: () => void;
   isMyTasksView?: boolean;
   onToggleMyTasks?: () => void;
+  isMyWeekView?: boolean;
+  onToggleMyWeek?: () => void;
 }
 
 function SortableProjectItem({
@@ -91,6 +93,8 @@ export function ProjectSidebar({
   onLogout,
   isMyTasksView,
   onToggleMyTasks,
+  isMyWeekView,
+  onToggleMyWeek,
 }: ProjectSidebarProps) {
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -152,12 +156,23 @@ export function ProjectSidebar({
         {/* My Tasks button */}
         <button
           onClick={onToggleMyTasks}
-          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 mb-2 ${
+          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 ${
             isMyTasksView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
           }`}
         >
           <CheckCircle2 className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
           <span className="truncate">Minhas Tarefas</span>
+        </button>
+
+        {/* My Week button */}
+        <button
+          onClick={onToggleMyWeek}
+          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 mb-2 ${
+            isMyWeekView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
+          <span className="truncate">Minha Semana</span>
         </button>
 
         <div className="h-px bg-nd-border mx-1 mb-2" />

@@ -14,6 +14,7 @@ import { ColumnHeader } from '@/components/ColumnHeader';
 import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { MyTasksView } from '@/components/MyTasksView';
+import { MyWeekView } from '@/components/MyWeekView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,6 +69,7 @@ const Index = () => {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMyTasksView, setIsMyTasksView] = useState(false);
+  const [isMyWeekView, setIsMyWeekView] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [detailWidth, setDetailWidth] = useState(() => Number(localStorage.getItem('meufluxo-detail-width')) || 580);
   const listRef = useRef<HTMLDivElement>(null);
@@ -555,7 +557,7 @@ const Index = () => {
   const sidebarProps = {
     projects,
     activeProjectId,
-    onSelectProject: (id: string) => { setIsMyTasksView(false); handleSelectProject(id); },
+    onSelectProject: (id: string) => { setIsMyTasksView(false); setIsMyWeekView(false); handleSelectProject(id); },
     onCreateProject: handleCreateProject,
     onRenameProject: handleRenameProject,
     onDeleteProject: handleDeleteProject,
@@ -566,7 +568,9 @@ const Index = () => {
     onImport: importData,
     onLogout: handleLogout,
     isMyTasksView,
-    onToggleMyTasks: () => setIsMyTasksView(prev => !prev),
+    onToggleMyTasks: () => { setIsMyTasksView(prev => !prev); setIsMyWeekView(false); },
+    isMyWeekView,
+    onToggleMyWeek: () => { setIsMyWeekView(prev => !prev); setIsMyTasksView(false); },
   };
 
   if (!activeProject) {
@@ -613,7 +617,17 @@ const Index = () => {
           <span className="ml-2 text-[16px] font-bold text-nd-text">MeuFluxo</span>
         </div>
 
-        {isMyTasksView ? (
+        {isMyWeekView ? (
+          <MyWeekView
+            tasks={taskList}
+            projects={projects}
+            sections={sectionList}
+            onUpdateTask={handleUpdateTask}
+            onStatusChange={handleStatusChange}
+            onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
+            selectedTaskId={selectedTaskId || undefined}
+          />
+        ) : isMyTasksView ? (
           <>
             <div className="h-14 px-6 flex items-center border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
               <h1 className="text-[18px] font-bold text-nd-text">Minhas Tarefas</h1>
