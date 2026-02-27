@@ -203,7 +203,7 @@ function DayColumn({
   );
 }
 
-// -- Project sidebar for dragging tasks from --
+// -- Master List sidebar for dragging tasks from --
 function WeekSourceSidebar({
   projects,
   sections,
@@ -218,64 +218,132 @@ function WeekSourceSidebar({
   onToggle: () => void;
 }) {
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleProject = (id: string) => {
     setExpandedProjects(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Only show pending tasks (not done)
-  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done'), [tasks]);
+  // Only show non-subtask pending tasks
+  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId), [tasks]);
+
+  // Filter by search
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) return pendingTasks;
+    const q = searchQuery.toLowerCase();
+    return pendingTasks.filter(t => t.name.toLowerCase().includes(q));
+  }, [pendingTasks, searchQuery]);
+
+  // Group by project, then by section
+  const groupedData = useMemo(() => {
+    return projects.map(project => {
+      const projectTasks = filteredTasks.filter(t => t.projectId === project.id);
+      // Group by section
+      const sectionGroups = sections
+        .filter(s => s.projectId === project.id)
+        .map(s => ({
+          section: s,
+          tasks: projectTasks.filter(t => t.section === s.id),
+        }))
+        .filter(g => g.tasks.length > 0);
+      return { project, totalCount: projectTasks.length, sectionGroups };
+    }).filter(g => g.totalCount > 0);
+  }, [projects, filteredTasks, sections]);
+
+  const totalPending = filteredTasks.length;
 
   if (collapsed) {
     return (
-      <div className="w-8 flex-shrink-0 border-r border-nd-border flex flex-col items-center pt-3">
-        <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
+      <div className="w-10 flex-shrink-0 border-r border-nd-border flex flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))' }}>
+        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
           <ChevronRight className="w-4 h-4" />
         </button>
+        {totalPending > 0 && (
+          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center">
+            {totalPending}
+          </span>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="w-[220px] flex-shrink-0 border-r border-nd-border flex flex-col" style={{ background: 'hsl(var(--bg-sidebar))' }}>
-      <div className="h-12 px-3 flex items-center justify-between border-b border-nd-border">
-        <span className="text-[13px] font-semibold text-nd-text">Tarefas Pendentes</span>
-        <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
-          <ChevronLeft className="w-4 h-4" />
-        </button>
+    <div className="w-[260px] flex-shrink-0 border-r border-nd-border flex flex-col" style={{ background: 'hsl(var(--bg-sidebar))' }}>
+      {/* Header */}
+      <div className="px-3 pt-3 pb-2 border-b border-nd-border">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-bold text-nd-text">Master List</span>
+            <span className="text-[10px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">
+              {totalPending}
+            </span>
+          </div>
+          <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded hover:bg-nd-hover text-nd-text-muted">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Search */}
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar tarefa..."
+          className="w-full h-7 px-2.5 text-[12px] text-nd-text bg-nd-input rounded-md border border-nd-border focus:outline-none focus:border-primary/50 placeholder:text-nd-text-muted transition-colors"
+        />
       </div>
+
+      {/* Task list grouped by project > section */}
       <div className="flex-1 overflow-y-auto py-1">
-        {projects.map(project => {
-          const projectTasks = pendingTasks.filter(t => t.projectId === project.id);
-          if (projectTasks.length === 0) return null;
+        {groupedData.map(({ project, totalCount, sectionGroups }) => {
           const expanded = expandedProjects[project.id] !== false;
 
           return (
-            <div key={project.id}>
+            <div key={project.id} className="mb-1">
               <button
                 onClick={() => toggleProject(project.id)}
-                className="w-full h-8 px-3 flex items-center gap-2 hover:bg-nd-hover transition-colors"
+                className="w-full h-9 px-3 flex items-center gap-2 hover:bg-nd-hover transition-colors"
               >
-                <Play className={`w-2.5 h-2.5 text-nd-text-muted fill-nd-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`} />
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
-                <span className="text-[12px] font-medium text-nd-text truncate">{project.name}</span>
-                <span className="text-[10px] text-nd-text-muted ml-auto">{projectTasks.length}</span>
+                <Play className={`w-2.5 h-2.5 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: project.color }} />
+                <span className="text-[12px] font-semibold text-nd-text truncate flex-1 text-left">{project.name}</span>
+                <span className="text-[10px] font-medium text-nd-text-muted bg-nd-hover rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                  {totalCount}
+                </span>
               </button>
               {expanded && (
-                <div className="ml-2">
-                  {projectTasks.map(task => (
-                    <SourceTaskItem key={task.id} task={task} projectColor={project.color} />
+                <div className="ml-1">
+                  {sectionGroups.map(({ section, tasks: sectionTasks }) => (
+                    <div key={section.id}>
+                      {/* Section label (only show if more than one section) */}
+                      {sectionGroups.length > 1 && (
+                        <div className="px-4 py-1">
+                          <span className="text-[10px] uppercase tracking-wider text-nd-text-muted font-medium">
+                            {section.title}
+                          </span>
+                        </div>
+                      )}
+                      {sectionTasks.map(task => (
+                        <SourceTaskItem key={task.id} task={task} projectColor={project.color} />
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
           );
         })}
-        {pendingTasks.length === 0 && (
-          <div className="px-3 py-6 text-center">
-            <span className="text-[12px] text-nd-text-muted">Nenhuma tarefa pendente</span>
+        {groupedData.length === 0 && (
+          <div className="px-3 py-8 text-center">
+            <span className="text-[12px] text-nd-text-muted">
+              {searchQuery ? 'Nenhuma tarefa encontrada' : 'Nenhuma tarefa pendente'}
+            </span>
           </div>
         )}
+      </div>
+
+      {/* Footer hint */}
+      <div className="px-3 py-2 border-t border-nd-border">
+        <span className="text-[10px] text-nd-text-muted">Arraste tarefas para agendar na semana</span>
       </div>
     </div>
   );
@@ -293,8 +361,11 @@ function SourceTaskItem({ task, projectColor }: { task: Task; projectColor: stri
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
+
+  const hasDueDate = !!task.dueDate;
+  const isOverdue = hasDueDate && isBefore(parseISO(task.dueDate!), startOfDay(new Date())) && task.status !== 'done';
 
   return (
     <div
@@ -302,10 +373,19 @@ function SourceTaskItem({ task, projectColor }: { task: Task; projectColor: stri
       style={style}
       {...attributes}
       {...listeners}
-      className="flex items-center gap-1.5 h-[32px] px-2 mx-1 rounded cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors"
+      className={`flex items-center gap-1.5 h-[34px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
+        isDragging ? 'ring-1 ring-primary/30' : ''
+      }`}
     >
       <div className="w-[3px] h-4 rounded-full flex-shrink-0" style={{ background: projectColor }} />
-      <span className="text-[11px] text-nd-text truncate">{task.name}</span>
+      <span className="text-[11px] text-nd-text truncate flex-1">{task.name}</span>
+      {hasDueDate && (
+        <span className={`text-[9px] flex-shrink-0 px-1 py-0.5 rounded ${
+          isOverdue ? 'text-orange-400 bg-orange-500/10' : 'text-nd-text-muted'
+        }`}>
+          {format(parseISO(task.dueDate!), 'dd/MM')}
+        </span>
+      )}
     </div>
   );
 }
