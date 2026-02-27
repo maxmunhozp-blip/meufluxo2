@@ -533,15 +533,31 @@ export function MyWeekView({
       }
     });
 
-    // Also collect scheduled subtasks (they have scheduled_date set)
-    // We need to flatten subtasks from all tasks and check their scheduled_date
+    // Collect scheduled subtasks and show them as pseudo-tasks in the week
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       const collectScheduledSubs = (subs: Subtask[], parentTask: Task) => {
         for (const sub of subs) {
-          if (sub.dueDate && map[sub.dueDate] !== undefined) {
-            // Check if this subtask has a scheduled_date by looking at DB — we store it in dueDate field for subtasks
-            // For now, subtasks scheduled via drag get their scheduled_date set, which we read via the tasks table
+          const dateKey = sub.scheduledDate || sub.dueDate;
+          if (dateKey && map[dateKey] !== undefined) {
+            // Convert subtask to a pseudo-Task so it renders in the day column
+            const pseudoTask: Task = {
+              id: sub.id,
+              name: sub.name,
+              status: sub.status,
+              priority: sub.priority || 'low',
+              description: sub.description,
+              dueDate: sub.dueDate,
+              scheduledDate: sub.scheduledDate,
+              section: sub.section,
+              projectId: sub.projectId,
+              parentTaskId: sub.parentTaskId,
+              members: sub.members,
+              subtasks: sub.subtasks,
+            };
+            if (!map[dateKey].some(existing => existing.id === sub.id)) {
+              map[dateKey].push(pseudoTask);
+            }
           }
           if (sub.subtasks) collectScheduledSubs(sub.subtasks, parentTask);
         }
