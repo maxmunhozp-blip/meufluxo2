@@ -62,8 +62,10 @@ export default {
         },
         // Neurodivergent tokens
         "nd-app": "hsl(var(--bg-app))",
-        "nd-sidebar": "hsl(var(--bg-sidebar))",
+        "nd-sidebar": "hsl(var(--sidebar-background))",
         "nd-surface": "hsl(var(--bg-surface))",
+        "nd-surface-alt": "hsl(var(--bg-surface-alt))",
+        "nd-elevated": "hsl(var(--bg-elevated))",
         "nd-bg-subtask": "hsl(var(--bg-subtask))",
         "nd-hover": "hsl(var(--bg-hover))",
         "nd-active": "hsl(var(--bg-active))",
@@ -80,6 +82,14 @@ export default {
         "nd-overdue": "hsl(var(--status-overdue))",
         "nd-priority-high": "hsl(var(--priority-high))",
         "nd-priority-medium": "hsl(var(--priority-medium))",
+        // Client colors
+        "client-1": "hsl(var(--client-1))",
+        "client-2": "hsl(var(--client-2))",
+        "client-3": "hsl(var(--client-3))",
+        "client-4": "hsl(var(--client-4))",
+        "client-5": "hsl(var(--client-5))",
+        "client-6": "hsl(var(--client-6))",
+        "client-7": "hsl(var(--client-7))",
       },
       borderRadius: {
         lg: "var(--radius)",
