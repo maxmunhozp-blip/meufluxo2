@@ -219,9 +219,17 @@ export function ProjectSidebar({
     setRenamingId(null);
   };
 
-  const navItemClass = (active: boolean) =>
-    `w-full flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 cursor-pointer`
-    + (active ? ' font-medium text-foreground' : ' text-muted-foreground hover:bg-accent/50');
+  const navItemStyle = (active: boolean): React.CSSProperties => ({
+    minHeight: 44,
+    borderRadius: 8,
+    background: active ? '#2A2A42' : undefined,
+    borderLeft: active ? '2px solid #6C9CFC' : '2px solid transparent',
+  });
+
+  const navItemHoverHandlers = (active: boolean) => active ? {} : {
+    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.background = '#1E1E30'; },
+    onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.background = 'transparent'; },
+  };
 
   return (
     <aside
@@ -233,27 +241,27 @@ export function ProjectSidebar({
         {/* Meu Dia */}
         <button
           onClick={onToggleMyDay}
-          className={navItemClass(!!isMyDayView)}
-          style={{ minHeight: 44, borderRadius: 10, background: isMyDayView ? '#2A2A42' : undefined }}
+          className="w-full flex items-center gap-2.5 px-3 text-[14px] transition-colors duration-100 cursor-pointer"
+          style={navItemStyle(!!isMyDayView)}
+          {...navItemHoverHandlers(!!isMyDayView)}
         >
-          <Sun className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} />
-          <span className="truncate flex-1 text-left" style={{ color: isMyDayView ? '#E8E8F0' : '#E8E8F0' }}>Meu Dia</span>
+          <Sun className="w-4 h-4 flex-shrink-0" style={{ color: isMyDayView ? '#E8E8F0' : '#8888A0' }} />
+          <span className="truncate flex-1 text-left" style={{ color: isMyDayView ? '#E8E8F0' : '#8888A0', fontWeight: isMyDayView ? 500 : 400 }}>Meu Dia</span>
           {dayCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{dayCount}</span>
           )}
         </button>
 
-        {/* 4px space */}
         <div className="h-1" />
 
-        {/* Minha Semana */}
         <button
           onClick={onToggleMyWeek}
-          className={navItemClass(!!isMyWeekView)}
-          style={{ minHeight: 44, borderRadius: 10, background: isMyWeekView ? '#2A2A42' : undefined }}
+          className="w-full flex items-center gap-2.5 px-3 text-[14px] transition-colors duration-100 cursor-pointer"
+          style={navItemStyle(!!isMyWeekView)}
+          {...navItemHoverHandlers(!!isMyWeekView)}
         >
-          <CalendarDays className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} />
-          <span className="truncate flex-1 text-left" style={{ color: isMyWeekView ? '#E8E8F0' : '#E8E8F0' }}>Minha Semana</span>
+          <CalendarDays className="w-4 h-4 flex-shrink-0" style={{ color: isMyWeekView ? '#E8E8F0' : '#8888A0' }} />
+          <span className="truncate flex-1 text-left" style={{ color: isMyWeekView ? '#E8E8F0' : '#8888A0', fontWeight: isMyWeekView ? 500 : 400 }}>Minha Semana</span>
           {weekCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{weekCount}</span>
           )}
