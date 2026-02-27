@@ -131,21 +131,52 @@ export function WeekTimelineView({
   const todayStart = useMemo(() => startOfDay(new Date()), []);
   const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-  // Tasks in this week (non-subtask, with dueDate in range)
+  // Tasks in this week (using scheduledDate or dueDate, including scheduled subtasks)
   const weekDateStrs = useMemo(() => weekDates.map(d => format(d, 'yyyy-MM-dd')), [weekDates]);
 
   const weekTasks = useMemo(() => {
-    return tasks.filter(t => !t.parentTaskId && t.dueDate && weekDateStrs.includes(t.dueDate));
+    const result: Task[] = [];
+    // Main tasks
+    tasks.forEach(t => {
+      if (t.parentTaskId) return;
+      const dateKey = t.scheduledDate || t.dueDate;
+      if (dateKey && weekDateStrs.includes(dateKey)) {
+        result.push({ ...t, dueDate: dateKey });
+      }
+      // Scheduled subtasks as pseudo-tasks
+      const collectSubs = (subs: typeof t.subtasks) => {
+        if (!subs) return;
+        for (const sub of subs) {
+          const subDate = sub.scheduledDate || sub.dueDate;
+          if (subDate && weekDateStrs.includes(subDate)) {
+            if (!result.some(r => r.id === sub.id)) {
+              result.push({
+                id: sub.id, name: sub.name, status: sub.status,
+                priority: sub.priority || 'low', description: sub.description,
+                dueDate: subDate, scheduledDate: sub.scheduledDate,
+                section: sub.section, projectId: sub.projectId || t.projectId,
+                parentTaskId: sub.parentTaskId, members: sub.members,
+                subtasks: sub.subtasks,
+              });
+            }
+          }
+          if (sub.subtasks) collectSubs(sub.subtasks);
+        }
+      };
+      collectSubs(t.subtasks);
+    });
+    return result;
   }, [tasks, weekDateStrs]);
 
   // Also include rollover tasks (overdue from before this week that aren't done)
   const allRelevantTasks = useMemo(() => {
     const overdue = tasks.filter(t => {
-      if (t.parentTaskId || !t.dueDate || t.status === 'done') return false;
-      const due = parseISO(t.dueDate);
-      return isBefore(startOfDay(due), todayStart) && !weekDateStrs.includes(t.dueDate);
+      if (t.parentTaskId || t.status === 'done') return false;
+      const dateKey = t.scheduledDate || t.dueDate;
+      if (!dateKey) return false;
+      const due = parseISO(dateKey);
+      return isBefore(startOfDay(due), todayStart) && !weekDateStrs.includes(dateKey);
     });
-    // Place overdue tasks on today
     const todayStr = format(todayStart, 'yyyy-MM-dd');
     const mapped = overdue.map(t => ({ ...t, dueDate: todayStr }));
     return [...weekTasks, ...mapped];
