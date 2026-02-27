@@ -56,7 +56,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
         style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-[16px] font-semibold text-foreground">Serviços</h2>
+          <h2 className="text-[16px] font-semibold text-foreground">Tipos de trabalho</h2>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
@@ -140,7 +140,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
               onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setAdding(false); setNewName(''); } }}
               onBlur={() => { if (newName.trim()) handleAdd(); else setAdding(false); }}
               autoFocus
-              placeholder="Nome do serviço..."
+              placeholder="Nome do tipo..."
               className="flex-1 h-8 px-2 text-[13px] text-foreground bg-input rounded border border-primary focus:outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -150,7 +150,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
             className="flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            Adicionar serviço
+            Adicionar tipo
           </button>
         )}
       </div>

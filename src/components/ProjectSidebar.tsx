@@ -366,7 +366,7 @@ export function ProjectSidebar({
             </button>
             <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <Tag className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Serviços
+              <Tag className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Tipos de trabalho
             </button>
             <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>

@@ -416,7 +416,7 @@ export function MyDayView({
                   onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
                   onMouseLeave={e => { if (!dropdownOpen) e.currentTarget.style.color = '#555570'; }}
                 >
-                  {groupMode === 'period' ? 'Por seção' : 'Por serviço'}
+                  {groupMode === 'period' ? 'Por seção' : 'Por tipo de trabalho'}
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {dropdownOpen && (
@@ -438,7 +438,7 @@ export function MyDayView({
                         className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-white/5"
                         style={{ color: groupMode === 'service' ? '#E8E8F0' : '#8888A0' }}
                       >
-                        Por serviço
+                        Por tipo de trabalho
                       </button>
                     </div>
                   </>
@@ -475,7 +475,7 @@ export function MyDayView({
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
-              const label = tag?.name || 'Sem serviço';
+              const label = tag?.name || 'Sem tipo';
               return (
                 <div key={tagId} style={{ marginBottom: 24 }}>
                   <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
