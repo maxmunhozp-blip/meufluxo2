@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles, Plus, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles, Plus, ChevronDown } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
@@ -68,19 +68,11 @@ function SortableWeekTaskCard({
         isSelected ? 'bg-nd-active border-nd-border' : 'hover:bg-nd-hover'
       } ${isDragOverlay ? 'shadow-lg border-primary/30' : ''}`}
       onClick={onSelect}
+      {...attributes}
+      {...listeners}
     >
-      {/* Project color dot */}
-      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: projectColor }} />
-
-      {/* Drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="flex-shrink-0 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GripVertical className="w-3 h-3 text-nd-text-muted" />
-      </div>
+      {/* Project color bar — sole project identifier (Apple: single glanceable signal) */}
+      <div className="w-[3px] h-5 rounded-full flex-shrink-0" style={{ background: projectColor }} />
 
       <StatusCheckbox
         status={task.status}
@@ -93,15 +85,6 @@ function SortableWeekTaskCard({
         {task.name}
       </span>
       {task.recurrenceType && <Repeat className="w-2.5 h-2.5 text-primary/50 flex-shrink-0" />}
-      {/* Client badge */}
-      {projectName && (
-        <span
-          className="text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 max-w-[60px] truncate hidden md:inline"
-          style={{ background: `${projectColor}20`, color: projectColor }}
-        >
-          {projectName}
-        </span>
-      )}
     </div>
   );
 }
