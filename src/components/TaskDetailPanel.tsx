@@ -411,7 +411,7 @@ function ServiceTagPicker({
                     }}
                     onBlur={() => { if (newName.trim()) handleAdd(); else setAdding(false); }}
                     autoFocus
-                    placeholder="Nome do serviço..."
+                    placeholder="Nome do tipo..."
                     className="flex-1 h-7 px-2 text-[13px] bg-transparent rounded border focus:outline-none placeholder:text-[#555570]"
                     style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.1)' }}
                   />
@@ -425,7 +425,7 @@ function ServiceTagPicker({
                   onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  Adicionar serviço
+                  Adicionar tipo
                 </button>
               )}
             </div>
@@ -914,7 +914,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               </select>
             </MetaRow>
 
-            <MetaRow label="Serviço">
+            <MetaRow label="Tipo de trabalho">
               <ServiceTagPicker
                 value={localTask.serviceTagId}
                 tags={serviceTags}
