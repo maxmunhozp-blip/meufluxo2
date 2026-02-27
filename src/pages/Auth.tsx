@@ -16,10 +16,24 @@ const Auth = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate('/', { replace: true });
+      if (session) {
+        const pendingCode = localStorage.getItem('pending_invite_code');
+        if (pendingCode) {
+          navigate(`/invite/${pendingCode}`, { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/', { replace: true });
+      if (session) {
+        const pendingCode = localStorage.getItem('pending_invite_code');
+        if (pendingCode) {
+          navigate(`/invite/${pendingCode}`, { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
