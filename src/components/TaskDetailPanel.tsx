@@ -508,24 +508,59 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               />
             </MetaRow>
 
-            <MetaRow label="Prazo">
-              <input
-                type="date"
-                value={localTask.dueDate || ''}
-                onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
-                className="h-8 w-full bg-transparent text-[13px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
-                style={{ color: localTask.dueDate ? '#E8E8F0' : '#555570' }}
-              />
-            </MetaRow>
-
-            <MetaRow label="Agendado">
+            {/* "Fazer em" = primary date (when you'll work on it) */}
+            <MetaRow label="Fazer em">
               <input
                 type="date"
                 value={localTask.scheduledDate || ''}
                 onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
                 className="h-8 w-full bg-transparent text-[13px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
-                style={{ color: localTask.scheduledDate ? '#E8E8F0' : '#555570' }}
+                style={{ color: localTask.scheduledDate ? 'hsl(var(--text-primary))' : 'hsl(var(--text-muted))' }}
               />
+            </MetaRow>
+
+            {/* "Prazo" = secondary date (external deadline, optional) */}
+            <MetaRow label="Prazo">
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={localTask.dueDate || ''}
+                  onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
+                  className="h-8 flex-1 bg-transparent text-[12px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
+                  style={{ color: localTask.dueDate ? 'hsl(var(--text-secondary))' : 'hsl(var(--text-muted))' }}
+                />
+                {localTask.dueDate && (() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const [y, m, d] = localTask.dueDate!.split('-').map(Number);
+                  const due = new Date(y, m - 1, d);
+                  const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  if (diffDays < 0) {
+                    return (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0"
+                        style={{ background: 'hsl(var(--status-overdue) / 0.12)', color: 'hsl(var(--status-overdue))' }}>
+                        {Math.abs(diffDays) === 1 ? 'ontem' : `${Math.abs(diffDays)}d atrás`}
+                      </span>
+                    );
+                  }
+                  if (diffDays <= 7) {
+                    return (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0"
+                        style={{ 
+                          background: diffDays <= 2 
+                            ? 'hsl(var(--status-overdue) / 0.12)' 
+                            : 'hsl(var(--primary) / 0.1)', 
+                          color: diffDays <= 2 
+                            ? 'hsl(var(--status-overdue))' 
+                            : 'hsl(var(--primary))' 
+                        }}>
+                        {diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : `em ${diffDays}d`}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </MetaRow>
 
             <MetaRow label="Seção">

@@ -184,6 +184,35 @@ function DayTaskCard({
         </span>
       )}
 
+      {/* Deadline countdown — gentle "external scaffolding" for time blindness */}
+      {!isDone && task.dueDate && (() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const [y, m, d] = task.dueDate!.split('-').map(Number);
+        const due = new Date(y, m - 1, d);
+        const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) {
+          return (
+            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap"
+              style={{ background: 'hsl(var(--status-overdue) / 0.1)', color: 'hsl(var(--status-overdue))' }}>
+              prazo {Math.abs(diffDays) === 1 ? 'ontem' : `${Math.abs(diffDays)}d atrás`}
+            </span>
+          );
+        }
+        if (diffDays <= 7) {
+          return (
+            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap"
+              style={{ 
+                background: diffDays <= 2 ? 'hsl(var(--status-overdue) / 0.1)' : 'hsl(var(--primary) / 0.08)',
+                color: diffDays <= 2 ? 'hsl(var(--status-overdue))' : 'hsl(var(--primary))',
+              }}>
+              {diffDays === 0 ? 'prazo hoje' : diffDays === 1 ? 'prazo amanhã' : `prazo em ${diffDays}d`}
+            </span>
+          );
+        }
+        return null;
+      })()}
+
       {/* Recurrence icon */}
       {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--primary) / 0.35)' }} />}
 
