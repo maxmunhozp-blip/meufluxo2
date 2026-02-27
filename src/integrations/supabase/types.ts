@@ -233,6 +233,7 @@ export type Database = {
           assignee: string | null
           created_at: string
           created_by: string | null
+          day_period: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -248,6 +249,7 @@ export type Database = {
           assignee?: string | null
           created_at?: string
           created_by?: string | null
+          day_period?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -263,6 +265,7 @@ export type Database = {
           assignee?: string | null
           created_at?: string
           created_by?: string | null
+          day_period?: string | null
           description?: string | null
           due_date?: string | null
           id?: string

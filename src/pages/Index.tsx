@@ -15,6 +15,7 @@ import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { MyTasksView } from '@/components/MyTasksView';
 import { MyWeekView } from '@/components/MyWeekView';
+import { MyDayView } from '@/components/MyDayView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,6 +71,7 @@ const Index = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMyTasksView, setIsMyTasksView] = useState(false);
   const [isMyWeekView, setIsMyWeekView] = useState(false);
+  const [isMyDayView, setIsMyDayView] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [detailWidth, setDetailWidth] = useState(() => Number(localStorage.getItem('meufluxo-detail-width')) || 580);
   const listRef = useRef<HTMLDivElement>(null);
@@ -557,7 +559,7 @@ const Index = () => {
   const sidebarProps = {
     projects,
     activeProjectId,
-    onSelectProject: (id: string) => { setIsMyTasksView(false); setIsMyWeekView(false); handleSelectProject(id); },
+    onSelectProject: (id: string) => { setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
     onCreateProject: handleCreateProject,
     onRenameProject: handleRenameProject,
     onDeleteProject: handleDeleteProject,
@@ -567,13 +569,15 @@ const Index = () => {
     onExport: exportData,
     onImport: importData,
     onLogout: handleLogout,
+    isMyDayView,
+    onToggleMyDay: () => { setIsMyDayView(prev => !prev); setIsMyTasksView(false); setIsMyWeekView(false); },
     isMyTasksView,
-    onToggleMyTasks: () => { setIsMyTasksView(prev => !prev); setIsMyWeekView(false); },
+    onToggleMyTasks: () => { setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
     isMyWeekView,
-    onToggleMyWeek: () => { setIsMyWeekView(prev => !prev); setIsMyTasksView(false); },
+    onToggleMyWeek: () => { setIsMyWeekView(prev => !prev); setIsMyTasksView(false); setIsMyDayView(false); },
   };
 
-  if (!activeProject) {
+  if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView) {
     return (
       <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
         <div className="hidden md:block"><ProjectSidebar {...sidebarProps} /></div>
@@ -617,7 +621,19 @@ const Index = () => {
           <span className="ml-2 text-[16px] font-bold text-nd-text">MeuFluxo</span>
         </div>
 
-        {isMyWeekView ? (
+        {isMyDayView ? (
+          <MyDayView
+            tasks={taskList}
+            projects={projects}
+            sections={sectionList}
+            userName={profiles.find(p => p.id === session?.user?.id)?.fullName || session?.user?.email || 'Usuário'}
+            onUpdateTask={handleUpdateTask}
+            onStatusChange={handleStatusChange}
+            onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
+            selectedTaskId={selectedTaskId || undefined}
+            onNavigateToWeek={() => { setIsMyWeekView(true); setIsMyDayView(false); setIsMyTasksView(false); }}
+          />
+        ) : isMyWeekView ? (
           <MyWeekView
             tasks={taskList}
             projects={projects}
@@ -642,7 +658,7 @@ const Index = () => {
               onStatusChange={handleStatusChange}
             />
           </>
-        ) : (
+        ) : activeProject ? (
           <>
             <TaskListHeader
               projectName={activeProject.name}
@@ -748,6 +764,10 @@ const Index = () => {
           )}
         </div>
           </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-[14px] text-muted-foreground">Selecione um projeto na sidebar.</p>
+          </div>
         )}
       </div>
 
