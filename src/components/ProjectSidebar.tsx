@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GripVertical, Settings, LogOut, CheckCircle2, CalendarDays } from 'lucide-react';
+import { GripVertical, Settings, LogOut, CheckCircle2, CalendarDays, Sun } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -22,6 +22,8 @@ interface ProjectSidebarProps {
   onExport: () => void;
   onImport: (file: File) => void;
   onLogout: () => void;
+  isMyDayView?: boolean;
+  onToggleMyDay?: () => void;
   isMyTasksView?: boolean;
   onToggleMyTasks?: () => void;
   isMyWeekView?: boolean;
@@ -91,6 +93,8 @@ export function ProjectSidebar({
   onExport,
   onImport,
   onLogout,
+  isMyDayView,
+  onToggleMyDay,
   isMyTasksView,
   onToggleMyTasks,
   isMyWeekView,
@@ -153,6 +157,17 @@ export function ProjectSidebar({
       </div>
 
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
+        {/* My Day button */}
+        <button
+          onClick={onToggleMyDay}
+          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 ${
+            isMyDayView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
+          }`}
+        >
+          <Sun className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
+          <span className="truncate">Meu Dia</span>
+        </button>
+
         {/* My Tasks button */}
         <button
           onClick={onToggleMyTasks}

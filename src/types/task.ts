@@ -1,5 +1,6 @@
 export type TaskStatus = 'pending' | 'in_progress' | 'done';
 export type Priority = 'high' | 'medium' | 'low';
+export type DayPeriod = 'morning' | 'afternoon' | 'evening';
 
 export interface Subtask {
   id: string;
@@ -52,6 +53,7 @@ export interface Task {
   dueDate?: string;
   status: TaskStatus;
   priority?: Priority;
+  dayPeriod?: DayPeriod;
   subtasks?: Subtask[];
   comments?: Comment[];
   description?: string;

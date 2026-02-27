@@ -67,6 +67,7 @@ function mapDbTask(row: any): Task {
     description: row.description || undefined,
     dueDate: row.due_date || undefined,
     assignee: row.assignee || undefined,
+    dayPeriod: row.day_period || 'morning',
     section: row.section_id,
     projectId: row.project_id,
   };
@@ -288,6 +289,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           description: row.description || undefined,
           dueDate: row.due_date || undefined,
           assignee: row.assignee || undefined,
+          dayPeriod: row.day_period || 'morning',
           section: row.section_id,
           projectId: row.project_id,
         } : t));
@@ -493,6 +495,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       due_date: task.dueDate || null,
       assignee: task.assignee || null,
       section_id: task.section,
+      day_period: task.dayPeriod || 'morning',
     }).eq('id', task.id);
 
     if (task.parentTaskId) {
