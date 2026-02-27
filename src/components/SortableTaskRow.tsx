@@ -1,0 +1,362 @@
+import { useState, useRef } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { GripVertical, MessageSquare, Play } from 'lucide-react';
+import { Task, TaskStatus, Subtask, Section } from '@/types/task';
+import { StatusCheckbox } from './StatusCheckbox';
+import { ContextMenu } from './ContextMenu';
+import { SortableSubtaskRow } from './SortableSubtaskRow';
+import { DropIndicatorLine } from './DropIndicatorLine';
+
+interface SortableTaskRowProps {
+  task: Task;
+  isSelected: boolean;
+  isFocused: boolean;
+  selectedSubtaskId?: string;
+  isDragSource?: boolean;
+  dropIndicator?: 'top' | 'bottom' | null;
+  onSelect: (task: Task) => void;
+  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
+  onSelectSubtask?: (subtask: Subtask) => void;
+  onDeleteTask?: (taskId: string) => void;
+  onDuplicateTask?: (taskId: string) => void;
+  onReorderSubtasks?: (taskId: string, subtaskIds: string[]) => void;
+  onRenameTask?: (taskId: string, name: string) => void;
+  onRenameSubtask?: (subtaskId: string, name: string) => void;
+  sections?: Section[];
+  onMoveToSection?: (taskId: string, sectionId: string) => void;
+}
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.getTime() === yesterday.getTime()) return 'ontem';
+  if (date.getTime() === today.getTime()) return 'hoje';
+  const day = date.getDate();
+  const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  return `${day} ${months[date.getMonth()]}`;
+}
+
+function isOverdue(dateStr?: string, status?: TaskStatus): boolean {
+  if (!dateStr || status === 'done') return false;
+  const date = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}
+
+// Overlay component for dragged subtask (lightweight ghost)
+function SubtaskDragOverlay({ subtask }: { subtask: Subtask }) {
+  const subDone = subtask.status === 'done';
+  return (
+    <div
+      className="h-9 border border-primary/30 rounded-md pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 shadow-lg"
+      style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+    >
+      <StatusCheckbox status={subtask.status} onChange={() => {}} />
+      <span className={`text-[13px] truncate flex-1 transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
+        {subtask.name}
+      </span>
+    </div>
+  );
+}
+
+function SubtaskDndWrapper({ subtasks, taskId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask }: {
+  subtasks: Subtask[];
+  taskId: string;
+  selectedSubtaskId?: string;
+  onSelectSubtask?: (subtask: Subtask) => void;
+  onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
+  onReorderSubtasks?: (taskId: string, subtaskIds: string[]) => void;
+  onRenameSubtask?: (subtaskId: string, name: string) => void;
+}) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const subtaskIds = subtasks.map(s => s.id);
+  const [activeSubtaskId, setActiveSubtaskId] = useState<string | null>(null);
+  const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSubtaskId(event.active.id as string);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      setOverSubtaskId(null);
+      setDropPosition(null);
+      return;
+    }
+    const activeIdx = subtaskIds.indexOf(active.id as string);
+    const overIdx = subtaskIds.indexOf(over.id as string);
+    setOverSubtaskId(over.id as string);
+    setDropPosition(activeIdx < overIdx ? 'bottom' : 'top');
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveSubtaskId(null);
+    setOverSubtaskId(null);
+    setDropPosition(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIdx = subtaskIds.indexOf(active.id as string);
+    const newIdx = subtaskIds.indexOf(over.id as string);
+    if (oldIdx === -1 || newIdx === -1) return;
+    const reordered = arrayMove(subtaskIds, oldIdx, newIdx);
+    onReorderSubtasks?.(taskId, reordered);
+  };
+
+  const activeSubtask = activeSubtaskId ? subtasks.find(s => s.id === activeSubtaskId) : null;
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={subtaskIds} strategy={verticalListSortingStrategy}>
+        {subtasks.map((sub) => (
+          <SortableSubtaskRow
+            key={sub.id}
+            subtask={sub}
+            parentTaskId={taskId}
+            isSelected={selectedSubtaskId === sub.id}
+            isDragging={activeSubtaskId === sub.id}
+            dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
+            onSelect={onSelectSubtask}
+            onStatusChange={onSubtaskStatusChange}
+            onRename={onRenameSubtask}
+          />
+        ))}
+      </SortableContext>
+      <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+        {activeSubtask ? <SubtaskDragOverlay subtask={activeSubtask} /> : null}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection }: SortableTaskRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(task.name);
+  const renameRef = useRef<HTMLInputElement>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+  } = useSortable({ id: task.id, data: { type: 'task', task } });
+
+  const isDone = task.status === 'done';
+  const overdue = isOverdue(task.dueDate, task.status);
+  const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const startRename = () => {
+    setRenameValue(task.name);
+    setIsRenaming(true);
+    setTimeout(() => renameRef.current?.focus(), 0);
+  };
+
+  const confirmRename = () => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== task.name) {
+      onRenameTask?.(task.id, trimmed);
+    }
+    setIsRenaming(false);
+  };
+
+  return (
+    <div ref={setNodeRef} data-task-id={task.id} className="relative">
+      {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
+      <div
+        onClick={() => {
+          if (isRenaming) return;
+          if (clickTimer.current) clearTimeout(clickTimer.current);
+          clickTimer.current = setTimeout(() => { onSelect(task); clickTimer.current = null; }, 250);
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+          startRename();
+        }}
+        onContextMenu={handleContextMenu}
+        className={`group h-9 md:h-9 min-h-[44px] md:min-h-0 border-b border-nd-border cursor-pointer transition-all duration-300 ease-out relative ${
+          isSelected ? 'bg-nd-active' : 'hover:bg-nd-hover'
+        } ${isDragSource ? 'opacity-40' : ''}`}
+        style={{ opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined }}
+      >
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
+        >
+          <GripVertical className="w-4 h-4 text-nd-text-muted" />
+        </div>
+
+        <div
+          className="h-full px-4 md:px-6"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr minmax(60px, auto) minmax(40px, auto)',
+            alignItems: 'center',
+          }}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            {hasSubtasks ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                className="w-5 h-5 flex items-center justify-center rounded hover:bg-nd-hover transition-colors duration-100 flex-shrink-0"
+              >
+                <Play
+                  className={`w-3 h-3 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
+                />
+              </button>
+            ) : (
+              <span className="w-5 flex-shrink-0" />
+            )}
+            <StatusCheckbox
+              status={task.status}
+              onChange={(s) => onStatusChange(task.id, s)}
+            />
+            {isRenaming ? (
+              <input
+                ref={renameRef}
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') confirmRename();
+                  if (e.key === 'Escape') setIsRenaming(false);
+                }}
+                onBlur={confirmRename}
+                onClick={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
+                className="flex-1 h-6 px-1 text-[14px] text-nd-text bg-nd-input rounded border border-primary focus:outline-none min-w-0"
+              />
+            ) : (
+              <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
+                {task.name}
+              </span>
+            )}
+            {task.members && task.members.length > 0 && (
+              <div className="flex items-center -space-x-1.5 flex-shrink-0">
+                {task.members.slice(0, 3).map((m) => (
+                  <div
+                    key={m.userId}
+                    title={m.fullName || ''}
+                    className="w-5 h-5 rounded-full border border-nd-bg-surface flex items-center justify-center text-[9px] font-medium bg-primary/20 text-primary overflow-hidden"
+                  >
+                    {m.avatarUrl ? (
+                      <img src={m.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (m.fullName || '?').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                ))}
+                {task.members.length > 3 && (
+                  <div className="w-5 h-5 rounded-full border border-nd-bg-surface flex items-center justify-center text-[9px] font-medium bg-nd-hover text-nd-text-secondary">
+                    +{task.members.length - 3}
+                  </div>
+                )}
+              </div>
+            )}
+            {hasSubtasks && !expanded && (() => {
+              const subs = task.subtasks!;
+              const done = subs.filter(s => s.status === 'done').length;
+              const inProg = subs.filter(s => s.status === 'in_progress').length;
+              const total = subs.length;
+              const donePct = (done / total) * 100;
+              const progPct = (inProg / total) * 100;
+              const allDone = done === total;
+              return (
+                <span className="flex items-center gap-1 flex-shrink-0">
+                  <span className="w-8 h-[2.5px] rounded-full bg-nd-hover overflow-hidden flex">
+                    <span className="h-full" style={{ width: `${donePct}%`, background: 'hsl(var(--status-done))' }} />
+                    <span className="h-full" style={{ width: `${progPct}%`, background: 'hsl(var(--status-progress))' }} />
+                  </span>
+                  {allDone && <span className="text-[10px] text-nd-done">✓</span>}
+                </span>
+              );
+            })()}
+            {task.comments && task.comments.length > 0 && (
+              <span className="flex items-center gap-1 flex-shrink-0">
+                <MessageSquare className="w-3.5 h-3.5 text-nd-text-secondary" />
+                <span className="text-[12px] text-nd-text-secondary">{task.comments.length}</span>
+              </span>
+            )}
+          </div>
+
+          <span className={`text-[12px] truncate hidden md:block ${isDone ? 'text-nd-text-completed' : 'text-nd-text-secondary'}`}>
+            {task.assignee || ''}
+          </span>
+
+          <span className={`text-[12px] hidden md:block ${
+            isDone ? 'text-nd-text-completed' : overdue ? 'text-nd-overdue font-medium' : 'text-nd-text-secondary'
+          }`}>
+            {formatDate(task.dueDate)}
+          </span>
+        </div>
+      </div>
+
+      {/* Inline subtasks with visual hierarchy container */}
+      {expanded && hasSubtasks && (
+        <div className="relative ml-6 md:ml-8 border-l-2 border-nd-border-subtle mb-1 bg-nd-bg-subtask rounded-br-md">
+          <SubtaskDndWrapper
+            subtasks={task.subtasks!}
+            taskId={task.id}
+            selectedSubtaskId={selectedSubtaskId}
+            onSelectSubtask={onSelectSubtask}
+            onSubtaskStatusChange={onSubtaskStatusChange}
+            onReorderSubtasks={onReorderSubtasks}
+            onRenameSubtask={onRenameSubtask}
+          />
+        </div>
+      )}
+
+      {/* Context menu */}
+      {contextMenu && (
+        <ContextMenu
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+          items={[
+            {
+              label: 'Duplicar tarefa',
+              onClick: () => onDuplicateTask?.(task.id),
+            },
+            ...(sections && sections.filter(s => s.id !== task.section).length > 0 ? [{
+              label: 'Mover para seção',
+              children: sections.filter(s => s.id !== task.section).map(s => ({
+                label: s.title,
+                onClick: () => onMoveToSection?.(task.id, s.id),
+              })),
+            }] : []),
+            {
+              label: 'Excluir tarefa',
+              danger: true,
+              onClick: () => {
+                if (window.confirm(`Excluir "${task.name || 'tarefa sem nome'}"?`)) {
+                  onDeleteTask?.(task.id);
+                }
+              },
+            },
+          ]}
+        />
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,941 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment } from '@/types/task';
+import type { Session } from '@supabase/supabase-js';
+import { toast } from 'sonner';
+
+export interface Profile {
+  id: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+}
+
+interface UseSupabaseDataReturn {
+  projects: Project[];
+  sections: Section[];
+  tasks: Task[];
+  profiles: Profile[];
+  comments: Comment[];
+  attachments: Attachment[];
+  loading: boolean;
+  session: Session | null;
+  setProjects: (fn: (prev: Project[]) => Project[]) => void;
+  setSections: (fn: (prev: Section[]) => Section[]) => void;
+  setTasks: (fn: (prev: Task[]) => Task[]) => void;
+  exportData: () => void;
+  importData: (file: File) => void;
+  createProject: (name: string, color: string) => Promise<string>;
+  renameProject: (id: string, name: string) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  changeProjectColor: (id: string, color: string) => Promise<void>;
+  createSection: (title: string, projectId: string) => Promise<string>;
+  renameSection: (id: string, title: string) => Promise<void>;
+  deleteSection: (id: string) => Promise<void>;
+  createTask: (task: Partial<Task> & { name: string; section: string; projectId: string }) => Promise<string>;
+  updateTask: (task: Task) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  duplicateTask: (taskId: string) => Promise<string>;
+  updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
+  reorderProjects: (projects: Project[]) => void;
+  addTaskMember: (taskId: string, userId: string) => Promise<void>;
+  removeTaskMember: (taskId: string, userId: string) => Promise<void>;
+  addComment: (taskId: string, text: string) => Promise<void>;
+  deleteComment: (commentId: string) => Promise<void>;
+  duplicateProject: (projectId: string, mode: 'sections' | 'tasks' | 'both') => Promise<string>;
+  addSubtask: (parentTaskId: string, name: string) => Promise<void>;
+  updateSubtask: (subtaskId: string, updates: { name?: string; status?: TaskStatus }) => Promise<void>;
+  deleteSubtask: (parentTaskId: string, subtaskId: string) => Promise<void>;
+  reorderSubtasks: (parentTaskId: string, subtaskIds: string[]) => Promise<void>;
+  uploadAttachment: (taskId: string, file: File) => Promise<void>;
+  deleteAttachment: (attachmentId: string) => Promise<void>;
+}
+
+function mapDbProject(row: any): Project {
+  return { id: row.id, name: row.name, color: row.color };
+}
+
+function mapDbSection(row: any): Section {
+  return { id: row.id, title: row.name, projectId: row.project_id };
+}
+
+function mapDbTask(row: any): Task {
+  return {
+    id: row.id,
+    name: row.title,
+    status: row.status as TaskStatus,
+    priority: row.priority as Priority | undefined,
+    description: row.description || undefined,
+    dueDate: row.due_date || undefined,
+    assignee: row.assignee || undefined,
+    section: row.section_id,
+    projectId: row.project_id,
+  };
+}
+
+export function useSupabaseData(): UseSupabaseDataReturn {
+  const [session, setSession] = useState<Session | null>(null);
+  const [projectsState, setProjectsState] = useState<Project[]>([]);
+  const [sectionsState, setSectionsState] = useState<Section[]>([]);
+  const [tasksState, setTasksState] = useState<Task[]>([]);
+  const [profilesState, setProfilesState] = useState<Profile[]>([]);
+  const [commentsState, setCommentsState] = useState<Comment[]>([]);
+  const [attachmentsState, setAttachmentsState] = useState<Attachment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  // Auth listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setSessionChecked(true);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setSessionChecked(true);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch all data when session is available
+  useEffect(() => {
+    if (!sessionChecked) return;
+    if (!session) { setLoading(false); return; }
+    
+    const fetchAll = async () => {
+      setLoading(true);
+      const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
+        supabase.from('projects').select('*').eq('archived', false).order('created_at'),
+        supabase.from('sections').select('*').order('position'),
+        supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
+        supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
+        supabase.from('profiles').select('*'),
+        supabase.from('task_members').select('*'),
+        supabase.from('comments').select('*').order('created_at', { ascending: true }),
+        supabase.from('task_attachments' as any).select('*').order('created_at', { ascending: true }),
+      ]);
+
+      const profiles: Profile[] = (profilesRes.data || []).map((p: any) => ({
+        id: p.id,
+        fullName: p.full_name,
+        avatarUrl: p.avatar_url,
+      }));
+      setProfilesState(profiles);
+
+      // Map members by task
+      const membersByTask: Record<string, TaskMember[]> = {};
+      for (const m of (membersRes.data || [])) {
+        const profile = profiles.find(p => p.id === m.user_id);
+        const member: TaskMember = {
+          id: m.id,
+          userId: m.user_id,
+          fullName: profile?.fullName || null,
+          avatarUrl: profile?.avatarUrl || null,
+        };
+        if (!membersByTask[m.task_id]) membersByTask[m.task_id] = [];
+        membersByTask[m.task_id].push(member);
+      }
+
+      // Map subtasks by parent
+      const subtasksByParent: Record<string, Subtask[]> = {};
+      for (const row of (subtasksRes.data || [])) {
+        const sub: Subtask = {
+          id: row.id,
+          name: row.title,
+          status: row.status as TaskStatus,
+          priority: row.priority as Priority | undefined,
+          description: row.description || undefined,
+          dueDate: row.due_date || undefined,
+          assignee: row.assignee || undefined,
+          section: row.section_id,
+          projectId: row.project_id,
+          parentTaskId: row.parent_task_id,
+          members: membersByTask[row.id] || [],
+        };
+        if (!subtasksByParent[row.parent_task_id]) subtasksByParent[row.parent_task_id] = [];
+        subtasksByParent[row.parent_task_id].push(sub);
+      }
+
+      // Nest level 2 subtasks into level 1 subtasks
+      for (const parentId of Object.keys(subtasksByParent)) {
+        subtasksByParent[parentId] = subtasksByParent[parentId].map(sub => ({
+          ...sub,
+          subtasks: subtasksByParent[sub.id] || [],
+        }));
+      }
+
+      // Map comments
+      const dbComments: Comment[] = (commentsRes.data || []).map((c: any) => {
+        const profile = profiles.find(p => p.id === c.user_id);
+        return {
+          id: c.id,
+          taskId: c.task_id,
+          author: profile?.fullName || 'Usuário',
+          authorId: c.user_id,
+          text: c.content,
+          date: c.created_at,
+        };
+      });
+      setCommentsState(dbComments);
+
+      // Map attachments
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const dbAttachments: Attachment[] = (attachmentsRes.data || []).map((a: any) => ({
+        id: a.id,
+        taskId: a.task_id,
+        userId: a.user_id,
+        fileName: a.file_name,
+        filePath: a.file_path,
+        fileSize: a.file_size,
+        contentType: a.content_type,
+        createdAt: a.created_at,
+        url: `${SUPABASE_URL}/storage/v1/object/public/task-attachments/${a.file_path}`,
+      }));
+      setAttachmentsState(dbAttachments);
+
+      if (projectsRes.data) setProjectsState(projectsRes.data.map(mapDbProject));
+      if (sectionsRes.data) setSectionsState(sectionsRes.data.map(mapDbSection));
+      if (tasksRes.data) {
+        setTasksState(tasksRes.data.map((row: any) => ({
+          ...mapDbTask(row),
+          members: membersByTask[row.id] || [],
+          subtasks: subtasksByParent[row.id] || [],
+        })));
+      }
+      setLoading(false);
+    };
+
+    fetchAll();
+
+    // Realtime subscriptions for all tables
+    const channel = supabase
+      .channel('all-realtime')
+      // --- Projects ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'projects' }, (payload) => {
+        const p = mapDbProject(payload.new);
+        setProjectsState(prev => prev.some(x => x.id === p.id) ? prev : [...prev, p]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'projects' }, (payload) => {
+        const p = mapDbProject(payload.new);
+        setProjectsState(prev => prev.map(x => x.id === p.id ? p : x));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'projects' }, (payload) => {
+        setProjectsState(prev => prev.filter(x => x.id !== (payload.old as any).id));
+      })
+      // --- Sections ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sections' }, (payload) => {
+        const s = mapDbSection(payload.new);
+        setSectionsState(prev => prev.some(x => x.id === s.id) ? prev : [...prev, s]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sections' }, (payload) => {
+        const s = mapDbSection(payload.new);
+        setSectionsState(prev => prev.map(x => x.id === s.id ? s : x));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'sections' }, (payload) => {
+        setSectionsState(prev => prev.filter(x => x.id !== (payload.old as any).id));
+      })
+      // --- Tasks ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, (payload) => {
+        const row = payload.new as any;
+        if (row.parent_task_id) {
+          // Subtask inserted - add to parent's subtasks
+          const sub: Subtask = {
+            id: row.id, name: row.title, status: row.status as TaskStatus,
+            priority: row.priority as Priority | undefined,
+            description: row.description || undefined,
+            dueDate: row.due_date || undefined,
+            section: row.section_id, projectId: row.project_id,
+            parentTaskId: row.parent_task_id,
+          };
+          setTasksState(prev => prev.map(t => {
+            // Direct child
+            if (t.id === row.parent_task_id) {
+              return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
+            }
+            // Level 2: child of a subtask
+            return {
+              ...t,
+              subtasks: (t.subtasks || []).map(s => s.id === row.parent_task_id
+                ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
+                : s
+              ),
+            };
+          }));
+          return;
+        }
+        const t = mapDbTask(row);
+        setTasksState(prev => prev.some(x => x.id === t.id) ? prev : [t, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
+        const row = payload.new as any;
+        if (row.parent_task_id) {
+          // Subtask updated - update in parent's subtasks
+          setTasksState(prev => prev.map(t => {
+            const updateSub = (s: Subtask): Subtask => s.id === row.id ? {
+              ...s, name: row.title, status: row.status as TaskStatus,
+              priority: row.priority as Priority | undefined,
+              description: row.description || undefined,
+              dueDate: row.due_date || undefined,
+            } : { ...s, subtasks: (s.subtasks || []).map(updateSub) };
+            return { ...t, subtasks: (t.subtasks || []).map(updateSub) };
+          }));
+          return;
+        }
+        setTasksState(prev => prev.map(t => t.id === row.id ? {
+          ...t,
+          name: row.title,
+          status: row.status,
+          priority: row.priority,
+          description: row.description || undefined,
+          dueDate: row.due_date || undefined,
+          assignee: row.assignee || undefined,
+          section: row.section_id,
+          projectId: row.project_id,
+        } : t));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, (payload) => {
+        const old = payload.old as any;
+        // Try removing as subtask from any parent
+        setTasksState(prev => {
+          const updated = prev.map(t => ({
+            ...t,
+            subtasks: (t.subtasks || []).filter(s => s.id !== old.id).map(s => ({
+              ...s,
+              subtasks: (s.subtasks || []).filter(ss => ss.id !== old.id),
+            })),
+          }));
+          return updated.filter(t => t.id !== old.id);
+        });
+      })
+      // --- Task Members ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_members' }, async (payload) => {
+        const m = payload.new as any;
+        const { data: profile } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', m.user_id).single();
+        const member: TaskMember = {
+          id: m.id,
+          userId: m.user_id,
+          fullName: profile?.full_name || null,
+          avatarUrl: profile?.avatar_url || null,
+        };
+        setTasksState(prev => {
+          const task = prev.find(t => t.id === m.task_id) || prev.find(t => (t.subtasks || []).some(s => s.id === m.task_id));
+          const subtask = task ? (task.subtasks || []).find(s => s.id === m.task_id) : null;
+          const targetName = subtask ? subtask.name : task?.name;
+          if (targetName) {
+            const currentUserId = session?.user?.id;
+            if (currentUserId && m.user_id !== currentUserId) {
+              toast.info(`${profile?.full_name || 'Alguém'} foi adicionado à tarefa "${targetName}"`, { duration: 4000 });
+            } else if (currentUserId && m.user_id === currentUserId) {
+              toast.info(`Você foi adicionado à tarefa "${targetName}"`, { duration: 4000 });
+            }
+          }
+          return prev.map(t => {
+            if (t.id === m.task_id) return { ...t, members: [...(t.members || []).filter(x => x.userId !== m.user_id), member] };
+            const updatedSubs = (t.subtasks || []).map(s =>
+              s.id === m.task_id ? { ...s, members: [...(s.members || []).filter(x => x.userId !== m.user_id), member] } : s
+            );
+            return { ...t, subtasks: updatedSubs };
+          });
+        });
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'task_members' }, (payload) => {
+        const old = payload.old as any;
+        setTasksState(prev => {
+          const task = prev.find(t => t.id === old.task_id);
+          const subtask = task ? null : (() => { for (const t of prev) { const s = (t.subtasks || []).find(s => s.id === old.task_id); if (s) return s; } return null; })();
+          const target = task || subtask;
+          if (target) {
+            const removedMember = ('members' in target ? target.members || [] : []).find((x: TaskMember) => x.id === old.id);
+            const currentUserId = session?.user?.id;
+            if (removedMember && currentUserId) {
+              if (removedMember.userId === currentUserId) {
+                toast.info(`Você foi removido da tarefa "${target.name || (target as any).name}"`, { duration: 4000 });
+              } else {
+                toast.info(`${removedMember.fullName || 'Alguém'} foi removido da tarefa "${target.name || (target as any).name}"`, { duration: 4000 });
+              }
+            }
+          }
+          return prev.map(t => {
+            if (t.id === old.task_id) return { ...t, members: (t.members || []).filter(x => x.id !== old.id) };
+            const updatedSubs = (t.subtasks || []).map(s =>
+              s.id === old.task_id ? { ...s, members: (s.members || []).filter(x => x.id !== old.id) } : s
+            );
+            return { ...t, subtasks: updatedSubs };
+          });
+        });
+      })
+      // --- Comments ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, async (payload) => {
+        const c = payload.new as any;
+        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', c.user_id).single();
+        const comment: Comment = {
+          id: c.id,
+          taskId: c.task_id,
+          author: profile?.full_name || 'Usuário',
+          authorId: c.user_id,
+          text: c.content,
+          date: c.created_at,
+        };
+        setCommentsState(prev => prev.some(x => x.id === c.id) ? prev : [...prev, comment]);
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'comments' }, (payload) => {
+        setCommentsState(prev => prev.filter(c => c.id !== (payload.old as any).id));
+      })
+      // --- Attachments ---
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_attachments' }, (payload) => {
+        const a = payload.new as any;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const attachment: Attachment = {
+          id: a.id, taskId: a.task_id, userId: a.user_id,
+          fileName: a.file_name, filePath: a.file_path,
+          fileSize: a.file_size, contentType: a.content_type,
+          createdAt: a.created_at,
+          url: `${SUPABASE_URL}/storage/v1/object/public/task-attachments/${a.file_path}`,
+        };
+        setAttachmentsState(prev => prev.some(x => x.id === a.id) ? prev : [...prev, attachment]);
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'task_attachments' }, (payload) => {
+        setAttachmentsState(prev => prev.filter(a => a.id !== (payload.old as any).id));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [session]);
+
+  // Project operations
+  const createProject = useCallback(async (name: string, color: string): Promise<string> => {
+    const { data, error } = await supabase.from('projects').insert({ name, color }).select().single();
+    if (error) throw error;
+    const project = mapDbProject(data);
+    // Don't optimistically add — let realtime INSERT handler add it (with dedup)
+    setProjectsState(prev => prev.some(x => x.id === project.id) ? prev : [...prev, project]);
+    return project.id;
+  }, []);
+
+  const renameProject = useCallback(async (id: string, name: string) => {
+    await supabase.from('projects').update({ name }).eq('id', id);
+    setProjectsState(prev => prev.map(p => p.id === id ? { ...p, name } : p));
+  }, []);
+
+  const deleteProject = useCallback(async (id: string) => {
+    // Delete tasks and sections first (cascade might handle, but be explicit)
+    await supabase.from('tasks').delete().eq('project_id', id);
+    await supabase.from('sections').delete().eq('project_id', id);
+    await supabase.from('projects').delete().eq('id', id);
+    setProjectsState(prev => prev.filter(p => p.id !== id));
+    setSectionsState(prev => prev.filter(s => s.projectId !== id));
+    setTasksState(prev => prev.filter(t => t.projectId !== id));
+  }, []);
+
+  const changeProjectColor = useCallback(async (id: string, color: string) => {
+    await supabase.from('projects').update({ color }).eq('id', id);
+    setProjectsState(prev => prev.map(p => p.id === id ? { ...p, color } : p));
+  }, []);
+
+  const reorderProjects = useCallback((reordered: Project[]) => {
+    setProjectsState(reordered);
+    // No position column on projects table, just local reorder
+  }, []);
+
+  // Section operations
+  const createSection = useCallback(async (title: string, projectId: string): Promise<string> => {
+    const position = sectionsState.filter(s => s.projectId === projectId).length;
+    const { data, error } = await supabase.from('sections').insert({ 
+      name: title, 
+      project_id: projectId, 
+      position 
+    }).select().single();
+    if (error) throw error;
+    const section = mapDbSection(data);
+    // Dedup: let realtime handle it, but also add optimistically with check
+    setSectionsState(prev => prev.some(x => x.id === section.id) ? prev : [...prev, section]);
+    return section.id;
+  }, [sectionsState]);
+
+  const renameSection = useCallback(async (id: string, title: string) => {
+    await supabase.from('sections').update({ name: title }).eq('id', id);
+    setSectionsState(prev => prev.map(s => s.id === id ? { ...s, title } : s));
+  }, []);
+
+  const deleteSection = useCallback(async (id: string) => {
+    await supabase.from('tasks').delete().eq('section_id', id);
+    await supabase.from('sections').delete().eq('id', id);
+    setSectionsState(prev => prev.filter(s => s.id !== id));
+    setTasksState(prev => prev.filter(t => t.section !== id));
+  }, []);
+
+  // Task operations
+  const createTask = useCallback(async (taskData: Partial<Task> & { name: string; section: string; projectId: string }): Promise<string> => {
+    const position = tasksState.filter(t => t.section === taskData.section && t.projectId === taskData.projectId).length;
+    const { data, error } = await supabase.from('tasks').insert({
+      title: taskData.name,
+      section_id: taskData.section,
+      project_id: taskData.projectId,
+      status: taskData.status || 'pending',
+      priority: taskData.priority || 'low',
+      description: taskData.description || null,
+      due_date: taskData.dueDate || null,
+      position,
+      created_by: session?.user?.id || null,
+    }).select().single();
+    if (error) throw error;
+    const task = mapDbTask(data);
+    // Don't add optimistically — let the realtime INSERT handler add it to avoid duplicates
+    return task.id;
+  }, [tasksState, session]);
+
+  const updateTask = useCallback(async (task: Task) => {
+    await supabase.from('tasks').update({
+      title: task.name,
+      status: task.status,
+      priority: task.priority || 'low',
+      description: task.description || null,
+      due_date: task.dueDate || null,
+      assignee: task.assignee || null,
+      section_id: task.section,
+    }).eq('id', task.id);
+
+    if (task.parentTaskId) {
+      // Update subtask inside parent's subtasks array
+      setTasksState(prev => prev.map(t => {
+        if (t.id !== task.parentTaskId) return t;
+        return {
+          ...t,
+          subtasks: (t.subtasks || []).map(s => s.id === task.id ? {
+            ...s,
+            name: task.name,
+            status: task.status,
+            priority: task.priority,
+            description: task.description,
+            dueDate: task.dueDate,
+            assignee: task.assignee,
+            members: task.members,
+            subtasks: task.subtasks,
+          } : s),
+        };
+      }));
+    } else {
+      setTasksState(prev => prev.map(t => t.id === task.id ? task : t));
+    }
+  }, []);
+
+  const deleteTaskFn = useCallback(async (id: string) => {
+    await supabase.from('task_members').delete().eq('task_id', id);
+    await supabase.from('tasks').delete().eq('id', id);
+    setTasksState(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
+    await supabase.from('tasks').update({ status }).eq('id', id);
+    setTasksState(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+  }, []);
+  // Duplicate task
+  const duplicateTaskFn = useCallback(async (taskId: string): Promise<string> => {
+    const task = tasksState.find(t => t.id === taskId);
+    if (!task) throw new Error('Tarefa não encontrada');
+
+    const { data, error } = await supabase.from('tasks').insert({
+      title: `${task.name} (cópia)`,
+      section_id: task.section,
+      project_id: task.projectId,
+      status: task.status,
+      priority: task.priority || 'low',
+      description: task.description || null,
+      due_date: task.dueDate || null,
+      position: tasksState.filter(t => t.section === task.section).length,
+      created_by: session?.user?.id || null,
+    }).select().single();
+    if (error) throw error;
+
+    const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
+    setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [...prev, newTask]);
+
+    // Duplicate subtasks (level 1)
+    for (const sub of (task.subtasks || [])) {
+      const { data: newSub } = await supabase.from('tasks').insert({
+        title: sub.name, parent_task_id: data.id, section_id: task.section,
+        project_id: task.projectId, status: sub.status, priority: sub.priority || 'low',
+        description: sub.description || null, due_date: sub.dueDate || null,
+        position: (task.subtasks || []).indexOf(sub),
+      }).select().single();
+      if (!newSub) continue;
+
+      // Level 2
+      for (const sub2 of (sub.subtasks || [])) {
+        await supabase.from('tasks').insert({
+          title: sub2.name, parent_task_id: newSub.id, section_id: task.section,
+          project_id: task.projectId, status: sub2.status, priority: sub2.priority || 'low',
+          description: sub2.description || null, due_date: sub2.dueDate || null,
+          position: (sub.subtasks || []).indexOf(sub2),
+        });
+      }
+    }
+
+    toast.success(`Tarefa duplicada com sucesso!`);
+    return data.id;
+  }, [tasksState, session]);
+
+  // Task member operations
+  const addTaskMember = useCallback(async (taskId: string, userId: string) => {
+    const { data, error } = await supabase.from('task_members').insert({
+      task_id: taskId,
+      user_id: userId,
+    }).select().single();
+    if (error) throw error;
+    const profile = profilesState.find(p => p.id === userId);
+    const member: TaskMember = {
+      id: data.id,
+      userId: data.user_id,
+      fullName: profile?.fullName || null,
+      avatarUrl: profile?.avatarUrl || null,
+    };
+    setTasksState(prev => prev.map(t => {
+      if (t.id === taskId) return { ...t, members: [...(t.members || []).filter(x => x.userId !== userId), member] };
+      // Check subtasks
+      const updatedSubs = (t.subtasks || []).map(s =>
+        s.id === taskId ? { ...s, members: [...(s.members || []).filter(x => x.userId !== userId), member] } : s
+      );
+      return { ...t, subtasks: updatedSubs };
+    }));
+  }, [profilesState]);
+
+  const removeTaskMember = useCallback(async (taskId: string, userId: string) => {
+    await supabase.from('task_members').delete().eq('task_id', taskId).eq('user_id', userId);
+    setTasksState(prev => prev.map(t => {
+      if (t.id === taskId) return { ...t, members: (t.members || []).filter(m => m.userId !== userId) };
+      const updatedSubs = (t.subtasks || []).map(s =>
+        s.id === taskId ? { ...s, members: (s.members || []).filter(m => m.userId !== userId) } : s
+      );
+      return { ...t, subtasks: updatedSubs };
+    }));
+  }, []);
+
+  // Comment operations
+  const addCommentFn = useCallback(async (taskId: string, text: string) => {
+    if (!session?.user?.id) return;
+    const { data, error } = await supabase.from('comments').insert({
+      task_id: taskId,
+      content: text,
+      user_id: session.user.id,
+    }).select().single();
+    if (error) throw error;
+    const profile = profilesState.find(p => p.id === session.user.id);
+    const comment: Comment = {
+      id: data.id,
+      taskId: data.task_id,
+      author: profile?.fullName || 'Você',
+      authorId: data.user_id,
+      text: data.content,
+      date: data.created_at,
+    };
+    setCommentsState(prev => {
+      if (prev.some(c => c.id === data.id)) return prev;
+      return [...prev, comment];
+    });
+  }, [session, profilesState]);
+
+  const deleteCommentFn = useCallback(async (commentId: string) => {
+    await supabase.from('comments').delete().eq('id', commentId);
+    setCommentsState(prev => prev.filter(c => c.id !== commentId));
+  }, []);
+
+  // Duplicate project
+  const duplicateProjectFn = useCallback(async (projectId: string, mode: 'sections' | 'tasks' | 'both'): Promise<string> => {
+    const project = projectsState.find(p => p.id === projectId);
+    if (!project) throw new Error('Projeto não encontrado');
+
+    // Create new project
+    const { data: newProj, error: projErr } = await supabase.from('projects')
+      .insert({ name: `${project.name} (cópia)`, color: project.color })
+      .select().single();
+    if (projErr) throw projErr;
+
+    const newProjectId = newProj.id;
+    setProjectsState(prev => prev.some(x => x.id === newProjectId) ? prev : [...prev, mapDbProject(newProj)]);
+
+    if (mode === 'sections' || mode === 'both') {
+      const projSections = sectionsState.filter(s => s.projectId === projectId);
+      const sectionIdMap: Record<string, string> = {};
+
+      for (const sec of projSections) {
+        const { data: newSec, error: secErr } = await supabase.from('sections')
+          .insert({ name: sec.title, project_id: newProjectId, position: projSections.indexOf(sec) })
+          .select().single();
+        if (secErr) throw secErr;
+        sectionIdMap[sec.id] = newSec.id;
+        setSectionsState(prev => prev.some(x => x.id === newSec.id) ? prev : [...prev, mapDbSection(newSec)]);
+      }
+
+      if (mode === 'both') {
+        const projTasks = tasksState.filter(t => t.projectId === projectId && !t.parentTaskId);
+        for (const task of projTasks) {
+          const newSectionId = sectionIdMap[task.section];
+          if (!newSectionId) continue;
+          const { data: newTask, error: taskErr } = await supabase.from('tasks').insert({
+            title: task.name,
+            section_id: newSectionId,
+            project_id: newProjectId,
+            status: task.status,
+            priority: task.priority || 'low',
+            description: task.description || null,
+            due_date: task.dueDate || null,
+            position: projTasks.indexOf(task),
+            created_by: session?.user?.id || null,
+          }).select().single();
+          if (taskErr) continue;
+          const mappedTask = { ...mapDbTask(newTask), members: [], subtasks: [] };
+          setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [...prev, mappedTask]);
+
+          // Duplicate subtasks (level 1)
+          for (const sub of (task.subtasks || [])) {
+            const { data: newSub } = await supabase.from('tasks').insert({
+              title: sub.name, parent_task_id: newTask.id, section_id: newSectionId,
+              project_id: newProjectId, status: sub.status, priority: sub.priority || 'low',
+              description: sub.description || null, due_date: sub.dueDate || null,
+              position: (task.subtasks || []).indexOf(sub),
+            }).select().single();
+            if (!newSub) continue;
+
+            // Duplicate level 2 subtasks
+            for (const sub2 of (sub.subtasks || [])) {
+              await supabase.from('tasks').insert({
+                title: sub2.name, parent_task_id: newSub.id, section_id: newSectionId,
+                project_id: newProjectId, status: sub2.status, priority: sub2.priority || 'low',
+                description: sub2.description || null, due_date: sub2.dueDate || null,
+                position: (sub.subtasks || []).indexOf(sub2),
+              });
+            }
+          }
+        }
+      }
+    }
+
+    toast.success(`Projeto "${project.name}" duplicado com sucesso!`);
+    return newProjectId;
+  }, [projectsState, sectionsState, tasksState, session]);
+
+  // Subtask operations
+  const addSubtaskFn = useCallback(async (parentTaskId: string, name: string) => {
+    // Find parent - could be top-level task or a subtask
+    let section = '';
+    let projectId = '';
+    let existingSubtasks: Subtask[] = [];
+
+    const topLevel = tasksState.find(t => t.id === parentTaskId);
+    if (topLevel) {
+      section = topLevel.section;
+      projectId = topLevel.projectId;
+      existingSubtasks = topLevel.subtasks || [];
+    } else {
+      // Search in subtasks (level 2)
+      for (const t of tasksState) {
+        const sub = (t.subtasks || []).find(s => s.id === parentTaskId);
+        if (sub) {
+          section = sub.section;
+          projectId = sub.projectId;
+          existingSubtasks = sub.subtasks || [];
+          break;
+        }
+      }
+    }
+    if (!section) return;
+
+    const position = existingSubtasks.length;
+    const { data, error } = await supabase.from('tasks').insert({
+      title: name,
+      parent_task_id: parentTaskId,
+      section_id: section,
+      project_id: projectId,
+      status: 'pending',
+      priority: 'low',
+      position,
+    }).select().single();
+    if (error) throw error;
+    const sub: Subtask = {
+      id: data.id,
+      name: data.title,
+      status: data.status as TaskStatus,
+      priority: data.priority as Priority | undefined,
+      description: data.description || undefined,
+      dueDate: data.due_date || undefined,
+      section: data.section_id,
+      projectId: data.project_id,
+      parentTaskId: data.parent_task_id,
+    };
+
+    setTasksState(prev => prev.map(t => {
+      // Direct child of top-level task
+      if (t.id === parentTaskId) {
+        return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
+      }
+      // Child of a subtask (level 2)
+      return {
+        ...t,
+        subtasks: (t.subtasks || []).map(s => s.id === parentTaskId
+          ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
+          : s
+        ),
+      };
+    }));
+  }, [tasksState]);
+
+  const updateSubtaskFn = useCallback(async (subtaskId: string, updates: { name?: string; status?: TaskStatus }) => {
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.title = updates.name;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    await supabase.from('tasks').update(dbUpdates).eq('id', subtaskId);
+    setTasksState(prev => prev.map(t => ({
+      ...t,
+      subtasks: (t.subtasks || []).map(s => {
+        if (s.id === subtaskId) {
+          return { ...s, ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) };
+        }
+        // Check level 2
+        return {
+          ...s,
+          subtasks: (s.subtasks || []).map(ss => ss.id === subtaskId
+            ? { ...ss, ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) }
+            : ss
+          ),
+        };
+      }),
+    })));
+  }, []);
+
+  const deleteSubtaskFn = useCallback(async (parentTaskId: string, subtaskId: string) => {
+    await supabase.from('tasks').delete().eq('id', subtaskId);
+    setTasksState(prev => prev.map(t => {
+      if (t.id === parentTaskId) {
+        return { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== subtaskId) };
+      }
+      return {
+        ...t,
+        subtasks: (t.subtasks || []).map(s => s.id === parentTaskId
+          ? { ...s, subtasks: (s.subtasks || []).filter(ss => ss.id !== subtaskId) }
+          : s
+        ),
+      };
+    }));
+  }, []);
+
+  const reorderSubtasksFn = useCallback(async (parentTaskId: string, subtaskIds: string[]) => {
+    setTasksState(prev => prev.map(t => {
+      if (t.id === parentTaskId) {
+        const subs = t.subtasks || [];
+        const reordered = subtaskIds.map(id => subs.find(s => s.id === id)).filter(Boolean) as Subtask[];
+        return { ...t, subtasks: reordered };
+      }
+      return {
+        ...t,
+        subtasks: (t.subtasks || []).map(s => {
+          if (s.id === parentTaskId) {
+            const subs = s.subtasks || [];
+            const reordered = subtaskIds.map(id => subs.find(ss => ss.id === id)).filter(Boolean) as Subtask[];
+            return { ...s, subtasks: reordered };
+          }
+          return s;
+        }),
+      };
+    }));
+    await Promise.all(subtaskIds.map((id, idx) =>
+      supabase.from('tasks').update({ position: idx }).eq('id', id)
+    ));
+  }, []);
+
+  // Legacy setters for compatibility with existing DnD code
+  const setProjects = useCallback((fn: (prev: Project[]) => Project[]) => {
+    setProjectsState(prev => fn(prev));
+  }, []);
+
+  const setSections = useCallback((fn: (prev: Section[]) => Section[]) => {
+    setSectionsState(prev => fn(prev));
+  }, []);
+
+  const setTasks = useCallback((fn: (prev: Task[]) => Task[]) => {
+    setTasksState(prev => fn(prev));
+  }, []);
+
+  const exportData = useCallback(() => {
+    const json = JSON.stringify({ projects: projectsState, sections: sectionsState, tasks: tasksState }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `meufluxo_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [projectsState, sectionsState, tasksState]);
+
+  const importData = useCallback((_file: File) => {
+    alert('Importação via arquivo não disponível no modo online. Use a interface para criar projetos e tarefas.');
+  }, []);
+
+  // Attachment operations
+  const uploadAttachment = useCallback(async (taskId: string, file: File) => {
+    if (!session?.user?.id) return;
+    const ext = file.name.split('.').pop() || 'bin';
+    const filePath = `${taskId}/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('task-attachments')
+      .upload(filePath, file, { contentType: file.type });
+    if (uploadError) { toast.error('Erro ao enviar arquivo'); throw uploadError; }
+    const { error: dbError } = await (supabase.from('task_attachments' as any) as any).insert({
+      task_id: taskId,
+      user_id: session.user.id,
+      file_name: file.name,
+      file_path: filePath,
+      file_size: file.size,
+      content_type: file.type || null,
+    });
+    if (dbError) { toast.error('Erro ao salvar anexo'); throw dbError; }
+    toast.success('Anexo enviado');
+  }, [session]);
+
+  const deleteAttachment = useCallback(async (attachmentId: string) => {
+    const att = attachmentsState.find(a => a.id === attachmentId);
+    if (!att) return;
+    await supabase.storage.from('task-attachments').remove([att.filePath]);
+    await (supabase.from('task_attachments' as any) as any).delete().eq('id', attachmentId);
+    setAttachmentsState(prev => prev.filter(a => a.id !== attachmentId));
+    toast.success('Anexo removido');
+  }, [attachmentsState]);
+
+  return {
+    projects: projectsState,
+    sections: sectionsState,
+    tasks: tasksState,
+    profiles: profilesState,
+    comments: commentsState,
+    attachments: attachmentsState,
+    loading,
+    session,
+    setProjects,
+    setSections,
+    setTasks,
+    exportData,
+    importData,
+    createProject,
+    renameProject,
+    deleteProject,
+    changeProjectColor,
+    createSection,
+    renameSection,
+    deleteSection,
+    createTask,
+    updateTask,
+    deleteTask: deleteTaskFn,
+    duplicateTask: duplicateTaskFn,
+    updateTaskStatus,
+    reorderProjects,
+    addTaskMember,
+    removeTaskMember,
+    addComment: addCommentFn,
+    deleteComment: deleteCommentFn,
+    duplicateProject: duplicateProjectFn,
+    addSubtask: addSubtaskFn,
+    updateSubtask: updateSubtaskFn,
+    deleteSubtask: deleteSubtaskFn,
+    reorderSubtasks: reorderSubtasksFn,
+    uploadAttachment,
+    deleteAttachment,
+  };
+}
