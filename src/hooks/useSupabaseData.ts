@@ -10,6 +10,15 @@ export interface Profile {
   avatarUrl: string | null;
 }
 
+export interface WorkspaceMember {
+  id: string;
+  userId: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  role: 'owner' | 'admin' | 'member';
+  acceptedAt: string | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -27,11 +36,16 @@ interface UseSupabaseDataReturn {
   session: Session | null;
   workspaces: Workspace[];
   activeWorkspaceId: string | null;
+  workspaceMembers: WorkspaceMember[];
   switchWorkspace: (workspaceId: string) => void;
   inviteToWorkspace: (email: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<string>;
   renameWorkspace: (id: string, name: string) => Promise<void>;
   deleteWorkspace: (id: string) => Promise<void>;
+  acceptWorkspaceInvite: (workspaceId: string) => Promise<void>;
+  addProjectMember: (projectId: string, userId: string) => Promise<void>;
+  removeProjectMember: (projectId: string, userId: string) => Promise<void>;
+  getProjectMembers: (projectId: string) => WorkspaceMember[];
   setProjects: (fn: (prev: Project[]) => Project[]) => void;
   setSections: (fn: (prev: Section[]) => Section[]) => void;
   setTasks: (fn: (prev: Task[]) => Task[]) => void;
@@ -101,6 +115,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [profilesState, setProfilesState] = useState<Profile[]>([]);
   const [commentsState, setCommentsState] = useState<Comment[]>([]);
   const [attachmentsState, setAttachmentsState] = useState<Attachment[]>([]);
+  const [workspaceMembersState, setWorkspaceMembersState] = useState<WorkspaceMember[]>([]);
+  const [projectMembersState, setProjectMembersState] = useState<{ projectId: string; userId: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
 
@@ -128,7 +144,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       // Fetch user's workspaces
       const { data: wsMemberships } = await supabase
         .from('workspace_members')
-        .select('workspace_id')
+        .select('workspace_id, role, accepted_at, user_id')
         .eq('user_id', session.user.id);
       
       const wsIds = (wsMemberships || []).map(w => w.workspace_id);
@@ -143,6 +159,35 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
       const wsId = wsIds[0] || null;
       setActiveWorkspaceId(wsId);
+
+      // Fetch workspace members for active workspace
+      if (wsId) {
+        const { data: allWsMembers } = await supabase
+          .from('workspace_members')
+          .select('id, user_id, role, accepted_at')
+          .eq('workspace_id', wsId);
+        
+        const { data: allProfiles } = await supabase.from('profiles').select('*');
+        const profileMap = new Map((allProfiles || []).map(p => [p.id, p]));
+        
+        setWorkspaceMembersState((allWsMembers || []).map(m => {
+          const p = profileMap.get(m.user_id);
+          return {
+            id: m.id,
+            userId: m.user_id,
+            fullName: p?.full_name || null,
+            avatarUrl: p?.avatar_url || null,
+            role: m.role as 'owner' | 'admin' | 'member',
+            acceptedAt: m.accepted_at,
+          };
+        }));
+
+        // Fetch project members
+        const { data: projMembers } = await supabase
+          .from('project_members')
+          .select('project_id, user_id');
+        setProjectMembersState((projMembers || []).map(pm => ({ projectId: pm.project_id, userId: pm.user_id })));
+      }
 
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
         supabase.from('projects').select('*').eq('archived', false).order('created_at'),
@@ -1019,17 +1064,66 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   const inviteToWorkspace = useCallback(async (email: string) => {
     if (!activeWorkspaceId || !session) throw new Error('Nenhum workspace ativo');
-    // Find user by email via profiles - we need to look up the user
-    // For now, we'll use a simple approach: look up the email in auth
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .limit(100);
     
-    // We can't directly query auth.users, so we'll inform the user
-    // For a proper invite system, we'd need an edge function
-    toast.error('Para convidar membros, o usuário precisa estar cadastrado no sistema.');
+    const { data, error } = await supabase.functions.invoke('invite-member', {
+      body: { email, workspace_id: activeWorkspaceId },
+    });
+    
+    if (error) { toast.error('Erro ao convidar membro'); throw error; }
+    if (data?.error) {
+      toast.error(data.error);
+      return;
+    }
+    
+    if (data?.member) {
+      const m = data.member;
+      setWorkspaceMembersState(prev => [...prev.filter(x => x.userId !== m.userId), {
+        id: m.id,
+        userId: m.userId,
+        fullName: m.fullName,
+        avatarUrl: m.avatarUrl,
+        role: m.role,
+        acceptedAt: m.acceptedAt,
+      }]);
+    }
+    toast.success('Convite enviado com sucesso!');
   }, [activeWorkspaceId, session]);
+
+  const acceptWorkspaceInvite = useCallback(async (workspaceId: string) => {
+    if (!session) return;
+    await supabase
+      .from('workspace_members')
+      .update({ accepted_at: new Date().toISOString() })
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', session.user.id);
+    toast.success('Convite aceito!');
+    switchWorkspace(workspaceId);
+  }, [session, switchWorkspace]);
+
+  const addProjectMember = useCallback(async (projectId: string, userId: string) => {
+    const { error } = await supabase
+      .from('project_members')
+      .insert({ project_id: projectId, user_id: userId });
+    if (error) { toast.error('Erro ao adicionar membro ao projeto'); throw error; }
+    setProjectMembersState(prev => [...prev, { projectId, userId }]);
+    toast.success('Membro adicionado ao projeto!');
+  }, []);
+
+  const removeProjectMember = useCallback(async (projectId: string, userId: string) => {
+    const { error } = await supabase
+      .from('project_members')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('user_id', userId);
+    if (error) { toast.error('Erro ao remover membro do projeto'); throw error; }
+    setProjectMembersState(prev => prev.filter(pm => !(pm.projectId === projectId && pm.userId === userId)));
+    toast.success('Membro removido do projeto!');
+  }, []);
+
+  const getProjectMembers = useCallback((projectId: string): WorkspaceMember[] => {
+    const memberUserIds = new Set(projectMembersState.filter(pm => pm.projectId === projectId).map(pm => pm.userId));
+    return workspaceMembersState.filter(wm => memberUserIds.has(wm.userId));
+  }, [projectMembersState, workspaceMembersState]);
 
   const createWorkspace = useCallback(async (name: string): Promise<string> => {
     if (!session) throw new Error('Não autenticado');
@@ -1080,11 +1174,16 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     session,
     workspaces: workspacesState,
     activeWorkspaceId,
+    workspaceMembers: workspaceMembersState,
     switchWorkspace,
     inviteToWorkspace,
     createWorkspace,
     renameWorkspace,
     deleteWorkspace,
+    acceptWorkspaceInvite,
+    addProjectMember,
+    removeProjectMember,
+    getProjectMembers,
     setProjects,
     setSections,
     setTasks,

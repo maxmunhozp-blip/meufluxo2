@@ -43,7 +43,8 @@ const Index = () => {
     setProjects, setSections, setTasks,
     exportData, importData,
     loading, session,
-    workspaces, activeWorkspaceId, switchWorkspace, inviteToWorkspace, createWorkspace, renameWorkspace, deleteWorkspace,
+    workspaces, activeWorkspaceId, workspaceMembers, switchWorkspace, inviteToWorkspace, createWorkspace, renameWorkspace, deleteWorkspace,
+    acceptWorkspaceInvite, addProjectMember, removeProjectMember, getProjectMembers,
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
     createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn,
@@ -580,11 +581,16 @@ const Index = () => {
     tasks: taskList,
     workspaces,
     activeWorkspaceId,
+    workspaceMembers,
     onSwitchWorkspace: switchWorkspace,
     onInviteToWorkspace: inviteToWorkspace,
     onCreateWorkspace: createWorkspace,
     onRenameWorkspace: renameWorkspace,
     onDeleteWorkspace: deleteWorkspace,
+    onAcceptInvite: acceptWorkspaceInvite,
+    onAddProjectMember: addProjectMember,
+    onRemoveProjectMember: removeProjectMember,
+    getProjectMembers,
   };
 
   // Determine active view for bottom nav

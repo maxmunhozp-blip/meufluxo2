@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -7,7 +7,8 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { Project, Task } from '@/types/task';
 import { ContextMenu } from './ContextMenu';
 import { WorkspaceSelector } from './WorkspaceSelector';
-import type { Workspace } from '@/hooks/useSupabaseData';
+import { ProjectMembersModal } from './ProjectMembersModal';
+import type { Workspace, WorkspaceMember } from '@/hooks/useSupabaseData';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
@@ -33,11 +34,16 @@ interface ProjectSidebarProps {
   tasks?: Task[];
   workspaces?: Workspace[];
   activeWorkspaceId?: string | null;
+  workspaceMembers?: WorkspaceMember[];
   onSwitchWorkspace?: (id: string) => void;
   onInviteToWorkspace?: (email: string) => Promise<void>;
   onCreateWorkspace?: (name: string) => Promise<string>;
   onRenameWorkspace?: (id: string, name: string) => Promise<void>;
   onDeleteWorkspace?: (id: string) => Promise<void>;
+  onAcceptInvite?: (workspaceId: string) => Promise<void>;
+  onAddProjectMember?: (projectId: string, userId: string) => Promise<void>;
+  onRemoveProjectMember?: (projectId: string, userId: string) => Promise<void>;
+  getProjectMembers?: (projectId: string) => WorkspaceMember[];
 }
 
 function SortableProjectItem({
@@ -120,12 +126,18 @@ export function ProjectSidebar({
   tasks = [],
   workspaces = [],
   activeWorkspaceId,
+  workspaceMembers = [],
   onSwitchWorkspace,
   onInviteToWorkspace,
   onCreateWorkspace,
   onRenameWorkspace,
   onDeleteWorkspace,
+  onAcceptInvite,
+  onAddProjectMember,
+  onRemoveProjectMember,
+  getProjectMembers,
 }: ProjectSidebarProps) {
+  const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [contextMenu, setContextMenu] = useState<{ projectId: string; x: number; y: number } | null>(null);
@@ -206,6 +218,36 @@ export function ProjectSidebar({
         onRename={onRenameWorkspace || (async () => {})}
         onDelete={onDeleteWorkspace || (async () => {})}
       />
+
+      {/* Workspace members avatars */}
+      {workspaceMembers.length > 0 && (
+        <div className="px-4 pb-2 flex items-center gap-1">
+          {workspaceMembers.slice(0, 5).map(m => (
+            <div
+              key={m.userId}
+              title={`${m.fullName || 'Sem nome'}${!m.acceptedAt ? ' (Pendente)' : ''}`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
+                !m.acceptedAt ? 'opacity-50' : ''
+              }`}
+              style={{ background: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' }}
+            >
+              {m.avatarUrl ? (
+                <img src={m.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                (m.fullName || '?').charAt(0).toUpperCase()
+              )}
+            </div>
+          ))}
+          {workspaceMembers.length > 5 && (
+            <span className="text-[10px] text-muted-foreground">+{workspaceMembers.length - 5}</span>
+          )}
+          {workspaceMembers.some(m => !m.acceptedAt) && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full ml-1" style={{ background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))' }}>
+              Pendente
+            </span>
+          )}
+        </div>
+      )}
 
       {/* 16px space between workspace selector and nav */}
       <div className="h-4" />
@@ -372,6 +414,10 @@ export function ProjectSidebar({
           items={[
             { label: 'Renomear', onClick: () => startRename(contextMenu.projectId) },
             {
+              label: 'Membros',
+              onClick: () => setProjectMembersModal(contextMenu.projectId),
+            },
+            {
               label: 'Duplicar',
               onClick: () => setDuplicateDialog(contextMenu.projectId),
             },
@@ -460,6 +506,19 @@ export function ProjectSidebar({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Project members modal */}
+      {projectMembersModal && onAddProjectMember && onRemoveProjectMember && getProjectMembers && (
+        <ProjectMembersModal
+          projectId={projectMembersModal}
+          projectName={projects.find(p => p.id === projectMembersModal)?.name || ''}
+          workspaceMembers={workspaceMembers}
+          projectMembers={getProjectMembers(projectMembersModal)}
+          onAdd={onAddProjectMember}
+          onRemove={onRemoveProjectMember}
+          onClose={() => setProjectMembersModal(null)}
+        />
       )}
     </aside>
   );
