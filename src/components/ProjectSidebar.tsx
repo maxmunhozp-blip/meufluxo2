@@ -35,6 +35,7 @@ interface ProjectSidebarProps {
   activeWorkspaceId?: string | null;
   onSwitchWorkspace?: (id: string) => void;
   onInviteToWorkspace?: (email: string) => Promise<void>;
+  onCreateWorkspace?: (name: string) => Promise<string>;
 }
 
 function SortableProjectItem({
@@ -119,6 +120,7 @@ export function ProjectSidebar({
   activeWorkspaceId,
   onSwitchWorkspace,
   onInviteToWorkspace,
+  onCreateWorkspace,
 }: ProjectSidebarProps) {
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -196,6 +198,7 @@ export function ProjectSidebar({
         activeWorkspaceId={activeWorkspaceId || null}
         onSwitch={onSwitchWorkspace || (() => {})}
         onInvite={onInviteToWorkspace || (async () => {})}
+        onCreate={onCreateWorkspace || (async () => '')}
       />
 
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">

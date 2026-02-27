@@ -7,13 +7,17 @@ interface WorkspaceSelectorProps {
   activeWorkspaceId: string | null;
   onSwitch: (id: string) => void;
   onInvite: (email: string) => Promise<void>;
+  onCreate: (name: string) => Promise<string>;
 }
 
-export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite }: WorkspaceSelectorProps) {
+export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite, onCreate }: WorkspaceSelectorProps) {
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
 
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
 
@@ -28,6 +32,19 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
       // error handled in hook
     }
     setInviting(false);
+  };
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return;
+    setCreating(true);
+    try {
+      await onCreate(newName.trim());
+      setNewName('');
+      setCreateOpen(false);
+    } catch {
+      // error handled in hook
+    }
+    setCreating(false);
   };
 
   return (
@@ -76,6 +93,14 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
               <Users className="w-4 h-4 flex-shrink-0" />
               <span>Convidar membro</span>
             </button>
+            <button
+              onClick={() => { setCreateOpen(true); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 text-[13px] text-muted-foreground hover:bg-accent/50 transition-colors rounded-md"
+              style={{ minHeight: 40 }}
+            >
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span>Novo Workspace</span>
+            </button>
           </div>
         </>
       )}
@@ -113,6 +138,45 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
                 className="flex-1 h-9 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {inviting ? 'Enviando...' : 'Convidar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create workspace modal */}
+      {createOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div
+            className="rounded-xl border border-border p-5 w-[360px]"
+            style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+          >
+            <h3 className="text-[15px] font-semibold text-foreground mb-1">Novo Workspace</h3>
+            <p className="text-[13px] text-muted-foreground mb-4">
+              Crie um novo workspace para organizar seus projetos.
+            </p>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+              placeholder="Nome do workspace"
+              autoFocus
+              className="w-full h-10 px-3 text-[14px] text-foreground bg-input rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground mb-3"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setCreateOpen(false); setNewName(''); }}
+                className="flex-1 h-9 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={creating || !newName.trim()}
+                className="flex-1 h-9 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {creating ? 'Criando...' : 'Criar'}
               </button>
             </div>
           </div>
