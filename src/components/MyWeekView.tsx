@@ -11,7 +11,7 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles, Plus, ChevronDown } from 'lucide-react';
-import { Task, TaskStatus, Project, Section } from '@/types/task';
+import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
 import { ProBadge } from '@/components/ProBadge';
@@ -211,14 +211,12 @@ function WeekSourceSidebar({
   projects,
   sections,
   tasks,
-  allTasks,
   collapsed,
   onToggle,
 }: {
   projects: Project[];
   sections: Section[];
   tasks: Task[];
-  allTasks: Task[];
   collapsed: boolean;
   onToggle: () => void;
 }) {
@@ -328,7 +326,7 @@ function WeekSourceSidebar({
                         </div>
                       )}
                       {sectionTasks.map(task => {
-                        const subtasks = allTasks.filter(st => st.parentTaskId === task.id && st.status !== 'done');
+                        const subtasks = (task.subtasks || []).filter(st => st.status !== 'done');
                         return (
                           <SourceTaskItem key={task.id} task={task} projectColor={project.color} subtasks={subtasks} />
                         );
@@ -358,7 +356,7 @@ function WeekSourceSidebar({
 }
 
 // Draggable source task item with optional subtask expansion
-function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; projectColor: string; subtasks?: Task[] }) {
+function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; projectColor: string; subtasks?: Subtask[] }) {
   const [expanded, setExpanded] = useState(false);
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -649,7 +647,7 @@ export function MyWeekView({
               projects={projects}
               sections={sections}
               tasks={tasks}
-              allTasks={tasks}
+              
               collapsed={sidebarCollapsed}
               onToggle={() => setSidebarCollapsed(prev => !prev)}
             />
