@@ -6,6 +6,8 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEn
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { Project, Task } from '@/types/task';
 import { ContextMenu } from './ContextMenu';
+import { WorkspaceSelector } from './WorkspaceSelector';
+import type { Workspace } from '@/hooks/useSupabaseData';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
@@ -29,6 +31,10 @@ interface ProjectSidebarProps {
   isMyWeekView?: boolean;
   onToggleMyWeek?: () => void;
   tasks?: Task[];
+  workspaces?: Workspace[];
+  activeWorkspaceId?: string | null;
+  onSwitchWorkspace?: (id: string) => void;
+  onInviteToWorkspace?: (email: string) => Promise<void>;
 }
 
 function SortableProjectItem({
@@ -109,6 +115,10 @@ export function ProjectSidebar({
   isMyWeekView,
   onToggleMyWeek,
   tasks = [],
+  workspaces = [],
+  activeWorkspaceId,
+  onSwitchWorkspace,
+  onInviteToWorkspace,
 }: ProjectSidebarProps) {
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -180,9 +190,13 @@ export function ProjectSidebar({
       className="h-screen flex flex-col border-r border-border z-30 sticky top-0"
       style={{ background: 'hsl(var(--bg-sidebar))' }}
     >
-      <div className="px-4 pt-5 pb-4">
-        <span className="text-[16px] font-bold text-foreground">MeuFluxo</span>
-      </div>
+      {/* Workspace selector */}
+      <WorkspaceSelector
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId || null}
+        onSwitch={onSwitchWorkspace || (() => {})}
+        onInvite={onInviteToWorkspace || (async () => {})}
+      />
 
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
         {/* Meu Dia */}
