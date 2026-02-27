@@ -473,18 +473,21 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          plan: Database["public"]["Enums"]["workspace_plan"]
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
           owner_id: string
+          plan?: Database["public"]["Enums"]["workspace_plan"]
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
           owner_id?: string
+          plan?: Database["public"]["Enums"]["workspace_plan"]
         }
         Relationships: []
       }
@@ -514,6 +517,7 @@ export type Database = {
       app_role: "super_admin" | "admin" | "member"
       task_priority: "high" | "medium" | "low"
       task_status: "pending" | "in_progress" | "done"
+      workspace_plan: "free" | "pro"
       workspace_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -645,6 +649,7 @@ export const Constants = {
       app_role: ["super_admin", "admin", "member"],
       task_priority: ["high", "medium", "low"],
       task_status: ["pending", "in_progress", "done"],
+      workspace_plan: ["free", "pro"],
       workspace_role: ["owner", "admin", "member"],
     },
   },

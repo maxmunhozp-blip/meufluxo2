@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, RecurrenceType, RecurrenceConfig } from '@/types/task';
 import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
 
 export interface Profile {
   id: string;
@@ -76,6 +77,17 @@ interface UseSupabaseDataReturn {
   reorderSubtasks: (parentTaskId: string, subtaskIds: string[]) => Promise<void>;
   uploadAttachment: (taskId: string, file: File) => Promise<void>;
   deleteAttachment: (attachmentId: string) => Promise<void>;
+  planLimits: {
+    plan: PlanType;
+    limits: PlanLimits;
+    canCreateProject: boolean;
+    canCreateTaskInProject: (projectId: string) => boolean;
+    canInviteMember: boolean;
+    canCreateWorkspace: boolean;
+    isPro: boolean;
+  };
+  showUpgradeModal: boolean;
+  setShowUpgradeModal: (show: boolean) => void;
 }
 
 function mapDbProject(row: any): Project {
@@ -120,6 +132,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [projectMembersState, setProjectMembersState] = useState<{ projectId: string; userId: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const planLimits = usePlanLimits(
+    workspacesState,
+    activeWorkspaceId,
+    projectsState,
+    tasksState,
+    workspaceMembersState,
+  );
 
   // Auth listener
   useEffect(() => {
@@ -493,6 +514,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   // Project operations
   const createProject = useCallback(async (name: string, color: string): Promise<string> => {
+    if (!planLimits.canCreateProject) {
+      setShowUpgradeModal(true);
+      throw new Error('Limite de projetos atingido');
+    }
     if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const { data, error } = await supabase.from('projects').insert({ name, color, workspace_id: activeWorkspaceId }).select().single();
     if (error) throw error;
@@ -556,6 +581,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   // Task operations
   const createTask = useCallback(async (taskData: Partial<Task> & { name: string; section: string; projectId: string }): Promise<string> => {
+    if (!planLimits.canCreateTaskInProject(taskData.projectId)) {
+      setShowUpgradeModal(true);
+      throw new Error('Limite de tarefas no projeto atingido');
+    }
     if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const position = tasksState.filter(t => t.section === taskData.section && t.projectId === taskData.projectId).length;
     const { data, error } = await supabase.from('tasks').insert({
@@ -1064,6 +1093,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   }, []);
 
   const inviteToWorkspace = useCallback(async (email: string) => {
+    if (!planLimits.canInviteMember) {
+      setShowUpgradeModal(true);
+      throw new Error('Limite de membros atingido');
+    }
     if (!activeWorkspaceId || !session) throw new Error('Nenhum workspace ativo');
     
     const { data, error } = await supabase.functions.invoke('invite-member', {
@@ -1145,6 +1178,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   }, [projectMembersState, workspaceMembersState]);
 
   const createWorkspace = useCallback(async (name: string): Promise<string> => {
+    if (!planLimits.canCreateWorkspace) {
+      setShowUpgradeModal(true);
+      throw new Error('Limite de workspaces atingido');
+    }
     if (!session) throw new Error('Não autenticado');
     const { data, error } = await supabase
       .from('workspaces')
@@ -1233,5 +1270,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     reorderSubtasks: reorderSubtasksFn,
     uploadAttachment,
     deleteAttachment,
+    planLimits,
+    showUpgradeModal,
+    setShowUpgradeModal,
   };
 }
