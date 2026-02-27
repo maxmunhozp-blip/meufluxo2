@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { GripVertical, MessageSquare, Play } from 'lucide-react';
+import { GripVertical, MessageSquare, Play, Repeat } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
@@ -252,6 +252,9 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
                 {task.name}
               </span>
+            )}
+            {task.recurrenceType && (
+              <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
             )}
             {task.members && task.members.length > 0 && (
               <div className="flex items-center -space-x-1.5 flex-shrink-0">

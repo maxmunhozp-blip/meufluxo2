@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3 } from 'lucide-react';
+import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat } from 'lucide-react';
 import { Task, TaskStatus, Project, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
@@ -86,6 +86,7 @@ function SortableWeekTaskCard({
       }`}>
         {task.name}
       </span>
+      {task.recurrenceType && <Repeat className="w-2.5 h-2.5 text-primary/50 flex-shrink-0" />}
     </div>
   );
 }

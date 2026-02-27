@@ -3,10 +3,11 @@ import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskStatus, Priority, Subtask, Comment, Section, Attachment } from '@/types/task';
+import { Task, TaskStatus, Priority, Subtask, Comment, Section, Attachment, RecurrenceType, RecurrenceConfig } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { MemberPicker } from './MemberPicker';
 import { Profile } from '@/hooks/useSupabaseData';
+import { RecurrencePicker } from './RecurrencePicker';
 
 interface TaskDetailPanelProps {
   task: Task;
@@ -529,6 +530,13 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                 <option key={s.id} value={s.id}>{s.title}</option>
               ))}
             </select>
+
+            <label className="text-[12px] font-medium text-nd-text-secondary pt-1.5">Repetir</label>
+            <RecurrencePicker
+              recurrenceType={localTask.recurrenceType || null}
+              recurrenceConfig={localTask.recurrenceConfig}
+              onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })}
+            />
           </div>
 
           {/* Members — part of metadata context, no separator needed */}
