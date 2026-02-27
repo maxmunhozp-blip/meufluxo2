@@ -15,6 +15,9 @@ import { ServiceTagsManager } from './ServiceTagsManager';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
+// Apple-style transition
+const APPLE_EASE = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+
 interface ProjectSidebarProps {
   projects: Project[];
   activeProjectId: string;
@@ -82,20 +85,24 @@ function SortableProjectItem({
   return (
     <div
       ref={setNodeRef}
-      className="group w-full flex items-center gap-2.5 rounded-lg text-[14px] cursor-pointer relative"
+      className="group w-full flex items-center gap-2.5 cursor-pointer relative select-none"
       onClick={onSelect}
       onContextMenu={onContextMenu}
       style={{
         ...style,
-        height: 40,
-        paddingLeft: 12,
-        paddingRight: 8,
-        background: isActive ? '#2A2A42' : undefined,
-        borderLeft: isActive ? '2px solid #6C9CFC' : '2px solid transparent',
+        height: 36,
+        paddingLeft: 10,
+        paddingRight: 10,
         borderRadius: 8,
+        color: isActive ? '#E8E8F0' : '#8888A0',
+        fontWeight: isActive ? 500 : 400,
+        fontSize: 13,
+        transition: `color 200ms ${APPLE_EASE}, font-weight 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
       }}
-      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#1E1E30'; }}
-      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = style.transform || ''; }}
+      onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = `${style.transform || ''} scale(0.98)`.trim(); }}
+      onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = style.transform || ''; }}
     >
       <div
         {...attributes}
@@ -110,7 +117,7 @@ function SortableProjectItem({
         className="w-2 h-2 rounded-full flex-shrink-0 hover:scale-150 transition-transform"
         style={{ background: project.color }}
       />
-      <span className="truncate" style={{ color: isActive ? '#E8E8F0' : '#8888A0', fontWeight: isActive ? 500 : 400 }}>{project.name}</span>
+      <span className="truncate">{project.name}</span>
     </div>
   );
 }
@@ -179,70 +186,60 @@ export function ProjectSidebar({
     setRenamingId(null);
   };
 
-  const navBtnStyle = (active: boolean): React.CSSProperties => ({
-    height: 40,
-    paddingLeft: 12,
-    paddingRight: 8,
-    borderRadius: 8,
-    background: active ? '#2A2A42' : undefined,
-    borderLeft: active ? '2px solid #6C9CFC' : '2px solid transparent',
-  });
-
-  const navHover = (active: boolean) => active ? {} : {
-    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.background = '#1E1E30'; },
-    onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.background = 'transparent'; },
-  };
+  // Apple-style nav button with purely typographic active state
+  const NavButton = ({ active, onClick, icon: Icon, label, count }: {
+    active: boolean; onClick?: () => void; icon: typeof Sun; label: string; count?: number;
+  }) => (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-2.5 cursor-pointer select-none"
+      style={{
+        height: 36,
+        paddingLeft: 10,
+        paddingRight: 10,
+        borderRadius: 8,
+        fontSize: 14,
+        color: active ? '#E8E8F0' : '#8888A0',
+        fontWeight: active ? 600 : 400,
+        transition: `color 200ms ${APPLE_EASE}, font-weight 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = ''; }}
+      onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = 'scale(0.98)'; }}
+      onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = ''; }}
+    >
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#E8E8F0' : '#8888A0', transition: `color 200ms ${APPLE_EASE}` }} />
+      <span className="truncate flex-1 text-left">{label}</span>
+      {count !== undefined && count > 0 && (
+        <span
+          className="text-[10px] tabular-nums flex-shrink-0"
+          style={{ color: '#8888A0', fontWeight: 400 }}
+        >{count}</span>
+      )}
+    </button>
+  );
 
   return (
-    <aside className="h-screen flex flex-col border-r z-30 sticky top-0" style={{ background: '#0F0F17', borderColor: 'hsl(var(--border))' }}>
+    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: '#0F0F17' }}>
       <nav className="flex-1 px-2 pt-3 overflow-y-auto">
-        {/* Meu Dia */}
-        <button
-          onClick={onToggleMyDay}
-          className="w-full flex items-center gap-2.5 text-[14px] cursor-pointer"
-          style={navBtnStyle(!!isMyDayView)}
-          {...navHover(!!isMyDayView)}
-        >
-          <Sun className="w-4 h-4 flex-shrink-0" style={{ color: isMyDayView ? '#E8E8F0' : '#8888A0' }} />
-          <span className="truncate flex-1 text-left" style={{ color: isMyDayView ? '#E8E8F0' : '#8888A0', fontWeight: isMyDayView ? 500 : 400 }}>Meu Dia</span>
-          {dayCount > 0 && (
-            <span className="text-[10px] font-semibold rounded-full tabular-nums flex items-center justify-center flex-shrink-0"
-              style={{ background: '#2A2A42', color: '#6C9CFC', width: 18, height: 18 }}
-            >{dayCount}</span>
-          )}
-        </button>
+        {/* Nav items */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
+          <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
+        </div>
 
-        <div className="h-1" />
-
-        {/* Minha Semana */}
-        <button
-          onClick={onToggleMyWeek}
-          className="w-full flex items-center gap-2.5 text-[14px] cursor-pointer"
-          style={navBtnStyle(!!isMyWeekView)}
-          {...navHover(!!isMyWeekView)}
-        >
-          <CalendarDays className="w-4 h-4 flex-shrink-0" style={{ color: isMyWeekView ? '#E8E8F0' : '#8888A0' }} />
-          <span className="truncate flex-1 text-left" style={{ color: isMyWeekView ? '#E8E8F0' : '#8888A0', fontWeight: isMyWeekView ? 500 : 400 }}>Minha Semana</span>
-          {weekCount > 0 && (
-            <span className="text-[10px] font-semibold rounded-full tabular-nums flex items-center justify-center flex-shrink-0"
-              title={`${weekCount} tarefa${weekCount > 1 ? 's' : ''} agendada${weekCount > 1 ? 's' : ''}`}
-              style={{ background: '#2A2A42', color: '#6C9CFC', width: 18, height: 18 }}
-            >{weekCount}</span>
-          )}
-        </button>
-
-        {/* Separator */}
-        <div className="h-4" />
-        <div className="h-px mx-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
-        <div className="h-4" />
+        {/* Separator — near-invisible */}
+        <div style={{ margin: '12px 0' }}>
+          <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.06)' }} />
+        </div>
 
         {/* Projects */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {projects.map((project) => (
                 renamingId === project.id ? (
-                  <div key={project.id} className="flex items-center gap-2.5 px-3" style={{ height: 40 }}>
+                  <div key={project.id} className="flex items-center gap-2.5" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
                     <input
                       ref={renameRef}
@@ -250,8 +247,8 @@ export function ProjectSidebar({
                       onChange={(e) => setRenameValue(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onBlur={confirmRename}
-                      className="flex-1 h-7 px-2 text-[14px] rounded border focus:outline-none"
-                      style={{ background: '#1E1E30', color: '#E8E8F0', borderColor: '#6C9CFC' }}
+                      className="flex-1 h-7 px-2 text-[13px] rounded border focus:outline-none"
+                      style={{ background: 'hsl(var(--bg-input))', color: '#E8E8F0', borderColor: '#6C9CFC' }}
                     />
                   </div>
                 ) : (
@@ -269,9 +266,9 @@ export function ProjectSidebar({
           </SortableContext>
         </DndContext>
 
-        {/* New project input */}
+        {/* New project */}
         {creatingProject ? (
-          <div className="flex items-center px-3" style={{ height: 40 }}>
+          <div className="flex items-center" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
             <input
               ref={inputRef}
               value={newProjectName}
@@ -280,86 +277,99 @@ export function ProjectSidebar({
               onBlur={() => { if (newProjectName.trim()) handleCreate(); else setCreatingProject(false); }}
               autoFocus
               placeholder="Nome do projeto..."
-              className="w-full h-7 px-2 text-[14px] rounded-md border focus:outline-none"
-              style={{ background: '#1E1E30', color: '#E8E8F0', borderColor: '#6C9CFC' }}
+              className="w-full h-7 px-2 text-[13px] rounded-md border focus:outline-none"
+              style={{ background: 'hsl(var(--bg-input))', color: '#E8E8F0', borderColor: '#6C9CFC' }}
             />
           </div>
         ) : (
           <button
             onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-            className="w-full flex items-center px-3 text-[13px] font-medium transition-colors"
-            style={{ height: 40, color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            className="w-full flex items-center text-[13px] select-none"
+            style={{
+              height: 36,
+              paddingLeft: 10,
+              paddingRight: 10,
+              color: '#555570',
+              fontWeight: 400,
+              borderRadius: 8,
+              transition: `color 150ms ease-out`,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
           >
             + Novo Projeto
           </button>
         )}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t relative" style={{ borderColor: 'hsl(var(--border))' }}>
-        <div className="px-3 py-2 flex items-center gap-1">
-          <WorkspaceSelector
-            workspaces={workspaces}
-            activeWorkspaceId={activeWorkspaceId || null}
-            onSwitch={onSwitchWorkspace || (() => {})}
-            onInvite={onInviteToWorkspace || (async () => {})}
-            onCreate={onCreateWorkspace || (async () => '')}
-            onRename={onRenameWorkspace || (async () => {})}
-            onDelete={onDeleteWorkspace || (async () => {})}
-            onGenerateInviteLink={onGenerateInviteLink || (async () => '')}
-            direction="up"
-          />
+      {/* Footer — subdued */}
+      <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+        <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
+          <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
+          >
+            <WorkspaceSelector
+              workspaces={workspaces}
+              activeWorkspaceId={activeWorkspaceId || null}
+              onSwitch={onSwitchWorkspace || (() => {})}
+              onInvite={onInviteToWorkspace || (async () => {})}
+              onCreate={onCreateWorkspace || (async () => '')}
+              onRename={onRenameWorkspace || (async () => {})}
+              onDelete={onDeleteWorkspace || (async () => {})}
+              onGenerateInviteLink={onGenerateInviteLink || (async () => '')}
+              direction="up"
+            />
+          </div>
           <div className="flex-1" />
 
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
-              style={{ color: '#8888A0' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#6C9CFC'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+              style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
             ><Shield className="w-3.5 h-3.5" /></a>
           )}
           <button onClick={() => navigate('/profile')} className="w-7 h-7 flex items-center justify-center rounded-md" title="Perfil"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><User className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowSettings(!showSettings)} className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><Settings className="w-3.5 h-3.5" /></button>
           <button onClick={onLogout} className="w-7 h-7 flex items-center justify-center rounded-md" title="Sair da conta"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#FFB86C'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><LogOut className="w-3.5 h-3.5" /></button>
         </div>
 
         {showSettings && (
           <div className="absolute bottom-full left-3 mb-1 py-1 rounded-lg border z-[100]"
-            style={{ background: '#1A1A28', borderColor: 'hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
+            style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
           >
             <button onClick={() => { onExport(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Exportar dados (JSON)
             </button>
             <button onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Importar dados (JSON)
             </button>
-            <div className="h-px mx-2 my-1" style={{ background: 'hsl(var(--border))' }} />
+            <div className="h-px mx-2 my-1" style={{ background: 'rgba(255, 255, 255, 0.06)' }} />
             <button onClick={() => { navigate('/plans'); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <CreditCard className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Planos
             </button>
             <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <Tag className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Serviços
             </button>
             <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <HelpCircle className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Como usar
             </button>
           </div>
@@ -391,7 +401,7 @@ export function ProjectSidebar({
       {colorPicker && (
         <>
           <div className="fixed inset-0 z-[99]" onClick={() => setColorPicker(null)} />
-          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: '#1A1A28', borderColor: 'hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             {PROJECT_COLORS.map(color => (
               <button key={color} onClick={() => { onChangeColor(colorPicker.projectId, color); setColorPicker(null); }}
                 className="w-6 h-6 rounded-full border-2 hover:scale-110 transition-transform"
@@ -405,7 +415,7 @@ export function ProjectSidebar({
       {/* Duplicate dialog */}
       {duplicateDialog && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="rounded-xl border p-5 w-[320px]" style={{ background: '#1A1A28', borderColor: 'hsl(var(--border))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+          <div className="rounded-xl border p-5 w-[320px]" style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
             <h3 className="text-[15px] font-semibold mb-1" style={{ color: '#E8E8F0' }}>Duplicar Projeto</h3>
             <p className="text-[13px] mb-4" style={{ color: '#8888A0' }}>O que deseja duplicar?</p>
             <div className="flex flex-col gap-2">
@@ -416,8 +426,8 @@ export function ProjectSidebar({
               ]).map(({ mode, label }) => (
                 <button key={mode} onClick={async () => { const id = duplicateDialog; setDuplicateDialog(null); const newId = await onDuplicateProject(id, mode); onSelectProject(newId); }}
                   className="w-full h-9 px-3 text-left text-[13px] rounded-md border transition-colors"
-                  style={{ color: '#E8E8F0', borderColor: 'hsl(var(--border))' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#2A2A42'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  style={{ color: '#E8E8F0', borderColor: 'rgba(255, 255, 255, 0.06)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   {label}
                 </button>
               ))}
