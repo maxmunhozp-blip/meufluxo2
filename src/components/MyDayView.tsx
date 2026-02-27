@@ -10,6 +10,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Target, ArrowRight } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
+import { FocusMode } from './FocusMode';
 
 interface MyDayViewProps {
   tasks: Task[];
@@ -214,6 +215,7 @@ export function MyDayView({
   onNavigateToWeek,
 }: MyDayViewProps) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [focusModeOpen, setFocusModeOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
@@ -285,7 +287,7 @@ export function MyDayView({
           </div>
           <button
             className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-            onClick={() => {/* TODO: focus mode */}}
+            onClick={() => setFocusModeOpen(true)}
           >
             <Target className="w-3.5 h-3.5" />
             Focar
@@ -346,6 +348,16 @@ export function MyDayView({
           </DndContext>
         )}
       </div>
+
+      {/* Focus Mode */}
+      {focusModeOpen && (
+        <FocusMode
+          tasks={tasks}
+          projects={projects}
+          onStatusChange={onStatusChange}
+          onClose={() => setFocusModeOpen(false)}
+        />
+      )}
     </div>
   );
 }
