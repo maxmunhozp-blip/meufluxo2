@@ -667,14 +667,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           ...t,
           subtasks: (t.subtasks || []).map(s => s.id === task.id ? {
             ...s,
-            name: task.name,
-            status: task.status,
-            priority: task.priority,
-            description: task.description,
-            dueDate: task.dueDate,
-            assignee: task.assignee,
-            members: task.members,
-            subtasks: task.subtasks,
+            ...task,
           } : s),
         };
       }));
