@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -561,7 +566,82 @@ function RichDescription({ value, onChange, placeholder }: { value: string; onCh
     </div>
   );
 }
+// Inline date picker using Popover + Calendar
+function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelative }: {
+  value?: string;
+  onChange: (val: string | undefined) => void;
+  placeholder: string;
+  clearLabel?: string;
+  showRelative?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
 
+  const selectedDate = value ? (() => {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  })() : undefined;
+
+  const handleSelect = (date: Date | undefined) => {
+    if (!date) { onChange(undefined); setOpen(false); return; }
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    onChange(`${y}-${m}-${d}`);
+    setOpen(false);
+  };
+
+  const renderLabel = () => {
+    if (!value) return <span className="text-[13px]" style={{ color: '#555570' }}>{placeholder}</span>;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const [y, m, d] = value.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const weekDays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    const diffDays = Math.ceil((dt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (showRelative) {
+      if (diffDays < 0) {
+        const label = Math.abs(diffDays) === 1 ? 'Ontem' : `${Math.abs(diffDays)}d atrás`;
+        return <span className="text-[13px] font-medium" style={{ color: 'hsl(var(--status-overdue))' }}>{label}</span>;
+      }
+      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Hoje</span>;
+      if (diffDays === 1) return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Amanhã</span>;
+    } else {
+      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: '#6C9CFC' }}>Hoje</span>;
+    }
+    const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[dt.getDay()]})`;
+    return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button type="button" className="h-8 w-full text-left bg-transparent focus:outline-none cursor-pointer flex items-center">
+          {renderLabel()}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start" side="bottom" sideOffset={4}
+        style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', zIndex: 60 }}>
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleSelect}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+          locale={ptBR}
+        />
+        {value && (
+          <div className="px-3 pb-3 flex justify-between">
+            <button onClick={() => { onChange(undefined); setOpen(false); }}
+              className="text-[12px] transition-colors" style={{ color: '#8888A0' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            >{clearLabel || 'Limpar'}</button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 
 export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
@@ -839,72 +919,24 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               />
             </MetaRow>
 
-            {/* "Fazer em" + "Entregar até" — compact date display */}
+            {/* "Fazer em" + "Entregar até" — Popover Calendar */}
             <MetaRow label="Fazer em">
-              <div className="flex items-center gap-2 relative h-8 w-full">
-                <input
-                  type="date"
-                  value={localTask.scheduledDate || ''}
-                  onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
-                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark] z-10 w-full h-full"
-                  style={{ minWidth: 0 }}
-                />
-                <span className="pointer-events-none">
-                {(() => {
-                  if (!localTask.scheduledDate) {
-                    return <span className="text-[13px]" style={{ color: '#555570' }}>Quando vai fazer?</span>;
-                  }
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const [y, m, d] = localTask.scheduledDate.split('-').map(Number);
-                  const sd = new Date(y, m - 1, d);
-                  const isToday = sd.getTime() === today.getTime();
-                  if (isToday) {
-                    return <span className="text-[13px] font-medium" style={{ color: '#6C9CFC' }}>Hoje</span>;
-                  }
-                  const weekDays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-                  const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[sd.getDay()]})`;
-                  return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
-                })()}
-                </span>
-              </div>
+              <DatePickerInline
+                value={localTask.scheduledDate}
+                onChange={(val) => pushUpdate({ ...localTask, scheduledDate: val })}
+                placeholder="Quando vai fazer?"
+                clearLabel="Limpar"
+              />
             </MetaRow>
 
             <MetaRow label="Entregar até">
-              <div className="flex items-center gap-2 relative h-8 w-full">
-                <input
-                  type="date"
-                  value={localTask.dueDate || ''}
-                  onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
-                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark] z-10 w-full h-full"
-                  style={{ minWidth: 0 }}
-                />
-                <span className="pointer-events-none">
-                {(() => {
-                  if (!localTask.dueDate) {
-                    return <span className="text-[13px]" style={{ color: '#555570' }}>Sem prazo</span>;
-                  }
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const [y, m, d] = localTask.dueDate.split('-').map(Number);
-                  const due = new Date(y, m - 1, d);
-                  const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                  const weekDays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-                  if (diffDays < 0) {
-                    const label = Math.abs(diffDays) === 1 ? 'Ontem' : `${Math.abs(diffDays)}d atrás`;
-                    return <span className="text-[13px] font-medium" style={{ color: 'hsl(var(--status-overdue))' }}>{label}</span>;
-                  }
-                  if (diffDays === 0) {
-                    return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Hoje</span>;
-                  }
-                  if (diffDays === 1) {
-                    return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Amanhã</span>;
-                  }
-                  const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[due.getDay()]})`;
-                  return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
-                })()}
-                </span>
-              </div>
+              <DatePickerInline
+                value={localTask.dueDate}
+                onChange={(val) => pushUpdate({ ...localTask, dueDate: val })}
+                placeholder="Sem prazo"
+                clearLabel="Limpar"
+                showRelative
+              />
             </MetaRow>
 
             <MetaRow label="Seção">
