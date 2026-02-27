@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import {
-  startOfWeek, addDays, format, isToday, isBefore, startOfDay, parseISO, subDays,
+  startOfWeek, addDays, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -104,6 +104,8 @@ function DayColumn({
   selectedTaskId,
   onStatusChange,
   rolloverTaskIds,
+  rolloverDaysMap,
+  isGhostDay,
 }: {
   dayDate: Date;
   dayLabel: string;
@@ -116,6 +118,8 @@ function DayColumn({
   selectedTaskId?: string;
   onStatusChange: (id: string, s: TaskStatus) => void;
   rolloverTaskIds: Set<string>;
+  rolloverDaysMap: Map<string, number>;
+  isGhostDay?: boolean;
 }) {
   const dateStr = format(dayDate, 'yyyy-MM-dd');
   const { setNodeRef, isOver } = useDroppable({
@@ -156,20 +160,35 @@ function DayColumn({
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
             const isRollover = rolloverTaskIds.has(task.id);
+            const rolloverDays = rolloverDaysMap.get(task.id);
+            const isGhost = isGhostDay && isRollover;
             return (
-              <div key={task.id} className="relative">
-                {isRollover && (
-                  <span className="absolute -top-0.5 right-1 text-[9px] text-nd-text-muted bg-nd-hover rounded px-1 z-10">
-                    ← ontem
+              <div key={task.id} className={`relative ${isGhost ? 'opacity-40' : ''}`}>
+                {isRollover && !isGhostDay && rolloverDays != null && (
+                  <span className={`absolute -top-0.5 right-1 text-[9px] font-medium rounded px-1 z-10 ${
+                    rolloverDays > 2
+                      ? 'bg-orange-500/15 text-orange-400'
+                      : 'bg-yellow-500/15 text-yellow-400'
+                  }`}>
+                    ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
                   </span>
                 )}
-                <SortableWeekTaskCard
-                  task={task}
-                  projectColor={project?.color || '#4A90D9'}
-                  isSelected={selectedTaskId === task.id}
-                  onSelect={() => onSelectTask(task)}
-                  onStatusChange={onStatusChange}
-                />
+                {isGhost ? (
+                  <div className="flex items-center gap-1.5 h-[36px] px-2 rounded-md">
+                    <div className="w-[3px] h-5 rounded-full flex-shrink-0" style={{ background: project?.color || '#4A90D9' }} />
+                    <span className="flex-1 text-[12px] truncate leading-tight text-nd-text-muted line-through">
+                      {task.name}
+                    </span>
+                  </div>
+                ) : (
+                  <SortableWeekTaskCard
+                    task={task}
+                    projectColor={project?.color || '#4A90D9'}
+                    isSelected={selectedTaskId === task.id}
+                    onSelect={() => onSelectTask(task)}
+                    onStatusChange={onStatusChange}
+                  />
+                )}
               </div>
             );
           })}
@@ -369,9 +388,10 @@ export function MyWeekView({
     return map;
   }, [tasks, weekDates]);
 
-  // Track which tasks are rollovers for the badge
-  const rolloverTaskIds = useMemo(() => {
+  // Track which tasks are rollovers + how many days
+  const { rolloverTaskIds, rolloverDaysMap } = useMemo(() => {
     const ids = new Set<string>();
+    const daysMap = new Map<string, number>();
     const todayStart = startOfDay(new Date());
     const todayKey = format(todayStart, 'yyyy-MM-dd');
 
@@ -379,15 +399,15 @@ export function MyWeekView({
       if (!t.dueDate || t.parentTaskId || t.status === 'done') return;
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
-        // This task's due date is before today — it's a rollover if shown in today's column
         const todayTasks = tasksByDay[todayKey] || [];
         if (todayTasks.some(tt => tt.id === t.id)) {
           ids.add(t.id);
+          daysMap.set(t.id, differenceInCalendarDays(todayStart, dueDate));
         }
       }
     });
 
-    return ids;
+    return { rolloverTaskIds: ids, rolloverDaysMap: daysMap };
   }, [tasks, tasksByDay]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -529,6 +549,8 @@ export function MyWeekView({
               {weekDates.map((dayDate, i) => {
                 const dateKey = format(dayDate, 'yyyy-MM-dd');
                 const dayTasks = tasksByDay[dateKey] || [];
+                const todayStart = startOfDay(new Date());
+                const isPastDay = isBefore(dayDate, todayStart);
                 return (
                   <DayColumn
                     key={dateKey}
@@ -543,6 +565,8 @@ export function MyWeekView({
                     selectedTaskId={selectedTaskId}
                     onStatusChange={onStatusChange}
                     rolloverTaskIds={rolloverTaskIds}
+                    rolloverDaysMap={rolloverDaysMap}
+                    isGhostDay={isPastDay}
                   />
                 );
               })}

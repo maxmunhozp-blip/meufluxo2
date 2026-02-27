@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { format, isToday, parseISO, startOfDay } from 'date-fns';
+import { format, isToday, parseISO, startOfDay, isBefore, differenceInCalendarDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -138,6 +138,7 @@ function PeriodSection({
   selectedTaskId,
   onSelectTask,
   onStatusChange,
+  rolloverMap,
 }: {
   period: typeof PERIODS[number];
   tasks: Task[];
@@ -146,6 +147,7 @@ function PeriodSection({
   selectedTaskId?: string;
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
+  rolloverMap: Map<string, number>;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `period-${period.key}`,
@@ -180,16 +182,27 @@ function PeriodSection({
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
+            const rolloverDays = rolloverMap.get(task.id);
             return (
-              <DayTaskCard
-                key={task.id}
-                task={task}
-                projectColor={project?.color || '#4A90D9'}
-                projectName={project?.name || ''}
-                isSelected={selectedTaskId === task.id}
-                onSelect={() => onSelectTask(task)}
-                onStatusChange={onStatusChange}
-              />
+              <div key={task.id} className="relative">
+                {rolloverDays != null && (
+                  <span className={`absolute -top-1 right-1 text-[9px] font-medium rounded px-1 py-0.5 z-10 ${
+                    rolloverDays > 2
+                      ? 'bg-orange-500/15 text-orange-400'
+                      : 'bg-yellow-500/15 text-yellow-400'
+                  }`}>
+                    ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
+                  </span>
+                )}
+                <DayTaskCard
+                  task={task}
+                  projectColor={project?.color || '#4A90D9'}
+                  projectName={project?.name || ''}
+                  isSelected={selectedTaskId === task.id}
+                  onSelect={() => onSelectTask(task)}
+                  onStatusChange={onStatusChange}
+                />
+              </div>
             );
           })}
         </SortableContext>
@@ -221,19 +234,35 @@ export function MyDayView({
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
-  // Tasks for today grouped by period
-  const todayTasks = useMemo(() => {
-    return tasks.filter(t => !t.parentTaskId && t.dueDate === todayStr);
+  // Tasks for today + overdue rollover tasks
+  const { todayTasks, rolloverMap } = useMemo(() => {
+    const todayStart = startOfDay(new Date());
+    const scheduled = tasks.filter(t => !t.parentTaskId && t.dueDate === todayStr);
+    const overdue: Task[] = [];
+    const rMap = new Map<string, number>(); // taskId -> days overdue
+
+    tasks.forEach(t => {
+      if (t.parentTaskId || t.status === 'done' || !t.dueDate || t.dueDate === todayStr) return;
+      const dueDate = parseISO(t.dueDate);
+      if (isBefore(startOfDay(dueDate), todayStart)) {
+        const days = differenceInCalendarDays(todayStart, dueDate);
+        rMap.set(t.id, days);
+        overdue.push(t);
+      }
+    });
+
+    return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
   }, [tasks, todayStr]);
 
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
-      const p = t.dayPeriod || 'morning';
+      // Rollover tasks go to morning (top)
+      const p = rolloverMap.has(t.id) ? 'morning' : (t.dayPeriod || 'morning');
       map[p].push(t);
     });
     return map;
-  }, [todayTasks]);
+  }, [todayTasks, rolloverMap]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
@@ -328,6 +357,7 @@ export function MyDayView({
                   selectedTaskId={selectedTaskId}
                   onSelectTask={onSelectTask}
                   onStatusChange={onStatusChange}
+                  rolloverMap={rolloverMap}
                 />
               ))}
             </div>
