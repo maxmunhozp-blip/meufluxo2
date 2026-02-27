@@ -214,60 +214,16 @@ export function ProjectSidebar({
       className="h-screen flex flex-col border-r border-border z-30 sticky top-0"
       style={{ background: 'hsl(var(--bg-sidebar))' }}
     >
-      {/* Workspace selector */}
-      <WorkspaceSelector
-        workspaces={workspaces}
-        activeWorkspaceId={activeWorkspaceId || null}
-        onSwitch={onSwitchWorkspace || (() => {})}
-        onInvite={onInviteToWorkspace || (async () => {})}
-        onCreate={onCreateWorkspace || (async () => '')}
-        onRename={onRenameWorkspace || (async () => {})}
-        onDelete={onDeleteWorkspace || (async () => {})}
-        onGenerateInviteLink={onGenerateInviteLink || (async () => '')}
-      />
-
-      {/* Workspace members avatars */}
-      {workspaceMembers.length > 0 && (
-        <div className="px-4 pb-2 flex items-center gap-1">
-          {workspaceMembers.slice(0, 5).map(m => (
-            <div
-              key={m.userId}
-              title={`${m.fullName || 'Sem nome'}${!m.acceptedAt ? ' (Pendente)' : ''}`}
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
-                !m.acceptedAt ? 'opacity-50' : ''
-              }`}
-              style={{ background: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' }}
-            >
-              {m.avatarUrl ? (
-                <img src={m.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                (m.fullName || '?').charAt(0).toUpperCase()
-              )}
-            </div>
-          ))}
-          {workspaceMembers.length > 5 && (
-            <span className="text-[10px] text-muted-foreground">+{workspaceMembers.length - 5}</span>
-          )}
-          {workspaceMembers.some(m => !m.acceptedAt) && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full ml-1" style={{ background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))' }}>
-              Pendente
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* 16px space between workspace selector and nav */}
-      <div className="h-4" />
-
-      <nav className="flex-1 px-2 overflow-y-auto">
+      {/* Nav starts immediately — Meu Dia is the first thing you see */}
+      <nav className="flex-1 px-2 pt-3 overflow-y-auto">
         {/* Meu Dia */}
         <button
           onClick={onToggleMyDay}
           className={navItemClass(!!isMyDayView)}
-          style={{ minHeight: 44, background: isMyDayView ? 'hsl(var(--sidebar-active))' : undefined }}
+          style={{ minHeight: 44, borderRadius: 10, background: isMyDayView ? '#2A2A42' : undefined }}
         >
-          <Sun className="w-[18px] h-[18px] flex-shrink-0 text-muted-foreground" />
-          <span className="truncate flex-1 text-left">Meu Dia</span>
+          <Sun className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} />
+          <span className="truncate flex-1 text-left" style={{ color: isMyDayView ? '#E8E8F0' : '#E8E8F0' }}>Meu Dia</span>
           {dayCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{dayCount}</span>
           )}
@@ -280,10 +236,10 @@ export function ProjectSidebar({
         <button
           onClick={onToggleMyWeek}
           className={navItemClass(!!isMyWeekView)}
-          style={{ minHeight: 44, background: isMyWeekView ? 'hsl(var(--sidebar-active))' : undefined }}
+          style={{ minHeight: 44, borderRadius: 10, background: isMyWeekView ? '#2A2A42' : undefined }}
         >
-          <CalendarDays className="w-[18px] h-[18px] flex-shrink-0 text-muted-foreground" />
-          <span className="truncate flex-1 text-left">Minha Semana</span>
+          <CalendarDays className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} />
+          <span className="truncate flex-1 text-left" style={{ color: isMyWeekView ? '#E8E8F0' : '#E8E8F0' }}>Minha Semana</span>
           {weekCount > 0 && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{weekCount}</span>
           )}
@@ -362,34 +318,60 @@ export function ProjectSidebar({
         )}
       </nav>
 
-      {/* Bottom settings */}
-      <div className="px-3 pb-3 pt-2 border-t border-border relative flex items-center gap-1">
-        {isSuperAdmin && (
-          <a
-            href="/admin"
-            className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
-            title="Admin"
+      {/* Footer: workspace selector + settings + logout */}
+      <div className="border-t border-border relative">
+        <div className="px-3 py-2 flex items-center gap-1">
+          {/* Workspace selector — discrete, in footer */}
+          <WorkspaceSelector
+            workspaces={workspaces}
+            activeWorkspaceId={activeWorkspaceId || null}
+            onSwitch={onSwitchWorkspace || (() => {})}
+            onInvite={onInviteToWorkspace || (async () => {})}
+            onCreate={onCreateWorkspace || (async () => '')}
+            onRename={onRenameWorkspace || (async () => {})}
+            onDelete={onDeleteWorkspace || (async () => {})}
+            onGenerateInviteLink={onGenerateInviteLink || (async () => '')}
+            direction="up"
+          />
+
+          <div className="flex-1" />
+
+          {isSuperAdmin && (
+            <a
+              href="/admin"
+              className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+              title="Admin"
+              style={{ color: '#8888A0' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'hsl(var(--primary))'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#8888A0'; }}
+            >
+              <Shield className="w-3.5 h-3.5" />
+            </a>
+          )}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            style={{ color: '#8888A0' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#E8E8F0'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#8888A0'; }}
           >
-            <Shield className="w-3.5 h-3.5" />
-          </a>
-        )}
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
-        >
-          <Settings className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={onLogout}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-accent/50 transition-colors"
-          title="Sair da conta"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-        </button>
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onLogout}
+            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            title="Sair da conta"
+            style={{ color: '#8888A0' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'hsl(var(--destructive))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#8888A0'; }}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
         {showSettings && (
           <div
-            className="absolute bottom-12 left-3 py-1 rounded-lg border border-border z-[100]"
+            className="absolute bottom-full left-3 mb-1 py-1 rounded-lg border border-border z-[100]"
             style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
           >
             <button
