@@ -142,6 +142,19 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [loading, setLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  // Check super_admin role
+  useEffect(() => {
+    if (!session) { setIsSuperAdmin(false); return; }
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .eq('role', 'super_admin')
+      .maybeSingle()
+      .then(({ data }) => setIsSuperAdmin(!!data));
+  }, [session]);
 
   const planLimits = usePlanLimits(
     workspacesState,
@@ -149,6 +162,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     projectsState,
     tasksState,
     workspaceMembersState,
+    isSuperAdmin,
   );
 
   // Auth listener
