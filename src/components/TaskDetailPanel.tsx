@@ -55,7 +55,7 @@ function formatDateDisplay(dateStr: string | undefined): string {
 }
 
 // Inline assignee picker — Apple minimal
-function AssigneePicker({ value, profiles, onChange, onSelectProfile }: { value: string; profiles: Profile[]; onChange: (name: string) => void; onSelectProfile?: (userId: string) => void }) {
+function AssigneePicker({ value, profiles, onChange, onSelectProfile, onRemoveProfile }: { value: string; profiles: Profile[]; onChange: (name: string) => void; onSelectProfile?: (userId: string) => void; onRemoveProfile?: (userId: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -109,7 +109,13 @@ function AssigneePicker({ value, profiles, onChange, onSelectProfile }: { value:
           <div className="max-h-40 overflow-y-auto">
             {value && (
               <button
-                onClick={() => { onChange(''); setOpen(false); }}
+                onClick={() => {
+                  // Find the profile matching current assignee to remove from task_members
+                  const matchedProfile = profiles.find(p => (p.fullName || '') === value);
+                  if (matchedProfile) onRemoveProfile?.(matchedProfile.id);
+                  onChange('');
+                  setOpen(false);
+                }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-nd-hover transition-colors"
                 style={{ color: '#8888A0' }}
               >
@@ -504,6 +510,9 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                 onSelectProfile={(userId) => {
                   const alreadyMember = (localTask.members || []).some(m => m.userId === userId);
                   if (!alreadyMember) onAddMember(localTask.id, userId);
+                }}
+                onRemoveProfile={(userId) => {
+                  onRemoveMember(localTask.id, userId);
                 }}
               />
             </MetaRow>
