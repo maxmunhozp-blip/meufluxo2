@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles } from 'lucide-react';
+import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles, Plus, ChevronDown } from 'lucide-react';
 import { Task, TaskStatus, Project, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
@@ -66,8 +66,8 @@ function SortableWeekTaskCard({
       } ${isDragOverlay ? 'shadow-lg border-primary/30' : ''}`}
       onClick={onSelect}
     >
-      {/* Project color bar */}
-      <div className="w-[3px] h-5 rounded-full flex-shrink-0" style={{ background: projectColor }} />
+      {/* Project color dot */}
+      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: projectColor }} />
 
       {/* Drag handle */}
       <div
@@ -197,8 +197,8 @@ function DayColumn({
           })}
         </SortableContext>
         {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-full min-h-[80px]">
-            <span className="text-[11px] text-nd-text-muted">Arraste tarefas aqui</span>
+          <div className="flex items-center justify-center h-full min-h-[80px] group/empty">
+            <Plus className="w-4 h-4 text-muted-foreground/0 group-hover/empty:text-muted-foreground/40 transition-colors" />
           </div>
         )}
       </div>
@@ -211,12 +211,14 @@ function WeekSourceSidebar({
   projects,
   sections,
   tasks,
+  allTasks,
   collapsed,
   onToggle,
 }: {
   projects: Project[];
   sections: Section[];
   tasks: Task[];
+  allTasks: Task[];
   collapsed: boolean;
   onToggle: () => void;
 }) {
@@ -228,7 +230,7 @@ function WeekSourceSidebar({
   };
 
   // Only show non-subtask pending tasks
-  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId), [tasks]);
+  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.dueDate), [tasks]);
 
   // Filter by search
   const filteredTasks = useMemo(() => {
@@ -308,7 +310,7 @@ function WeekSourceSidebar({
               >
                 <Play className={`w-2.5 h-2.5 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: project.color }} />
-                <span className="text-[12px] font-semibold text-nd-text truncate flex-1 text-left">{project.name}</span>
+                <span className="text-[12px] font-semibold truncate flex-1 text-left" style={{ color: project.color }}>{project.name}</span>
                 <span className="text-[10px] font-medium text-nd-text-muted bg-nd-hover rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
                   {totalCount}
                 </span>
@@ -325,9 +327,12 @@ function WeekSourceSidebar({
                           </span>
                         </div>
                       )}
-                      {sectionTasks.map(task => (
-                        <SourceTaskItem key={task.id} task={task} projectColor={project.color} />
-                      ))}
+                      {sectionTasks.map(task => {
+                        const subtasks = allTasks.filter(st => st.parentTaskId === task.id && st.status !== 'done');
+                        return (
+                          <SourceTaskItem key={task.id} task={task} projectColor={project.color} subtasks={subtasks} />
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
@@ -352,8 +357,9 @@ function WeekSourceSidebar({
   );
 }
 
-// Draggable source task item
-function SourceTaskItem({ task, projectColor }: { task: Task; projectColor: string }) {
+// Draggable source task item with optional subtask expansion
+function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; projectColor: string; subtasks?: Task[] }) {
+  const [expanded, setExpanded] = useState(false);
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({
@@ -367,27 +373,39 @@ function SourceTaskItem({ task, projectColor }: { task: Task; projectColor: stri
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const hasDueDate = !!task.dueDate;
-  const isOverdue = hasDueDate && isBefore(parseISO(task.dueDate!), startOfDay(new Date())) && task.status !== 'done';
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`flex items-center gap-1.5 h-[34px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
-        isDragging ? 'ring-1 ring-primary/30' : ''
-      }`}
-    >
-      <div className="w-[3px] h-4 rounded-full flex-shrink-0" style={{ background: projectColor }} />
-      <span className="text-[11px] text-nd-text truncate flex-1">{task.name}</span>
-      {hasDueDate && (
-        <span className={`text-[9px] flex-shrink-0 px-1 py-0.5 rounded ${
-          isOverdue ? 'text-orange-400 bg-orange-500/10' : 'text-nd-text-muted'
-        }`}>
-          {format(parseISO(task.dueDate!), 'dd/MM')}
-        </span>
+    <div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className={`flex items-center gap-1.5 h-[34px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
+          isDragging ? 'ring-1 ring-primary/30' : ''
+        }`}
+      >
+        {subtasks.length > 0 ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
+          </button>
+        ) : (
+          <div className="w-3.5 flex-shrink-0" />
+        )}
+        <span className="text-[11px] text-nd-text truncate flex-1">{task.name}</span>
+      </div>
+      {expanded && subtasks.length > 0 && (
+        <div className="ml-6">
+          {subtasks.map(st => (
+            <div key={st.id} className="flex items-center gap-1.5 h-[30px] px-2.5 mx-1 rounded-md text-[10px] text-muted-foreground truncate">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40 flex-shrink-0" />
+              <span className="truncate">{st.name}</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -631,6 +649,7 @@ export function MyWeekView({
               projects={projects}
               sections={sections}
               tasks={tasks}
+              allTasks={tasks}
               collapsed={sidebarCollapsed}
               onToggle={() => setSidebarCollapsed(prev => !prev)}
             />
