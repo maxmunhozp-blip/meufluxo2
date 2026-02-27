@@ -303,7 +303,7 @@ export function ProjectSidebar({
       </nav>
 
       {/* Footer — subdued */}
-      <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+      <div className="relative" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
         <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
           <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
