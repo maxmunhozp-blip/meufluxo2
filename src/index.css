@@ -62,17 +62,17 @@
     --priority-high: 30 100% 71%;
     --priority-medium: 45 100% 72%;
 
-    /* Client colors */
-    --client-1: 220 96% 71%;
-    --client-2: 30 100% 71%;
-    --client-3: 330 100% 73%;
-    --client-4: 140 94% 65%;
-    --client-5: 259 89% 78%;
-    --client-6: 189 95% 77%;
-    --client-7: 65 93% 77%;
+    /* Project palette */
+    --project-1: 220 96% 71%;   /* #6C9CFC */
+    --project-2: 30 100% 71%;   /* #FFB86C */
+    --project-3: 330 100% 63%;  /* #FF79C6 */
+    --project-4: 140 94% 65%;   /* #50FA7B */
+    --project-5: 259 89% 78%;   /* #BD93F9 */
+    --project-6: 189 95% 77%;   /* #8BE9FD */
+    --project-7: 65 93% 77%;    /* #F1FA8C */
 
-    --bg-sidebar: 240 19% 6%;
-    --sidebar-background: 240 19% 6%;
+    --bg-sidebar: 240 20% 5%;
+    --sidebar-background: 240 20% 5%;
     --sidebar-foreground: 240 14% 92%;
     --sidebar-primary: 220 96% 71%;
     --sidebar-primary-foreground: 240 20% 5%;
@@ -80,6 +80,8 @@
     --sidebar-accent-foreground: 240 14% 92%;
     --sidebar-border: 240 14% 16%;
     --sidebar-ring: 220 96% 71%;
+    --sidebar-active: 245 30% 24%;
+    --sidebar-separator: 240 20% 18%;
   }
 }
 

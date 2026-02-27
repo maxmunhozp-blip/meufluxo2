@@ -571,11 +571,12 @@ const Index = () => {
     onImport: importData,
     onLogout: handleLogout,
     isMyDayView,
-    onToggleMyDay: () => { setIsMyDayView(prev => !prev); setIsMyTasksView(false); setIsMyWeekView(false); },
+    onToggleMyDay: () => { setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
     isMyTasksView,
     onToggleMyTasks: () => { setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
     isMyWeekView,
-    onToggleMyWeek: () => { setIsMyWeekView(prev => !prev); setIsMyTasksView(false); setIsMyDayView(false); },
+    onToggleMyWeek: () => { setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
+    tasks: taskList,
   };
 
   // Determine active view for bottom nav
@@ -737,6 +738,7 @@ const Index = () => {
                     overTaskId={overTaskDragId}
                     taskDropPosition={taskDropPosition}
                     allSections={projectSections}
+                    projectColor={activeProject?.color}
                     onMoveToSection={(taskId, sectionId) => {
                       const t = taskList.find(t => t.id === taskId);
                       if (!t) return;

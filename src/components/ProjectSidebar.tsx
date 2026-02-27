@@ -1,13 +1,13 @@
-import { useState, useRef } from 'react';
-import { GripVertical, Settings, LogOut, CheckCircle2, CalendarDays, Sun } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { GripVertical, Settings, LogOut } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Project } from '@/types/task';
+import { Project, Task } from '@/types/task';
 import { ContextMenu } from './ContextMenu';
 
-const PROJECT_COLORS = ['#4A90D9', '#D4A843', '#3D9A50', '#9B59B6', '#E67E22', '#5C5F66'];
+export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
 interface ProjectSidebarProps {
   projects: Project[];
@@ -28,6 +28,7 @@ interface ProjectSidebarProps {
   onToggleMyTasks?: () => void;
   isMyWeekView?: boolean;
   onToggleMyWeek?: () => void;
+  tasks?: Task[];
 }
 
 function SortableProjectItem({
@@ -35,11 +36,13 @@ function SortableProjectItem({
   isActive,
   onSelect,
   onContextMenu,
+  onColorClick,
 }: {
   project: Project;
   isActive: boolean;
   onSelect: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  onColorClick: (e: React.MouseEvent) => void;
 }) {
   const {
     attributes,
@@ -59,12 +62,14 @@ function SortableProjectItem({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`group w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 relative cursor-pointer ${
-        isActive ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
-      }`}
+      className="group w-full flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 relative cursor-pointer"
       onClick={onSelect}
       onContextMenu={onContextMenu}
+      style={{
+        ...style,
+        minHeight: 44,
+        background: isActive ? 'hsl(var(--sidebar-active))' : undefined,
+      }}
     >
       <div
         {...attributes}
@@ -72,10 +77,14 @@ function SortableProjectItem({
         className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
         onClick={(e) => e.stopPropagation()}
       >
-        <GripVertical className="w-3.5 h-3.5 text-nd-text-muted" />
+        <GripVertical className="w-3.5 h-3.5 text-muted-foreground" />
       </div>
-      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
-      <span className="truncate">{project.name}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
+        className="w-2 h-2 rounded-full flex-shrink-0 hover:scale-150 transition-transform"
+        style={{ background: project.color }}
+      />
+      <span className={`truncate ${isActive ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>{project.name}</span>
     </div>
   );
 }
@@ -99,6 +108,7 @@ export function ProjectSidebar({
   onToggleMyTasks,
   isMyWeekView,
   onToggleMyWeek,
+  tasks = [],
 }: ProjectSidebarProps) {
   const [creatingProject, setCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -113,6 +123,20 @@ export function ProjectSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  // Badge counts
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const dayCount = useMemo(() => {
+    return tasks.filter(t => t.status !== 'done' && t.dueDate === todayStr).length;
+  }, [tasks, todayStr]);
+
+  const weekCount = useMemo(() => {
+    const now = new Date();
+    const end = new Date(now);
+    end.setDate(end.getDate() + 7);
+    const endStr = end.toISOString().slice(0, 10);
+    return tasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate >= todayStr && t.dueDate <= endStr).length;
+  }, [tasks, todayStr]);
 
   const handleCreate = () => {
     if (!newProjectName.trim()) { setCreatingProject(false); return; }
@@ -147,56 +171,57 @@ export function ProjectSidebar({
     setRenamingId(null);
   };
 
+  const navItemClass = (active: boolean) =>
+    `w-full flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 cursor-pointer`
+    + (active ? ' font-medium text-foreground' : ' text-muted-foreground hover:bg-accent/50');
+
   return (
     <aside
-      className="h-screen flex flex-col border-r border-nd-border z-30 sticky top-0"
+      className="h-screen flex flex-col border-r border-border z-30 sticky top-0"
       style={{ background: 'hsl(var(--bg-sidebar))' }}
     >
-      <div className="px-4 pt-5 pb-6">
-        <span className="text-[16px] font-bold text-nd-text">MeuFluxo</span>
+      <div className="px-4 pt-5 pb-4">
+        <span className="text-[16px] font-bold text-foreground">MeuFluxo</span>
       </div>
 
       <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-        {/* My Day button */}
+        {/* Meu Dia */}
         <button
           onClick={onToggleMyDay}
-          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 ${
-            isMyDayView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
-          }`}
+          className={navItemClass(!!isMyDayView)}
+          style={{ minHeight: 44, background: isMyDayView ? 'hsl(var(--sidebar-active))' : undefined }}
         >
-          <Sun className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
-          <span className="truncate">Meu Dia</span>
+          <span className="text-[18px] flex-shrink-0 leading-none">☀️</span>
+          <span className="truncate flex-1 text-left">Meu Dia</span>
+          {dayCount > 0 && (
+            <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{dayCount}</span>
+          )}
         </button>
 
-        {/* My Tasks button */}
-        <button
-          onClick={onToggleMyTasks}
-          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 ${
-            isMyTasksView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
-          }`}
-        >
-          <CheckCircle2 className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
-          <span className="truncate">Minhas Tarefas</span>
-        </button>
-
-        {/* My Week button */}
+        {/* Minha Semana */}
         <button
           onClick={onToggleMyWeek}
-          className={`w-full h-9 flex items-center gap-2.5 px-3 rounded-md text-[14px] transition-colors duration-100 mb-2 ${
-            isMyWeekView ? 'bg-nd-active font-medium text-nd-text' : 'text-nd-text hover:bg-nd-hover'
-          }`}
+          className={navItemClass(!!isMyWeekView)}
+          style={{ minHeight: 44, background: isMyWeekView ? 'hsl(var(--sidebar-active))' : undefined }}
         >
-          <CalendarDays className="w-4 h-4 text-nd-text-secondary flex-shrink-0" />
-          <span className="truncate">Minha Semana</span>
+          <span className="text-[18px] flex-shrink-0 leading-none">📅</span>
+          <span className="truncate flex-1 text-left">Minha Semana</span>
+          {weekCount > 0 && (
+            <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{weekCount}</span>
+          )}
         </button>
 
-        <div className="h-px bg-nd-border mx-1 mb-2" />
+        {/* Separator */}
+        <div className="h-4" />
+        <div className="h-px mx-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
+        <div className="h-2" />
 
+        {/* Projects */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
             {projects.map((project) => (
               renamingId === project.id ? (
-                <div key={project.id} className="h-9 flex items-center gap-2.5 px-3">
+                <div key={project.id} className="flex items-center gap-2.5 px-3" style={{ minHeight: 44 }}>
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
                   <input
                     ref={renameRef}
@@ -207,18 +232,23 @@ export function ProjectSidebar({
                       if (e.key === 'Escape') setRenamingId(null);
                     }}
                     onBlur={confirmRename}
-                    className="flex-1 h-7 px-2 text-[14px] text-nd-text bg-nd-input rounded border border-primary focus:outline-none"
+                    className="flex-1 h-7 px-2 text-[14px] text-foreground bg-input rounded border border-primary focus:outline-none"
                   />
                 </div>
               ) : (
                 <SortableProjectItem
                   key={project.id}
                   project={project}
-                  isActive={activeProjectId === project.id}
+                  isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView}
                   onSelect={() => onSelectProject(project.id)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setContextMenu({ projectId: project.id, x: e.clientX, y: e.clientY });
+                  }}
+                  onColorClick={(e) => {
+                    e.stopPropagation();
+                    const rect = (e.target as HTMLElement).getBoundingClientRect();
+                    setColorPicker({ projectId: project.id, x: rect.right + 8, y: rect.top });
                   }}
                 />
               )
@@ -228,7 +258,7 @@ export function ProjectSidebar({
 
         {/* New project input */}
         {creatingProject ? (
-          <div className="h-9 flex items-center px-3">
+          <div className="flex items-center px-3" style={{ minHeight: 44 }}>
             <input
               ref={inputRef}
               value={newProjectName}
@@ -240,13 +270,14 @@ export function ProjectSidebar({
               onBlur={() => { if (newProjectName.trim()) handleCreate(); else setCreatingProject(false); }}
               autoFocus
               placeholder="Nome do projeto..."
-              className="w-full h-7 px-2 text-[14px] text-nd-text bg-nd-input rounded-md border border-primary focus:outline-none placeholder:text-nd-text-muted"
+              className="w-full h-7 px-2 text-[14px] text-foreground bg-input rounded-md border border-primary focus:outline-none placeholder:text-muted-foreground"
             />
           </div>
         ) : (
           <button
             onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-            className="w-full h-9 flex items-center px-3 text-[13px] font-medium text-nd-text-secondary hover:text-nd-text transition-colors"
+            className="w-full flex items-center px-3 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            style={{ minHeight: 44 }}
           >
             + Novo Projeto
           </button>
@@ -254,16 +285,16 @@ export function ProjectSidebar({
       </nav>
 
       {/* Bottom settings */}
-      <div className="px-3 pb-3 pt-2 border-t border-nd-border relative flex items-center gap-1">
+      <div className="px-3 pb-3 pt-2 border-t border-border relative flex items-center gap-1">
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-nd-text-muted hover:text-nd-text-secondary hover:bg-nd-hover transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
         >
           <Settings className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={onLogout}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-nd-text-muted hover:text-nd-overdue hover:bg-nd-hover transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-accent/50 transition-colors"
           title="Sair da conta"
         >
           <LogOut className="w-3.5 h-3.5" />
@@ -271,18 +302,18 @@ export function ProjectSidebar({
 
         {showSettings && (
           <div
-            className="absolute bottom-12 left-3 py-1 rounded-lg border border-nd-border z-[100]"
+            className="absolute bottom-12 left-3 py-1 rounded-lg border border-border z-[100]"
             style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
           >
             <button
               onClick={() => { onExport(); setShowSettings(false); }}
-              className="w-full h-8 px-3 text-left text-[13px] text-nd-text rounded hover:bg-nd-hover transition-colors"
+              className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors"
             >
               Exportar dados (JSON)
             </button>
             <button
               onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }}
-              className="w-full h-8 px-3 text-left text-[13px] text-nd-text rounded hover:bg-nd-hover transition-colors"
+              className="w-full h-8 px-3 text-left text-[13px] text-foreground rounded hover:bg-accent/50 transition-colors"
             >
               Importar dados (JSON)
             </button>
@@ -334,37 +365,44 @@ export function ProjectSidebar({
 
       {/* Color picker */}
       {colorPicker && (
-        <div
-          className="fixed z-[100] p-2 rounded-lg border border-nd-border flex gap-1.5"
-          style={{
-            left: colorPicker.x,
-            top: colorPicker.y,
-            background: 'hsl(var(--bg-surface))',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          }}
-        >
-          {PROJECT_COLORS.map(color => (
-            <button
-              key={color}
-              onClick={() => {
-                onChangeColor(colorPicker.projectId, color);
-                setColorPicker(null);
-              }}
-              className="w-6 h-6 rounded-full border-2 border-transparent hover:border-nd-text transition-colors"
-              style={{ background: color }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="fixed inset-0 z-[99]" onClick={() => setColorPicker(null)} />
+          <div
+            className="fixed z-[100] p-2.5 rounded-lg border border-border flex gap-2"
+            style={{
+              left: colorPicker.x,
+              top: colorPicker.y,
+              background: 'hsl(var(--bg-surface))',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            }}
+          >
+            {PROJECT_COLORS.map(color => (
+              <button
+                key={color}
+                onClick={() => {
+                  onChangeColor(colorPicker.projectId, color);
+                  setColorPicker(null);
+                }}
+                className="w-6 h-6 rounded-full border-2 transition-colors hover:scale-110"
+                style={{
+                  background: color,
+                  borderColor: projects.find(p => p.id === colorPicker.projectId)?.color === color ? 'white' : 'transparent',
+                }}
+              />
+            ))}
+          </div>
+        </>
       )}
+
       {/* Duplicate dialog */}
       {duplicateDialog && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div
-            className="rounded-xl border border-nd-border p-5 w-[320px]"
+            className="rounded-xl border border-border p-5 w-[320px]"
             style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
           >
-            <h3 className="text-[15px] font-semibold text-nd-text mb-1">Duplicar Projeto</h3>
-            <p className="text-[13px] text-nd-text-secondary mb-4">O que deseja duplicar?</p>
+            <h3 className="text-[15px] font-semibold text-foreground mb-1">Duplicar Projeto</h3>
+            <p className="text-[13px] text-muted-foreground mb-4">O que deseja duplicar?</p>
             <div className="flex flex-col gap-2">
               {([
                 { mode: 'sections' as const, label: 'Apenas Seções' },
@@ -379,7 +417,7 @@ export function ProjectSidebar({
                     const newId = await onDuplicateProject(id, mode);
                     onSelectProject(newId);
                   }}
-                  className="w-full h-9 px-3 text-left text-[13px] text-nd-text rounded-md hover:bg-nd-hover transition-colors border border-nd-border"
+                  className="w-full h-9 px-3 text-left text-[13px] text-foreground rounded-md hover:bg-accent/50 transition-colors border border-border"
                 >
                   {label}
                 </button>
@@ -387,7 +425,7 @@ export function ProjectSidebar({
             </div>
             <button
               onClick={() => setDuplicateDialog(null)}
-              className="w-full mt-3 h-8 text-[13px] text-nd-text-muted hover:text-nd-text transition-colors"
+              className="w-full mt-3 h-8 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancelar
             </button>
