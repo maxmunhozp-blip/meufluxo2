@@ -97,7 +97,7 @@ interface UseSupabaseDataReturn {
 }
 
 function mapDbProject(row: any): Project {
-  return { id: row.id, name: row.name, color: row.color, workspaceId: row.workspace_id };
+  return { id: row.id, name: row.name, color: row.color, workspaceId: row.workspace_id, position: row.position ?? 0 };
 }
 
 function mapDbSection(row: any): Section {
@@ -245,7 +245,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       }
 
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
-        supabase.from('projects').select('*').eq('archived', false).order('created_at'),
+        supabase.from('projects').select('*').eq('archived', false).order('position').order('created_at'),
         supabase.from('sections').select('*').order('position'),
         supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
         supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
@@ -584,9 +584,12 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     setProjectsState(prev => prev.map(p => p.id === id ? { ...p, color } : p));
   }, []);
 
-  const reorderProjects = useCallback((reordered: Project[]) => {
+  const reorderProjects = useCallback(async (reordered: Project[]) => {
     setProjectsState(reordered);
-    // No position column on projects table, just local reorder
+    // Persist position to DB
+    await Promise.all(reordered.map((p, i) =>
+      supabase.from('projects').update({ position: i }).eq('id', p.id)
+    ));
   }, []);
 
   // Section operations
@@ -1112,7 +1115,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     // Re-fetch data for new workspace
     setLoading(true);
     Promise.all([
-      supabase.from('projects').select('*').eq('archived', false).order('created_at'),
+      supabase.from('projects').select('*').eq('archived', false).order('position').order('created_at'),
       supabase.from('sections').select('*').order('position'),
       supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
       supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),

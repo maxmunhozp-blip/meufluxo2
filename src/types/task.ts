@@ -100,4 +100,5 @@ export interface Project {
   name: string;
   color: string;
   workspaceId?: string;
+  position?: number;
 }
