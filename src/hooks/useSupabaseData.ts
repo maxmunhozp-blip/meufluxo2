@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment } from '@/types/task';
+import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, RecurrenceType, RecurrenceConfig } from '@/types/task';
 import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
@@ -68,6 +68,8 @@ function mapDbTask(row: any): Task {
     dueDate: row.due_date || undefined,
     assignee: row.assignee || undefined,
     dayPeriod: row.day_period || 'morning',
+    recurrenceType: row.recurrence_type || null,
+    recurrenceConfig: row.recurrence_config || undefined,
     section: row.section_id,
     projectId: row.project_id,
   };
@@ -290,6 +292,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           dueDate: row.due_date || undefined,
           assignee: row.assignee || undefined,
           dayPeriod: row.day_period || 'morning',
+          recurrenceType: row.recurrence_type || null,
+          recurrenceConfig: row.recurrence_config || undefined,
           section: row.section_id,
           projectId: row.project_id,
         } : t));
@@ -496,6 +500,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       assignee: task.assignee || null,
       section_id: task.section,
       day_period: task.dayPeriod || 'morning',
+      recurrence_type: task.recurrenceType || null,
+      recurrence_config: (task.recurrenceConfig as any) || null,
     }).eq('id', task.id);
 
     if (task.parentTaskId) {
@@ -531,7 +537,37 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
     await supabase.from('tasks').update({ status }).eq('id', id);
     setTasksState(prev => prev.map(t => t.id === id ? { ...t, status } : t));
-  }, []);
+
+    // Auto-create next occurrence for recurring tasks when marked done
+    if (status === 'done') {
+      const task = tasksState.find(t => t.id === id);
+      if (task?.recurrenceType) {
+        const { calculateNextOccurrence } = await import('@/lib/recurrence');
+        const nextDate = calculateNextOccurrence(task.dueDate, task.recurrenceType, task.recurrenceConfig);
+        if (nextDate) {
+          const { data } = await supabase.from('tasks').insert({
+            title: task.name,
+            section_id: task.section,
+            project_id: task.projectId,
+            status: 'pending',
+            priority: task.priority || 'low',
+            description: task.description || null,
+            due_date: nextDate,
+            day_period: task.dayPeriod || 'morning',
+            recurrence_type: task.recurrenceType,
+            recurrence_config: (task.recurrenceConfig as any) || null,
+            assignee: task.assignee || null,
+            position: 0,
+            created_by: session?.user?.id || null,
+          }).select().single();
+          if (data) {
+            const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
+            setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [newTask, ...prev]);
+          }
+        }
+      }
+    }
+  }, [tasksState, session]);
   // Duplicate task
   const duplicateTaskFn = useCallback(async (taskId: string): Promise<string> => {
     const task = tasksState.find(t => t.id === taskId);

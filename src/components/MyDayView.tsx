@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight } from 'lucide-react';
+import { Target, ArrowRight, Repeat } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
@@ -120,7 +120,8 @@ function DayTaskCard({
         </span>
       </div>
 
-      {/* Project badge */}
+      {/* Recurrence icon + Project badge */}
+      {task.recurrenceType && <Repeat className="w-3 h-3 text-primary/50 flex-shrink-0" />}
       <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0 max-w-[100px] truncate">
         {projectName}
       </span>

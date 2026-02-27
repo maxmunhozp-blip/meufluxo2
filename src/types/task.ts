@@ -1,6 +1,15 @@
 export type TaskStatus = 'pending' | 'in_progress' | 'done';
 export type Priority = 'high' | 'medium' | 'low';
 export type DayPeriod = 'morning' | 'afternoon' | 'evening';
+export type RecurrenceType = 'daily' | 'weekly' | 'monthly_day' | 'monthly_weekday' | 'custom' | null;
+
+export interface RecurrenceConfig {
+  weekDays?: number[]; // 0=Sun..6=Sat for weekly
+  monthDay?: number; // 1-31 for monthly_day
+  monthWeekday?: { week: number; day: number }; // { week: 1, day: 1 } = first Monday
+  interval?: number; // for custom
+  intervalUnit?: 'days' | 'weeks' | 'months'; // for custom
+}
 
 export interface Subtask {
   id: string;
@@ -54,6 +63,8 @@ export interface Task {
   status: TaskStatus;
   priority?: Priority;
   dayPeriod?: DayPeriod;
+  recurrenceType?: RecurrenceType;
+  recurrenceConfig?: RecurrenceConfig;
   subtasks?: Subtask[];
   comments?: Comment[];
   description?: string;
