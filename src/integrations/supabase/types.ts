@@ -330,6 +330,7 @@ export type Database = {
           recurrence_config: Json | null
           recurrence_type: string | null
           rollover_count: number
+          scheduled_date: string | null
           section_id: string
           service_tag_id: string | null
           status: Database["public"]["Enums"]["task_status"]
@@ -352,6 +353,7 @@ export type Database = {
           recurrence_config?: Json | null
           recurrence_type?: string | null
           rollover_count?: number
+          scheduled_date?: string | null
           section_id: string
           service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
@@ -374,6 +376,7 @@ export type Database = {
           recurrence_config?: Json | null
           recurrence_type?: string | null
           rollover_count?: number
+          scheduled_date?: string | null
           section_id?: string
           service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]

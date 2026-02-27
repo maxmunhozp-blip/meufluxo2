@@ -280,12 +280,24 @@ export function MyDayView({
   // Tasks for today + overdue rollover tasks
   const { todayTasks, rolloverMap } = useMemo(() => {
     const todayStart = startOfDay(new Date());
-    const scheduled = tasks.filter(t => !t.parentTaskId && t.dueDate === todayStr);
+    // Tasks scheduled for today (via Minha Semana drag) OR due today without a scheduled_date
+    const scheduled = tasks.filter(t => {
+      if (t.parentTaskId) return false;
+      // Scheduled for today explicitly
+      if (t.scheduledDate === todayStr) return true;
+      // Due today but not scheduled elsewhere
+      if (t.dueDate === todayStr && !t.scheduledDate) return true;
+      return false;
+    });
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
 
     tasks.forEach(t => {
-      if (t.parentTaskId || t.status === 'done' || !t.dueDate || t.dueDate === todayStr) return;
+      if (t.parentTaskId || t.status === 'done' || !t.dueDate) return;
+      // Skip tasks already in scheduled list
+      if (scheduled.some(s => s.id === t.id)) return;
+      // Skip tasks that have a scheduledDate (they belong to a different day)
+      if (t.scheduledDate) return;
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
         const days = t.rolloverCount && t.rolloverCount > 0

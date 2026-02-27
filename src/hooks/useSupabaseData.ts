@@ -119,6 +119,7 @@ function mapDbTask(row: any): Task {
     projectId: row.project_id,
     rolloverCount: row.rollover_count || 0,
     originalDueDate: row.original_due_date || undefined,
+    scheduledDate: row.scheduled_date || undefined,
     workspaceId: row.workspace_id,
     serviceTagId: row.service_tag_id || undefined,
   };
@@ -412,6 +413,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           priority: row.priority,
           description: row.description || undefined,
           dueDate: row.due_date || undefined,
+          scheduledDate: row.scheduled_date || undefined,
           assignee: row.assignee || undefined,
           dayPeriod: row.day_period || 'morning',
           recurrenceType: row.recurrence_type || null,
@@ -630,6 +632,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       priority: task.priority || 'low',
       description: task.description || null,
       due_date: task.dueDate || null,
+      scheduled_date: task.scheduledDate || null,
       assignee: task.assignee || null,
       section_id: task.section,
       day_period: task.dayPeriod || 'morning',
