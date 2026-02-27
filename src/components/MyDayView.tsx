@@ -8,7 +8,8 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Target, ArrowRight, Repeat } from 'lucide-react';
-import { Task, TaskStatus, Project, Section, DayPeriod } from '@/types/task';
+import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
+import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
 
@@ -16,6 +17,7 @@ interface MyDayViewProps {
   tasks: Task[];
   projects: Project[];
   sections: Section[];
+  serviceTags?: ServiceTag[];
   userName: string;
   onUpdateTask: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
@@ -23,6 +25,8 @@ interface MyDayViewProps {
   selectedTaskId?: string;
   onNavigateToWeek: () => void;
 }
+
+type GroupMode = 'period' | 'service';
 
 const PERIODS: { key: DayPeriod; label: string; emoji: string }[] = [
   { key: 'morning', label: 'Manhã', emoji: '☀️' },
@@ -53,6 +57,7 @@ function DayTaskCard({
   onSelect,
   onStatusChange,
   rolloverDays,
+  serviceTagName,
 }: {
   task: Task;
   projectColor: string;
@@ -61,6 +66,7 @@ function DayTaskCard({
   onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
   rolloverDays?: number;
+  serviceTagName?: string;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -134,6 +140,13 @@ function DayTaskCard({
       {/* Recurrence icon */}
       {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--status-progress) / 0.5)' }} />}
 
+      {/* Service tag badge */}
+      {serviceTagName && (
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[80px] truncate" style={{ color: '#8888A0' }}>
+          {serviceTagName}
+        </span>
+      )}
+
       {/* Client badge */}
       <span
         className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[100px] truncate"
@@ -158,6 +171,7 @@ function PeriodSection({
   onSelectTask,
   onStatusChange,
   rolloverMap,
+  serviceTagMap,
 }: {
   period: typeof PERIODS[number];
   tasks: Task[];
@@ -167,6 +181,7 @@ function PeriodSection({
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
   rolloverMap: Map<string, number>;
+  serviceTagMap: Map<string, string>;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `period-${period.key}`,
@@ -211,6 +226,7 @@ function PeriodSection({
                 onSelect={() => onSelectTask(task)}
                 onStatusChange={onStatusChange}
                 rolloverDays={rolloverMap.get(task.id)}
+                serviceTagName={task.serviceTagId ? serviceTagMap.get(task.serviceTagId) : undefined}
               />
             );
           })}
@@ -230,6 +246,7 @@ export function MyDayView({
   tasks,
   projects,
   sections,
+  serviceTags = [],
   userName,
   onUpdateTask,
   onStatusChange,
@@ -239,6 +256,7 @@ export function MyDayView({
 }: MyDayViewProps) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
+  const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
@@ -314,6 +332,24 @@ export function MyDayView({
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
   const firstName = userName?.split(' ')[0] || 'Usuário';
 
+  // Service tag name map
+  const serviceTagMap = useMemo(() => {
+    const map = new Map<string, string>();
+    serviceTags.forEach(t => map.set(t.id, t.name));
+    return map;
+  }, [serviceTags]);
+
+  // Group by service
+  const tasksByService = useMemo(() => {
+    const map: Record<string, Task[]> = {};
+    todayTasks.forEach(t => {
+      const key = t.serviceTagId || '__none__';
+      if (!map[key]) map[key] = [];
+      map[key].push(t);
+    });
+    return map;
+  }, [todayTasks]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
@@ -327,20 +363,31 @@ export function MyDayView({
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
-          <button
-            className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-            onClick={() => setFocusModeOpen(true)}
-          >
-            <Target className="w-3.5 h-3.5" />
-            Focar
-          </button>
+          <div className="flex items-center gap-2">
+            {serviceTags.length > 0 && (
+              <select
+                value={groupMode}
+                onChange={e => setGroupMode(e.target.value as GroupMode)}
+                className="h-8 px-2 text-[11px] text-muted-foreground bg-transparent border border-border rounded-lg focus:outline-none cursor-pointer [color-scheme:dark]"
+              >
+                <option value="period">Por seção</option>
+                <option value="service">Por serviço</option>
+              </select>
+            )}
+            <button
+              className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              onClick={() => setFocusModeOpen(true)}
+            >
+              <Target className="w-3.5 h-3.5" />
+              Focar
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-8">
         {todayTasks.length === 0 ? (
-          /* Empty state */
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <p className="text-[14px] text-muted-foreground">Nenhuma tarefa para hoje.</p>
             <button
@@ -350,6 +397,43 @@ export function MyDayView({
               Planeje na Minha Semana
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          </div>
+        ) : groupMode === 'service' ? (
+          /* Group by service */
+          <div className="space-y-6 max-w-[640px] mx-auto">
+            {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
+              const tag = serviceTags.find(t => t.id === tagId);
+              const TagIcon = tag ? getTagIcon(tag.icon) : null;
+              const label = tag?.name || 'Sem serviço';
+              return (
+                <div key={tagId} className="rounded-xl" style={{ background: 'hsl(var(--bg-surface))' }}>
+                  <div className="flex items-center gap-2 px-4 py-3">
+                    {TagIcon && <TagIcon className="w-4 h-4" style={{ color: '#8888A0' }} />}
+                    <span className="text-[14px] font-semibold text-foreground">{label}</span>
+                    <span className="text-[11px] text-muted-foreground ml-auto">
+                      {tagTasks.filter(t => t.status !== 'done').length} {tagTasks.filter(t => t.status !== 'done').length === 1 ? 'tarefa' : 'tarefas'}
+                    </span>
+                  </div>
+                  <div className="px-2 pb-3 space-y-1">
+                    {tagTasks.map(task => {
+                      const project = projects.find(p => p.id === task.projectId);
+                      return (
+                        <DayTaskCard
+                          key={task.id}
+                          task={task}
+                          projectColor={project?.color || '#6C9CFC'}
+                          projectName={project?.name || ''}
+                          isSelected={selectedTaskId === task.id}
+                          onSelect={() => onSelectTask(task)}
+                          onStatusChange={onStatusChange}
+                          rolloverDays={rolloverMap.get(task.id)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <DndContext
@@ -370,6 +454,7 @@ export function MyDayView({
                   onSelectTask={onSelectTask}
                   onStatusChange={onStatusChange}
                   rolloverMap={rolloverMap}
+                  serviceTagMap={serviceTagMap}
                 />
               ))}
             </div>

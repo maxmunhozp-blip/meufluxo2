@@ -3,7 +3,8 @@ import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskStatus, Priority, Subtask, Comment, Section, Attachment, RecurrenceType, RecurrenceConfig } from '@/types/task';
+import { Task, TaskStatus, Priority, Subtask, Comment, Section, Attachment, RecurrenceType, RecurrenceConfig, ServiceTag } from '@/types/task';
+import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { MemberPicker } from './MemberPicker';
 import { Profile } from '@/hooks/useSupabaseData';
@@ -15,6 +16,7 @@ interface TaskDetailPanelProps {
   profiles: Profile[];
   comments: Comment[];
   attachments: Attachment[];
+  serviceTags?: ServiceTag[];
   currentUserId?: string;
   parentTaskName?: string;
   onClose: () => void;
@@ -213,7 +215,7 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
   );
 }
 
-export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment }: TaskDetailPanelProps) {
+export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -537,6 +539,18 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               recurrenceConfig={localTask.recurrenceConfig}
               onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })}
             />
+
+            <label className="text-[12px] font-medium text-nd-text-secondary pt-1.5">Serviço</label>
+            <select
+              value={localTask.serviceTagId || ''}
+              onChange={(e) => pushUpdate({ ...localTask, serviceTagId: e.target.value || undefined })}
+              className="h-8 w-full px-2 text-[16px] md:text-[14px] text-nd-text bg-nd-input rounded border border-transparent focus:border-nd-border-input focus:outline-none appearance-none cursor-pointer [color-scheme:dark]"
+            >
+              <option value="">Nenhum</option>
+              {serviceTags.map(tag => (
+                <option key={tag.id} value={tag.id}>{tag.name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Members — part of metadata context, no separator needed */}

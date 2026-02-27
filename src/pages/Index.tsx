@@ -40,7 +40,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { push: pushUndo } = useUndoStack();
   const {
-    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments,
+    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments, serviceTags,
     setProjects, setSections, setTasks,
     exportData, importData,
     loading, session,
@@ -55,6 +55,7 @@ const Index = () => {
     addSubtask, updateSubtask, deleteSubtask, reorderSubtasks,
     duplicateProject,
     uploadAttachment, deleteAttachment,
+    createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
     planLimits, showUpgradeModal, setShowUpgradeModal,
   } = useSupabaseData();
 
@@ -678,6 +679,7 @@ const Index = () => {
             tasks={taskList}
             projects={projects}
             sections={sectionList}
+            serviceTags={serviceTags}
             userName={profiles.find(p => p.id === session?.user?.id)?.fullName || session?.user?.email || 'Usuário'}
             onUpdateTask={handleUpdateTask}
             onStatusChange={handleStatusChange}
@@ -855,6 +857,7 @@ const Index = () => {
                 profiles={profiles}
                 comments={comments}
                 attachments={attachments}
+                serviceTags={serviceTags}
                 currentUserId={session?.user?.id}
                 parentTaskName={parentTaskName}
                 onClose={() => setSelectedTaskId(null)}

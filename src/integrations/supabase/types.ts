@@ -208,6 +208,41 @@ export type Database = {
           },
         ]
       }
+      service_tags: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          position: number
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          position?: number
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          position?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_tags_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_attachments: {
         Row: {
           content_type: string | null
@@ -296,6 +331,7 @@ export type Database = {
           recurrence_type: string | null
           rollover_count: number
           section_id: string
+          service_tag_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
           workspace_id: string | null
@@ -317,6 +353,7 @@ export type Database = {
           recurrence_type?: string | null
           rollover_count?: number
           section_id: string
+          service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           workspace_id?: string | null
@@ -338,6 +375,7 @@ export type Database = {
           recurrence_type?: string | null
           rollover_count?: number
           section_id?: string
+          service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           workspace_id?: string | null
@@ -362,6 +400,13 @@ export type Database = {
             columns: ["section_id"]
             isOneToOne: false
             referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_service_tag_id_fkey"
+            columns: ["service_tag_id"]
+            isOneToOne: false
+            referencedRelation: "service_tags"
             referencedColumns: ["id"]
           },
           {
