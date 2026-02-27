@@ -880,6 +880,10 @@ const Index = () => {
                 onSelectSubtask={(sub) => setSelectedTaskId(sub.id)}
                 onUploadAttachment={uploadAttachment}
                 onDeleteAttachment={deleteAttachment}
+                onCreateServiceTag={createServiceTag}
+                onRenameServiceTag={renameServiceTag}
+                onChangeServiceTagIcon={changeServiceTagIcon}
+                onDeleteServiceTag={deleteServiceTag}
               />
             </div>
           </>
