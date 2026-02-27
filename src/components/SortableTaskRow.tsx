@@ -185,10 +185,6 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
     <div ref={setNodeRef} data-task-id={task.id} className="relative">
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex">
-        {/* Project color bar */}
-        {projectColor && (
-          <div className="w-[3px] flex-shrink-0 rounded-l-sm" style={{ background: projectColor }} />
-        )}
         <div
           className={`flex-1 min-w-0 group h-9 md:h-9 min-h-[44px] md:min-h-0 border-b border-border cursor-pointer transition-all duration-300 ease-out relative ${
             isSelected ? 'bg-accent' : 'hover:bg-accent/50'
