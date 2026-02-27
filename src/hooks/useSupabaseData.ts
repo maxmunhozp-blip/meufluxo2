@@ -291,6 +291,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           section: row.section_id,
           projectId: row.project_id,
           parentTaskId: row.parent_task_id,
+          serviceTagId: row.service_tag_id || undefined,
+          dayPeriod: row.day_period || 'morning',
           members: membersByTask[row.id] || [],
         };
         if (!subtasksByParent[row.parent_task_id]) subtasksByParent[row.parent_task_id] = [];

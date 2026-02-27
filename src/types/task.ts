@@ -23,6 +23,8 @@ export interface Subtask {
   section: string;
   projectId: string;
   parentTaskId?: string;
+  serviceTagId?: string;
+  dayPeriod?: string;
   members?: TaskMember[];
   subtasks?: Subtask[];
   comments?: Comment[];
