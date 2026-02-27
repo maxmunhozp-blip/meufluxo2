@@ -53,18 +53,18 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   };
 
   return (
-    <div className="relative px-4 pt-4 pb-1">
-      {/* Trigger — looks like a subtle label, not a button */}
+    <div className="relative px-4 pt-4 pb-2">
+      {/* Trigger — subtle label */}
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 group transition-colors"
       >
-        <span className="text-[12px] font-medium tracking-wide uppercase" style={{ color: 'hsl(var(--sidebar-label))' }}>
+        <span className="text-[11px] font-medium" style={{ color: '#555570', letterSpacing: 0 }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
           className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-          style={{ color: 'hsl(var(--sidebar-label))' }}
+          style={{ color: '#555570' }}
         />
       </button>
 
