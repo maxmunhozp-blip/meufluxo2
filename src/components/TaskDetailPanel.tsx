@@ -841,16 +841,18 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
 
             {/* "Fazer em" + "Entregar até" — compact date display */}
             <MetaRow label="Fazer em">
-              <div className="flex items-center gap-2 relative">
+              <div className="flex items-center gap-2 relative h-8 w-full">
                 <input
                   type="date"
                   value={localTask.scheduledDate || ''}
                   onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
-                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
+                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark] z-10 w-full h-full"
+                  style={{ minWidth: 0 }}
                 />
+                <span className="pointer-events-none">
                 {(() => {
                   if (!localTask.scheduledDate) {
-                    return <span className="text-[13px] cursor-pointer" style={{ color: '#555570' }}>Quando vai fazer?</span>;
+                    return <span className="text-[13px]" style={{ color: '#555570' }}>Quando vai fazer?</span>;
                   }
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
@@ -864,20 +866,23 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                   const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[sd.getDay()]})`;
                   return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
                 })()}
+                </span>
               </div>
             </MetaRow>
 
             <MetaRow label="Entregar até">
-              <div className="flex items-center gap-2 relative">
+              <div className="flex items-center gap-2 relative h-8 w-full">
                 <input
                   type="date"
                   value={localTask.dueDate || ''}
                   onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
-                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
+                  className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark] z-10 w-full h-full"
+                  style={{ minWidth: 0 }}
                 />
+                <span className="pointer-events-none">
                 {(() => {
                   if (!localTask.dueDate) {
-                    return <span className="text-[13px] cursor-pointer" style={{ color: '#555570' }}>Sem prazo</span>;
+                    return <span className="text-[13px]" style={{ color: '#555570' }}>Sem prazo</span>;
                   }
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
@@ -898,6 +903,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                   const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[due.getDay()]})`;
                   return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
                 })()}
+                </span>
               </div>
             </MetaRow>
 
