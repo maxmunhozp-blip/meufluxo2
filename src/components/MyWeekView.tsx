@@ -216,12 +216,24 @@ function WeekSourceSidebar({
   collapsed: boolean;
   onToggle: () => void;
 }) {
-  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('meufluxo_masterlist_projects');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  // Persist expanded projects
+  const toggleProject = (id: string) => {
+    setExpandedProjects(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      localStorage.setItem('meufluxo_masterlist_projects', JSON.stringify(next));
+      return next;
+    });
+  };
   const [searchQuery, setSearchQuery] = useState('');
 
-  const toggleProject = (id: string) => {
-    setExpandedProjects(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  // toggleProject is now defined above with persistence
 
   // Only show non-subtask pending tasks without scheduledDate (not yet scheduled)
   const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate), [tasks]);
@@ -479,7 +491,14 @@ export function MyWeekView({
   onUpgrade,
 }: MyWeekViewProps) {
   const [weekOffset, setWeekOffset] = useState(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem('meufluxo_masterlist_collapsed') === 'true'; } catch { return false; }
+  });
+  const toggleSidebar = () => setSidebarCollapsed(prev => {
+    const next = !prev;
+    localStorage.setItem('meufluxo_masterlist_collapsed', String(next));
+    return next;
+  });
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'columns' | 'timeline'>(() => {
@@ -767,7 +786,7 @@ export function MyWeekView({
               tasks={tasks}
               
               collapsed={sidebarCollapsed}
-              onToggle={() => setSidebarCollapsed(prev => !prev)}
+              onToggle={toggleSidebar}
             />
 
             <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory md:snap-none">
