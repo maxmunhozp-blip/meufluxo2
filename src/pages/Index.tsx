@@ -78,6 +78,19 @@ const Index = () => {
   const [isMyWeekView, setIsMyWeekView] = useState(false);
   const [isMyDayView, setIsMyDayView] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  // Check super_admin role
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .eq('role', 'super_admin')
+      .maybeSingle()
+      .then(({ data }) => setIsSuperAdmin(!!data));
+  }, [session]);
   const [detailWidth, setDetailWidth] = useState(() => Number(localStorage.getItem('meufluxo-detail-width')) || 580);
   const listRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ target: 'sidebar' | 'detail'; startX: number; startWidth: number } | null>(null);
@@ -594,6 +607,7 @@ const Index = () => {
     onAddProjectMember: addProjectMember,
     onRemoveProjectMember: removeProjectMember,
     getProjectMembers,
+    isSuperAdmin,
   };
 
   // Determine active view for bottom nav
