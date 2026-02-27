@@ -30,6 +30,8 @@ interface UseSupabaseDataReturn {
   switchWorkspace: (workspaceId: string) => void;
   inviteToWorkspace: (email: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<string>;
+  renameWorkspace: (id: string, name: string) => Promise<void>;
+  deleteWorkspace: (id: string) => Promise<void>;
   setProjects: (fn: (prev: Project[]) => Project[]) => void;
   setSections: (fn: (prev: Section[]) => Section[]) => void;
   setTasks: (fn: (prev: Task[]) => Task[]) => void;
@@ -1048,6 +1050,25 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     return data.id;
   }, [session]);
 
+  const renameWorkspace = useCallback(async (id: string, name: string) => {
+    const { error } = await supabase.from('workspaces').update({ name }).eq('id', id);
+    if (error) { toast.error('Erro ao renomear workspace'); throw error; }
+    setWorkspacesState(prev => prev.map(w => w.id === id ? { ...w, name } : w));
+    toast.success('Workspace renomeado!');
+  }, []);
+
+  const deleteWorkspace = useCallback(async (id: string) => {
+    if (workspacesState.length <= 1) { toast.error('Você precisa ter ao menos um workspace.'); return; }
+    const { error } = await supabase.from('workspaces').delete().eq('id', id);
+    if (error) { toast.error('Erro ao excluir workspace'); throw error; }
+    setWorkspacesState(prev => prev.filter(w => w.id !== id));
+    if (activeWorkspaceId === id) {
+      const remaining = workspacesState.filter(w => w.id !== id);
+      if (remaining.length > 0) switchWorkspace(remaining[0].id);
+    }
+    toast.success('Workspace excluído!');
+  }, [workspacesState, activeWorkspaceId, switchWorkspace]);
+
   return {
     projects: projectsState,
     sections: sectionsState,
@@ -1062,6 +1083,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     switchWorkspace,
     inviteToWorkspace,
     createWorkspace,
+    renameWorkspace,
+    deleteWorkspace,
     setProjects,
     setSections,
     setTasks,
