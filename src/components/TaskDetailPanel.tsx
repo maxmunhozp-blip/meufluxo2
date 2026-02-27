@@ -500,12 +500,21 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               }}
             />
 
-            <label htmlFor="task-date-input" className="text-[12px] font-medium text-nd-text-secondary pt-1.5">Data</label>
+            <label htmlFor="task-date-input" className="text-[12px] font-medium text-nd-text-secondary pt-1.5">Prazo de entrega</label>
             <input
               id="task-date-input"
               type="date"
               value={localTask.dueDate || ''}
               onChange={(e) => pushUpdate({ ...localTask, dueDate: e.target.value })}
+              className="h-8 px-2 text-[16px] md:text-[14px] text-nd-text bg-nd-input rounded border border-transparent focus:border-nd-border-input focus:outline-none [color-scheme:dark]"
+            />
+
+            <label htmlFor="task-scheduled-input" className="text-[12px] font-medium text-nd-text-secondary pt-1.5">Agendado para</label>
+            <input
+              id="task-scheduled-input"
+              type="date"
+              value={localTask.scheduledDate || ''}
+              onChange={(e) => pushUpdate({ ...localTask, scheduledDate: e.target.value || undefined })}
               className="h-8 px-2 text-[16px] md:text-[14px] text-nd-text bg-nd-input rounded border border-transparent focus:border-nd-border-input focus:outline-none [color-scheme:dark]"
             />
 

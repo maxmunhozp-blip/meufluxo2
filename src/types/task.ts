@@ -82,6 +82,7 @@ export interface Task {
   members?: TaskMember[];
   rolloverCount?: number;
   originalDueDate?: string;
+  scheduledDate?: string;
   workspaceId?: string;
   serviceTagId?: string;
 }
