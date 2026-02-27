@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -33,6 +33,10 @@ interface TaskDetailPanelProps {
   onSelectSubtask?: (subtask: Subtask) => void;
   onUploadAttachment: (taskId: string, file: File) => Promise<void>;
   onDeleteAttachment: (attachmentId: string) => Promise<void>;
+  onCreateServiceTag?: (name: string, icon: string) => Promise<void>;
+  onRenameServiceTag?: (id: string, name: string) => Promise<void>;
+  onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
+  onDeleteServiceTag?: (id: string) => Promise<void>;
 }
 
 const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; label: string }> = {
@@ -239,7 +243,200 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment }: TaskDetailPanelProps) {
+// Inline service tag picker with CRUD
+function ServiceTagPicker({
+  value,
+  tags,
+  onChange,
+  onCreateTag,
+  onRenameTag,
+  onDeleteTag,
+}: {
+  value?: string;
+  tags: ServiceTag[];
+  onChange: (id: string | undefined) => void;
+  onCreateTag?: (name: string, icon: string) => Promise<void>;
+  onRenameTag?: (id: string, name: string) => Promise<void>;
+  onDeleteTag?: (id: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const addRef = useRef<HTMLInputElement>(null);
+  const editRef = useRef<HTMLInputElement>(null);
+
+  const selectedTag = tags.find(t => t.id === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setAdding(false);
+        setEditingId(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const handleAdd = async () => {
+    if (!newName.trim() || !onCreateTag) return;
+    await onCreateTag(newName.trim(), 'tag');
+    setNewName('');
+    setAdding(false);
+  };
+
+  const handleRename = async (id: string) => {
+    if (editValue.trim() && onRenameTag) await onRenameTag(id, editValue.trim());
+    setEditingId(null);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!onDeleteTag) return;
+    if (window.confirm(`Remover "${name}"?`)) {
+      await onDeleteTag(id);
+      if (value === id) onChange(undefined);
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="h-8 w-full text-left text-[13px] bg-transparent focus:outline-none flex items-center cursor-pointer"
+      >
+        {selectedTag ? (
+          <span style={{ color: '#E8E8F0' }}>{selectedTag.name}</span>
+        ) : (
+          <span style={{ color: '#555570' }}>Nenhum</span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-9 z-50 w-64 rounded-lg border overflow-hidden"
+          style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+        >
+          <div className="max-h-56 overflow-y-auto py-1">
+            {/* "Nenhum" option */}
+            <button
+              onClick={() => { onChange(undefined); setOpen(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-white/5 transition-colors"
+              style={{ color: !value ? '#E8E8F0' : '#8888A0' }}
+            >
+              {!value && <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#6C9CFC' }} />}
+              {value && <span className="w-3.5 flex-shrink-0" />}
+              <span>Nenhum</span>
+            </button>
+
+            {/* Existing tags */}
+            {tags.map(tag => {
+              const TagIcon = getTagIcon(tag.icon);
+              const isEditing = editingId === tag.id;
+              return (
+                <div key={tag.id} className="group flex items-center gap-1 px-3 py-1.5 hover:bg-white/5 transition-colors">
+                  {value === tag.id ? (
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#6C9CFC' }} />
+                  ) : (
+                    <TagIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#555570' }} />
+                  )}
+
+                  {isEditing ? (
+                    <input
+                      ref={editRef}
+                      value={editValue}
+                      onChange={e => setEditValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleRename(tag.id);
+                        if (e.key === 'Escape') setEditingId(null);
+                      }}
+                      onBlur={() => handleRename(tag.id)}
+                      autoFocus
+                      className="flex-1 h-6 px-1 text-[13px] bg-transparent rounded border focus:outline-none min-w-0"
+                      style={{ color: '#E8E8F0', borderColor: '#6C9CFC' }}
+                      onClick={e => e.stopPropagation()}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => { onChange(tag.id); setOpen(false); }}
+                      className="flex-1 text-left text-[13px] truncate min-w-0"
+                      style={{ color: '#E8E8F0' }}
+                    >
+                      {tag.name}
+                    </button>
+                  )}
+
+                  {onRenameTag && !isEditing && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditingId(tag.id); setEditValue(tag.name); }}
+                      className="w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: '#8888A0' }}
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                  )}
+                  {onDeleteTag && !isEditing && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(tag.id, tag.name); }}
+                      className="w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: '#8888A0' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add new tag */}
+          {onCreateTag && (
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} className="p-2">
+              {adding ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={addRef}
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleAdd();
+                      if (e.key === 'Escape') { setAdding(false); setNewName(''); }
+                    }}
+                    onBlur={() => { if (newName.trim()) handleAdd(); else setAdding(false); }}
+                    autoFocus
+                    placeholder="Nome do serviço..."
+                    className="flex-1 h-7 px-2 text-[13px] bg-transparent rounded border focus:outline-none placeholder:text-[#555570]"
+                    style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.1)' }}
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setAdding(true); setTimeout(() => addRef.current?.focus(), 0); }}
+                  className="flex items-center gap-1 text-[12px] transition-colors w-full px-1 py-1"
+                  style={{ color: '#555570' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Adicionar serviço
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -593,17 +790,14 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
 
             <MetaRow label="Serviço">
-              <select
-                value={localTask.serviceTagId || ''}
-                onChange={(e) => pushUpdate({ ...localTask, serviceTagId: e.target.value || undefined })}
-                className="h-8 w-full bg-transparent text-[13px] border-none focus:outline-none appearance-none cursor-pointer [color-scheme:dark]"
-                style={{ color: localTask.serviceTagId ? '#E8E8F0' : '#555570' }}
-              >
-                <option value="" style={{ background: '#1A1A28' }}>Nenhum</option>
-                {serviceTags.map(tag => (
-                  <option key={tag.id} value={tag.id} style={{ background: '#1A1A28' }}>{tag.name}</option>
-                ))}
-              </select>
+              <ServiceTagPicker
+                value={localTask.serviceTagId}
+                tags={serviceTags}
+                onChange={(id) => pushUpdate({ ...localTask, serviceTagId: id })}
+                onCreateTag={onCreateServiceTag}
+                onRenameTag={onRenameServiceTag}
+                onDeleteTag={onDeleteServiceTag}
+              />
             </MetaRow>
 
             <MetaRow label="Repetir">
