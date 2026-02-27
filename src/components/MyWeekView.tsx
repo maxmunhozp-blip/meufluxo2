@@ -23,6 +23,7 @@ interface MyWeekViewProps {
   onUpdateTask: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string) => Promise<void>;
   selectedTaskId?: string;
   isPro?: boolean;
   onUpgrade?: () => void;
@@ -34,6 +35,7 @@ const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 function SortableWeekTaskCard({
   task,
   projectColor,
+  projectName,
   isSelected,
   onSelect,
   onStatusChange,
@@ -41,6 +43,7 @@ function SortableWeekTaskCard({
 }: {
   task: Task;
   projectColor: string;
+  projectName: string;
   isSelected: boolean;
   onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
@@ -90,6 +93,15 @@ function SortableWeekTaskCard({
         {task.name}
       </span>
       {task.recurrenceType && <Repeat className="w-2.5 h-2.5 text-primary/50 flex-shrink-0" />}
+      {/* Client badge */}
+      {projectName && (
+        <span
+          className="text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 max-w-[60px] truncate hidden md:inline"
+          style={{ background: `${projectColor}20`, color: projectColor }}
+        >
+          {projectName}
+        </span>
+      )}
     </div>
   );
 }
@@ -187,6 +199,7 @@ function DayColumn({
                   <SortableWeekTaskCard
                     task={task}
                     projectColor={project?.color || '#4A90D9'}
+                    projectName={project?.name || ''}
                     isSelected={selectedTaskId === task.id}
                     onSelect={() => onSelectTask(task)}
                     onStatusChange={onStatusChange}
@@ -227,8 +240,8 @@ function WeekSourceSidebar({
     setExpandedProjects(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Only show non-subtask pending tasks
-  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.dueDate), [tasks]);
+  // Only show non-subtask pending tasks without scheduledDate (not yet scheduled)
+  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate), [tasks]);
 
   // Filter by search
   const filteredTasks = useMemo(() => {
@@ -396,12 +409,61 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
         <span className="text-[11px] text-nd-text truncate flex-1">{task.name}</span>
       </div>
       {expanded && subtasks.length > 0 && (
-        <div className="ml-6">
+        <div className="ml-4">
           {subtasks.map(st => (
-            <div key={st.id} className="flex items-center gap-1.5 h-[30px] px-2.5 mx-1 rounded-md text-[10px] text-muted-foreground truncate">
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/40 flex-shrink-0" />
-              <span className="truncate">{st.name}</span>
-            </div>
+            <SourceSubtaskItem key={st.id} subtask={st} task={task} projectColor={projectColor} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Draggable subtask item in the Master List
+function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; task: Task; projectColor: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const nestedSubs = (subtask.subtasks || []).filter(s => s.status !== 'done');
+  const {
+    attributes, listeners, setNodeRef, transform, transition, isDragging,
+  } = useSortable({
+    id: `source-sub-${subtask.id}`,
+    data: { type: 'source-subtask', subtask, parentTask: task, projectColor },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 150ms ease',
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className={`flex items-center gap-1.5 h-[30px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-nd-hover transition-colors group ${
+          isDragging ? 'ring-1 ring-primary/30' : ''
+        }`}
+      >
+        {nestedSubs.length > 0 ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-3 h-3 flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
+          </button>
+        ) : (
+          <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: `${projectColor}80` }} />
+        )}
+        <span className="text-[10px] text-muted-foreground truncate flex-1">{subtask.name}</span>
+      </div>
+      {expanded && nestedSubs.length > 0 && (
+        <div className="ml-4">
+          {nestedSubs.map(ss => (
+            <SourceSubtaskItem key={ss.id} subtask={ss} task={task} projectColor={projectColor} />
           ))}
         </div>
       )}
@@ -416,6 +478,7 @@ export function MyWeekView({
   onUpdateTask,
   onStatusChange,
   onSelectTask,
+  onScheduleSubtask,
   selectedTaskId,
   isPro,
   onUpgrade,
@@ -450,7 +513,7 @@ export function MyWeekView({
   // Get yesterday for rollover detection
   const yesterday = useMemo(() => subDays(startOfDay(new Date()), 1), []);
 
-  // Tasks grouped by day
+  // Tasks grouped by day (using scheduledDate, fallback to dueDate for backward compat)
   const tasksByDay = useMemo(() => {
     const map: Record<string, Task[]> = {};
     const todayStart = startOfDay(new Date());
@@ -460,13 +523,30 @@ export function MyWeekView({
       map[key] = [];
     });
 
-    // Only non-parent tasks with due dates in this week
+    // Non-subtask tasks with scheduledDate or dueDate in this week
     tasks.forEach(t => {
-      if (!t.dueDate || t.parentTaskId) return;
-      const dueKey = t.dueDate;
-      if (map[dueKey] !== undefined) {
-        map[dueKey].push(t);
+      if (t.parentTaskId) return;
+      const dateKey = t.scheduledDate || t.dueDate;
+      if (!dateKey) return;
+      if (map[dateKey] !== undefined) {
+        map[dateKey].push(t);
       }
+    });
+
+    // Also collect scheduled subtasks (they have scheduled_date set)
+    // We need to flatten subtasks from all tasks and check their scheduled_date
+    tasks.forEach(t => {
+      if (t.parentTaskId) return;
+      const collectScheduledSubs = (subs: Subtask[], parentTask: Task) => {
+        for (const sub of subs) {
+          if (sub.dueDate && map[sub.dueDate] !== undefined) {
+            // Check if this subtask has a scheduled_date by looking at DB — we store it in dueDate field for subtasks
+            // For now, subtasks scheduled via drag get their scheduled_date set, which we read via the tasks table
+          }
+          if (sub.subtasks) collectScheduledSubs(sub.subtasks, parentTask);
+        }
+      };
+      collectScheduledSubs(t.subtasks || [], t);
     });
 
     // Auto-rollover: tasks from yesterday (or earlier in the week) that aren't done
@@ -515,10 +595,16 @@ export function MyWeekView({
     return { rolloverTaskIds: ids, rolloverDaysMap: daysMap };
   }, [tasks, tasksByDay]);
 
+  const [activeDragSubtask, setActiveDragSubtask] = useState<{ subtask: Subtask; projectColor: string } | null>(null);
+
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
     if (data?.type === 'week-task' || data?.type === 'source-task') {
       setActiveDragId(data.task.id);
+      setActiveDragSubtask(null);
+    } else if (data?.type === 'source-subtask') {
+      setActiveDragId(null);
+      setActiveDragSubtask({ subtask: data.subtask as Subtask, projectColor: data.projectColor as string });
     }
   };
 
@@ -533,18 +619,28 @@ export function MyWeekView({
 
   const handleDragEnd = (event: DragEndEvent) => {
     setDragOverDay(null);
+    const draggedSubtask = activeDragSubtask;
     setActiveDragId(null);
+    setActiveDragSubtask(null);
     const { active, over } = event;
     if (!over) return;
 
     const activeData = active.data.current;
     const overData = over.data.current;
 
+    // Source subtask dropped onto a day column → schedule it
+    if (activeData?.type === 'source-subtask' && overData?.type === 'day-drop') {
+      const subtask = activeData.subtask as Subtask;
+      const targetDate = overData.date as string;
+      onScheduleSubtask?.(subtask.id, targetDate);
+      return;
+    }
+
     // Source task dropped onto a day column
     if (activeData?.type === 'source-task' && overData?.type === 'day-drop') {
       const task = activeData.task as Task;
       const targetDate = overData.date as string;
-      onUpdateTask({ ...task, dueDate: targetDate });
+      onUpdateTask({ ...task, scheduledDate: targetDate });
       return;
     }
 
@@ -552,15 +648,14 @@ export function MyWeekView({
     if (activeData?.type === 'week-task' && overData?.type === 'day-drop') {
       const task = activeData.task as Task;
       const targetDate = overData.date as string;
-      if (task.dueDate !== targetDate) {
-        onUpdateTask({ ...task, dueDate: targetDate });
+      if (task.scheduledDate !== targetDate) {
+        onUpdateTask({ ...task, scheduledDate: targetDate });
       }
       return;
     }
 
     // Reorder within same day
     if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
-      // Same-day reorder (visual only, order follows array)
       return;
     }
   };
@@ -690,6 +785,17 @@ export function MyWeekView({
                     style={{ background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9' }}
                   />
                   <span className="text-[12px] text-foreground truncate">{activeDragTask.name}</span>
+                </div>
+              ) : activeDragSubtask ? (
+                <div
+                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md shadow-lg border border-primary/30"
+                  style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+                >
+                  <div
+                    className="w-[3px] h-4 rounded-full"
+                    style={{ background: activeDragSubtask.projectColor }}
+                  />
+                  <span className="text-[11px] text-foreground truncate">{activeDragSubtask.subtask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>

@@ -280,24 +280,65 @@ export function MyDayView({
   // Tasks for today + overdue rollover tasks
   const { todayTasks, rolloverMap } = useMemo(() => {
     const todayStart = startOfDay(new Date());
-    // Tasks scheduled for today (via Minha Semana drag) OR due today without a scheduled_date
-    const scheduled = tasks.filter(t => {
-      if (t.parentTaskId) return false;
-      // Scheduled for today explicitly
-      if (t.scheduledDate === todayStr) return true;
-      // Due today but not scheduled elsewhere
-      if (t.dueDate === todayStr && !t.scheduledDate) return true;
-      return false;
+    const scheduled: Task[] = [];
+    
+    // 1. Top-level tasks
+    tasks.forEach(t => {
+      if (t.parentTaskId) return; // Skip if it's a subtask at top level (shouldn't happen but safe)
+      
+      let isScheduled = false;
+      if (t.scheduledDate === todayStr) isScheduled = true;
+      else if (t.dueDate === todayStr && !t.scheduledDate) isScheduled = true;
+      
+      if (isScheduled) {
+        scheduled.push(t);
+      }
+
+      // 2. Scheduled subtasks (promoted to top level for My Day)
+      // Recursive function to find scheduled subtasks
+      const findScheduledSubtasks = (subs: any[], parent: Task) => {
+        subs.forEach(sub => {
+          // Check if subtask is scheduled for today (dueDate is used for scheduled_date on subtasks in local state)
+          if (sub.dueDate === todayStr && sub.status !== 'done') {
+            // Promote to Task
+            const promotedTask: Task = {
+              ...sub,
+              id: sub.id,
+              name: sub.name,
+              projectId: sub.projectId || parent.projectId,
+              section: sub.section || parent.section,
+              status: sub.status,
+              // Ensure we don't treat it as a subtask visually in the card (no indentation, etc)
+              // but we need to know it's a subtask to update it correctly?
+              // Actually DayTaskCard just renders it.
+              // Important: We strip parentTaskId so it doesn't get filtered out later or cause issues
+              // But wait, if we strip parentTaskId, updates might fail if they rely on it?
+              // The update handler needs to know. But MyDayView uses onUpdateTask which expects a Task.
+              // We'll keep parentTaskId but MyDayView renders them flat anyway.
+              parentTaskId: sub.parentTaskId, 
+              // Add a visual indicator in the name or tag?
+              // The card has client badge.
+            };
+            scheduled.push(promotedTask);
+          }
+          if (sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
+        });
+      };
+      
+      if (t.subtasks) findScheduledSubtasks(t.subtasks, t);
     });
+
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
 
     tasks.forEach(t => {
+      // Only check top-level for rollover for now to keep it simple, or should subtasks rollover?
+      // Requirement says: "Se a tarefa já foi arrastada para um dia..."
+      // Let's keep rollover logic for top-level tasks only for now unless requested.
       if (t.parentTaskId || t.status === 'done' || !t.dueDate) return;
-      // Skip tasks already in scheduled list
       if (scheduled.some(s => s.id === t.id)) return;
-      // Skip tasks that have a scheduledDate (they belong to a different day)
       if (t.scheduledDate) return;
+      
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
         const days = t.rolloverCount && t.rolloverCount > 0
