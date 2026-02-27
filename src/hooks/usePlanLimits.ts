@@ -44,10 +44,11 @@ export function usePlanLimits(
   projects: Project[],
   tasks: Task[],
   members: WorkspaceMember[],
+  isSuperAdmin?: boolean,
 ) {
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
-  // Default to 'free' if plan field missing
-  const plan: PlanType = (activeWs as any)?.plan === 'pro' ? 'pro' : 'free';
+  // Super admins always get pro plan
+  const plan: PlanType = isSuperAdmin ? 'pro' : (activeWs as any)?.plan === 'pro' ? 'pro' : 'free';
   const limits = getLimits(plan);
 
   const canCreateProject = useMemo(() => {
