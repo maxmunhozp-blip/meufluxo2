@@ -11,9 +11,10 @@ interface WorkspaceSelectorProps {
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onGenerateInviteLink: () => Promise<string>;
+  direction?: 'down' | 'up';
 }
 
-export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite, onCreate, onRename, onDelete, onGenerateInviteLink }: WorkspaceSelectorProps) {
+export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onInvite, onCreate, onRename, onDelete, onGenerateInviteLink, direction = 'down' }: WorkspaceSelectorProps) {
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -65,17 +66,17 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   };
 
   return (
-    <div className="relative px-4 pt-3">
+    <div className="relative">
       {/* Trigger — discrete, functional */}
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 group transition-colors"
       >
-        <span className="text-[12px] font-medium" style={{ color: '#8888A0' }}>
+        <span className="text-[12px] font-medium truncate max-w-[100px]" style={{ color: '#8888A0' }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
-          className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`}
           style={{ color: '#8888A0' }}
         />
       </button>
@@ -85,7 +86,9 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         <>
           <div className="fixed inset-0 z-[98]" onClick={() => { setOpen(false); setMenuWsId(null); }} />
           <div
-            className="absolute left-0 top-full mt-1 z-[99] rounded-[10px] py-1.5 min-w-[220px]"
+            className={`absolute left-0 z-[99] rounded-[10px] py-1.5 min-w-[220px] ${
+              direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-1'
+            }`}
             style={{
               background: 'hsl(var(--dropdown-bg))',
               border: '1px solid hsl(var(--dropdown-border))',
