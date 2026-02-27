@@ -10,10 +10,11 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat } from 'lucide-react';
+import { GripVertical, ChevronLeft, ChevronRight, Play, LayoutGrid, BarChart3, Repeat, Sparkles } from 'lucide-react';
 import { Task, TaskStatus, Project, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { WeekTimelineView } from './WeekTimelineView';
+import { ProBadge } from '@/components/ProBadge';
 
 interface MyWeekViewProps {
   tasks: Task[];
@@ -23,6 +24,8 @@ interface MyWeekViewProps {
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
   selectedTaskId?: string;
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
@@ -398,6 +401,8 @@ export function MyWeekView({
   onStatusChange,
   onSelectTask,
   selectedTaskId,
+  isPro,
+  onUpgrade,
 }: MyWeekViewProps) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -409,6 +414,10 @@ export function MyWeekView({
   });
 
   const toggleViewMode = (mode: 'columns' | 'timeline') => {
+    if (mode === 'timeline' && !isPro) {
+      onUpgrade?.();
+      return;
+    }
     setViewMode(mode);
     localStorage.setItem('meufluxo_week_view', mode);
   };
@@ -597,6 +606,7 @@ export function MyWeekView({
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Timeline</span>
+              {!isPro && <ProBadge className="ml-1" />}
             </button>
           </div>
         </div>

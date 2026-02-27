@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, Project } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { UpgradeModal } from '@/components/UpgradeModal';
 
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
@@ -54,6 +55,7 @@ const Index = () => {
     addSubtask, updateSubtask, deleteSubtask, reorderSubtasks,
     duplicateProject,
     uploadAttachment, deleteAttachment,
+    planLimits, showUpgradeModal, setShowUpgradeModal,
   } = useSupabaseData();
 
   const [activeProjectId, setActiveProjectId] = useState('');
@@ -678,6 +680,8 @@ const Index = () => {
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
             selectedTaskId={selectedTaskId || undefined}
+            isPro={planLimits.isPro}
+            onUpgrade={() => setShowUpgradeModal(true)}
           />
         ) : isMyTasksView ? (
           <>
@@ -861,6 +865,11 @@ const Index = () => {
 
       {/* Mobile bottom navigation */}
       <BottomNav activeView={activeBottomView} onNavigate={handleBottomNav} />
+      {/* Pro Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
     </div>
   );
 };
