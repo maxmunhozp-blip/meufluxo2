@@ -158,9 +158,10 @@ export function FocusMode({ tasks, projects, onStatusChange, onClose }: FocusMod
   }, [getTasksByPeriod]);
 
   const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   };
 
   if (!focusState) return null;
@@ -171,10 +172,10 @@ export function FocusMode({ tasks, projects, onStatusChange, onClose }: FocusMod
 
   return (
     <div
-      className={`fixed inset-0 z-[500] flex flex-col items-center justify-center transition-opacity duration-300 ${
-        fadeIn ? 'opacity-100' : 'opacity-0'
+      className={`fixed inset-0 z-[500] flex flex-col items-center justify-center transition-all duration-500 ${
+        fadeIn ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'
       }`}
-      style={{ background: '#0D0D15' }}
+      style={{ background: '#0D0D15', transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
     >
       {/* Close button */}
       <button
@@ -203,15 +204,15 @@ export function FocusMode({ tasks, projects, onStatusChange, onClose }: FocusMod
       )}
 
       {/* Content */}
-      <div className={`flex flex-col items-center text-center px-6 max-w-lg transition-opacity duration-200 ${
-        taskTransition || showCheck ? 'opacity-30' : 'opacity-100'
-      }`}>
+      <div className={`flex flex-col items-center text-center px-6 max-w-lg transition-all ${
+        taskTransition || showCheck ? 'opacity-30 translate-x-[-20px]' : 'opacity-100 translate-x-0'
+      }`} style={{ transitionDuration: '200ms', transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
         {focusState.type === 'task' && (
           <>
             {/* Client badge */}
             {project && (
               <span
-                className="px-3 py-1 rounded-full text-[12px] font-medium mb-4"
+                className="px-4 py-2 rounded-[6px] text-[12px] font-medium mb-4"
                 style={{ background: `${project.color}33`, color: project.color }}
               >
                 {project.name}
@@ -219,31 +220,28 @@ export function FocusMode({ tasks, projects, onStatusChange, onClose }: FocusMod
             )}
 
             {/* Task name */}
-            <h1 className="text-[24px] font-semibold text-foreground leading-tight mb-3">
+            <h1 className="text-[24px] font-bold text-foreground leading-tight mb-4">
               {focusState.task.name}
             </h1>
 
-            {/* Period label */}
-            <span className="text-[13px] text-muted-foreground mb-2">
-              {periodLabel(focusState.periodKey).emoji} {periodLabel(focusState.periodKey).label}
-            </span>
-
-            {/* Timer */}
-            <span className="text-[18px] font-mono text-muted-foreground/50 mb-8">
-              {formatTime(elapsed)}
+            {/* Period + timer combined */}
+            <span className="text-[12px] font-mono mb-8" style={{ color: '#888' }}>
+              {periodLabel(focusState.periodKey).emoji} {periodLabel(focusState.periodKey).label} · {formatTime(elapsed)}
             </span>
 
             {/* Action buttons */}
             <div className="flex items-center gap-3">
               <button
                 onClick={handleDone}
-                className="flex items-center gap-2 px-5 h-10 rounded-lg text-[13px] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="flex items-center gap-2 px-5 h-10 rounded-lg text-[13px] font-medium text-primary-foreground transition-colors"
+                style={{ background: '#6C9CFC' }}
               >
                 ✓ Feito
               </button>
               <button
                 onClick={handleNext}
-                className="flex items-center gap-2 px-5 h-10 rounded-lg text-[13px] font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                className="flex items-center gap-2 px-5 h-10 rounded-lg text-[13px] font-medium border text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                style={{ borderColor: '#252538' }}
               >
                 → Próxima
               </button>
