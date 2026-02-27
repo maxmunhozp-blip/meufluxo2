@@ -82,6 +82,15 @@
     --sidebar-ring: 220 96% 71%;
     --sidebar-active: 245 30% 24%;
     --sidebar-separator: 240 20% 18%;
+    --sidebar-label: 240 10% 52%;
+
+    /* Dropdown tokens */
+    --dropdown-bg: 240 22% 11%;
+    --dropdown-border: 240 18% 20%;
+    --dropdown-hover: 245 30% 24%;
+
+    /* Warning muted (non-punitive) */
+    --warning-muted: 30 80% 60%;
   }
 }
 

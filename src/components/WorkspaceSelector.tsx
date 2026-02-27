@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Plus, Users, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, Plus, Users, Check, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
 import type { Workspace } from '@/hooks/useSupabaseData';
 
 interface WorkspaceSelectorProps {
@@ -29,127 +29,142 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   const handleInvite = async () => {
     if (!email.trim()) return;
     setInviting(true);
-    try {
-      await onInvite(email.trim());
-      setEmail('');
-      setInviteOpen(false);
-    } catch { /* handled in hook */ }
+    try { await onInvite(email.trim()); setEmail(''); setInviteOpen(false); } catch {}
     setInviting(false);
   };
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
     setCreating(true);
-    try {
-      await onCreate(newName.trim());
-      setNewName('');
-      setCreateOpen(false);
-    } catch { /* handled in hook */ }
+    try { await onCreate(newName.trim()); setNewName(''); setCreateOpen(false); } catch {}
     setCreating(false);
   };
 
   const handleRename = async () => {
     if (!renameOpen || !renameValue.trim()) return;
-    try {
-      await onRename(renameOpen, renameValue.trim());
-    } catch { /* handled in hook */ }
-    setRenameOpen(null);
-    setRenameValue('');
+    try { await onRename(renameOpen, renameValue.trim()); } catch {}
+    setRenameOpen(null); setRenameValue('');
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Excluir este workspace e todos os seus dados?')) return;
-    setMenuWsId(null);
-    setOpen(false);
+    setMenuWsId(null); setOpen(false);
     await onDelete(id);
   };
 
   return (
-    <div className="relative">
+    <div className="relative px-4 pt-4 pb-1">
+      {/* Trigger — looks like a subtle label, not a button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-4 pt-5 pb-4 hover:bg-accent/30 transition-colors"
+        className="flex items-center gap-1.5 group transition-colors"
       >
-        <div className="w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center text-primary text-[13px] font-bold flex-shrink-0">
-          {(activeWs?.name || 'W').charAt(0).toUpperCase()}
-        </div>
-        <span className="text-[15px] font-bold text-foreground truncate flex-1 text-left">
-          {activeWs?.name || 'MeuFluxo'}
+        <span className="text-[12px] font-medium tracking-wide uppercase" style={{ color: 'hsl(var(--sidebar-label))' }}>
+          {activeWs?.name || 'Workspace'}
         </span>
-        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'hsl(var(--sidebar-label))' }}
+        />
       </button>
 
+      {/* Dropdown */}
       {open && (
         <>
           <div className="fixed inset-0 z-[98]" onClick={() => { setOpen(false); setMenuWsId(null); }} />
           <div
-            className="absolute left-2 right-2 top-full z-[99] rounded-lg border border-border py-1 shadow-lg"
-            style={{ background: 'hsl(var(--bg-surface))' }}
+            className="absolute left-0 top-full mt-1 z-[99] rounded-[10px] py-1.5 min-w-[220px]"
+            style={{
+              background: 'hsl(var(--dropdown-bg))',
+              border: '1px solid hsl(var(--dropdown-border))',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            }}
           >
+            {/* Workspace list */}
             {workspaces.map(ws => (
-              <div key={ws.id} className="relative group flex items-center">
+              <div key={ws.id} className="relative group/item flex items-center">
                 <button
                   onClick={() => { onSwitch(ws.id); setOpen(false); setMenuWsId(null); }}
-                  className={`flex-1 flex items-center gap-2.5 px-3 text-[13px] transition-colors rounded-md ${
-                    ws.id === activeWorkspaceId ? 'bg-accent text-foreground font-medium' : 'text-muted-foreground hover:bg-accent/50'
-                  }`}
-                  style={{ minHeight: 40 }}
+                  className="flex-1 flex items-center gap-2.5 px-3 text-[13px] transition-colors rounded-md mx-1"
+                  style={{
+                    minHeight: 36,
+                    color: ws.id === activeWorkspaceId ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
-                  <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center text-primary text-[10px] font-bold flex-shrink-0">
-                    {ws.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="truncate">{ws.name}</span>
+                  {/* Checkmark for active */}
+                  <span className="w-4 flex items-center justify-center flex-shrink-0">
+                    {ws.id === activeWorkspaceId && <Check className="w-3.5 h-3.5" />}
+                  </span>
+                  <span className={`truncate ${ws.id === activeWorkspaceId ? 'font-medium' : ''}`}>
+                    {ws.name}
+                  </span>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setMenuWsId(menuWsId === ws.id ? null : ws.id); }}
-                  className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all mr-1 flex-shrink-0"
+                  className="opacity-0 group-hover/item:opacity-100 w-6 h-6 flex items-center justify-center rounded transition-all mr-1.5 flex-shrink-0"
+                  style={{ color: 'hsl(var(--muted-foreground))' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
                 </button>
 
+                {/* Sub-menu */}
                 {menuWsId === ws.id && (
                   <div
-                    className="absolute right-0 top-full z-[100] rounded-lg border border-border py-1 shadow-lg min-w-[140px]"
-                    style={{ background: 'hsl(var(--bg-surface))' }}
+                    className="absolute left-full top-0 ml-1 z-[100] rounded-[10px] py-1 min-w-[130px]"
+                    style={{
+                      background: 'hsl(var(--dropdown-bg))',
+                      border: '1px solid hsl(var(--dropdown-border))',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    }}
                   >
                     <button
-                      onClick={() => {
-                        setRenameOpen(ws.id);
-                        setRenameValue(ws.name);
-                        setMenuWsId(null);
-                        setOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 h-8 text-[13px] text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+                      onClick={() => { setRenameOpen(ws.id); setRenameValue(ws.name); setMenuWsId(null); setOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 h-8 text-[13px] transition-colors rounded-md mx-0"
+                      style={{ color: 'hsl(var(--muted-foreground))' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; (e.currentTarget as HTMLElement).style.color = 'hsl(var(--foreground))'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'hsl(var(--muted-foreground))'; }}
                     >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Renomear
+                      <Pencil className="w-3.5 h-3.5" /> Renomear
                     </button>
                     <button
                       onClick={() => handleDelete(ws.id)}
-                      className="w-full flex items-center gap-2 px-3 h-8 text-[13px] text-destructive hover:bg-destructive/10 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 h-8 text-[13px] transition-colors rounded-md mx-0"
+                      style={{ color: 'hsl(var(--warning-muted))' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsla(var(--warning-muted) / 0.1)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Excluir
+                      <Trash2 className="w-3.5 h-3.5" /> Excluir
                     </button>
                   </div>
                 )}
               </div>
             ))}
-            <div className="h-px bg-border mx-2 my-1" />
+
+            <div className="h-px mx-2 my-1.5" style={{ background: 'hsl(var(--dropdown-border))' }} />
+
+            {/* Secondary actions */}
             <button
               onClick={() => { setInviteOpen(true); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-3 text-[13px] text-muted-foreground hover:bg-accent/50 transition-colors rounded-md"
-              style={{ minHeight: 40 }}
+              className="w-full flex items-center gap-2.5 px-3 text-[13px] transition-colors rounded-md mx-1"
+              style={{ minHeight: 36, color: 'hsl(var(--muted-foreground))' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <Users className="w-4 h-4 flex-shrink-0" />
+              <Users className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Convidar membro</span>
             </button>
             <button
               onClick={() => { setCreateOpen(true); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-3 text-[13px] text-muted-foreground hover:bg-accent/50 transition-colors rounded-md"
-              style={{ minHeight: 40 }}
+              className="w-full flex items-center gap-2.5 px-3 text-[13px] transition-colors rounded-md mx-1"
+              style={{ minHeight: 36, color: 'hsl(var(--muted-foreground))' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'hsl(var(--dropdown-hover))'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <Plus className="w-4 h-4 flex-shrink-0" />
+              <Plus className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Novo Workspace</span>
             </button>
           </div>
@@ -171,7 +186,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         </div>
       )}
 
-      {/* Create workspace modal */}
+      {/* Create modal */}
       {createOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
@@ -186,7 +201,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         </div>
       )}
 
-      {/* Rename workspace modal */}
+      {/* Rename modal */}
       {renameOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
