@@ -72,6 +72,8 @@ function mapDbTask(row: any): Task {
     recurrenceConfig: row.recurrence_config || undefined,
     section: row.section_id,
     projectId: row.project_id,
+    rolloverCount: row.rollover_count || 0,
+    originalDueDate: row.original_due_date || undefined,
   };
 }
 

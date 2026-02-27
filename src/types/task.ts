@@ -72,6 +72,8 @@ export interface Task {
   projectId: string;
   parentTaskId?: string;
   members?: TaskMember[];
+  rolloverCount?: number;
+  originalDueDate?: string;
 }
 
 export interface Section {
