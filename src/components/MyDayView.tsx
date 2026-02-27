@@ -89,26 +89,28 @@ function ProgressSummary({ total, done }: { total: number; done: number }) {
   );
 }
 
-/* ── Sortable task card ────────────────── */
+/* ── Sortable task card ── 
+ * ADHD research: max 1 auxiliary badge per card.
+ * - Project identity = left color bar (already there)
+ * - Deadline only when TODAY or OVERDUE (reduce anticipatory anxiety)
+ * - No service tag / project name text badge (available in detail panel)
+ * - Rollover: subtle icon, not a colored chip
+ */
 function DayTaskCard({
   task,
   projectColor,
-  projectName,
   isSelected,
   onSelect,
   onStatusChange,
   rolloverDays,
-  serviceTagName,
   subtaskCount,
 }: {
   task: Task;
   projectColor: string;
-  projectName: string;
   isSelected: boolean;
   onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
   rolloverDays?: number;
-  serviceTagName?: string;
   subtaskCount?: { done: number; total: number };
 }) {
   const {
@@ -140,12 +142,25 @@ function DayTaskCard({
 
   const isDone = task.status === 'done';
 
+  // Deadline logic: only show when TODAY or OVERDUE — no "em Xd" anxiety
+  const deadlineHint = useMemo(() => {
+    if (isDone || !task.dueDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [y, m, d] = task.dueDate.split('-').map(Number);
+    const due = new Date(y, m - 1, d);
+    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return 'atrasado';
+    if (diffDays === 0) return 'prazo hoje';
+    return null; // Don't show future deadlines — reduces anticipatory anxiety
+  }, [task.dueDate, isDone]);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 px-4 rounded-lg cursor-pointer group transition-all ${
-        completing ? 'opacity-50 animate-card-collapse' : ''
+      className={`flex items-center gap-3 px-4 h-[44px] rounded-lg cursor-pointer group transition-all ${
+        completing ? 'opacity-50' : ''
       } ${isSelected ? 'ring-1 ring-accent/30' : ''}`}
       onClick={onSelect}
       role="button"
@@ -161,75 +176,40 @@ function DayTaskCard({
         <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
       </div>
 
-      {/* Title — ADHD: always fully legible, done tasks get gentle style */}
-      <span className={`flex-1 min-w-0 text-sm leading-tight truncate transition-all duration-200 ${
+      {/* Title — ADHD: always fully legible */}
+      <span className={`flex-1 min-w-0 text-[13px] leading-tight truncate transition-all duration-200 ${
         isDone ? 'line-through' : ''
       }`} style={{ color: isDone ? 'hsl(var(--text-muted))' : 'hsl(var(--text-primary))' }}>
         {task.name}
       </span>
 
-      {/* Subtask count */}
+      {/* Subtask count — minimal, numeric only */}
       {subtaskCount && subtaskCount.total > 0 && (
-        <span className="text-[11px] flex-shrink-0" style={{ color: 'hsl(var(--text-secondary))' }}>
+        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }}>
           {subtaskCount.done}/{subtaskCount.total}
         </span>
       )}
 
-      {/* Rollover badge — compassionate: "still here", not "overdue" */}
+      {/* Rollover — subtle, non-punitive */}
       {rolloverDays != null && rolloverDays > 0 && (
-        <span className="text-[10px] font-medium rounded px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
-          style={{ background: 'hsl(var(--status-overdue) / 0.12)', color: 'hsl(var(--status-overdue))' }}
-        >
-          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
+        <span className="text-[10px] flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }}>
+          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays}d`}
         </span>
       )}
 
-      {/* Deadline countdown — gentle "external scaffolding" for time blindness */}
-      {!isDone && task.dueDate && (() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const [y, m, d] = task.dueDate!.split('-').map(Number);
-        const due = new Date(y, m - 1, d);
-        const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        if (diffDays < 0) {
-          return (
-            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap"
-              style={{ background: 'hsl(var(--status-overdue) / 0.1)', color: 'hsl(var(--status-overdue))' }}>
-              prazo {Math.abs(diffDays) === 1 ? 'ontem' : `${Math.abs(diffDays)}d atrás`}
-            </span>
-          );
-        }
-        if (diffDays <= 7) {
-          return (
-            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap"
-              style={{ 
-                background: diffDays <= 2 ? 'hsl(var(--status-overdue) / 0.1)' : 'hsl(var(--primary) / 0.08)',
-                color: diffDays <= 2 ? 'hsl(var(--status-overdue))' : 'hsl(var(--primary))',
-              }}>
-              {diffDays === 0 ? 'prazo hoje' : diffDays === 1 ? 'prazo amanhã' : `prazo em ${diffDays}d`}
-            </span>
-          );
-        }
-        return null;
-      })()}
-
-      {/* Recurrence icon */}
-      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--primary) / 0.35)' }} />}
-
-      {/* Service tag badge */}
-      {serviceTagName && (
-        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[80px] truncate" style={{ color: 'hsl(var(--text-secondary))' }}>
-          {serviceTagName}
+      {/* Deadline — only today/overdue, gentle tone */}
+      {deadlineHint && (
+        <span className="text-[10px] font-medium flex-shrink-0" style={{ 
+          color: deadlineHint === 'atrasado' 
+            ? 'hsl(var(--status-overdue))' 
+            : 'hsl(var(--text-secondary))',
+        }}>
+          {deadlineHint}
         </span>
       )}
 
-      {/* Client badge */}
-      <span
-        className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[100px] truncate"
-        style={{ background: `${projectColor}26`, color: projectColor }}
-      >
-        {projectName}
-      </span>
+      {/* Recurrence — icon only, ultra-subtle */}
+      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--text-muted))' }} />}
     </div>
   );
 }
@@ -323,12 +303,10 @@ function PeriodSection({
                 key={task.id}
                 task={task}
                 projectColor={project?.color || 'hsl(var(--primary))'}
-                projectName={project?.name || ''}
                 isSelected={selectedTaskId === task.id}
                 onSelect={() => onSelectTask(task)}
                 onStatusChange={onStatusChange}
                 rolloverDays={rolloverMap.get(task.id)}
-                serviceTagName={task.serviceTagId ? serviceTagMap.get(task.serviceTagId) : undefined}
                 subtaskCount={subtaskCount}
               />
             );
@@ -560,7 +538,6 @@ export function MyDayView({
                           key={task.id}
                           task={task}
                           projectColor={project?.color || 'hsl(var(--primary))'}
-                          projectName={project?.name || ''}
                           isSelected={selectedTaskId === task.id}
                           onSelect={() => onSelectTask(task)}
                           onStatusChange={onStatusChange}
