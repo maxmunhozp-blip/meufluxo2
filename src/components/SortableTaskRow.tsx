@@ -186,7 +186,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex">
         <div
-          className={`flex-1 min-w-0 group h-9 md:h-9 min-h-[44px] md:min-h-0 border-b border-border cursor-pointer transition-all duration-300 ease-out relative ${
+          className={`flex-1 min-w-0 group min-h-[44px] border-b cursor-pointer transition-all duration-150 relative ${
             isSelected ? 'bg-accent' : 'hover:bg-accent/50'
           } ${isDragSource ? 'opacity-40' : ''}`}
           style={{ opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined }}
@@ -283,18 +283,10 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               {hasSubtasks && !expanded && (() => {
                 const subs = task.subtasks!;
                 const done = subs.filter(s => s.status === 'done').length;
-                const inProg = subs.filter(s => s.status === 'in_progress').length;
                 const total = subs.length;
-                const donePct = (done / total) * 100;
-                const progPct = (inProg / total) * 100;
-                const allDone = done === total;
                 return (
-                  <span className="flex items-center gap-1 flex-shrink-0">
-                    <span className="w-8 h-[2.5px] rounded-full bg-muted overflow-hidden flex">
-                      <span className="h-full" style={{ width: `${donePct}%`, background: 'hsl(var(--status-done))' }} />
-                      <span className="h-full" style={{ width: `${progPct}%`, background: 'hsl(var(--status-progress))' }} />
-                    </span>
-                    {allDone && <span className="text-[10px]" style={{ color: 'hsl(var(--status-done))' }}>✓</span>}
+                  <span className="text-[11px] flex-shrink-0" style={{ color: '#8888A0' }}>
+                    {done}/{total}
                   </span>
                 );
               })()}
