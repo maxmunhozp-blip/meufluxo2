@@ -29,6 +29,7 @@ interface UseSupabaseDataReturn {
   activeWorkspaceId: string | null;
   switchWorkspace: (workspaceId: string) => void;
   inviteToWorkspace: (email: string) => Promise<void>;
+  createWorkspace: (name: string) => Promise<string>;
   setProjects: (fn: (prev: Project[]) => Project[]) => void;
   setSections: (fn: (prev: Section[]) => Section[]) => void;
   setTasks: (fn: (prev: Task[]) => Task[]) => void;
@@ -1028,6 +1029,25 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     toast.error('Para convidar membros, o usuário precisa estar cadastrado no sistema.');
   }, [activeWorkspaceId, session]);
 
+  const createWorkspace = useCallback(async (name: string): Promise<string> => {
+    if (!session) throw new Error('Não autenticado');
+    const { data, error } = await supabase
+      .from('workspaces')
+      .insert({ name, owner_id: session.user.id })
+      .select()
+      .single();
+    if (error) { toast.error('Erro ao criar workspace'); throw error; }
+    // Add self as owner member
+    await supabase
+      .from('workspace_members')
+      .insert({ workspace_id: data.id, user_id: session.user.id, role: 'owner', accepted_at: new Date().toISOString() });
+    const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id };
+    setWorkspacesState(prev => [...prev, newWs]);
+    setActiveWorkspaceId(data.id);
+    toast.success('Workspace criado!');
+    return data.id;
+  }, [session]);
+
   return {
     projects: projectsState,
     sections: sectionsState,
@@ -1041,6 +1061,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     activeWorkspaceId,
     switchWorkspace,
     inviteToWorkspace,
+    createWorkspace,
     setProjects,
     setSections,
     setTasks,
