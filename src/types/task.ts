@@ -74,16 +74,19 @@ export interface Task {
   members?: TaskMember[];
   rolloverCount?: number;
   originalDueDate?: string;
+  workspaceId?: string;
 }
 
 export interface Section {
   id: string;
   title: string;
   projectId: string;
+  workspaceId?: string;
 }
 
 export interface Project {
   id: string;
   name: string;
   color: string;
+  workspaceId?: string;
 }

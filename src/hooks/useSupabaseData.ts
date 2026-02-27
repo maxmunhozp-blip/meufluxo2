@@ -51,11 +51,11 @@ interface UseSupabaseDataReturn {
 }
 
 function mapDbProject(row: any): Project {
-  return { id: row.id, name: row.name, color: row.color };
+  return { id: row.id, name: row.name, color: row.color, workspaceId: row.workspace_id };
 }
 
 function mapDbSection(row: any): Section {
-  return { id: row.id, title: row.name, projectId: row.project_id };
+  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id };
 }
 
 function mapDbTask(row: any): Task {
@@ -74,11 +74,13 @@ function mapDbTask(row: any): Task {
     projectId: row.project_id,
     rolloverCount: row.rollover_count || 0,
     originalDueDate: row.original_due_date || undefined,
+    workspaceId: row.workspace_id,
   };
 }
 
 export function useSupabaseData(): UseSupabaseDataReturn {
   const [session, setSession] = useState<Session | null>(null);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
   const [sectionsState, setSectionsState] = useState<Section[]>([]);
   const [tasksState, setTasksState] = useState<Task[]>([]);
@@ -108,6 +110,17 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     
     const fetchAll = async () => {
       setLoading(true);
+
+      // Fetch user's workspace (first one they own or are member of)
+      const { data: workspaces } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('user_id', session.user.id)
+        .limit(1);
+      
+      const wsId = workspaces?.[0]?.workspace_id || null;
+      setActiveWorkspaceId(wsId);
+
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
         supabase.from('projects').select('*').eq('archived', false).order('created_at'),
         supabase.from('sections').select('*').order('position'),
@@ -411,13 +424,13 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   // Project operations
   const createProject = useCallback(async (name: string, color: string): Promise<string> => {
-    const { data, error } = await supabase.from('projects').insert({ name, color }).select().single();
+    if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
+    const { data, error } = await supabase.from('projects').insert({ name, color, workspace_id: activeWorkspaceId }).select().single();
     if (error) throw error;
     const project = mapDbProject(data);
-    // Don't optimistically add — let realtime INSERT handler add it (with dedup)
     setProjectsState(prev => prev.some(x => x.id === project.id) ? prev : [...prev, project]);
     return project.id;
-  }, []);
+  }, [activeWorkspaceId]);
 
   const renameProject = useCallback(async (id: string, name: string) => {
     await supabase.from('projects').update({ name }).eq('id', id);
@@ -446,18 +459,19 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   // Section operations
   const createSection = useCallback(async (title: string, projectId: string): Promise<string> => {
+    if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const position = sectionsState.filter(s => s.projectId === projectId).length;
     const { data, error } = await supabase.from('sections').insert({ 
       name: title, 
       project_id: projectId, 
-      position 
+      position,
+      workspace_id: activeWorkspaceId,
     }).select().single();
     if (error) throw error;
     const section = mapDbSection(data);
-    // Dedup: let realtime handle it, but also add optimistically with check
     setSectionsState(prev => prev.some(x => x.id === section.id) ? prev : [...prev, section]);
     return section.id;
-  }, [sectionsState]);
+  }, [sectionsState, activeWorkspaceId]);
 
   const renameSection = useCallback(async (id: string, title: string) => {
     await supabase.from('sections').update({ name: title }).eq('id', id);
@@ -473,6 +487,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   // Task operations
   const createTask = useCallback(async (taskData: Partial<Task> & { name: string; section: string; projectId: string }): Promise<string> => {
+    if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const position = tasksState.filter(t => t.section === taskData.section && t.projectId === taskData.projectId).length;
     const { data, error } = await supabase.from('tasks').insert({
       title: taskData.name,
@@ -484,13 +499,13 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       due_date: taskData.dueDate || null,
       position,
       created_by: session?.user?.id || null,
+      workspace_id: activeWorkspaceId,
     }).select().single();
     if (error) throw error;
     const task = { ...mapDbTask(data), members: [], subtasks: [] };
-    // Add optimistically with dedup
     setTasksState(prev => prev.some(x => x.id === task.id) ? prev : [task, ...prev]);
     return task.id;
-  }, [tasksState, session]);
+  }, [tasksState, session, activeWorkspaceId]);
 
   const updateTask = useCallback(async (task: Task) => {
     await supabase.from('tasks').update({
@@ -545,23 +560,24 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       const task = tasksState.find(t => t.id === id);
       if (task?.recurrenceType) {
         const { calculateNextOccurrence } = await import('@/lib/recurrence');
-        const nextDate = calculateNextOccurrence(task.dueDate, task.recurrenceType, task.recurrenceConfig);
-        if (nextDate) {
-          const { data } = await supabase.from('tasks').insert({
-            title: task.name,
-            section_id: task.section,
-            project_id: task.projectId,
-            status: 'pending',
-            priority: task.priority || 'low',
-            description: task.description || null,
-            due_date: nextDate,
-            day_period: task.dayPeriod || 'morning',
-            recurrence_type: task.recurrenceType,
-            recurrence_config: (task.recurrenceConfig as any) || null,
-            assignee: task.assignee || null,
-            position: 0,
-            created_by: session?.user?.id || null,
-          }).select().single();
+          const nextDate = calculateNextOccurrence(task.dueDate, task.recurrenceType, task.recurrenceConfig);
+          if (nextDate) {
+            const { data } = await supabase.from('tasks').insert({
+              title: task.name,
+              section_id: task.section,
+              project_id: task.projectId,
+              status: 'pending',
+              priority: task.priority || 'low',
+              description: task.description || null,
+              due_date: nextDate,
+              day_period: task.dayPeriod || 'morning',
+              recurrence_type: task.recurrenceType,
+              recurrence_config: (task.recurrenceConfig as any) || null,
+              assignee: task.assignee || null,
+              position: 0,
+              created_by: session?.user?.id || null,
+              workspace_id: activeWorkspaceId,
+            }).select().single();
           if (data) {
             const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
             setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [newTask, ...prev]);
@@ -585,6 +601,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       due_date: task.dueDate || null,
       position: tasksState.filter(t => t.section === task.section).length,
       created_by: session?.user?.id || null,
+      workspace_id: activeWorkspaceId,
     }).select().single();
     if (error) throw error;
 
@@ -597,7 +614,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         title: sub.name, parent_task_id: data.id, section_id: task.section,
         project_id: task.projectId, status: sub.status, priority: sub.priority || 'low',
         description: sub.description || null, due_date: sub.dueDate || null,
-        position: (task.subtasks || []).indexOf(sub),
+        position: (task.subtasks || []).indexOf(sub), workspace_id: activeWorkspaceId,
       }).select().single();
       if (!newSub) continue;
 
@@ -607,7 +624,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           title: sub2.name, parent_task_id: newSub.id, section_id: task.section,
           project_id: task.projectId, status: sub2.status, priority: sub2.priority || 'low',
           description: sub2.description || null, due_date: sub2.dueDate || null,
-          position: (sub.subtasks || []).indexOf(sub2),
+          position: (sub.subtasks || []).indexOf(sub2), workspace_id: activeWorkspaceId,
         });
       }
     }
@@ -687,7 +704,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
     // Create new project
     const { data: newProj, error: projErr } = await supabase.from('projects')
-      .insert({ name: `${project.name} (cópia)`, color: project.color })
+      .insert({ name: `${project.name} (cópia)`, color: project.color, workspace_id: activeWorkspaceId })
       .select().single();
     if (projErr) throw projErr;
 
@@ -700,7 +717,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
       for (const sec of projSections) {
         const { data: newSec, error: secErr } = await supabase.from('sections')
-          .insert({ name: sec.title, project_id: newProjectId, position: projSections.indexOf(sec) })
+          .insert({ name: sec.title, project_id: newProjectId, position: projSections.indexOf(sec), workspace_id: activeWorkspaceId })
           .select().single();
         if (secErr) throw secErr;
         sectionIdMap[sec.id] = newSec.id;
@@ -722,6 +739,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
             due_date: task.dueDate || null,
             position: projTasks.indexOf(task),
             created_by: session?.user?.id || null,
+            workspace_id: activeWorkspaceId,
           }).select().single();
           if (taskErr) continue;
           const mappedTask = { ...mapDbTask(newTask), members: [], subtasks: [] };
@@ -733,7 +751,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
               title: sub.name, parent_task_id: newTask.id, section_id: newSectionId,
               project_id: newProjectId, status: sub.status, priority: sub.priority || 'low',
               description: sub.description || null, due_date: sub.dueDate || null,
-              position: (task.subtasks || []).indexOf(sub),
+              position: (task.subtasks || []).indexOf(sub), workspace_id: activeWorkspaceId,
             }).select().single();
             if (!newSub) continue;
 
@@ -743,7 +761,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
                 title: sub2.name, parent_task_id: newSub.id, section_id: newSectionId,
                 project_id: newProjectId, status: sub2.status, priority: sub2.priority || 'low',
                 description: sub2.description || null, due_date: sub2.dueDate || null,
-                position: (sub.subtasks || []).indexOf(sub2),
+                position: (sub.subtasks || []).indexOf(sub2), workspace_id: activeWorkspaceId,
               });
             }
           }
@@ -790,6 +808,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       status: 'pending',
       priority: 'low',
       position,
+      workspace_id: activeWorkspaceId,
     }).select().single();
     if (error) throw error;
     const sub: Subtask = {
