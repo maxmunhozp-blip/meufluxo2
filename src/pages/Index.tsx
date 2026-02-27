@@ -609,6 +609,11 @@ const Index = () => {
     onRemoveProjectMember: removeProjectMember,
     getProjectMembers,
     isSuperAdmin,
+    serviceTags,
+    onCreateServiceTag: createServiceTag,
+    onRenameServiceTag: renameServiceTag,
+    onChangeServiceTagIcon: changeServiceTagIcon,
+    onDeleteServiceTag: deleteServiceTag,
   };
 
   // Determine active view for bottom nav
