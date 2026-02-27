@@ -4,90 +4,90 @@
 
 @layer base {
   :root {
-    /* Base backgrounds */
-    --background: 240 20% 5%;
-    --foreground: 240 14% 92%;
+    /* Base backgrounds — Neuroinclusive Dark Mode */
+    --background: 240 33% 5%;       /* #0F0F17 */
+    --foreground: 240 14% 92%;      /* #E8E8F0 */
 
-    --card: 240 18% 12%;
+    --card: 240 24% 12%;            /* #1A1A28 */
     --card-foreground: 240 14% 92%;
 
-    --popover: 240 16% 14%;
+    --popover: 240 24% 12%;
     --popover-foreground: 240 14% 92%;
 
-    --primary: 220 96% 71%;
-    --primary-foreground: 240 20% 5%;
+    --primary: 220 96% 71%;         /* #6C9CFC */
+    --primary-foreground: 240 33% 5%;
 
     --secondary: 240 14% 16%;
     --secondary-foreground: 240 14% 92%;
 
     --muted: 240 12% 18%;
-    --muted-foreground: 240 10% 52%;
+    --muted-foreground: 240 10% 52%; /* #8888A0 */
 
     --accent: 220 96% 71%;
-    --accent-foreground: 240 20% 5%;
+    --accent-foreground: 240 33% 5%;
 
-    --destructive: 30 100% 71%;
-    --destructive-foreground: 240 20% 5%;
+    --destructive: 30 100% 71%;     /* #FFB86C — never red */
+    --destructive-foreground: 240 33% 5%;
 
     --border: 240 14% 16%;
-    --input: 240 14% 16%;
+    --input: 240 18% 14%;           /* #1E1E30 */
     --ring: 220 96% 71%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
     /* Neurodivergent Design Tokens */
-    --bg-app: 240 20% 5%;
-    --bg-surface: 240 18% 12%;
+    --bg-app: 240 33% 5%;           /* #0F0F17 */
+    --bg-surface: 240 24% 12%;      /* #1A1A28 */
     --bg-surface-alt: 240 16% 14%;
     --bg-elevated: 240 14% 18%;
-    --bg-active: 240 18% 20%;
+    --bg-active: 240 22% 21%;       /* #2A2A42 */
+    --bg-hover: 240 22% 15%;        /* #1E1E30 */
     --bg-subtask: 240 16% 13%;
-    --bg-hover: 240 14% 16%;
-    --bg-input: 240 18% 12%;
+    --bg-input: 240 18% 14%;        /* #1E1E30 */
     --bg-overlay: 0 0% 0% / 0.5;
 
-    --text-primary: 240 14% 92%;
-    --text-secondary: 240 10% 52%;
-    --text-muted: 240 10% 38%;
+    --text-primary: 240 14% 92%;    /* #E8E8F0 */
+    --text-secondary: 240 10% 52%;  /* #8888A0 */
+    --text-muted: 240 10% 38%;      /* #555570 */
     --text-completed: 240 10% 38%;
 
     --border-subtle: 240 14% 16%;
     --border-input: 240 10% 22%;
 
-    --status-done: 140 94% 65%;
-    --status-progress: 220 96% 71%;
+    --status-done: 140 94% 65%;     /* #50FA7B */
+    --status-progress: 220 96% 71%; /* #6C9CFC */
     --status-pending: 240 10% 38%;
-    --status-overdue: 30 100% 71%;
+    --status-overdue: 30 100% 71%;  /* #FFB86C */
 
     --priority-high: 30 100% 71%;
     --priority-medium: 45 100% 72%;
 
     /* Project palette */
-    --project-1: 220 96% 71%;   /* #6C9CFC */
-    --project-2: 30 100% 71%;   /* #FFB86C */
-    --project-3: 330 100% 63%;  /* #FF79C6 */
-    --project-4: 140 94% 65%;   /* #50FA7B */
-    --project-5: 259 89% 78%;   /* #BD93F9 */
-    --project-6: 189 95% 77%;   /* #8BE9FD */
-    --project-7: 65 93% 77%;    /* #F1FA8C */
+    --project-1: 220 96% 71%;
+    --project-2: 30 100% 71%;
+    --project-3: 330 100% 63%;
+    --project-4: 140 94% 65%;
+    --project-5: 259 89% 78%;
+    --project-6: 189 95% 77%;
+    --project-7: 65 93% 77%;
 
-    --bg-sidebar: 240 20% 5%;
-    --sidebar-background: 240 20% 5%;
+    --bg-sidebar: 240 33% 5%;       /* #0F0F17 */
+    --sidebar-background: 240 33% 5%;
     --sidebar-foreground: 240 14% 92%;
     --sidebar-primary: 220 96% 71%;
-    --sidebar-primary-foreground: 240 20% 5%;
+    --sidebar-primary-foreground: 240 33% 5%;
     --sidebar-accent: 240 14% 16%;
     --sidebar-accent-foreground: 240 14% 92%;
     --sidebar-border: 240 14% 16%;
     --sidebar-ring: 220 96% 71%;
-    --sidebar-active: 245 30% 24%;
+    --sidebar-active: 240 22% 21%;  /* #2A2A42 */
     --sidebar-separator: 240 20% 18%;
     --sidebar-label: 240 10% 52%;
 
     /* Dropdown tokens */
     --dropdown-bg: 240 22% 11%;
     --dropdown-border: 240 18% 20%;
-    --dropdown-hover: 245 30% 24%;
+    --dropdown-hover: 240 22% 21%;
 
     /* Warning muted (non-punitive) */
     --warning-muted: 30 80% 60%;
@@ -130,6 +130,11 @@
   background: hsl(var(--text-muted));
 }
 
+/* Global transitions — neuroinclusive, no bounce/shake */
+* {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @keyframes dropline-in {
   from { opacity: 0; transform: scaleX(0.3); transform-origin: left; }
   to { opacity: 1; transform: scaleX(1); transform-origin: left; }
@@ -149,10 +154,20 @@
 .animate-checkmark {
   stroke-dasharray: 20;
   stroke-dashoffset: 20;
-  animation: checkmark-draw 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: checkmark-draw 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-card-collapse {
   animation: card-collapse 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: 300ms;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

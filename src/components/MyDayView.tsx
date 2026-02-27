@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight, Repeat } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -28,10 +28,10 @@ interface MyDayViewProps {
 
 type GroupMode = 'period' | 'service';
 
-const PERIODS: { key: DayPeriod; label: string; emoji: string }[] = [
-  { key: 'morning', label: 'Manhã', emoji: '☀️' },
-  { key: 'afternoon', label: 'Tarde', emoji: '🌤️' },
-  { key: 'evening', label: 'Noite', emoji: '🌙' },
+const PERIODS: { key: DayPeriod; label: string; icon: typeof Sunrise }[] = [
+  { key: 'morning', label: 'Manhã', icon: Sunrise },
+  { key: 'afternoon', label: 'Tarde', icon: Sun },
+  { key: 'evening', label: 'Noite', icon: Moon },
 ];
 
 function getGreeting(): string {
@@ -48,6 +48,12 @@ function getCurrentPeriod(): DayPeriod {
   return 'evening';
 }
 
+function getPeriodOrder(period: DayPeriod): number {
+  if (period === 'morning') return 0;
+  if (period === 'afternoon') return 1;
+  return 2;
+}
+
 /* ── Sortable task card ────────────────── */
 function DayTaskCard({
   task,
@@ -58,6 +64,7 @@ function DayTaskCard({
   onStatusChange,
   rolloverDays,
   serviceTagName,
+  subtaskCount,
 }: {
   task: Task;
   projectColor: string;
@@ -67,6 +74,7 @@ function DayTaskCard({
   onStatusChange: (id: string, s: TaskStatus) => void;
   rolloverDays?: number;
   serviceTagName?: string;
+  subtaskCount?: { done: number; total: number };
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -101,7 +109,7 @@ function DayTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 h-14 px-4 rounded-[10px] cursor-pointer group transition-all ${
+      className={`flex items-center gap-3 px-4 rounded-lg cursor-pointer group transition-all ${
         completing ? 'opacity-50 animate-card-collapse' : ''
       } ${isSelected ? 'ring-1 ring-accent/30' : ''}`}
       onClick={onSelect}
@@ -119,26 +127,30 @@ function DayTaskCard({
       </div>
 
       {/* Title */}
-      <span className={`flex-1 min-w-0 text-sm leading-tight truncate transition-all duration-300 ${
-        isDone ? 'line-through text-nd-text-muted' : 'text-nd-text'
-      }`}>
+      <span className={`flex-1 min-w-0 text-sm leading-tight truncate transition-all duration-200 ${
+        isDone ? 'line-through opacity-50' : ''
+      }`} style={{ color: isDone ? '#555570' : '#E8E8F0' }}>
         {task.name}
       </span>
+
+      {/* Subtask count */}
+      {subtaskCount && subtaskCount.total > 0 && (
+        <span className="text-[11px] flex-shrink-0" style={{ color: '#8888A0' }}>
+          {subtaskCount.done}/{subtaskCount.total}
+        </span>
+      )}
 
       {/* Rollover badge */}
       {rolloverDays != null && rolloverDays > 0 && (
         <span className="text-[10px] font-medium rounded px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
-          style={{
-            background: 'hsl(var(--status-overdue) / 0.15)',
-            color: 'hsl(var(--status-overdue))',
-          }}
+          style={{ background: 'hsl(30 100% 71% / 0.15)', color: '#FFB86C' }}
         >
           ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
         </span>
       )}
 
       {/* Recurrence icon */}
-      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--status-progress) / 0.5)' }} />}
+      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: '#6C9CFC50' }} />}
 
       {/* Service tag badge */}
       {serviceTagName && (
@@ -150,10 +162,7 @@ function DayTaskCard({
       {/* Client badge */}
       <span
         className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[100px] truncate"
-        style={{
-          background: `${projectColor}26`,
-          color: projectColor,
-        }}
+        style={{ background: `${projectColor}26`, color: projectColor }}
       >
         {projectName}
       </span>
@@ -166,7 +175,8 @@ function PeriodSection({
   period,
   tasks,
   projects,
-  isActive,
+  isCurrentPeriod,
+  isPast,
   selectedTaskId,
   onSelectTask,
   onStatusChange,
@@ -176,7 +186,8 @@ function PeriodSection({
   period: typeof PERIODS[number];
   tasks: Task[];
   projects: Project[];
-  isActive: boolean;
+  isCurrentPeriod: boolean;
+  isPast: boolean;
   selectedTaskId?: string;
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
@@ -188,34 +199,37 @@ function PeriodSection({
     data: { type: 'period-drop', period: period.key },
   });
 
-  const pendingCount = tasks.filter(t => t.status !== 'done').length;
+  const PeriodIcon = period.icon;
 
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl transition-all duration-300 ${
+      className={`rounded-xl transition-all duration-200 ${
         isOver ? 'ring-1 ring-primary/40' : ''
-      } ${isActive ? 'opacity-100' : 'opacity-70'}`}
+      }`}
       style={{
-        background: isActive ? 'hsl(var(--bg-surface))' : 'hsl(var(--bg-app))',
-        borderLeft: isActive ? '2px solid hsl(var(--accent))' : '2px solid transparent',
+        opacity: isPast ? 0.5 : 1,
+        background: isCurrentPeriod ? '#1A1A28' : 'transparent',
+        borderLeft: isCurrentPeriod ? '2px solid #6C9CFC' : '2px solid transparent',
       }}
     >
       {/* Section header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-[14px] font-semibold text-foreground">
-          {period.emoji} {period.label}
-        </span>
-        <span className="text-[11px] text-muted-foreground">
-          {pendingCount} {pendingCount === 1 ? 'tarefa' : 'tarefas'}
+      <div className="flex items-center gap-2 px-4 py-3">
+        <PeriodIcon className="w-4 h-4 flex-shrink-0" style={{ color: isCurrentPeriod ? '#E8E8F0' : '#8888A0' }} />
+        <span className="text-[13px] font-semibold" style={{ color: isCurrentPeriod ? '#E8E8F0' : '#8888A0' }}>
+          {period.label}
         </span>
       </div>
 
       {/* Task list */}
-      <div className="px-2 pb-3 space-y-1 min-h-[60px]">
+      <div className="px-2 pb-3 space-y-0.5 min-h-[48px]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
+            const subtasks = task.subtasks || [];
+            const subtaskCount = subtasks.length > 0
+              ? { done: subtasks.filter(s => s.status === 'done').length, total: subtasks.length }
+              : undefined;
             return (
               <DayTaskCard
                 key={task.id}
@@ -227,13 +241,14 @@ function PeriodSection({
                 onStatusChange={onStatusChange}
                 rolloverDays={rolloverMap.get(task.id)}
                 serviceTagName={task.serviceTagId ? serviceTagMap.get(task.serviceTagId) : undefined}
+                subtaskCount={subtaskCount}
               />
             );
           })}
         </SortableContext>
         {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-[48px]">
-            <span className="text-[12px] text-muted-foreground">Arraste tarefas aqui</span>
+          <div className="flex items-center h-[40px] px-4">
+            <span className="text-[12px] italic" style={{ color: '#555570' }}>Sem tarefas</span>
           </div>
         )}
       </div>
@@ -259,6 +274,7 @@ export function MyDayView({
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
+  const currentPeriodOrder = getPeriodOrder(currentPeriod);
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
   // Tasks for today + overdue rollover tasks
@@ -266,13 +282,12 @@ export function MyDayView({
     const todayStart = startOfDay(new Date());
     const scheduled = tasks.filter(t => !t.parentTaskId && t.dueDate === todayStr);
     const overdue: Task[] = [];
-    const rMap = new Map<string, number>(); // taskId -> days overdue
+    const rMap = new Map<string, number>();
 
     tasks.forEach(t => {
       if (t.parentTaskId || t.status === 'done' || !t.dueDate || t.dueDate === todayStr) return;
       const dueDate = parseISO(t.dueDate);
       if (isBefore(startOfDay(dueDate), todayStart)) {
-        // Use server-side rollover_count if available, fall back to calculation
         const days = t.rolloverCount && t.rolloverCount > 0
           ? t.rolloverCount
           : differenceInCalendarDays(todayStart, dueDate);
@@ -287,7 +302,6 @@ export function MyDayView({
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
-      // Rollover tasks go to morning (top)
       const p = rolloverMap.has(t.id) ? 'morning' : (t.dayPeriod || 'morning');
       map[p].push(t);
     });
@@ -309,7 +323,6 @@ export function MyDayView({
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // Dropped onto a period section
     if (activeData?.type === 'day-task' && overData?.type === 'period-drop') {
       const task = activeData.task as Task;
       const targetPeriod = overData.period as DayPeriod;
@@ -319,7 +332,6 @@ export function MyDayView({
       return;
     }
 
-    // Dropped onto another task (move to that task's period)
     if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
       const draggedTask = activeData.task as Task;
       const targetTask = overData.task as Task;
@@ -332,14 +344,12 @@ export function MyDayView({
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
   const firstName = userName?.split(' ')[0] || 'Usuário';
 
-  // Service tag name map
   const serviceTagMap = useMemo(() => {
     const map = new Map<string, string>();
     serviceTags.forEach(t => map.set(t.id, t.name));
     return map;
   }, [serviceTags]);
 
-  // Group by service
   const tasksByService = useMemo(() => {
     const map: Record<string, Task[]> = {};
     todayTasks.forEach(t => {
@@ -350,16 +360,18 @@ export function MyDayView({
     return map;
   }, [todayTasks]);
 
+  const allEmpty = todayTasks.length === 0;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 flex-shrink-0" style={{ background: 'hsl(var(--bg-app))' }}>
+      <div className="px-6 pt-6 pb-4 flex-shrink-0" style={{ background: '#0F0F17' }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[22px] font-bold text-foreground">
+            <h1 className="text-[22px] font-bold" style={{ color: '#E8E8F0' }}>
               {getGreeting()}, {firstName}
             </h1>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <p className="text-[13px] mt-0.5" style={{ color: '#8888A0' }}>
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
@@ -368,14 +380,16 @@ export function MyDayView({
               <select
                 value={groupMode}
                 onChange={e => setGroupMode(e.target.value as GroupMode)}
-                className="h-8 px-2 text-[11px] text-muted-foreground bg-transparent border border-border rounded-lg focus:outline-none cursor-pointer [color-scheme:dark]"
+                className="h-8 px-2 text-[11px] bg-transparent border rounded-lg focus:outline-none cursor-pointer [color-scheme:dark]"
+                style={{ color: '#8888A0', borderColor: '#2A2A42' }}
               >
                 <option value="period">Por seção</option>
                 <option value="service">Por serviço</option>
               </select>
             )}
             <button
-              className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              className="flex items-center gap-2 px-3.5 h-8 rounded-lg text-[12px] font-medium transition-colors"
+              style={{ background: '#6C9CFC1A', color: '#6C9CFC' }}
               onClick={() => setFocusModeOpen(true)}
             >
               <Target className="w-3.5 h-3.5" />
@@ -387,34 +401,22 @@ export function MyDayView({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-8">
-        {todayTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <p className="text-[14px] text-muted-foreground">Nenhuma tarefa para hoje.</p>
-            <button
-              onClick={onNavigateToWeek}
-              className="flex items-center gap-1.5 text-[13px] text-primary hover:underline"
-            >
-              Planeje na Minha Semana
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ) : groupMode === 'service' ? (
-          /* Group by service */
+        {groupMode === 'service' ? (
           <div className="space-y-6 max-w-[640px] mx-auto">
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem serviço';
               return (
-                <div key={tagId} className="rounded-xl" style={{ background: 'hsl(var(--bg-surface))' }}>
+                <div key={tagId} className="rounded-xl" style={{ background: '#1A1A28' }}>
                   <div className="flex items-center gap-2 px-4 py-3">
                     {TagIcon && <TagIcon className="w-4 h-4" style={{ color: '#8888A0' }} />}
-                    <span className="text-[14px] font-semibold text-foreground">{label}</span>
-                    <span className="text-[11px] text-muted-foreground ml-auto">
+                    <span className="text-[13px] font-semibold" style={{ color: '#E8E8F0' }}>{label}</span>
+                    <span className="text-[11px] ml-auto" style={{ color: '#8888A0' }}>
                       {tagTasks.filter(t => t.status !== 'done').length} {tagTasks.filter(t => t.status !== 'done').length === 1 ? 'tarefa' : 'tarefas'}
                     </span>
                   </div>
-                  <div className="px-2 pb-3 space-y-1">
+                  <div className="px-2 pb-3 space-y-0.5">
                     {tagTasks.map(task => {
                       const project = projects.find(p => p.id === task.projectId);
                       return (
@@ -434,6 +436,14 @@ export function MyDayView({
                 </div>
               );
             })}
+            {allEmpty && (
+              <div className="flex flex-col items-center justify-center h-full gap-3 pt-12">
+                <p className="text-[14px]" style={{ color: '#8888A0' }}>Nenhuma tarefa para hoje.</p>
+                <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: '#6C9CFC' }}>
+                  Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <DndContext
@@ -442,34 +452,44 @@ export function MyDayView({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="space-y-6 max-w-[640px] mx-auto">
-              {PERIODS.map(period => (
-                <PeriodSection
-                  key={period.key}
-                  period={period}
-                  tasks={tasksByPeriod[period.key]}
-                  projects={projects}
-                  isActive={currentPeriod === period.key}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTask={onSelectTask}
-                  onStatusChange={onStatusChange}
-                  rolloverMap={rolloverMap}
-                  serviceTagMap={serviceTagMap}
-                />
-              ))}
+            <div className="space-y-4 max-w-[640px] mx-auto">
+              {PERIODS.map(period => {
+                const periodOrder = getPeriodOrder(period.key);
+                const isPast = periodOrder < currentPeriodOrder;
+                return (
+                  <PeriodSection
+                    key={period.key}
+                    period={period}
+                    tasks={tasksByPeriod[period.key]}
+                    projects={projects}
+                    isCurrentPeriod={currentPeriod === period.key}
+                    isPast={isPast}
+                    selectedTaskId={selectedTaskId}
+                    onSelectTask={onSelectTask}
+                    onStatusChange={onStatusChange}
+                    rolloverMap={rolloverMap}
+                    serviceTagMap={serviceTagMap}
+                  />
+                );
+              })}
+
+              {/* "Planeje" link only if ALL sections empty */}
+              {allEmpty && (
+                <div className="flex flex-col items-center gap-3 pt-4">
+                  <button onClick={onNavigateToWeek} className="flex items-center gap-1.5 text-[13px] hover:underline" style={{ color: '#6C9CFC' }}>
+                    Planeje na Minha Semana <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
 
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
               {activeDragTask ? (
                 <div
-                  className="h-[40px] flex items-center gap-2 px-3 rounded-[10px] shadow-lg border border-primary/30"
-                  style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
+                  className="h-[40px] flex items-center gap-2 px-3 rounded-lg shadow-lg"
+                  style={{ background: '#1A1A28', borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`, opacity: 0.95 }}
                 >
-                  <div
-                    className="w-[3px] h-6 rounded-full"
-                    style={{ background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9' }}
-                  />
-                  <span className="text-[13px] text-foreground truncate">{activeDragTask.name}</span>
+                  <span className="text-[13px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>
