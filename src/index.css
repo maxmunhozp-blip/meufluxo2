@@ -119,14 +119,28 @@
 }
 
 @keyframes dropline-in {
-  from {
-    opacity: 0;
-    transform: scaleX(0.3);
-    transform-origin: left;
-  }
-  to {
-    opacity: 1;
-    transform: scaleX(1);
-    transform-origin: left;
-  }
+  from { opacity: 0; transform: scaleX(0.3); transform-origin: left; }
+  to { opacity: 1; transform: scaleX(1); transform-origin: left; }
+}
+
+@keyframes checkmark-draw {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes card-collapse {
+  0% { opacity: 0.5; max-height: 56px; }
+  60% { opacity: 0.2; }
+  100% { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin: 0; }
+}
+
+.animate-checkmark {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: checkmark-draw 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-card-collapse {
+  animation: card-collapse 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 300ms;
 }

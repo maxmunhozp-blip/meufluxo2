@@ -52,6 +52,7 @@ function DayTaskCard({
   isSelected,
   onSelect,
   onStatusChange,
+  rolloverDays,
 }: {
   task: Task;
   projectColor: string;
@@ -59,6 +60,7 @@ function DayTaskCard({
   isSelected: boolean;
   onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
+  rolloverDays?: number;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -68,8 +70,11 @@ function DayTaskCard({
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.5 : completing ? 0 : 1,
+    transition: transition || `transform 150ms cubic-bezier(0.22,1,0.36,1)`,
+    opacity: isDragging ? 0.9 : 1,
+    scale: isDragging ? '1.02' : completing ? '0.98' : '1',
+    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.4)' : 'none',
+    borderLeft: `3px solid ${projectColor}`,
   };
 
   const handleStatus = (s: TaskStatus) => {
@@ -78,26 +83,25 @@ function DayTaskCard({
       setTimeout(() => {
         onStatusChange(task.id, s);
         setCompleting(false);
-      }, 300);
+      }, 400);
     } else {
       onStatusChange(task.id, s);
     }
   };
 
+  const isDone = task.status === 'done';
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer transition-all duration-300 group ${
-        isSelected
-          ? 'bg-accent/15 ring-1 ring-accent/30'
-          : 'hover:bg-muted/50'
-      } ${completing ? 'scale-95' : ''}`}
+      className={`flex items-center gap-3 h-14 px-4 rounded-[10px] cursor-pointer group transition-all ${
+        completing ? 'opacity-50 animate-card-collapse' : ''
+      } ${isSelected ? 'ring-1 ring-accent/30' : ''}`}
       onClick={onSelect}
+      role="button"
+      tabIndex={0}
     >
-      {/* Project color bar */}
-      <div className="w-[3px] h-8 rounded-full flex-shrink-0 self-stretch" style={{ background: projectColor }} />
-
       {/* Drag handle + checkbox */}
       <div
         {...attributes}
@@ -105,24 +109,39 @@ function DayTaskCard({
         className="flex-shrink-0 cursor-grab active:cursor-grabbing"
         onClick={(e) => e.stopPropagation()}
       >
-        <StatusCheckbox
-          status={task.status}
-          onChange={handleStatus}
-        />
+        <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <span className={`text-[13px] leading-tight block truncate ${
-          task.status === 'done' ? 'text-muted-foreground line-through opacity-60' : 'text-foreground'
-        }`}>
-          {task.name}
+      {/* Title */}
+      <span className={`flex-1 min-w-0 text-sm leading-tight truncate transition-all duration-300 ${
+        isDone ? 'line-through text-nd-text-muted' : 'text-nd-text'
+      }`}>
+        {task.name}
+      </span>
+
+      {/* Rollover badge */}
+      {rolloverDays != null && rolloverDays > 0 && (
+        <span className="text-[10px] font-medium rounded px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
+          style={{
+            background: 'hsl(var(--status-overdue) / 0.15)',
+            color: 'hsl(var(--status-overdue))',
+          }}
+        >
+          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
         </span>
-      </div>
+      )}
 
-      {/* Recurrence icon + Project badge */}
-      {task.recurrenceType && <Repeat className="w-3 h-3 text-primary/50 flex-shrink-0" />}
-      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0 max-w-[100px] truncate">
+      {/* Recurrence icon */}
+      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--status-progress) / 0.5)' }} />}
+
+      {/* Client badge */}
+      <span
+        className="text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 max-w-[100px] truncate"
+        style={{
+          background: `${projectColor}26`,
+          color: projectColor,
+        }}
+      >
         {projectName}
       </span>
     </div>
@@ -182,27 +201,17 @@ function PeriodSection({
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
-            const rolloverDays = rolloverMap.get(task.id);
             return (
-              <div key={task.id} className="relative">
-                {rolloverDays != null && (
-                  <span className={`absolute -top-1 right-1 text-[9px] font-medium rounded px-1 py-0.5 z-10 ${
-                    rolloverDays > 2
-                      ? 'bg-orange-500/15 text-orange-400'
-                      : 'bg-yellow-500/15 text-yellow-400'
-                  }`}>
-                    ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
-                  </span>
-                )}
-                <DayTaskCard
-                  task={task}
-                  projectColor={project?.color || '#4A90D9'}
-                  projectName={project?.name || ''}
-                  isSelected={selectedTaskId === task.id}
-                  onSelect={() => onSelectTask(task)}
-                  onStatusChange={onStatusChange}
-                />
-              </div>
+              <DayTaskCard
+                key={task.id}
+                task={task}
+                projectColor={project?.color || '#6C9CFC'}
+                projectName={project?.name || ''}
+                isSelected={selectedTaskId === task.id}
+                onSelect={() => onSelectTask(task)}
+                onStatusChange={onStatusChange}
+                rolloverDays={rolloverMap.get(task.id)}
+              />
             );
           })}
         </SortableContext>
