@@ -339,7 +339,7 @@ function WeekSourceSidebar({
                         </div>
                       )}
                       {sectionTasks.map(task => {
-                        const subtasks = (task.subtasks || []).filter(st => st.status !== 'done');
+                        const subtasks = (task.subtasks || []).filter(st => st.status !== 'done' && !st.scheduledDate);
                         return (
                           <SourceTaskItem key={task.id} task={task} projectColor={project.color} subtasks={subtasks} />
                         );

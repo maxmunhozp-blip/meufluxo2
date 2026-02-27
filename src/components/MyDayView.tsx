@@ -298,8 +298,8 @@ export function MyDayView({
       // Recursive function to find scheduled subtasks
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach(sub => {
-          // Check if subtask is scheduled for today (dueDate is used for scheduled_date on subtasks in local state)
-          if (sub.dueDate === todayStr && sub.status !== 'done') {
+          // Check if subtask is scheduled for today
+          if (sub.scheduledDate === todayStr && sub.status !== 'done') {
             // Promote to Task
             const promotedTask: Task = {
               ...sub,

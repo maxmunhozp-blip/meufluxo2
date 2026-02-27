@@ -286,6 +286,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           priority: row.priority as Priority | undefined,
           description: row.description || undefined,
           dueDate: row.due_date || undefined,
+          scheduledDate: row.scheduled_date || undefined,
           assignee: row.assignee || undefined,
           section: row.section_id,
           projectId: row.project_id,
@@ -384,6 +385,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
             priority: row.priority as Priority | undefined,
             description: row.description || undefined,
             dueDate: row.due_date || undefined,
+            scheduledDate: row.scheduled_date || undefined,
             section: row.section_id, projectId: row.project_id,
             parentTaskId: row.parent_task_id,
           };
@@ -416,6 +418,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
               priority: row.priority as Priority | undefined,
               description: row.description || undefined,
               dueDate: row.due_date || undefined,
+              scheduledDate: row.scheduled_date || undefined,
             } : { ...s, subtasks: (s.subtasks || []).map(updateSub) };
             return { ...t, subtasks: (t.subtasks || []).map(updateSub) };
           }));
@@ -999,15 +1002,14 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
   const scheduleSubtaskFn = useCallback(async (subtaskId: string, scheduledDate: string) => {
     await supabase.from('tasks').update({ scheduled_date: scheduledDate }).eq('id', subtaskId);
-    // Update local state — find the subtask in any parent and set its dueDate (used as display)
     setTasksState(prev => prev.map(t => ({
       ...t,
       subtasks: (t.subtasks || []).map(s => {
-        if (s.id === subtaskId) return { ...s, dueDate: scheduledDate };
+        if (s.id === subtaskId) return { ...s, scheduledDate };
         return {
           ...s,
           subtasks: (s.subtasks || []).map(ss =>
-            ss.id === subtaskId ? { ...ss, dueDate: scheduledDate } : ss
+            ss.id === subtaskId ? { ...ss, scheduledDate } : ss
           ),
         };
       }),
