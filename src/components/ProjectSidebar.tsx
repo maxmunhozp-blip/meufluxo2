@@ -207,7 +207,10 @@ export function ProjectSidebar({
         onDelete={onDeleteWorkspace || (async () => {})}
       />
 
-      <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
+      {/* 16px space between workspace selector and nav */}
+      <div className="h-4" />
+
+      <nav className="flex-1 px-2 overflow-y-auto">
         {/* Meu Dia */}
         <button
           onClick={onToggleMyDay}
@@ -220,6 +223,9 @@ export function ProjectSidebar({
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary tabular-nums">{dayCount}</span>
           )}
         </button>
+
+        {/* 4px space */}
+        <div className="h-1" />
 
         {/* Minha Semana */}
         <button
@@ -234,7 +240,7 @@ export function ProjectSidebar({
           )}
         </button>
 
-        {/* Separator */}
+        {/* 16px space + separator */}
         <div className="h-4" />
         <div className="h-px mx-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
         <div className="h-2" />
