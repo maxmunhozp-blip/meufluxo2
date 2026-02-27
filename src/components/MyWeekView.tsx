@@ -263,6 +263,11 @@ function WeekSourceSidebar({
 
   const totalPending = filteredTasks.length;
 
+  const { setNodeRef: masterListDropRef, isOver: isMasterListOver } = useDroppable({
+    id: 'master-list-drop',
+    data: { type: 'master-list-drop' },
+  });
+
   if (collapsed) {
     return (
       <div className="hidden md:flex w-10 flex-shrink-0 border-r border-nd-border flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))' }}>
@@ -277,11 +282,6 @@ function WeekSourceSidebar({
       </div>
     );
   }
-
-  const { setNodeRef: masterListDropRef, isOver: isMasterListOver } = useDroppable({
-    id: 'master-list-drop',
-    data: { type: 'master-list-drop' },
-  });
 
   return (
     <div
