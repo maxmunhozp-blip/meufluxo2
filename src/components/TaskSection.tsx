@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, Play } from 'lucide-react';
+import { GripVertical, Play, Plus } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
@@ -36,6 +36,94 @@ interface TaskSectionProps {
   allSections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
   projectColor?: string;
+  onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+}
+
+// Footer input with Tab-indent support
+function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSection, onAddSubtask }: {
+  sectionId: string;
+  tasks: Task[];
+  isCreatingTask: boolean;
+  onAddTaskInSection: (sectionId: string) => void;
+  onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+}) {
+  const [isActive, setIsActive] = useState(false);
+  const [value, setValue] = useState('');
+  const [indented, setIndented] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const lastTask = tasks.length > 0 ? tasks[tasks.length - 1] : null;
+
+  const open = () => {
+    setIsActive(true);
+    setIndented(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const submit = useCallback(async () => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    setValue('');
+    if (indented && lastTask && onAddSubtask) {
+      await onAddSubtask(lastTask.id, trimmed);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      // For root task, use existing flow
+      onAddTaskInSection(sectionId);
+      setIsActive(false);
+    }
+  }, [value, indented, lastTask, onAddSubtask, onAddTaskInSection, sectionId]);
+
+  const close = () => {
+    setIsActive(false);
+    setValue('');
+    setIndented(false);
+  };
+
+  if (!isActive) {
+    return (
+      <button
+        onClick={open}
+        disabled={isCreatingTask}
+        className="h-9 w-full px-6 flex items-center text-[13px] opacity-0 group-hover/section:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ color: 'hsl(var(--text-muted) / 0.6)' }}
+      >
+        Adicionar tarefa...
+      </button>
+    );
+  }
+
+  return (
+    <div className={`py-1 transition-all ${indented ? 'pl-12 md:pl-14 pr-4' : 'px-4'}`}>
+      {indented && lastTask && (
+        <div className="text-[11px] mb-0.5" style={{ color: '#555570' }}>
+          ↳ subtarefa de &ldquo;{lastTask.name}&rdquo;
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Tab' && !value.trim() && lastTask && onAddSubtask) {
+            e.preventDefault();
+            setIndented(prev => !prev);
+          }
+          if (e.key === 'Enter') { e.preventDefault(); submit(); }
+          if (e.key === 'Escape') close();
+        }}
+        onBlur={() => { if (!value.trim()) close(); }}
+        placeholder={indented ? 'Nome da subtarefa...' : 'Nome da tarefa...'}
+        className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
+        style={{
+          background: '#1E1E30',
+          borderColor: indented ? '#6C9CFC' : '#333350',
+          color: '#E8E8F0',
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
+      />
+    </div>
+  );
 }
 
 export function TaskSection({
@@ -65,6 +153,7 @@ export function TaskSection({
   allSections,
   onMoveToSection,
   projectColor,
+  onAddSubtask,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -207,6 +296,7 @@ export function TaskSection({
                 onRenameSubtask={onRenameSubtask}
                 sections={allSections}
                 onMoveToSection={onMoveToSection}
+                onAddSubtask={onAddSubtask}
               />
             ))}
           </SortableContext>
@@ -221,14 +311,13 @@ export function TaskSection({
               <span className="text-[13px] text-nd-text-muted">Criando tarefa...</span>
             </div>
           )}
-          <button
-            onClick={() => onAddTaskInSection(section.id)}
-            disabled={!!isCreatingTask}
-            className="h-9 w-full px-6 flex items-center text-[13px] opacity-0 group-hover/section:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ color: 'hsl(var(--text-muted) / 0.6)' }}
-          >
-            Adicionar tarefa...
-          </button>
+          <SectionFooterInput
+            sectionId={section.id}
+            tasks={tasks}
+            isCreatingTask={!!isCreatingTask}
+            onAddTaskInSection={onAddTaskInSection}
+            onAddSubtask={onAddSubtask}
+          />
         </div>
       )}
 

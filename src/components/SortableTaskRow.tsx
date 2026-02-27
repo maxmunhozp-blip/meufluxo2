@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { GripVertical, MessageSquare, Play, Repeat } from 'lucide-react';
+import { GripVertical, MessageSquare, Play, Repeat, Plus } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
@@ -28,6 +28,7 @@ interface SortableTaskRowProps {
   onRenameSubtask?: (subtaskId: string, name: string) => void;
   sections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
+  onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
 }
 
 function formatDate(dateStr?: string): string {
@@ -145,7 +146,68 @@ function SubtaskDndWrapper({ subtasks, taskId, selectedSubtaskId, onSelectSubtas
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection }: SortableTaskRowProps) {
+
+// Inline subtask creation input
+function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSubtask?: (parentTaskId: string, name: string) => Promise<void> }) {
+  const [isActive, setIsActive] = useState(false);
+  const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const open = () => {
+    setIsActive(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const submit = async () => {
+    const trimmed = value.trim();
+    if (!trimmed || !onAddSubtask) return;
+    setValue('');
+    await onAddSubtask(taskId, trimmed);
+    // keep open for batch creation, re-focus
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  if (!isActive) {
+    return (
+      <button
+        onClick={open}
+        className="h-7 w-full pl-6 md:pl-8 pr-4 flex items-center gap-1.5 transition-colors group/add"
+        style={{ color: '#555570' }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+      >
+        <Plus className="w-3 h-3" />
+        <span className="text-[12px]">Adicionar subtarefa...</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="pl-6 md:pl-8 pr-4 py-1">
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') { e.preventDefault(); submit(); }
+          if (e.key === 'Escape') { setIsActive(false); setValue(''); }
+        }}
+        onBlur={() => { if (!value.trim()) setIsActive(false); }}
+        placeholder="Nome da subtarefa..."
+        className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
+        style={{
+          background: '#1E1E30',
+          borderColor: '#333350',
+          color: '#E8E8F0',
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
+        onBlurCapture={e => { e.currentTarget.style.borderColor = '#333350'; }}
+      />
+    </div>
+  );
+}
+
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask }: SortableTaskRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(task.name);
@@ -304,7 +366,6 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
         </div>
       </div>
 
-      {/* Inline subtasks with visual hierarchy container */}
       {expanded && hasSubtasks && (
         <div className="relative ml-6 md:ml-8 border-l-2 border-nd-border-subtle mb-1 bg-nd-bg-subtask rounded-br-md">
           <SubtaskDndWrapper
@@ -316,6 +377,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             onReorderSubtasks={onReorderSubtasks}
             onRenameSubtask={onRenameSubtask}
           />
+          <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
+        </div>
+      )}
+      {expanded && !hasSubtasks && (
+        <div className="relative ml-6 md:ml-8 border-l-2 border-nd-border-subtle mb-1 bg-nd-bg-subtask rounded-br-md">
+          <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
         </div>
       )}
 
