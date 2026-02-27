@@ -1,15 +1,16 @@
 import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Project, Task } from '@/types/task';
+import { Project, Task, ServiceTag } from '@/types/task';
 import { ContextMenu } from './ContextMenu';
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { ProjectMembersModal } from './ProjectMembersModal';
 import type { Workspace, WorkspaceMember } from '@/hooks/useSupabaseData';
 import { HowToUseModal } from './HowToUseModal';
+import { ServiceTagsManager } from './ServiceTagsManager';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
@@ -47,6 +48,11 @@ interface ProjectSidebarProps {
   onRemoveProjectMember?: (projectId: string, userId: string) => Promise<void>;
   getProjectMembers?: (projectId: string) => WorkspaceMember[];
   isSuperAdmin?: boolean;
+  serviceTags?: ServiceTag[];
+  onCreateServiceTag?: (name: string, icon: string) => Promise<void>;
+  onRenameServiceTag?: (id: string, name: string) => Promise<void>;
+  onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
+  onDeleteServiceTag?: (id: string) => Promise<void>;
 }
 
 function SortableProjectItem({

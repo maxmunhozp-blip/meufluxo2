@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, RecurrenceType, RecurrenceConfig } from '@/types/task';
+import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, RecurrenceType, RecurrenceConfig, ServiceTag } from '@/types/task';
 import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
@@ -33,6 +33,7 @@ interface UseSupabaseDataReturn {
   profiles: Profile[];
   comments: Comment[];
   attachments: Attachment[];
+  serviceTags: ServiceTag[];
   loading: boolean;
   session: Session | null;
   workspaces: Workspace[];
@@ -77,6 +78,10 @@ interface UseSupabaseDataReturn {
   reorderSubtasks: (parentTaskId: string, subtaskIds: string[]) => Promise<void>;
   uploadAttachment: (taskId: string, file: File) => Promise<void>;
   deleteAttachment: (attachmentId: string) => Promise<void>;
+  createServiceTag: (name: string, icon: string) => Promise<void>;
+  renameServiceTag: (id: string, name: string) => Promise<void>;
+  changeServiceTagIcon: (id: string, icon: string) => Promise<void>;
+  deleteServiceTag: (id: string) => Promise<void>;
   planLimits: {
     plan: PlanType;
     limits: PlanLimits;
@@ -115,6 +120,7 @@ function mapDbTask(row: any): Task {
     rolloverCount: row.rollover_count || 0,
     originalDueDate: row.original_due_date || undefined,
     workspaceId: row.workspace_id,
+    serviceTagId: row.service_tag_id || undefined,
   };
 }
 
@@ -128,6 +134,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [profilesState, setProfilesState] = useState<Profile[]>([]);
   const [commentsState, setCommentsState] = useState<Comment[]>([]);
   const [attachmentsState, setAttachmentsState] = useState<Attachment[]>([]);
+  const [serviceTagsState, setServiceTagsState] = useState<ServiceTag[]>([]);
   const [workspaceMembersState, setWorkspaceMembersState] = useState<WorkspaceMember[]>([]);
   const [projectMembersState, setProjectMembersState] = useState<{ projectId: string; userId: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,6 +216,16 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           .from('project_members')
           .select('project_id, user_id');
         setProjectMembersState((projMembers || []).map(pm => ({ projectId: pm.project_id, userId: pm.user_id })));
+
+        // Fetch service tags
+        const { data: tagsData } = await supabase
+          .from('service_tags')
+          .select('*')
+          .eq('workspace_id', wsId)
+          .order('position');
+        setServiceTagsState((tagsData || []).map((t: any) => ({
+          id: t.id, name: t.name, icon: t.icon, workspaceId: t.workspace_id, position: t.position,
+        })));
       }
 
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
@@ -401,6 +418,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           recurrenceConfig: row.recurrence_config || undefined,
           section: row.section_id,
           projectId: row.project_id,
+          serviceTagId: row.service_tag_id || undefined,
         } : t));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, (payload) => {
@@ -617,6 +635,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       day_period: task.dayPeriod || 'morning',
       recurrence_type: task.recurrenceType || null,
       recurrence_config: (task.recurrenceConfig as any) || null,
+      service_tag_id: task.serviceTagId || null,
     }).eq('id', task.id);
 
     if (task.parentTaskId) {
@@ -1219,6 +1238,35 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     toast.success('Workspace excluído!');
   }, [workspacesState, activeWorkspaceId, switchWorkspace]);
 
+  // Service tag operations
+  const createServiceTag = useCallback(async (name: string, icon: string) => {
+    if (!activeWorkspaceId) return;
+    const position = serviceTagsState.length;
+    const { data, error } = await supabase.from('service_tags').insert({
+      name, icon, workspace_id: activeWorkspaceId, position,
+    }).select().single();
+    if (error) { toast.error('Erro ao criar tag'); return; }
+    setServiceTagsState(prev => [...prev, { id: data.id, name: data.name, icon: data.icon, workspaceId: data.workspace_id, position: data.position }]);
+  }, [activeWorkspaceId, serviceTagsState]);
+
+  const renameServiceTag = useCallback(async (id: string, name: string) => {
+    await supabase.from('service_tags').update({ name }).eq('id', id);
+    setServiceTagsState(prev => prev.map(t => t.id === id ? { ...t, name } : t));
+  }, []);
+
+  const changeServiceTagIcon = useCallback(async (id: string, icon: string) => {
+    await supabase.from('service_tags').update({ icon }).eq('id', id);
+    setServiceTagsState(prev => prev.map(t => t.id === id ? { ...t, icon } : t));
+  }, []);
+
+  const deleteServiceTag = useCallback(async (id: string) => {
+    // Clear tag from tasks that use it
+    await supabase.from('tasks').update({ service_tag_id: null }).eq('service_tag_id', id);
+    await supabase.from('service_tags').delete().eq('id', id);
+    setServiceTagsState(prev => prev.filter(t => t.id !== id));
+    setTasksState(prev => prev.map(t => t.serviceTagId === id ? { ...t, serviceTagId: undefined } : t));
+  }, []);
+
   return {
     projects: projectsState,
     sections: sectionsState,
@@ -1226,6 +1274,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     profiles: profilesState,
     comments: commentsState,
     attachments: attachmentsState,
+    serviceTags: serviceTagsState,
     loading,
     session,
     workspaces: workspacesState,
@@ -1270,6 +1319,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     reorderSubtasks: reorderSubtasksFn,
     uploadAttachment,
     deleteAttachment,
+    createServiceTag,
+    renameServiceTag,
+    changeServiceTagIcon,
+    deleteServiceTag,
     planLimits,
     showUpgradeModal,
     setShowUpgradeModal,

@@ -55,6 +55,14 @@ export interface Attachment {
   url?: string;
 }
 
+export interface ServiceTag {
+  id: string;
+  name: string;
+  icon: string;
+  workspaceId: string;
+  position: number;
+}
+
 export interface Task {
   id: string;
   name: string;
@@ -75,6 +83,7 @@ export interface Task {
   rolloverCount?: number;
   originalDueDate?: string;
   workspaceId?: string;
+  serviceTagId?: string;
 }
 
 export interface Section {
