@@ -203,6 +203,7 @@
     /* Semantic backgrounds */
     --bg-base: #F5F0E8;
     --bg-surface: #EDE8E0;
+    --bg-sidebar: #E8E3DB;
     --bg-elevated: #FFFFFF;
     --bg-overlay: #FFFFFF;
     --bg-input: #F8F5F0;
@@ -304,8 +305,8 @@
     --project-7: 45 96% 38%;
 
     /* Sidebar */
-    --bg-sidebar: 36 28% 94%;
-    --sidebar-background: 36 28% 94%;
+    --bg-sidebar: 33 16% 88%;
+    --sidebar-background: 33 16% 88%;
     --sidebar-foreground: 30 30% 5%;
     --sidebar-primary: 224 76% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -441,8 +442,8 @@
     --project-6: 175 84% 32%;
     --project-7: 45 96% 38%;
 
-    --bg-sidebar: 36 28% 94%;
-    --sidebar-background: 36 28% 94%;
+    --bg-sidebar: 33 16% 88%;
+    --sidebar-background: 33 16% 88%;
     --sidebar-foreground: 30 30% 5%;
     --sidebar-primary: 224 76% 48%;
     --sidebar-primary-foreground: 0 0% 100%;

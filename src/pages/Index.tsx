@@ -759,7 +759,7 @@ const Index = () => {
 
   if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView) {
     return (
-      <div className="h-screen flex" style={{ background: 'var(--bg-surface)' }}>
+      <div className="h-screen flex" style={{ background: 'var(--bg-base)' }}>
         <div className="hidden lg:block"><ProjectSidebar {...sidebarProps} /></div>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[14px] text-nd-text-secondary">Crie um projeto para começar.</p>
@@ -770,10 +770,10 @@ const Index = () => {
   }
 
   return (
-    <div className="h-screen flex" style={{ background: 'var(--bg-surface)' }}>
+    <div className="h-screen flex" style={{ background: 'var(--bg-base)' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
-         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-surface)', transition: 'width 250ms ease-out' }}>
+         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-sidebar)', transition: 'width 250ms ease-out' }}>
           <div className="flex flex-col items-center gap-1 pt-3 px-1">
             {/* Meu Dia */}
             <button
