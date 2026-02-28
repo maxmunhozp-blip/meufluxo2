@@ -387,7 +387,7 @@ export function ProjectSidebar({
   );
 
   return (
-    <aside className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden" style={{ background: 'var(--bg-surface)', width: 260, minWidth: 260, maxWidth: 260 }}>
+    <aside className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden" style={{ background: 'var(--bg-base)', width: 260, minWidth: 260, maxWidth: 260 }}>
       {/* NAVEGAÇÃO — flex-shrink-0 */}
       <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
         <div style={{ marginBottom: 8 }}>

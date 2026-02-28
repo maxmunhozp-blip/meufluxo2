@@ -578,11 +578,10 @@ mark, .highlight, [data-highlight] {
   animation-delay: 300ms;
 }
 
-/* NUCLEAR: Eliminate any border/gap between sidebar and main content */
-.h-screen.flex > aside,
-.h-screen.flex > div > aside {
+/* Eliminate subpixel gap between sidebar and main content */
+.h-screen.flex > div > aside,
+.h-screen.flex > aside {
   border-right: none !important;
-  box-shadow: none !important;
 }
 
 /* Respect prefers-reduced-motion */
