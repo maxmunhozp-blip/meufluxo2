@@ -397,7 +397,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       </div>
 
       {expanded && hasSubtasks && (
-        <div className="relative ml-6 md:ml-8 border-l-2 border-nd-border mb-1 bg-nd-bg-subtask rounded-br-md">
+        <div className="relative ml-6 md:ml-8 border-l border-nd-border/40 mb-1 bg-nd-bg-subtask rounded-br-md">
           <SubtaskDndWrapper
             subtasks={task.subtasks!}
             taskId={task.id}
@@ -411,7 +411,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
         </div>
       )}
       {expanded && !hasSubtasks && (
-        <div className="relative ml-6 md:ml-8 border-l-2 border-nd-border mb-1 bg-nd-bg-subtask rounded-br-md">
+        <div className="relative ml-6 md:ml-8 border-l border-nd-border/40 mb-1 bg-nd-bg-subtask rounded-br-md">
           <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
         </div>
       )}
