@@ -28,6 +28,34 @@ export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDraggi
     setNodeRef,
   } = useSortable({ id: subtask.id, data: { type: 'subtask', subtask, parentTaskId } });
 
+  // HTML5 drag for cross-client move
+  const handleNativeDragStart = (e: React.DragEvent) => {
+    const dragData = {
+      taskId: subtask.id,
+      taskTitle: subtask.name,
+      sourceProjectId: (subtask as any).projectId,
+      sourceSectionId: (subtask as any).section,
+      isSubtask: true,
+      parentTaskId: parentTaskId,
+    };
+
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    e.dataTransfer.effectAllowed = 'move';
+
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+
+    window.dispatchEvent(new CustomEvent('meufluxo:task-drag-start', { detail: dragData }));
+  };
+
+  const handleNativeDragEnd = (e: React.DragEvent) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+    window.dispatchEvent(new CustomEvent('meufluxo:task-drag-end'));
+  };
+
   const subDone = subtask.status === 'done';
 
   const startRename = () => {
@@ -47,6 +75,9 @@ export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDraggi
   return (
     <div
       ref={setNodeRef}
+      draggable
+      onDragStart={handleNativeDragStart}
+      onDragEnd={handleNativeDragEnd}
       onClick={() => {
         if (isRenaming) return;
         if (clickTimer.current) clearTimeout(clickTimer.current);
