@@ -249,9 +249,15 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       <div className="flex">
         <div
           className={`flex-1 min-w-0 group min-h-[44px] border-b cursor-pointer transition-all duration-150 relative ${
-            isSelected ? 'bg-accent' : 'hover:bg-accent/50'
-          } ${isDragSource ? 'opacity-40' : ''}`}
-          style={{ opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined }}
+            isDragSource ? 'opacity-40' : ''
+          }`}
+          style={{
+            opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
+            background: isSelected ? 'rgba(255,255,255,0.06)' : undefined,
+          }}
+          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+          
           onClick={() => {
             if (isRenaming) return;
             if (clickTimer.current) clearTimeout(clickTimer.current);
@@ -285,7 +291,10 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               {hasSubtasks ? (
                 <button
                   onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-accent/50 transition-colors duration-100 flex-shrink-0"
+                  className="w-5 h-5 flex items-center justify-center rounded transition-colors duration-100 flex-shrink-0"
+                  style={{ background: 'transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <Play
                     className={`w-3 h-3 text-muted-foreground fill-muted-foreground transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
@@ -353,10 +362,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               )}
             </div>
 
-            <span className={`text-[12px] truncate hidden md:block ${isDone ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+            {/* Responsável — only show if assigned */}
+            <span className="text-[12px] truncate hidden md:block text-muted-foreground">
               {task.assignee || ''}
             </span>
 
+            {/* Data — only show if set */}
             <span className={`text-[12px] hidden md:block ${
               isDone ? 'text-muted-foreground' : overdue ? 'font-medium' : 'text-muted-foreground'
             }`} style={overdue && !isDone ? { color: 'hsl(var(--status-overdue))' } : undefined}>

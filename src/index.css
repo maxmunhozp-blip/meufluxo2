@@ -112,6 +112,24 @@
   }
 }
 
+/* Text selection — legible, low-contrast */
+::selection {
+  background: rgba(108, 156, 252, 0.3);
+  color: #E8E8F0;
+}
+::-moz-selection {
+  background: rgba(108, 156, 252, 0.3);
+  color: #E8E8F0;
+}
+
+/* Highlight/marker — legible yellow */
+mark, .highlight, [data-highlight] {
+  background: rgba(255, 184, 108, 0.25);
+  color: #E8E8F0;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
 /* Scrollbar styling for neurodivergent comfort */
 ::-webkit-scrollbar {
   width: 6px;

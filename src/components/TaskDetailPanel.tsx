@@ -186,8 +186,10 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="group h-8 flex items-center gap-1 px-1 rounded-md hover:bg-nd-hover cursor-pointer"
+      style={{ ...style, transition: `${style.transition || 'transform 200ms ease'}, background 120ms ease-out` }}
+      className="group h-8 flex items-center gap-1 px-1 rounded-md cursor-pointer"
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       onClick={() => {
         if (isRenaming) return;
         if (clickTimer.current) clearTimeout(clickTimer.current);

@@ -205,9 +205,10 @@ export function TaskSection({
   return (
     <div ref={mergedRef} style={sectionStyle} className={`group/section mt-2 ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id}>
       <div
-        className={`group h-10 w-full px-6 flex items-center gap-2 transition-colors duration-100 relative ${
-          isDropTarget || isOver ? 'bg-nd-hover' : 'hover:bg-nd-hover'
-        }`}
+        className="group h-10 w-full px-6 flex items-center gap-2 transition-colors duration-100 relative"
+        style={{ background: isDropTarget || isOver ? 'rgba(255,255,255,0.04)' : undefined }}
+        onMouseEnter={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+        onMouseLeave={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'transparent'; }}
         onContextMenu={(e) => {
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY });
@@ -250,20 +251,18 @@ export function TaskSection({
             {/* When collapsed, show a tiny inline progress bar instead of numeric count.
                 Research: numbers create urgency bias in ADHD brains (Bartoli 2022).
                 A subtle bar communicates progress without triggering anxiety. */}
+            {/* Collapsed: show simple fraction + check if all done */}
             {!isExpanded && tasks.length > 0 && (() => {
               const done = tasks.filter(t => t.status === 'done').length;
-              const inProg = tasks.filter(t => t.status === 'in_progress').length;
               const total = tasks.length;
-              const donePct = (done / total) * 100;
-              const progPct = (inProg / total) * 100;
               const allDone = done === total;
               return (
                 <span className="ml-2 flex items-center gap-1.5 flex-shrink-0">
-                  <span className="w-12 h-[3px] rounded-full bg-nd-hover overflow-hidden flex">
-                    <span className="h-full" style={{ width: `${donePct}%`, background: 'hsl(var(--status-done))' }} />
-                    <span className="h-full" style={{ width: `${progPct}%`, background: 'hsl(var(--status-progress))' }} />
-                  </span>
-                  {allDone && <span className="text-[11px] text-nd-done">✓</span>}
+                  {allDone ? (
+                    <span className="text-[11px]" style={{ color: 'hsl(var(--status-done))' }}>✓</span>
+                  ) : (
+                    <span className="text-[12px]" style={{ color: '#555570' }}>{done}/{total}</span>
+                  )}
                 </span>
               );
             })()}
@@ -273,7 +272,7 @@ export function TaskSection({
 
       {isExpanded && (
         <div>
-          <SectionProgressBar tasks={tasks} />
+          {/* Progress bar removed — Perry et al. (2024): bars "become sources of overwhelm" for ADHD */}
           <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
               <SortableTaskRow
