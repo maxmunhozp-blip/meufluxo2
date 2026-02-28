@@ -70,12 +70,12 @@ function SortableProjectItem({
           paddingLeft: 6,
           paddingRight: 10,
           borderRadius: 8,
-          color: isActive ? '#E5E5E5' : '#8A8A8A',
+          color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
           transition: `color 150ms ease-out, background 150ms ease-out`,
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         <div
@@ -84,7 +84,7 @@ function SortableProjectItem({
           className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
           onClick={(e) => e.stopPropagation()}
         >
-          <GripVertical className="w-3.5 h-3.5" style={{ color: '#555570' }} />
+          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
         </div>
         {/* Chevron */}
         <button
@@ -95,7 +95,7 @@ function SortableProjectItem({
           <ChevronRight
             className="w-3 h-3 transition-transform"
             style={{
-              color: '#555570',
+              color: 'var(--text-placeholder)',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
               transition: 'transform 150ms ease-out',
             }}
@@ -136,15 +136,15 @@ function SortableProjectItem({
                 borderRadius: 6,
                 fontSize: 12,
                 fontWeight: 400,
-                color: isSectionActive ? '#E5E5E5' : '#8A8A8A',
+                color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 transition: `color 150ms ease-out, background 150ms ease-out`,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; if (!isSectionActive) e.currentTarget.style.color = '#E5E5E5'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = '#8A8A8A'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
               {totalTasks > 0 && (
-                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: '#6B7280' }}>
+                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
                   {doneTasks}/{totalTasks}
                 </span>
               )}
@@ -309,27 +309,27 @@ export function ProjectSidebar({
         paddingRight: 10,
         borderRadius: 8,
         fontSize: 14,
-        color: active ? '#E5E5E5' : '#8A8A8A',
+        color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
         fontWeight: active ? 600 : 400,
         transition: `color 150ms ease-out, background 150ms ease-out`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#E5E5E5' : '#8A8A8A', transition: `color 150ms ease-out` }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--text-primary)' : 'var(--text-secondary)', transition: `color 150ms ease-out` }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-[10px] tabular-nums flex-shrink-0" style={{ color: '#6B7280', fontWeight: 400 }}>{count}</span>
+        <span className="text-[10px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
       )}
     </button>
   );
 
   return (
-    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: '#111111', width: 260 }}>
+    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: 'var(--bg-base)', width: 260 }}>
       <nav className="flex-1 px-2 pt-3 overflow-y-auto">
         {/* Navigation section */}
         <div style={{ marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: '#555570', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-placeholder)', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
             Navegação
           </span>
         </div>
@@ -365,7 +365,7 @@ export function ProjectSidebar({
                       onKeyDown={(e) => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onBlur={confirmRename}
                       className="flex-1 h-7 px-2 text-[13px] rounded border focus:outline-none"
-                      style={{ background: '#1A1A1A', color: '#E5E5E5', borderColor: '#6C9CFC' }}
+                      style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
                     />
                   </div>
                 ) : (
@@ -401,7 +401,7 @@ export function ProjectSidebar({
               autoFocus
               placeholder="Nome do cliente..."
               className="w-full h-7 px-2 text-[13px] rounded-md border focus:outline-none"
-              style={{ background: '#1A1A1A', color: '#E5E5E5', borderColor: '#6C9CFC' }}
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
             />
           </div>
         ) : (
@@ -412,13 +412,13 @@ export function ProjectSidebar({
               height: 36,
               paddingLeft: 10,
               paddingRight: 10,
-              color: '#555570',
+              color: 'var(--text-placeholder)',
               fontWeight: 400,
               borderRadius: 8,
               transition: `color 150ms ease-out`,
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#8A8A8A'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
           >
             + Novo Cliente
           </button>
@@ -426,7 +426,7 @@ export function ProjectSidebar({
       </nav>
 
       {/* Footer */}
-      <div className="relative" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+      <div className="relative" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
           <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
@@ -448,23 +448,23 @@ export function ProjectSidebar({
 
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
-              style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
+              style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
             ><Shield className="w-3.5 h-3.5" /></a>
           )}
           <button onClick={() => navigate('/profile')} className="w-7 h-7 flex items-center justify-center rounded-md" title="Perfil"
-            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><User className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowSettings(!showSettings)} className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><Settings className="w-3.5 h-3.5" /></button>
           <button onClick={onLogout} className="w-7 h-7 flex items-center justify-center rounded-md" title="Sair da conta"
-            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><LogOut className="w-3.5 h-3.5" /></button>
@@ -472,37 +472,37 @@ export function ProjectSidebar({
 
         {showSettings && (
           <div className="absolute bottom-full left-3 mb-1 py-1 rounded-lg border z-[100]"
-            style={{ background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-md)', minWidth: 180 }}
           >
-            <button onClick={() => { onExport(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E5E5E5' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+            <button onClick={() => { onExport(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Exportar dados (JSON)
             </button>
-            <button onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E5E5E5' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+            <button onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Importar dados (JSON)
             </button>
-            <div className="h-px mx-2 my-1" style={{ background: 'rgba(255, 255, 255, 0.06)' }} />
-            <button onClick={() => { navigate('/plans'); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <CreditCard className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Planos
+            <div className="h-px mx-2 my-1" style={{ background: 'var(--border-subtle)' }} />
+            <button onClick={() => { navigate('/plans'); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <CreditCard className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Planos
             </button>
-            <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <Tag className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Tipos de trabalho
+            <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <Tag className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Tipos de trabalho
             </button>
             {onCycleTheme && (
-              <button onClick={() => { onCycleTheme(); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                {themePreference === 'dark' ? <Moon className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> :
-                 themePreference === 'light' ? <Sun className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> :
-                 <Monitor className="w-3.5 h-3.5" style={{ color: '#6B7280' }} />}
+              <button onClick={() => { onCycleTheme(); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                {themePreference === 'dark' ? <Moon className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> :
+                 themePreference === 'light' ? <Sun className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> :
+                 <Monitor className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
                 {themePreference === 'dark' ? 'Tema: Escuro' : themePreference === 'light' ? 'Tema: Claro' : 'Tema: Sistema'}
               </button>
             )}
-            <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <HelpCircle className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Como usar
+            <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <HelpCircle className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Como usar
             </button>
           </div>
         )}
@@ -533,7 +533,7 @@ export function ProjectSidebar({
       {colorPicker && (
         <>
           <div className="fixed inset-0 z-[99]" onClick={() => setColorPicker(null)} />
-          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-md)' }}>
             {PROJECT_COLORS.map(color => (
               <button key={color} onClick={() => { onChangeColor(colorPicker.projectId, color); setColorPicker(null); }}
                 className="w-6 h-6 rounded-full border-2 hover:scale-110 transition-transform"
@@ -546,10 +546,10 @@ export function ProjectSidebar({
 
       {/* Duplicate dialog */}
       {duplicateDialog && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="rounded-xl border p-5 w-[320px]" style={{ background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
-            <h3 className="text-[15px] font-semibold mb-1" style={{ color: '#E5E5E5' }}>Duplicar Cliente</h3>
-            <p className="text-[13px] mb-4" style={{ color: '#8A8A8A' }}>O que deseja duplicar?</p>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
+          <div className="rounded-xl border p-5 w-[320px]" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-lg)' }}>
+            <h3 className="text-[15px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Duplicar Cliente</h3>
+            <p className="text-[13px] mb-4" style={{ color: 'var(--text-secondary)' }}>O que deseja duplicar?</p>
             <div className="flex flex-col gap-2">
               {([
                 { mode: 'sections' as const, label: 'Apenas Seções' },
@@ -558,13 +558,13 @@ export function ProjectSidebar({
               ]).map(({ mode, label }) => (
                 <button key={mode} onClick={async () => { const id = duplicateDialog; setDuplicateDialog(null); const newId = await onDuplicateProject(id, mode); onSelectProject(newId); }}
                   className="w-full h-9 px-3 text-left text-[13px] rounded-md border transition-colors"
-                  style={{ color: '#E5E5E5', borderColor: 'rgba(255, 255, 255, 0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  style={{ color: 'var(--text-primary)', borderColor: 'var(--border-subtle)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   {label}
                 </button>
               ))}
             </div>
-            <button onClick={() => setDuplicateDialog(null)} className="w-full mt-3 h-8 text-[13px] transition-colors" style={{ color: '#6B7280' }}>Cancelar</button>
+            <button onClick={() => setDuplicateDialog(null)} className="w-full mt-3 h-8 text-[13px] transition-colors" style={{ color: 'var(--text-tertiary)' }}>Cancelar</button>
           </div>
         </div>
       )}

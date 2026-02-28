@@ -96,7 +96,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
   return (
     <div className={`py-1 transition-all ${indented ? 'pl-12 md:pl-14 pr-4' : 'px-4'}`}>
       {indented && lastTask && (
-        <div className="text-[11px] mb-0.5" style={{ color: '#555570' }}>
+        <div className="text-[11px] mb-0.5" style={{ color: 'var(--text-placeholder)' }}>
           ↳ subtarefa de &ldquo;{lastTask.name}&rdquo;
         </div>
       )}
@@ -116,11 +116,11 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
         placeholder={indented ? 'Nome da subtarefa...' : 'Nome da tarefa...'}
         className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
-          background: '#1E1E30',
-          borderColor: indented ? '#6C9CFC' : '#333350',
-          color: '#E8E8F0',
+          background: 'var(--bg-input)',
+          borderColor: indented ? 'var(--border-focus)' : 'var(--border-input)',
+          color: 'var(--text-primary)',
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; }}
       />
     </div>
   );
@@ -206,8 +206,8 @@ export function TaskSection({
     <div ref={mergedRef} style={sectionStyle} className={`group/section mt-2 ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id}>
       <div
         className="group h-10 w-full px-6 flex items-center gap-2 transition-colors duration-100 relative"
-        style={{ background: isDropTarget || isOver ? 'rgba(255,255,255,0.04)' : undefined }}
-        onMouseEnter={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+        style={{ background: isDropTarget || isOver ? 'var(--bg-hover)' : undefined }}
+        onMouseEnter={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'transparent'; }}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -261,7 +261,7 @@ export function TaskSection({
                   {allDone ? (
                     <span className="text-[11px]" style={{ color: 'hsl(var(--status-done))' }}>✓</span>
                   ) : (
-                    <span className="text-[12px]" style={{ color: '#555570' }}>{done}/{total}</span>
+                    <span className="text-[12px]" style={{ color: 'var(--text-placeholder)' }}>{done}/{total}</span>
                   )}
                 </span>
               );

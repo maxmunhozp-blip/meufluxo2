@@ -215,30 +215,30 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
   const linkedProject = projects.find(p => p.id === linkedProjectId);
 
   return (
-    <div className={`flex flex-col overflow-hidden ${isModal ? 'h-full' : 'flex-1'}`} style={{ background: '#0F0F17' }}>
+    <div className={`flex flex-col overflow-hidden ${isModal ? 'h-full' : 'flex-1'}`} style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: '#8888A0' }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+      <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
         >
           <ArrowLeft className="w-4 h-4" />
           {isModal ? 'Fechar' : 'Voltar às notas'}
         </button>
         <div className="flex items-center gap-2">
-          {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: '#555570' }}>Salvo</span>}
-          {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: '#555570' }}>Salvando...</span>}
+          {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvo</span>}
+          {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvando...</span>}
           <button onClick={togglePin} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: pinned ? '#6C9CFC' : '#555570' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+            style={{ color: pinned ? 'var(--accent-blue)' : 'var(--text-placeholder)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
             {pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
           </button>
           <button onClick={handleDelete} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: '#555570' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#FF6B6B'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555570'; }}
+            style={{ color: 'var(--text-placeholder)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--accent-amber)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-placeholder)'; }}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -246,16 +246,16 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-4 py-1.5 flex-shrink-0" style={{ background: '#1A1A28', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="flex items-center gap-0.5 px-4 py-1.5 flex-shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
         {toolbarButtons.map(({ icon: Icon, action, title }) => (
           <button
             key={title}
             onClick={action}
             title={title}
             className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8888A0'; }}
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             <Icon className="w-3.5 h-3.5" />
           </button>
@@ -277,7 +277,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           onChange={e => handleTitleChange(e.target.value)}
           placeholder="Sem título"
           className="w-full bg-transparent outline-none font-bold"
-          style={{ fontSize: 20, color: '#E8E8F0' }}
+          style={{ fontSize: 20, color: 'var(--text-primary)' }}
           autoFocus={!noteId}
         />
         <textarea
@@ -288,7 +288,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           onPaste={handlePaste}
           placeholder="Comece a escrever..."
           className="w-full bg-transparent outline-none resize-none min-h-[300px] text-sm leading-relaxed"
-          style={{ color: '#E8E8F0' }}
+          style={{ color: 'var(--text-primary)' }}
         />
 
         {/* Inline images */}
@@ -298,8 +298,8 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
               <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxImg(url)}>
                 <img src={url} alt="" className="rounded-lg max-w-full" style={{ maxWidth: 480 }} />
                 <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                  style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <span className="text-xs" style={{ color: '#E8E8F0' }}>Expandir</span>
+                  style={{ background: 'var(--overlay-bg)' }}>
+                  <span className="text-xs" style={{ color: 'var(--text-primary)' }}>Expandir</span>
                 </div>
               </div>
             ))}
@@ -314,25 +314,25 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
 
       {/* Project link footer */}
       {projects.length > 0 && (
-        <div className="flex-shrink-0 px-4 py-2 relative" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="flex-shrink-0 px-4 py-2 relative" style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <button
             onClick={() => setShowProjectPicker(!showProjectPicker)}
             className="flex items-center gap-1.5 text-xs transition-colors"
-            style={{ color: '#555570' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+            style={{ color: 'var(--text-placeholder)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
           >
             <Link2 className="w-3 h-3" />
             Vincular a projeto: {linkedProject ? linkedProject.name : 'Nenhum'}
           </button>
 
           {showProjectPicker && (
-            <div className="absolute bottom-full left-4 mb-1 rounded-lg py-1 shadow-lg z-50" style={{ background: '#1A1A28', border: '1px solid #333350', minWidth: 200 }}>
+            <div className="absolute bottom-full left-4 mb-1 rounded-lg py-1 z-50" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-input)', boxShadow: 'var(--shadow-md)', minWidth: 200 }}>
               <button
                 onClick={() => handleLinkProject(null)}
                 className="w-full text-left px-3 py-1.5 text-xs transition-colors"
-                style={{ color: !linkedProjectId ? '#6C9CFC' : '#8888A0' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                style={{ color: !linkedProjectId ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 Nenhum (nota rápida)
@@ -342,8 +342,8 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
                   key={p.id}
                   onClick={() => handleLinkProject(p.id)}
                   className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors"
-                  style={{ color: linkedProjectId === p.id ? '#6C9CFC' : '#8888A0' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  style={{ color: linkedProjectId === p.id ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
@@ -359,7 +359,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
       {lightboxImg && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center"
-          style={{ background: '#0D0D15E6' }}
+          style={{ background: 'var(--overlay-bg)' }}
           onClick={() => setLightboxImg(null)}
         >
           <img src={lightboxImg} alt="" className="max-w-[90vw] max-h-[90vh] rounded-lg" />

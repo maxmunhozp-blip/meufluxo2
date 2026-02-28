@@ -172,9 +172,9 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
       <button
         onClick={open}
         className="h-7 w-full pl-6 md:pl-8 pr-4 flex items-center gap-1.5 transition-colors group/add"
-        style={{ color: '#555570' }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+        style={{ color: 'var(--text-placeholder)' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
       >
         <Plus className="w-3 h-3" />
         <span className="text-[12px]">Adicionar subtarefa...</span>
@@ -196,12 +196,12 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
         placeholder="Nome da subtarefa..."
         className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
-          background: '#1E1E30',
-          borderColor: '#333350',
-          color: '#E8E8F0',
+          background: 'var(--bg-input)',
+          borderColor: 'var(--border-input)',
+          color: 'var(--text-primary)',
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = '#333350'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; }}
+        onBlurCapture={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; }}
       />
     </div>
   );
@@ -253,9 +253,9 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           }`}
           style={{
             opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
-            background: isSelected ? 'rgba(255,255,255,0.06)' : undefined,
+            background: isSelected ? 'var(--bg-active)' : undefined,
           }}
-          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-hover)'; }}
           onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
           
           onClick={() => {
@@ -286,7 +286,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
                   className="w-5 h-5 flex items-center justify-center rounded transition-colors duration-100 flex-shrink-0"
                   style={{ background: 'transparent' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <Play
