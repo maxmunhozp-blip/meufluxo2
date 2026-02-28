@@ -931,7 +931,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             {activeTab === 'activity' && (
               <div className="space-y-3 mb-4">
                 {taskComments.map(c => {
-                  const profile = profiles.find(p => p.id === c.userId);
+                  const profile = profiles.find(p => p.id === c.authorId);
                   return (
                     <div key={c.id} className="group">
                       <div className="flex items-center gap-2 mb-1">
@@ -940,8 +940,8 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                           {(profile?.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                         <span className="text-[12px] font-medium" style={{ color: 'var(--text-primary)' }}>{profile?.fullName || 'Usuário'}</span>
-                        <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{formatCommentDate(c.createdAt)}</span>
-                        {c.userId === currentUserId && (
+                        <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{formatCommentDate(c.date)}</span>
+                        {c.authorId === currentUserId && (
                           <button onClick={() => onDeleteComment(c.id)}
                             className="ml-auto w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}
                             onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
@@ -950,7 +950,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                           </button>
                         )}
                       </div>
-                      <p className="text-[13px] pl-7" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{c.content}</p>
+                      <p className="text-[13px] pl-7" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{c.text}</p>
                     </div>
                   );
                 })}
