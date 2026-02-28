@@ -20,7 +20,7 @@ function applyTheme(theme: 'dark' | 'light') {
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) {
-    metaTheme.setAttribute('content', theme === 'light' ? '#F5F0E8' : '#0F0F17');
+    metaTheme.setAttribute('content', theme === 'light' ? '#F5F0E8' : '#0D0D0D');
   }
 
   setTimeout(() => root.style.removeProperty('transition'), 200);
@@ -34,7 +34,7 @@ async function syncThemeToProfile(preference: Theme) {
 
 export function useTheme() {
   const [preference, setPreference] = useState<Theme>(() => {
-    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'system';
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark';
   });
 
   const effective = resolveTheme(preference);
