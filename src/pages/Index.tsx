@@ -28,7 +28,9 @@ import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, Project } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { ToastAction } from '@/components/ui/toast';
+import { ensureEntradaSection } from '@/utils/ensureEntradaSection';
 import { UpgradeModal } from '@/components/UpgradeModal';
 
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -452,47 +454,160 @@ const Index = () => {
 
   // Move task (and subtasks) to another project via drag-drop to sidebar
   const handleMoveTaskToProject = useCallback(async (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => {
-    if (sourceProjectId === targetProjectId) return;
+    if (sourceProjectId === targetProjectId) {
+      sonnerToast.info('Tarefa já está neste cliente');
+      return;
+    }
     const targetProject = projects.find(p => p.id === targetProjectId);
     if (!targetProject) return;
-    try {
-      // Move the task: update project_id and clear section_id (use first section of target or null)
-      const targetSections = sectionList.filter(s => s.projectId === targetProjectId);
-      const targetSectionId = targetSections.length > 0 ? targetSections[0].id : null;
 
-      // Update the main task
-      const updates: Record<string, unknown> = { project_id: targetProjectId };
-      if (targetSectionId) {
-        updates.section_id = targetSectionId;
+    // Store previous state for undo
+    const task = taskList.find(t => t.id === taskId);
+    const previousState = {
+      project_id: sourceProjectId,
+      section_id: task?.section || null,
+      parent_task_id: task?.parentTaskId || null,
+    };
+
+    try {
+      // Ensure "Entrada" section exists in target project
+      const entradaSection = await ensureEntradaSection(targetProjectId, activeWorkspaceId || '');
+
+      const updates: Record<string, unknown> = {
+        project_id: targetProjectId,
+        section_id: entradaSection.id,
+        position: 0,
+      };
+      // If subtask, convert to independent task
+      if (task?.parentTaskId) {
+        updates.parent_task_id = null;
       }
+
       const { error } = await supabase.from('tasks').update(updates).eq('id', taskId);
       if (error) throw error;
 
       // Move all subtasks too
-      const subtaskUpdates: Record<string, unknown> = { project_id: targetProjectId };
-      if (targetSectionId) subtaskUpdates.section_id = targetSectionId;
-      await supabase.from('tasks').update(subtaskUpdates).eq('parent_task_id', taskId);
+      await supabase.from('tasks').update({
+        project_id: targetProjectId,
+        section_id: entradaSection.id,
+      }).eq('parent_task_id', taskId);
 
-      // Fade-out animation before removing from list
+      // Fade-out animation
       setFadingOutTaskId(taskId);
       await new Promise(resolve => setTimeout(resolve, 150));
 
       // Optimistically update local state
       setTasks(prev => prev.map(t => {
         if (t.id === taskId || t.parentTaskId === taskId) {
-          return { ...t, projectId: targetProjectId, section: targetSectionId || t.section };
+          return { ...t, projectId: targetProjectId, section: entradaSection.id, parentTaskId: t.id === taskId ? undefined : t.parentTaskId };
         }
         return t;
       }));
       setFadingOutTaskId(null);
 
-      toast({ title: `✓ Tarefa movida para ${targetProject.name}`, duration: 3000 });
+      const message = task?.parentTaskId
+        ? `Subtarefa convertida e movida para Entrada em ${targetProject.name}`
+        : `Movido para Entrada em ${targetProject.name}`;
+
+      sonnerToast.success(message, {
+        duration: 5000,
+        action: {
+          label: 'Desfazer',
+          onClick: async () => {
+            try {
+              await supabase.from('tasks').update(previousState).eq('id', taskId);
+              if (!task?.parentTaskId) {
+                await supabase.from('tasks').update({ project_id: sourceProjectId, section_id: previousState.section_id }).eq('parent_task_id', taskId);
+              }
+              setTasks(prev => prev.map(t => {
+                if (t.id === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section, parentTaskId: previousState.parent_task_id || undefined };
+                if (t.parentTaskId === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section };
+                return t;
+              }));
+              sonnerToast.success('Ação desfeita');
+            } catch {
+              sonnerToast.error('Erro ao desfazer');
+            }
+          },
+        },
+      });
     } catch (err) {
       console.error('Erro ao mover tarefa:', err);
       setFadingOutTaskId(null);
-      toast({ title: 'Erro ao mover tarefa', variant: 'destructive', duration: 3000 });
+      sonnerToast.error('Erro ao mover tarefa');
     }
-  }, [projects, sectionList, setTasks]);
+  }, [projects, taskList, sectionList, setTasks, activeWorkspaceId]);
+
+  // Move task to a specific section (from sidebar section-level drop)
+  const handleMoveTaskToSection = useCallback(async (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => {
+    const task = taskList.find(t => t.id === taskId);
+    if (task?.section === targetSectionId) return;
+
+    const targetSection = sectionList.find(s => s.id === targetSectionId);
+    if (!targetSection) return;
+
+    const previousState = {
+      project_id: sourceProjectId,
+      section_id: task?.section || null,
+      parent_task_id: task?.parentTaskId || null,
+    };
+
+    try {
+      const updates: Record<string, unknown> = {
+        project_id: targetProjectId,
+        section_id: targetSectionId,
+        position: 0,
+      };
+      if (task?.parentTaskId) updates.parent_task_id = null;
+
+      const { error } = await supabase.from('tasks').update(updates).eq('id', taskId);
+      if (error) throw error;
+
+      await supabase.from('tasks').update({ project_id: targetProjectId, section_id: targetSectionId }).eq('parent_task_id', taskId);
+
+      setFadingOutTaskId(taskId);
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      setTasks(prev => prev.map(t => {
+        if (t.id === taskId || t.parentTaskId === taskId) {
+          return { ...t, projectId: targetProjectId, section: targetSectionId, parentTaskId: t.id === taskId ? undefined : t.parentTaskId };
+        }
+        return t;
+      }));
+      setFadingOutTaskId(null);
+
+      const message = task?.parentTaskId
+        ? `Subtarefa convertida e movida para ${targetSection.title}`
+        : `Movido para ${targetSection.title}`;
+
+      sonnerToast.success(message, {
+        duration: 5000,
+        action: {
+          label: 'Desfazer',
+          onClick: async () => {
+            try {
+              await supabase.from('tasks').update(previousState).eq('id', taskId);
+              if (!task?.parentTaskId) {
+                await supabase.from('tasks').update({ project_id: sourceProjectId, section_id: previousState.section_id }).eq('parent_task_id', taskId);
+              }
+              setTasks(prev => prev.map(t => {
+                if (t.id === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section, parentTaskId: previousState.parent_task_id || undefined };
+                if (t.parentTaskId === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section };
+                return t;
+              }));
+              sonnerToast.success('Ação desfeita');
+            } catch {
+              sonnerToast.error('Erro ao desfazer');
+            }
+          },
+        },
+      });
+    } catch (err) {
+      console.error('Erro ao mover tarefa:', err);
+      setFadingOutTaskId(null);
+      sonnerToast.error('Erro ao mover tarefa');
+    }
+  }, [taskList, sectionList, setTasks]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -761,6 +876,7 @@ const Index = () => {
     onRenameSection: handleRenameSection,
     onDeleteSection: handleDeleteSection,
     onMoveTaskToProject: handleMoveTaskToProject,
+    onMoveTaskToSection: handleMoveTaskToSection,
   };
 
   // Determine active view for bottom nav
