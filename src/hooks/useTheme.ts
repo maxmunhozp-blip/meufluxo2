@@ -20,7 +20,7 @@ function applyTheme(theme: 'dark' | 'light') {
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) {
-    metaTheme.setAttribute('content', theme === 'light' ? '#F5F0E8' : '#0D0D0D');
+    metaTheme.setAttribute('content', theme === 'light' ? '#F5F0E8' : '#0F0F17');
   }
 
   setTimeout(() => root.style.removeProperty('transition'), 200);
