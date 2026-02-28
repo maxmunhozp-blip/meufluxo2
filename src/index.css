@@ -202,13 +202,13 @@
 
     /* Semantic backgrounds */
     --bg-base: #F5F0E8;
-    --bg-surface: #FFFFFF;
+    --bg-surface: #EDE8E0;
     --bg-elevated: #FFFFFF;
     --bg-overlay: #FFFFFF;
     --bg-input: #F8F5F0;
     --bg-focus: #FAF8F4;
-    --bg-hover: #F0EBE3;
-    --bg-active: #E8E3DB;
+    --bg-hover: #E8E3DB;
+    --bg-active: #E0DBD3;
     --bg-app: 36 28% 94%;
     --bg-surface-hsl: 0 0% 100%;
     --bg-surface-alt: 36 16% 97%;
