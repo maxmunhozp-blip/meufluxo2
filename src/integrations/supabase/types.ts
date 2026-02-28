@@ -78,6 +78,67 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          content: Json | null
+          created_at: string
+          created_by: string
+          id: string
+          pinned: boolean
+          project_id: string | null
+          task_id: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          created_by: string
+          id?: string
+          pinned?: boolean
+          project_id?: string | null
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          pinned?: boolean
+          project_id?: string | null
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
