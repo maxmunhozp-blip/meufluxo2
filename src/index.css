@@ -517,6 +517,33 @@ mark, .highlight, [data-highlight] {
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Focus states — accessible ring */
+:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Remove default outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Section gap between sections in main content */
+.section-list > * + * {
+  margin-top: 24px;
+}
+
+/* Scrollbar theming for light mode */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+[data-theme="light"] * {
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
 @keyframes dropline-in {
   from { opacity: 0; transform: scaleX(0.3); transform-origin: left; }
   to { opacity: 1; transform: scaleX(1); transform-origin: left; }

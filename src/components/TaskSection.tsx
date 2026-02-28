@@ -203,16 +203,16 @@ export function TaskSection({
   };
 
   return (
-    <div ref={mergedRef} style={{ ...sectionStyle, marginBottom: 24 }} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
+    <div ref={mergedRef} style={{ ...sectionStyle }} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
       <div
         className="group w-full flex items-center gap-2 transition-colors relative"
         style={{
-          height: 40,
+          height: 44,
           paddingLeft: 16,
           paddingRight: 16,
           borderRadius: 8,
           background: 'var(--bg-elevated)',
-          marginBottom: 4,
+          marginBottom: 8,
           transition: 'all 150ms ease-out',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
@@ -255,7 +255,7 @@ export function TaskSection({
                 style={{ color: 'var(--text-tertiary)' }}
               />
             </span>
-            <span className="truncate" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, color: 'var(--text-primary)' }}>
+            <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
             {!isExpanded && tasks.length > 0 && (() => {
