@@ -571,9 +571,10 @@ export function MyDayView({
       {/* Focus Mode */}
       {focusModeOpen && (
         <FocusMode
-          tasks={tasks}
+          tasks={todayTasks}
           projects={projects}
           onStatusChange={onStatusChange}
+          onUpdateTask={onUpdateTask}
           onClose={() => setFocusModeOpen(false)}
         />
       )}
