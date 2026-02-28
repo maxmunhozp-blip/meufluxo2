@@ -808,6 +808,8 @@ const Index = () => {
             workspaceId={activeWorkspaceId}
             userId={session?.user?.id || ''}
             projects={projects}
+            isPro={planLimits.isPro}
+            onUpgrade={() => setShowUpgradeModal(true)}
           />
         ) : activeProject ? (
           <>
@@ -846,6 +848,8 @@ const Index = () => {
                 workspaceId={activeWorkspaceId}
                 userId={session?.user?.id || ''}
                 projects={projects}
+                isPro={planLimits.isPro}
+                onUpgrade={() => setShowUpgradeModal(true)}
               />
             ) : (
             <>
@@ -1028,6 +1032,8 @@ const Index = () => {
         userId={session?.user?.id || ''}
         projects={projects}
         onSaved={() => {}}
+        isPro={planLimits.isPro}
+        onUpgrade={() => setShowUpgradeModal(true)}
       />
     </div>
   );

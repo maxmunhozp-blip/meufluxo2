@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { NoteItem } from './NotesList';
 import { NoteEditor } from './NoteEditor';
+import { ProBadge } from './ProBadge';
 import { Project } from '@/types/task';
 import { Plus, Pin, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,11 +12,13 @@ interface GlobalNotesViewProps {
   workspaceId: string;
   userId: string;
   projects: Project[];
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
-type FilterMode = 'all' | 'quick' | string; // string = project id
+type FilterMode = 'all' | 'quick' | string;
 
-export function GlobalNotesView({ workspaceId, userId, projects }: GlobalNotesViewProps) {
+export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, onUpgrade }: GlobalNotesViewProps) {
   const [notes, setNotes] = useState<(NoteItem & { project_id: string | null })[]>([]);
   const [filter, setFilter] = useState<FilterMode>('all');
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
@@ -41,6 +44,9 @@ export function GlobalNotesView({ workspaceId, userId, projects }: GlobalNotesVi
   }, [workspaceId]);
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
+
+  const quickNotesCount = useMemo(() => notes.filter(n => !n.project_id).length, [notes]);
+  const canCreateQuickNote = isPro || quickNotesCount < 10;
 
   const filtered = useMemo(() => {
     if (filter === 'all') return notes;
@@ -68,6 +74,8 @@ export function GlobalNotesView({ workspaceId, userId, projects }: GlobalNotesVi
         onSaved={loadNotes}
         onDelete={() => { loadNotes(); setIsEditing(false); setActiveNoteId(null); }}
         projects={projects}
+        isPro={isPro}
+        onUpgrade={onUpgrade}
       />
     );
   }
@@ -131,7 +139,11 @@ export function GlobalNotesView({ workspaceId, userId, projects }: GlobalNotesVi
       {/* Notes list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         <button
-          onClick={() => { setActiveNoteId(null); setIsEditing(true); }}
+          onClick={() => {
+            if (!canCreateQuickNote) { onUpgrade?.(); return; }
+            setActiveNoteId(null);
+            setIsEditing(true);
+          }}
           className="w-full flex items-center gap-2 px-4 py-3 rounded-lg transition-colors"
           style={{ background: '#1A1A28', color: '#E8E8F0' }}
           onMouseEnter={e => { e.currentTarget.style.background = '#1E1E30'; }}
@@ -139,7 +151,14 @@ export function GlobalNotesView({ workspaceId, userId, projects }: GlobalNotesVi
         >
           <Plus className="w-4 h-4" />
           <span className="text-sm font-medium">Nova nota rápida</span>
+          {!canCreateQuickNote && <ProBadge onClick={(e) => { e.stopPropagation(); onUpgrade?.(); }} />}
         </button>
+
+        {!isPro && (
+          <p className="text-[11px] px-1" style={{ color: '#555570' }}>
+            {quickNotesCount}/10 notas rápidas · {canCreateQuickNote ? `${10 - quickNotesCount} restantes` : 'Limite atingido'}
+          </p>
+        )}
 
         {sorted.map(note => {
           const noteProject = note.project_id ? projects.find(p => p.id === note.project_id) : null;

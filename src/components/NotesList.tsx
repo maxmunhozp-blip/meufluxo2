@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Pin } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ProBadge } from './ProBadge';
 
 export interface NoteItem {
   id: string;
@@ -14,13 +15,17 @@ interface NotesListProps {
   notes: NoteItem[];
   onSelectNote: (noteId: string) => void;
   onNewNote: () => void;
+  maxNotes?: number; // undefined = unlimited
+  onUpgrade?: () => void;
 }
 
-export function NotesList({ notes, onSelectNote, onNewNote }: NotesListProps) {
+export function NotesList({ notes, onSelectNote, onNewNote, maxNotes, onUpgrade }: NotesListProps) {
   const sorted = [...notes].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   });
+
+  const atLimit = maxNotes != null && notes.length >= maxNotes;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -33,7 +38,14 @@ export function NotesList({ notes, onSelectNote, onNewNote }: NotesListProps) {
       >
         <Plus className="w-4 h-4" />
         <span className="text-sm font-medium">Nova nota</span>
+        {atLimit && <ProBadge onClick={(e) => { e.stopPropagation(); onUpgrade?.(); }} />}
       </button>
+
+      {maxNotes != null && (
+        <p className="text-[11px] px-1" style={{ color: '#555570' }}>
+          {notes.length}/{maxNotes} notas · {atLimit ? 'Limite atingido' : `${maxNotes - notes.length} restantes`}
+        </p>
+      )}
 
       {sorted.map(note => (
         <button
