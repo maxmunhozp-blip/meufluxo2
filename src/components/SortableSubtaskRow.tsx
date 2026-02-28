@@ -8,6 +8,8 @@ import { DropIndicatorLine } from './DropIndicatorLine';
 interface SortableSubtaskRowProps {
   subtask: Subtask;
   parentTaskId: string;
+  parentProjectId: string;
+  parentSectionId: string;
   isSelected: boolean;
   isDragging?: boolean;
   dropIndicator?: 'top' | 'bottom' | null;
@@ -16,7 +18,7 @@ interface SortableSubtaskRowProps {
   onRename?: (subtaskId: string, name: string) => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename }: SortableSubtaskRowProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(subtask.name);
   const renameRef = useRef<HTMLInputElement>(null);
@@ -28,24 +30,27 @@ export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDraggi
     setNodeRef,
   } = useSortable({ id: subtask.id, data: { type: 'subtask', subtask, parentTaskId } });
 
-  // HTML5 drag for cross-client move
   const handleNativeDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
     const dragData = {
       taskId: subtask.id,
       taskTitle: subtask.name,
-      sourceProjectId: (subtask as any).projectId,
-      sourceSectionId: (subtask as any).section,
+      sourceProjectId: parentProjectId,
+      sourceSectionId: parentSectionId,
       isSubtask: true,
       parentTaskId: parentTaskId,
     };
-
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
-
+    const ghost = document.createElement('div');
+    ghost.textContent = subtask.name;
+    ghost.style.cssText = 'position:fixed;top:-1000px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;padding:6px 10px;max-width:180px;font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:9999;pointer-events:none;';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 10, 14);
+    setTimeout(() => document.body.removeChild(ghost), 0);
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
     }
-
     window.dispatchEvent(new CustomEvent('meufluxo:task-drag-start', { detail: dragData }));
   };
 
@@ -91,6 +96,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDraggi
       className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 group/sub ${
         isSelected ? 'bg-nd-active' : ''
       } ${isParentDragging ? 'opacity-40' : ''}`}
+      style={{ touchAction: 'none' }}
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div
