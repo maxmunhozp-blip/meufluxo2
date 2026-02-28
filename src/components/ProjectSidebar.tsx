@@ -339,14 +339,39 @@ export function ProjectSidebar({
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
+        {/* Theme Toggle */}
+        {onCycleTheme && (
+          <button
+            onClick={onCycleTheme}
+            className="w-full flex items-center gap-2 cursor-pointer select-none mt-2"
+            style={{
+              height: 40,
+              paddingLeft: 12,
+              paddingRight: 12,
+              borderRadius: 8,
+              fontSize: 14,
+              color: 'var(--text-secondary)',
+              transition: 'color 150ms ease-out, background 150ms ease-out',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            aria-label={`Tema atual: ${themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}. Clique para alternar.`}
+          >
+            {themePreference === 'dark' ? <Moon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} /> :
+             themePreference === 'light' ? <Sun className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} /> :
+             <Monitor className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} />}
+            <span>{themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}</span>
+          </button>
+        )}
+
         {/* Separator */}
         <div style={{ margin: '12px 0' }}>
-          <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.06)' }} />
+          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
         </div>
 
         {/* Clients section */}
         <div style={{ marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: '#555570', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-placeholder)', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
             Clientes
           </span>
         </div>
