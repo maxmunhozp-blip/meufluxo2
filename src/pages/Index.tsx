@@ -718,7 +718,7 @@ const Index = () => {
     <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
-         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-base)', borderRight: '1px solid var(--bg-hover)', transition: 'width 250ms ease-out' }}>
+         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-base)', borderRight: '1px solid var(--border-subtle)', transition: 'width 250ms ease-out' }}>
           <div className="flex flex-col items-center gap-1 pt-3 px-1">
             {/* Meu Dia */}
             <button
@@ -758,18 +758,9 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <>
-          <div className="hidden lg:block flex-shrink-0" style={{ width: Math.min(sidebarWidth, 240), minWidth: 120, maxWidth: '25vw', transition: 'width 250ms ease-out' }}>
-            <ProjectSidebar {...sidebarProps} />
-          </div>
-          {/* Sidebar resize handle (desktop only) */}
-          <div
-            className="hidden lg:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
-            onMouseDown={(e) => handleResizeMouseDown('sidebar', e)}
-          >
-            <div className="w-[2px] mx-auto h-full group-hover:bg-primary/40 transition-colors" />
-          </div>
-        </>
+        <div className="hidden lg:block flex-shrink-0" style={{ width: 260, minWidth: 260, maxWidth: 260 }}>
+          <ProjectSidebar {...sidebarProps} />
+        </div>
       )}
 
       {/* Tablet sidebar (collapsible overlay 768-1024px) + Mobile sidebar (overlay <768px) */}

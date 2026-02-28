@@ -329,15 +329,15 @@ export function ProjectSidebar({
   );
 
   return (
-    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: 'var(--bg-base)', width: 260 }}>
-      <nav className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 16px 16px 16px' }}>
-        {/* Navigation label */}
+    <aside className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden" style={{ background: 'var(--bg-surface)', width: 260, minWidth: 260, maxWidth: 260, borderRight: '1px solid var(--border-subtle)' }}>
+      {/* NAVEGAÇÃO — flex-shrink-0 */}
+      <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             Navegação
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
@@ -347,8 +347,10 @@ export function ProjectSidebar({
         <div style={{ margin: '24px 0' }}>
           <div style={{ height: 1, background: 'var(--border-subtle)' }} />
         </div>
+      </div>
 
-        {/* Clients label */}
+      {/* CLIENTES — flex: 1, overflow-y: auto */}
+      <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '0 16px 16px 16px' }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             Clientes
@@ -393,10 +395,10 @@ export function ProjectSidebar({
           </SortableContext>
         </DndContext>
 
-      </nav>
+      </div>
 
       {/* "+ Novo Cliente" sticky bottom */}
-      <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', padding: '0 16px' }}>
+      <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-subtle)', padding: '0 16px' }}>
         {creatingProject ? (
           <div className="flex items-center" style={{ height: 36 }}>
             <input
