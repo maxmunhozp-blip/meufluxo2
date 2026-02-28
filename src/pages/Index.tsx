@@ -770,7 +770,7 @@ const Index = () => {
     <div className="h-screen flex" style={{ background: 'var(--bg-base)' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
-         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-surface)', transition: 'width 250ms ease-out' }}>
+         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-base)', transition: 'width 250ms ease-out' }}>
           <div className="flex flex-col items-center gap-1 pt-3 px-1">
             {/* Meu Dia */}
             <button
@@ -810,7 +810,7 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:block flex-shrink-0 relative" style={{ width: 260, minWidth: 260, maxWidth: 260, marginRight: -1 }}>
+        <div className="hidden lg:block flex-shrink-0" style={{ width: 260, minWidth: 260, maxWidth: 260 }}>
           <ProjectSidebar {...sidebarProps} />
         </div>
       )}
