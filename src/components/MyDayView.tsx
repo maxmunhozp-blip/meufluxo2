@@ -112,17 +112,14 @@ function DayTaskCard({
       onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      {/* Project color bar */}
-      <div
-        className="flex-shrink-0 self-stretch rounded-sm"
-        style={{
-          width: 3,
-          borderRadius: 2,
-          background: projectColor,
-          opacity: 0.4,
-        }}
-      />
-      <div className="w-3 flex-shrink-0" />
+      {/* Project color dot */}
+      <div className="w-4 flex-shrink-0 flex items-center justify-center">
+        <span
+          className="flex-shrink-0 rounded-full"
+          style={{ width: 8, height: 8, background: projectColor }}
+        />
+      </div>
+      <div className="w-1 flex-shrink-0" />
 
       {/* Checkbox */}
       <div
