@@ -153,8 +153,8 @@ export function GenerateMonthlyTasksButton({
       disabled={generating}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium"
       style={{
-        color: '#6C9CFC',
-        background: 'rgba(108,156,252,0.08)',
+        color: 'var(--accent-blue)',
+        background: 'var(--accent-subtle)',
         opacity: generating ? 0.6 : 1,
         transition: 'all 150ms ease-out',
       }}
