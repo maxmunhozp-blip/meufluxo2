@@ -677,7 +677,10 @@ const Index = () => {
     );
   }
 
-  if (!session) return null;
+  if (!session) {
+    navigate('/auth');
+    return null;
+  }
 
   const panelOpen = selectedTask !== null;
   const sectionIds = projectSections.map(s => `section-${s.id}`);
