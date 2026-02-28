@@ -1223,6 +1223,23 @@ const Index = () => {
                       });
                     }}
                     onAddSubtask={addSubtask}
+                    onDeleteSubtask={(parentTaskId, subtaskId) => {
+                      deleteSubtask(parentTaskId, subtaskId);
+                    }}
+                    onConvertSubtaskToTask={(subtaskId) => {
+                      const sub = taskList.find(t => t.id === subtaskId);
+                      if (!sub) return;
+                      const originalParentId = sub.parentTaskId;
+                      const originalSection = sub.section;
+                      updateTask({ ...sub, parentTaskId: undefined, section: sub.section });
+                      toast({
+                        title: 'Convertida em tarefa independente',
+                        duration: 5000,
+                        action: <ToastAction altText="Desfazer" onClick={() => {
+                          if (originalParentId) updateTask({ ...sub, parentTaskId: originalParentId, section: originalSection });
+                        }}>Desfazer</ToastAction>,
+                      });
+                    }}
                     fadingOutTaskId={fadingOutTaskId}
                   />
                 );

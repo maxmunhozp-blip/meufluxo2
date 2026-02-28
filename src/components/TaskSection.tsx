@@ -37,6 +37,8 @@ interface TaskSectionProps {
   onMoveToSection?: (taskId: string, sectionId: string) => void;
   projectColor?: string;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
+  onConvertSubtaskToTask?: (subtaskId: string) => void;
   fadingOutTaskId?: string | null;
 }
 
@@ -155,6 +157,8 @@ export function TaskSection({
   onMoveToSection,
   projectColor,
   onAddSubtask,
+  onDeleteSubtask,
+  onConvertSubtaskToTask,
   fadingOutTaskId,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
@@ -304,6 +308,8 @@ export function TaskSection({
                 sections={allSections}
                 onMoveToSection={onMoveToSection}
                 onAddSubtask={onAddSubtask}
+                onDeleteSubtask={onDeleteSubtask}
+                onConvertSubtaskToTask={onConvertSubtaskToTask}
                 isFadingOut={fadingOutTaskId === task.id}
               />
             ))}
