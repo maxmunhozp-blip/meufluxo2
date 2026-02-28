@@ -10,7 +10,7 @@ export function ColumnHeader() {
         marginTop: 16,
       }}
     >
-      <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-tertiary)' }}>
+      <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, lineHeight: 1.3, color: 'var(--text-tertiary)' }}>
         Nome
       </span>
     </div>

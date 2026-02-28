@@ -33,7 +33,7 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
 
   return (
     <div className="flex items-center justify-between w-full">
-      <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>
+      <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>
         {projectName}
       </h1>
 
@@ -50,7 +50,7 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
           </button>
           <span
             className="tabular-nums min-w-[140px] text-center"
-            style={{ fontSize: 14, fontWeight: 500, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+            style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
           >
             {MONTH_NAMES[currentMonth]} {currentYear}
           </span>
