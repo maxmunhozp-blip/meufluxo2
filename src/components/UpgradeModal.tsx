@@ -11,7 +11,7 @@ export function UpgradeModal({ open, onClose, title, message }: UpgradeModalProp
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" style={{ background: 'var(--overlay-bg)' }}>
       <div 
         className="relative w-[800px] max-w-[95vw] bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -26,7 +26,7 @@ export function UpgradeModal({ open, onClose, title, message }: UpgradeModalProp
         <div className="p-8 md:p-10">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 mb-4 shadow-lg shadow-yellow-500/20">
-              <Sparkles className="w-6 h-6 text-white" />
+              <Sparkles className="w-6 h-6" style={{ color: 'var(--btn-text)' }} />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">
               {title || 'Desbloqueie todo o potencial'}
@@ -70,7 +70,7 @@ export function UpgradeModal({ open, onClose, title, message }: UpgradeModalProp
 
             {/* Pro Plan */}
             <div className="relative p-6 rounded-xl border border-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-transparent">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full text-[10px] font-bold text-white uppercase tracking-wide shadow-lg shadow-yellow-500/20">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-lg shadow-yellow-500/20" style={{ color: 'var(--btn-text)' }}>
                 Recomendado
               </div>
               <div className="flex justify-between items-start mb-4">
@@ -98,7 +98,8 @@ export function UpgradeModal({ open, onClose, title, message }: UpgradeModalProp
               </ul>
               <button 
                 onClick={onClose}
-                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 text-sm font-bold text-white hover:opacity-90 transition-opacity shadow-lg shadow-yellow-500/20"
+                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-yellow-500/20"
+                style={{ color: 'var(--btn-text)' }}
               >
                 Fazer Upgrade
               </button>

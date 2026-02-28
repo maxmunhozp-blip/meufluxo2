@@ -576,8 +576,8 @@ function LinkPreviewInline({ url }: { url: string }) {
         <div className="relative" style={{ aspectRatio: '16/9' }}>
           <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-              <div className="w-0 h-0 ml-1" style={{ borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid white' }} />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
+              <div className="w-0 h-0 ml-1" style={{ borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid var(--text-primary)' }} />
             </div>
           </div>
         </div>

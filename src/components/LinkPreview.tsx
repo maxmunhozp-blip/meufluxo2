@@ -59,8 +59,8 @@ export function LinkPreview({ url }: LinkPreviewProps) {
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-14 h-14 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.7)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-              <Play className="w-6 h-6 ml-0.5" style={{ color: 'white' }} fill="white" />
+              style={{ background: 'var(--overlay-bg)', boxShadow: 'var(--shadow-md)' }}>
+              <Play className="w-6 h-6 ml-0.5" style={{ color: 'var(--btn-text)' }} fill="var(--btn-text)" />
             </div>
           </div>
         </div>

@@ -392,7 +392,7 @@ function MasterListOverlay({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 z-40" style={{ background: 'var(--overlay-bg)' }} onClick={onClose} />
       <div
         className="fixed left-0 top-0 bottom-0 z-50 w-[300px] flex flex-col animate-slide-in-left"
         style={{ background: 'var(--bg-surface)', boxShadow: '4px 0 16px rgba(0,0,0,0.3)' }}
