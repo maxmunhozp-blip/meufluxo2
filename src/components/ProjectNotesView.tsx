@@ -9,9 +9,11 @@ interface ProjectNotesViewProps {
   workspaceId: string;
   userId: string;
   projects?: Project[];
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function ProjectNotesView({ projectId, workspaceId, userId, projects = [] }: ProjectNotesViewProps) {
+export function ProjectNotesView({ projectId, workspaceId, userId, projects = [], isPro = false, onUpgrade }: ProjectNotesViewProps) {
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -37,6 +39,8 @@ export function ProjectNotesView({ projectId, workspaceId, userId, projects = []
     loadNotes();
   }, [loadNotes]);
 
+  const canCreateNote = isPro || notes.length < 5;
+
   if (isEditing) {
     return (
       <NoteEditor
@@ -48,6 +52,8 @@ export function ProjectNotesView({ projectId, workspaceId, userId, projects = []
         onSaved={loadNotes}
         onDelete={() => { loadNotes(); setIsEditing(false); setActiveNoteId(null); }}
         projects={projects}
+        isPro={isPro}
+        onUpgrade={onUpgrade}
       />
     );
   }
@@ -56,7 +62,13 @@ export function ProjectNotesView({ projectId, workspaceId, userId, projects = []
     <NotesList
       notes={notes}
       onSelectNote={(id) => { setActiveNoteId(id); setIsEditing(true); }}
-      onNewNote={() => { setActiveNoteId(null); setIsEditing(true); }}
+      onNewNote={() => {
+        if (!canCreateNote) { onUpgrade?.(); return; }
+        setActiveNoteId(null);
+        setIsEditing(true);
+      }}
+      maxNotes={isPro ? undefined : 5}
+      onUpgrade={onUpgrade}
     />
   );
 }

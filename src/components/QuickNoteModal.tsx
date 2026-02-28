@@ -9,9 +9,11 @@ interface QuickNoteModalProps {
   userId: string;
   projects: Project[];
   onSaved: () => void;
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function QuickNoteModal({ open, onClose, workspaceId, userId, projects, onSaved }: QuickNoteModalProps) {
+export function QuickNoteModal({ open, onClose, workspaceId, userId, projects, onSaved, isPro = false, onUpgrade }: QuickNoteModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export function QuickNoteModal({ open, onClose, workspaceId, userId, projects, o
           onDelete={onClose}
           projects={projects}
           isModal
+          isPro={isPro}
+          onUpgrade={onUpgrade}
         />
       </div>
     </div>

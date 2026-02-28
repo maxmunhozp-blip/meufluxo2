@@ -9,9 +9,13 @@ export interface PlanLimits {
   maxProjects: number | null;
   maxTasksPerProject: number | null;
   maxMembers: number | null;
+  maxNotesPerProject: number | null;
+  maxQuickNotes: number | null;
   timeline: boolean;
   recurrence: boolean;
   rollover: boolean;
+  linkPreviews: boolean;
+  noteImages: boolean;
 }
 
 const FREE_LIMITS: PlanLimits = {
@@ -19,9 +23,13 @@ const FREE_LIMITS: PlanLimits = {
   maxProjects: 3,
   maxTasksPerProject: 20,
   maxMembers: 2,
+  maxNotesPerProject: 5,
+  maxQuickNotes: 10,
   timeline: false,
   recurrence: false,
   rollover: false,
+  linkPreviews: false,
+  noteImages: false,
 };
 
 const PRO_LIMITS: PlanLimits = {
@@ -29,9 +37,13 @@ const PRO_LIMITS: PlanLimits = {
   maxProjects: null,
   maxTasksPerProject: null,
   maxMembers: null,
+  maxNotesPerProject: null,
+  maxQuickNotes: null,
   timeline: true,
   recurrence: true,
   rollover: true,
+  linkPreviews: true,
+  noteImages: true,
 };
 
 export function getLimits(plan: PlanType): PlanLimits {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Trash2, Bold, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus, Link2 } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Trash2, Bold, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus, Link2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LinkPreview } from './LinkPreview';
 import { Project } from '@/types/task';
@@ -14,9 +14,11 @@ interface NoteEditorProps {
   onDelete: () => void;
   projects?: Project[];
   isModal?: boolean;
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onSaved, onDelete, projects = [], isModal = false }: NoteEditorProps) {
+export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onSaved, onDelete, projects = [], isModal = false, isPro = false, onUpgrade }: NoteEditorProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [pinned, setPinned] = useState(false);
@@ -137,6 +139,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
   };
 
   const handleImageUpload = async (file: File) => {
+    if (!isPro) { onUpgrade?.(); return; }
     const ext = file.name.split('.').pop();
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
@@ -303,8 +306,8 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           </div>
         )}
 
-        {/* Link previews */}
-        {urls.map((url, i) => (
+        {/* Link previews — PRO only */}
+        {isPro && urls.map((url, i) => (
           <LinkPreview key={`${url}-${i}`} url={url} />
         ))}
       </div>

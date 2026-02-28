@@ -447,7 +447,7 @@ function ServiceTagPicker({
 }
 
 // Rich description editor — full formatting, images, link previews
-function RichDescription({ value, onChange, placeholder, onUploadImage }: { value: string; onChange: (html: string) => void; placeholder: string; onUploadImage?: (file: File) => Promise<string | null> }) {
+function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = false }: { value: string; onChange: (html: string) => void; placeholder: string; onUploadImage?: (file: File) => Promise<string | null>; isPro?: boolean }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -683,8 +683,8 @@ function RichDescription({ value, onChange, placeholder, onUploadImage }: { valu
         </div>
       )}
 
-      {/* Link previews below editor */}
-      {detectedUrls.length > 0 && (
+      {/* Link previews below editor — PRO only */}
+      {isPro && detectedUrls.length > 0 && (
         <div className="mt-3 space-y-2">
           {detectedUrls.map((url, i) => (
             <LinkPreviewInline key={`${url}-${i}`} url={url} />
@@ -1043,14 +1043,15 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               value={localTask.description || ''}
               onChange={(html) => pushUpdateDebounced({ ...localTask, description: html })}
               placeholder="Adicione detalhes, links ou imagens..."
-              onUploadImage={async (file: File) => {
+              isPro={isPro}
+              onUploadImage={isPro ? async (file: File) => {
                 const ext = file.name.split('.').pop();
                 const path = `${currentUserId}/${crypto.randomUUID()}.${ext}`;
                 const { error } = await supabase.storage.from('task-attachments').upload(path, file);
                 if (error) return null;
                 const { data: urlData } = supabase.storage.from('task-attachments').getPublicUrl(path);
                 return urlData.publicUrl;
-              }}
+              } : undefined}
             />
           </div>
 
