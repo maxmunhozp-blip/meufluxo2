@@ -881,6 +881,7 @@ const Index = () => {
               <GenerateMonthlyTasksButton
                 projectId={activeProjectId}
                 workspaceId={activeWorkspaceId || ''}
+                activeMonth={activeMonth}
               />
               <button
                 onClick={() => setShowTemplateModal(true)}
