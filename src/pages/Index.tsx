@@ -91,6 +91,7 @@ const Index = () => {
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [activeMonth, setActiveMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
   // Check super_admin role
   useEffect(() => {
@@ -175,17 +176,45 @@ const Index = () => {
     [activeProjectId, sectionList, activeSectionId]
   );
 
+  // Month boundaries for filtering
+  const monthStart = useMemo(() => {
+    const d = new Date(activeMonth);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  }, [activeMonth]);
+  const monthEnd = useMemo(() => {
+    const d = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, [activeMonth]);
+
   const allProjectTasks = useMemo(
     () => taskList.filter(t => t.projectId === activeProjectId),
     [taskList, activeProjectId]
   );
-  const pendingCount = allProjectTasks.filter(t => t.status !== 'done').length;
+
+  // Filter by month: tasks created within the active month window
+  const monthFilteredTasks = useMemo(
+    () => allProjectTasks.filter(t => {
+      // Use dueDate or scheduledDate or createdAt (fallback to always show)
+      const date = t.dueDate || t.scheduledDate;
+      if (!date) return true; // Tasks without dates always visible
+      return date >= monthStart && date <= monthEnd;
+    }),
+    [allProjectTasks, monthStart, monthEnd]
+  );
+
+  const pendingCount = monthFilteredTasks.filter(t => t.status !== 'done').length;
 
   const filterTasks = useCallback((tasks: Task[]) => {
-    if (filter === 'pending') return tasks.filter(t => t.status !== 'done');
-    if (filter === 'done') return tasks.filter(t => t.status === 'done');
-    return tasks;
-  }, [filter]);
+    // Apply month filter first
+    const monthFiltered = tasks.filter(t => {
+      const date = t.dueDate || t.scheduledDate;
+      if (!date) return true;
+      return date >= monthStart && date <= monthEnd;
+    });
+    if (filter === 'pending') return monthFiltered.filter(t => t.status !== 'done');
+    if (filter === 'done') return monthFiltered.filter(t => t.status === 'done');
+    return monthFiltered;
+  }, [filter, monthStart, monthEnd]);
 
   const visibleTaskIds = useMemo(() => {
     const ids: string[] = [];
@@ -824,6 +853,8 @@ const Index = () => {
                 onNewTask={createNewTask}
                 filter={filter}
                 onFilterChange={setFilter}
+                activeMonth={activeMonth}
+                onMonthChange={setActiveMonth}
               />
             </div>
             <div className="flex items-center gap-0 px-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>

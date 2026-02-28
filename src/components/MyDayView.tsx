@@ -116,7 +116,7 @@ function DayTaskCard({
       <div className="w-4 flex-shrink-0 flex items-center justify-center">
         <span
           className="flex-shrink-0 rounded-full"
-          style={{ width: 8, height: 8, background: projectColor }}
+          style={{ width: 6, height: 6, background: projectColor }}
         />
       </div>
       <div className="w-1 flex-shrink-0" />
@@ -132,41 +132,55 @@ function DayTaskCard({
       </div>
       <div className="w-3 flex-shrink-0" />
 
-      {/* Title */}
-      <span
-        className={`flex-1 min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${
-          isDone ? 'line-through' : ''
-        }`}
-        style={{
-          color: isDone ? '#E8E8F0' : '#E8E8F0',
-          opacity: isDone || completing ? 0.4 : 1,
-          fontWeight: 400,
-        }}
-      >
-        {task.name}
-      </span>
+      {/* Title + client name */}
+      <div className="flex-1 min-w-0 flex items-center gap-1.5">
+        {/* Always show client name */}
+        {projectName && (
+          <span
+            className="flex-shrink-0 text-[11px]"
+            style={{ color: '#6B7280', fontWeight: 400 }}
+          >
+            {projectName}
+          </span>
+        )}
+        {projectName && (
+          <span style={{ color: '#3A3A4A', fontSize: 10 }}>·</span>
+        )}
+        <span
+          className={`min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${
+            isDone ? 'line-through' : ''
+          }`}
+          style={{
+            color: '#E8E8F0',
+            opacity: isDone || completing ? 0.4 : 1,
+            fontWeight: 400,
+          }}
+        >
+          {task.name}
+        </span>
+      </div>
 
       {/* Rollover badge */}
       {rolloverDays && rolloverDays > 0 && (
         <span
-          className="flex-shrink-0 ml-2 whitespace-nowrap"
-          style={{ fontSize: 10, color: '#FFB86C', fontWeight: 400 }}
+          className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
+          style={{ fontSize: 10, color: '#F59E0B', fontWeight: 400, background: 'rgba(245,158,11,0.08)' }}
         >
           ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
         </span>
       )}
 
-      {/* Project badge — only when grouping by service */}
+      {/* Service tag badge */}
       {showProjectBadge && projectName && (
         <span
-          className="flex-shrink-0 ml-2 px-1.5 py-0.5 rounded"
-          style={{ fontSize: 10, color: '#8888A0', background: '#1A1A28' }}
+          className="flex-shrink-0 ml-1 px-1.5 py-0.5 rounded"
+          style={{ fontSize: 10, color: '#6B7280', background: '#1A1A28' }}
         >
           {projectName}
         </span>
       )}
 
-      {/* Recurrence — icon only */}
+      {/* Recurrence */}
       {task.recurrenceType && (
         <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: '#555570' }} />
       )}

@@ -60,30 +60,23 @@ function SortableProjectItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const projectTaskCount = useMemo(
-    () => tasks.filter(t => t.projectId === project.id && t.status !== 'done' && !t.parentTaskId).length,
-    [tasks, project.id]
-  );
-
   return (
     <div ref={setNodeRef} style={style}>
       <div
         className="group w-full flex items-center gap-1.5 cursor-pointer relative select-none"
         onContextMenu={onContextMenu}
         style={{
-          height: 36,
+          height: 40,
           paddingLeft: 6,
           paddingRight: 10,
           borderRadius: 8,
-          color: isActive ? '#E8E8F0' : '#8888A0',
+          color: isActive ? '#E5E5E5' : '#8A8A8A',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
-          transition: `color 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
+          transition: `color 150ms ease-out, background 150ms ease-out`,
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = style.transform || ''; }}
-        onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = `${style.transform || ''} scale(0.98)`.trim(); }}
-        onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = style.transform || ''; }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         <div
           {...attributes}
@@ -91,9 +84,9 @@ function SortableProjectItem({
           className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
           onClick={(e) => e.stopPropagation()}
         >
-          <GripVertical className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
+          <GripVertical className="w-3.5 h-3.5" style={{ color: '#555570' }} />
         </div>
-        {/* Chevron for expand/collapse */}
+        {/* Chevron */}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
           className="w-4 h-4 flex items-center justify-center flex-shrink-0"
@@ -104,34 +97,32 @@ function SortableProjectItem({
             style={{
               color: '#555570',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: 'transform 200ms ease-out',
+              transition: 'transform 150ms ease-out',
             }}
           />
         </button>
+        {/* Color dot — 6px */}
         <button
           onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
-          className="w-2 h-2 rounded-full flex-shrink-0 hover:scale-125 transition-transform"
-          style={{ background: project.color }}
+          className="flex-shrink-0 hover:scale-125 transition-transform"
+          style={{ width: 6, height: 6, borderRadius: '50%', background: project.color }}
         />
         <span className="truncate flex-1 text-left" onClick={onSelect}>{project.name}</span>
-        {projectTaskCount > 0 && (
-          <span className="text-[12px] tabular-nums flex-shrink-0" style={{ color: '#555570' }}>
-            {projectTaskCount}
-          </span>
-        )}
       </div>
 
-      {/* Expandable sections list */}
+      {/* Expandable sections */}
       <div
         style={{
           overflow: 'hidden',
           maxHeight: isExpanded ? `${sections.length * 32 + 4}px` : '0px',
           opacity: isExpanded ? 1 : 0,
-          transition: 'max-height 200ms ease-out, opacity 150ms ease-out 50ms',
+          transition: 'max-height 150ms ease-out, opacity 150ms ease-out',
         }}
       >
         {sections.map(section => {
-          const sectionTaskCount = tasks.filter(t => t.section === section.id && t.status !== 'done' && !t.parentTaskId).length;
+          const sectionTasks = tasks.filter(t => t.section === section.id && !t.parentTaskId);
+          const doneTasks = sectionTasks.filter(t => t.status === 'done').length;
+          const totalTasks = sectionTasks.length;
           const isSectionActive = activeSectionId === section.id;
           return (
             <button
@@ -140,21 +131,21 @@ function SortableProjectItem({
               className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 30,
-                paddingLeft: 28,
+                paddingLeft: 32,
                 paddingRight: 10,
                 borderRadius: 6,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 400,
-                color: isSectionActive ? '#E8E8F0' : '#8888A0',
-                transition: `color 150ms ease-out, background 120ms ease-out`,
+                color: isSectionActive ? '#E5E5E5' : '#8A8A8A',
+                transition: `color 150ms ease-out, background 150ms ease-out`,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; if (!isSectionActive) e.currentTarget.style.color = '#E8E8F0'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = '#8888A0'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; if (!isSectionActive) e.currentTarget.style.color = '#E5E5E5'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = '#8A8A8A'; }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
-              {sectionTaskCount > 0 && (
-                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: '#555570' }}>
-                  {sectionTaskCount}
+              {totalTasks > 0 && (
+                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: '#6B7280' }}>
+                  {doneTasks}/{totalTasks}
                 </span>
               )}
             </button>
@@ -234,10 +225,27 @@ export function ProjectSidebar({
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showServiceTags, setShowServiceTags] = useState(false);
-  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>(loadExpandedProjects);
+  // Default: collapsed. Active project auto-expands.
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>(() => {
+    const stored = loadExpandedProjects();
+    // If nothing stored, all collapsed by default
+    return stored;
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-expand active project
+  useEffect(() => {
+    if (activeProjectId && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView) {
+      setExpandedProjects(prev => {
+        if (prev[activeProjectId]) return prev;
+        const next = { ...prev, [activeProjectId]: true };
+        localStorage.setItem(SIDEBAR_EXPANSION_KEY, JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [activeProjectId, isMyDayView, isMyWeekView, isMyTasksView, isNotesView]);
 
   const toggleProjectExpand = (projectId: string) => {
     setExpandedProjects(prev => {
@@ -286,7 +294,6 @@ export function ProjectSidebar({
     setRenamingId(null);
   };
 
-  // Apple-style nav button with purely typographic active state
   const NavButton = ({ active, onClick, icon: Icon, label, count }: {
     active: boolean; onClick?: () => void; icon: typeof Sun; label: string; count?: number;
   }) => (
@@ -294,54 +301,60 @@ export function ProjectSidebar({
       onClick={onClick}
       className="w-full flex items-center gap-2.5 cursor-pointer select-none"
       style={{
-        height: 36,
+        height: 40,
         paddingLeft: 10,
         paddingRight: 10,
         borderRadius: 8,
         fontSize: 14,
-        color: active ? '#E8E8F0' : '#8888A0',
+        color: active ? '#E5E5E5' : '#8A8A8A',
         fontWeight: active ? 600 : 400,
-        transition: `color 200ms ${APPLE_EASE}, font-weight 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
+        transition: `color 150ms ease-out, background 150ms ease-out`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = ''; }}
-      onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = 'scale(0.98)'; }}
-      onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = ''; }}
+      onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#E8E8F0' : '#8888A0', transition: `color 200ms ${APPLE_EASE}` }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#E5E5E5' : '#8A8A8A', transition: `color 150ms ease-out` }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <span
-          className="text-[10px] tabular-nums flex-shrink-0"
-          style={{ color: '#8888A0', fontWeight: 400 }}
-        >{count}</span>
+        <span className="text-[10px] tabular-nums flex-shrink-0" style={{ color: '#6B7280', fontWeight: 400 }}>{count}</span>
       )}
     </button>
   );
 
   return (
-    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: '#0F0F17' }}>
+    <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: '#111111', width: 260 }}>
       <nav className="flex-1 px-2 pt-3 overflow-y-auto">
-        {/* Nav items */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Navigation section */}
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: '#555570', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+            Navegação
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
-        {/* Separator — near-invisible */}
+        {/* Separator */}
         <div style={{ margin: '12px 0' }}>
           <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.06)' }} />
         </div>
 
-        {/* Projects */}
+        {/* Clients section */}
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: '#555570', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+            Clientes
+          </span>
+        </div>
+
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {projects.map((project) => (
                 renamingId === project.id ? (
-                  <div key={project.id} className="flex items-center gap-2.5" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
+                  <div key={project.id} className="flex items-center gap-2.5" style={{ height: 40, paddingLeft: 10, paddingRight: 10 }}>
+                    <span className="flex-shrink-0" style={{ width: 6, height: 6, borderRadius: '50%', background: project.color }} />
                     <input
                       ref={renameRef}
                       value={renameValue}
@@ -349,14 +362,14 @@ export function ProjectSidebar({
                       onKeyDown={(e) => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onBlur={confirmRename}
                       className="flex-1 h-7 px-2 text-[13px] rounded border focus:outline-none"
-                      style={{ background: 'hsl(var(--bg-input))', color: '#E8E8F0', borderColor: '#6C9CFC' }}
+                      style={{ background: '#1A1A1A', color: '#E5E5E5', borderColor: '#6C9CFC' }}
                     />
                   </div>
                 ) : (
                   <SortableProjectItem
                     key={project.id}
                     project={project}
-                    isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView}
+                    isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView}
                     isExpanded={!!expandedProjects[project.id]}
                     sections={allSections.filter(s => s.projectId === project.id)}
                     tasks={tasks}
@@ -373,9 +386,9 @@ export function ProjectSidebar({
           </SortableContext>
         </DndContext>
 
-        {/* New project */}
+        {/* New client */}
         {creatingProject ? (
-          <div className="flex items-center" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
+          <div className="flex items-center" style={{ height: 40, paddingLeft: 10, paddingRight: 10 }}>
             <input
               ref={inputRef}
               value={newProjectName}
@@ -383,15 +396,15 @@ export function ProjectSidebar({
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') { setCreatingProject(false); setNewProjectName(''); } }}
               onBlur={() => { if (newProjectName.trim()) handleCreate(); else setCreatingProject(false); }}
               autoFocus
-              placeholder="Nome do projeto..."
+              placeholder="Nome do cliente..."
               className="w-full h-7 px-2 text-[13px] rounded-md border focus:outline-none"
-              style={{ background: 'hsl(var(--bg-input))', color: '#E8E8F0', borderColor: '#6C9CFC' }}
+              style={{ background: '#1A1A1A', color: '#E5E5E5', borderColor: '#6C9CFC' }}
             />
           </div>
         ) : (
           <button
             onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-            className="w-full flex items-center text-[13px] select-none"
+            className="w-full flex items-center text-[12px] select-none"
             style={{
               height: 36,
               paddingLeft: 10,
@@ -401,15 +414,15 @@ export function ProjectSidebar({
               borderRadius: 8,
               transition: `color 150ms ease-out`,
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8A8A8A'; }}
             onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
           >
-            + Novo Projeto
+            + Novo Cliente
           </button>
         )}
       </nav>
 
-      {/* Footer — subdued */}
+      {/* Footer */}
       <div className="relative" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
         <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
           <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
@@ -432,23 +445,23 @@ export function ProjectSidebar({
 
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
-              style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+              style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
             ><Shield className="w-3.5 h-3.5" /></a>
           )}
           <button onClick={() => navigate('/profile')} className="w-7 h-7 flex items-center justify-center rounded-md" title="Perfil"
-            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><User className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowSettings(!showSettings)} className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><Settings className="w-3.5 h-3.5" /></button>
           <button onClick={onLogout} className="w-7 h-7 flex items-center justify-center rounded-md" title="Sair da conta"
-            style={{ opacity: 0.4, color: '#E8E8F0', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: '#E5E5E5', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><LogOut className="w-3.5 h-3.5" /></button>
@@ -456,28 +469,28 @@ export function ProjectSidebar({
 
         {showSettings && (
           <div className="absolute bottom-full left-3 mb-1 py-1 rounded-lg border z-[100]"
-            style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
+            style={{ background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 180 }}
           >
-            <button onClick={() => { onExport(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+            <button onClick={() => { onExport(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E5E5E5' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Exportar dados (JSON)
             </button>
-            <button onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+            <button onClick={() => { fileInputRef.current?.click(); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors" style={{ color: '#E5E5E5' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               Importar dados (JSON)
             </button>
             <div className="h-px mx-2 my-1" style={{ background: 'rgba(255, 255, 255, 0.06)' }} />
-            <button onClick={() => { navigate('/plans'); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <CreditCard className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Planos
+            <button onClick={() => { navigate('/plans'); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <CreditCard className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Planos
             </button>
-            <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <Tag className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Tipos de trabalho
+            <button onClick={() => { setShowServiceTags(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <Tag className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Tipos de trabalho
             </button>
-            <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E8E8F0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <HelpCircle className="w-3.5 h-3.5" style={{ color: '#8888A0' }} /> Como usar
+            <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <HelpCircle className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Como usar
             </button>
           </div>
         )}
@@ -499,7 +512,7 @@ export function ProjectSidebar({
             { label: 'Membros', onClick: () => setProjectMembersModal(contextMenu.projectId) },
             { label: 'Duplicar', onClick: () => setDuplicateDialog(contextMenu.projectId) },
             { label: 'Mudar cor', onClick: () => setColorPicker({ projectId: contextMenu.projectId, x: contextMenu.x, y: contextMenu.y }) },
-            { label: 'Excluir', danger: true, onClick: () => { if (window.confirm('Excluir este projeto e todas as suas tarefas?')) onDeleteProject(contextMenu.projectId); } },
+            { label: 'Excluir', danger: true, onClick: () => { if (window.confirm('Excluir este cliente e todas as suas tarefas?')) onDeleteProject(contextMenu.projectId); } },
           ]}
         />
       )}
@@ -508,7 +521,7 @@ export function ProjectSidebar({
       {colorPicker && (
         <>
           <div className="fixed inset-0 z-[99]" onClick={() => setColorPicker(null)} />
-          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <div className="fixed z-[100] p-2.5 rounded-lg border flex gap-2" style={{ left: colorPicker.x, top: colorPicker.y, background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             {PROJECT_COLORS.map(color => (
               <button key={color} onClick={() => { onChangeColor(colorPicker.projectId, color); setColorPicker(null); }}
                 className="w-6 h-6 rounded-full border-2 hover:scale-110 transition-transform"
@@ -522,9 +535,9 @@ export function ProjectSidebar({
       {/* Duplicate dialog */}
       {duplicateDialog && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="rounded-xl border p-5 w-[320px]" style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
-            <h3 className="text-[15px] font-semibold mb-1" style={{ color: '#E8E8F0' }}>Duplicar Projeto</h3>
-            <p className="text-[13px] mb-4" style={{ color: '#8888A0' }}>O que deseja duplicar?</p>
+          <div className="rounded-xl border p-5 w-[320px]" style={{ background: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+            <h3 className="text-[15px] font-semibold mb-1" style={{ color: '#E5E5E5' }}>Duplicar Cliente</h3>
+            <p className="text-[13px] mb-4" style={{ color: '#8A8A8A' }}>O que deseja duplicar?</p>
             <div className="flex flex-col gap-2">
               {([
                 { mode: 'sections' as const, label: 'Apenas Seções' },
@@ -533,13 +546,13 @@ export function ProjectSidebar({
               ]).map(({ mode, label }) => (
                 <button key={mode} onClick={async () => { const id = duplicateDialog; setDuplicateDialog(null); const newId = await onDuplicateProject(id, mode); onSelectProject(newId); }}
                   className="w-full h-9 px-3 text-left text-[13px] rounded-md border transition-colors"
-                  style={{ color: '#E8E8F0', borderColor: 'rgba(255, 255, 255, 0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  style={{ color: '#E5E5E5', borderColor: 'rgba(255, 255, 255, 0.06)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   {label}
                 </button>
               ))}
             </div>
-            <button onClick={() => setDuplicateDialog(null)} className="w-full mt-3 h-8 text-[13px] transition-colors" style={{ color: '#8888A0' }}>Cancelar</button>
+            <button onClick={() => setDuplicateDialog(null)} className="w-full mt-3 h-8 text-[13px] transition-colors" style={{ color: '#6B7280' }}>Cancelar</button>
           </div>
         </div>
       )}
