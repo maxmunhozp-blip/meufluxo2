@@ -151,17 +151,22 @@ export function GenerateMonthlyTasksButton({
     <button
       onClick={handleGenerate}
       disabled={generating}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium"
+      className="flex items-center gap-2"
       style={{
+        padding: '8px 16px',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--accent-blue)',
         color: 'var(--accent-blue)',
-        background: 'var(--accent-subtle)',
+        background: 'transparent',
+        fontSize: 14,
+        fontWeight: 500,
         opacity: generating ? 0.6 : 1,
         transition: 'all 150ms ease-out',
       }}
-      onMouseEnter={e => { if (!generating) e.currentTarget.style.background = 'rgba(108,156,252,0.14)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(108,156,252,0.08)'; }}
+      onMouseEnter={e => { if (!generating) e.currentTarget.style.background = 'var(--accent-subtle)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <CalendarPlus className="w-3.5 h-3.5" />
+      <CalendarPlus className="w-4 h-4" />
       {generating ? 'Gerando...' : 'Gerar Mês'}
     </button>
   );
