@@ -965,7 +965,7 @@ const Index = () => {
         </>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 transition-none pb-14 md:pb-0" style={{ background: 'var(--bg-base)' }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden transition-none pb-14 md:pb-0" style={{ background: 'var(--bg-base)' }}>
         {/* Tablet hamburger (768-1024px) */}
         <div className="hidden md:flex lg:hidden items-center h-12 px-3 border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
           <button
