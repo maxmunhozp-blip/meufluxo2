@@ -279,15 +279,8 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
 
-          <div
-            className="h-full px-4 md:px-6"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr minmax(60px, auto) minmax(40px, auto)',
-              alignItems: 'center',
-            }}
-          >
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="h-full px-4 md:px-6 flex items-center">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {hasSubtasks ? (
                 <button
                   onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
@@ -351,28 +344,36 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   )}
                 </div>
               )}
-              {/* Subtask count removed: research shows fraction counters (0/3) trigger 
-                 "completion anxiety" in ADHD — the expand chevron already signals subtasks exist.
-                 Progressive disclosure: expand to see individual statuses. */}
               {task.comments && task.comments.length > 0 && (
                 <span className="flex items-center gap-1 flex-shrink-0">
                   <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-[12px] text-muted-foreground">{task.comments.length}</span>
                 </span>
               )}
+
+              {/* Assignee — only if set */}
+              {task.assignee && (
+                <span className="text-[12px] truncate hidden md:block text-muted-foreground flex-shrink-0 max-w-[100px]">
+                  {task.assignee}
+                </span>
+              )}
+
+              {/* Due date — only if set */}
+              {task.dueDate && (
+                <span className={`text-[12px] hidden md:block flex-shrink-0 ${
+                  isDone ? 'text-muted-foreground' : overdue ? 'font-medium' : 'text-muted-foreground'
+                }`} style={overdue && !isDone ? { color: 'hsl(var(--status-overdue))' } : undefined}>
+                  {formatDate(task.dueDate)}
+                </span>
+              )}
+
+              {/* Rollover badge */}
+              {task.rolloverCount && task.rolloverCount > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive flex-shrink-0" title={`Adiada ${task.rolloverCount}x`}>
+                  ↻{task.rolloverCount}
+                </span>
+              )}
             </div>
-
-            {/* Responsável — only show if assigned */}
-            <span className="text-[12px] truncate hidden md:block text-muted-foreground">
-              {task.assignee || ''}
-            </span>
-
-            {/* Data — only show if set */}
-            <span className={`text-[12px] hidden md:block ${
-              isDone ? 'text-muted-foreground' : overdue ? 'font-medium' : 'text-muted-foreground'
-            }`} style={overdue && !isDone ? { color: 'hsl(var(--status-overdue))' } : undefined}>
-              {formatDate(task.dueDate)}
-            </span>
           </div>
         </div>
       </div>
