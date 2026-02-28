@@ -95,6 +95,8 @@
 
     /* States */
     --selection-bg: rgba(108, 156, 252, 0.3);
+    --accent-blue-muted: rgba(108, 156, 252, 0.15);
+    --warning-bg: rgba(245, 158, 11, 0.08);
     --highlight-bg: rgba(255, 184, 108, 0.25);
     --scrollbar-thumb: rgba(255, 255, 255, 0.15);
     --scrollbar-track: transparent;

@@ -72,7 +72,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
                   onClick={() => setIconPickerId(iconPickerId === tag.id ? null : tag.id)}
                   className="w-6 h-6 flex items-center justify-center rounded flex-shrink-0"
                 >
-                  <IconComp className="w-4 h-4" style={{ color: '#8888A0' }} />
+                  <IconComp className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
                 </button>
 
                 {editingId === tag.id ? (
@@ -112,7 +112,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
                         className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${tag.icon === opt.value ? 'bg-primary/20' : 'hover:bg-accent/50'}`}
                         title={opt.label}
                       >
-                        <opt.Icon className="w-4 h-4" style={{ color: tag.icon === opt.value ? 'hsl(var(--primary))' : '#8888A0' }} />
+                        <opt.Icon className="w-4 h-4" style={{ color: tag.icon === opt.value ? 'hsl(var(--primary))' : 'var(--text-secondary)' }} />
                       </button>
                     ))}
                   </div>
@@ -131,7 +131,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
               }}
               className="w-8 h-8 flex items-center justify-center rounded-md border border-border"
             >
-              {(() => { const I = getTagIcon(newIcon); return <I className="w-4 h-4" style={{ color: '#8888A0' }} />; })()}
+              {(() => { const I = getTagIcon(newIcon); return <I className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />; })()}
             </button>
             <input
               ref={inputRef}

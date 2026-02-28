@@ -80,13 +80,11 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     return { type: 'all-done' };
   }, [todayTasks, getTasksByPeriod]);
 
-  // Initialize
   useEffect(() => {
     setFocusState(findFirstTask());
     requestAnimationFrame(() => setFadeIn(true));
   }, []);
 
-  // Timer
   useEffect(() => {
     if (focusState?.type === 'task') {
       setElapsed(0);
@@ -95,7 +93,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     }
   }, [focusState?.type === 'task' ? (focusState as any).task?.id : null]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); return; }
@@ -111,7 +108,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const advanceToNext = useCallback((currentPeriod: DayPeriod) => {
     const pending = getTasksByPeriod(currentPeriod);
     if (pending.length > 0) {
-      // Slide transition
       setSlideOut(true);
       setTimeout(() => {
         setFocusState({ type: 'task', task: pending[0], periodKey: currentPeriod });
@@ -121,7 +117,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
       }, 300);
       return;
     }
-    // Section done — find next
     const next = getNextPeriod(currentPeriod);
     if (next) {
       const nextPending = getTasksByPeriod(next);
@@ -130,7 +125,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
         return;
       }
     }
-    // Check all periods
     const allPeriods: DayPeriod[] = ['morning', 'afternoon', 'evening'];
     for (const p of allPeriods) {
       if (getTasksByPeriod(p).length > 0) {
@@ -156,12 +150,10 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     if (focusState?.type !== 'task') return;
     const { task, periodKey } = focusState;
     setSkippedIds(prev => new Set(prev).add(task.id));
-    // Direct transition
     setSlideOut(true);
     setTimeout(() => {
       setSlideOut(false);
       setSlideIn(true);
-      // advanceToNext will update state
       const pending = getTasksByPeriod(periodKey).filter(t => t.id !== task.id);
       if (pending.length > 0) {
         setFocusState({ type: 'task', task: pending[0], periodKey });
@@ -180,7 +172,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
       s.id === subtask.id ? { ...s, status: newStatus } : s
     );
     onUpdateTask({ ...task, subtasks: updatedSubtasks });
-    // Also update via onStatusChange for DB persistence
     onStatusChange(subtask.id, newStatus);
   }, [focusState, onUpdateTask, onStatusChange]);
 
@@ -210,7 +201,6 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const currentSubtasks = focusState.type === 'task' ? (focusState.task.subtasks || []) : [];
   const allSubtasksDone = currentSubtasks.length > 0 && currentSubtasks.every(s => s.status === 'done');
 
-  // Get fresh task data from tasks array for subtask status
   const freshTask = focusState.type === 'task' ? tasks.find(t => t.id === focusState.task.id) : null;
   const displaySubtasks = freshTask?.subtasks || currentSubtasks;
 
@@ -220,17 +210,17 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
         fadeIn ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'
       }`}
       style={{
-        background: '#0D0D15',
+        background: 'var(--bg-focus)',
         transitionTimingFunction: EASING,
       }}
     >
-      {/* Close button — 44x44 touch target */}
+      {/* Close button */}
       <button
         onClick={onClose}
         className="absolute top-5 right-5 w-[44px] h-[44px] flex items-center justify-center transition-colors"
-        style={{ color: '#555570' }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+        style={{ color: 'var(--text-placeholder)' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
       >
         <X className="w-5 h-5" />
       </button>
@@ -239,11 +229,11 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
       {showCheck && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
           <svg width="80" height="80" viewBox="0 0 80 80" className="focus-check-anim">
-            <circle cx="40" cy="40" r="36" fill="none" stroke="#50FA7B" strokeWidth="2" opacity="0.2" />
+            <circle cx="40" cy="40" r="36" fill="none" stroke="var(--accent-green)" strokeWidth="2" opacity="0.2" />
             <path
               d="M24 42 L34 52 L56 30"
               fill="none"
-              stroke="#50FA7B"
+              stroke="var(--accent-green)"
               strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -261,22 +251,18 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
           transitionDuration: '300ms',
           transitionTimingFunction: EASING,
           opacity: showCheck ? 0.2 : slideOut ? 0 : 1,
-          transform: slideOut
-            ? 'translateX(-40px)'
-            : slideIn
-            ? 'translateX(0)'
-            : 'translateX(0)',
+          transform: slideOut ? 'translateX(-40px)' : 'translateX(0)',
         }}
       >
         {focusState.type === 'task' && (
           <>
-            {/* Line 1: Project badge */}
+            {/* Project badge */}
             {project && (
               <span
                 className="flex items-center gap-2 px-4 py-1.5 rounded-[6px] text-[12px] font-semibold mb-5"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  color: '#E8E8F0',
+                  background: 'var(--bg-hover)',
+                  color: 'var(--text-primary)',
                 }}
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
@@ -284,20 +270,20 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               </span>
             )}
 
-            {/* Line 2: Task name */}
+            {/* Task name */}
             <h1
               className="font-bold leading-tight mb-4"
               style={{
                 fontSize: 24,
                 fontWeight: 700,
-                color: '#E8E8F0',
+                color: 'var(--text-primary)',
                 maxWidth: 600,
               }}
             >
               {focusState.task.name}
             </h1>
 
-            {/* Line 3: Subtasks */}
+            {/* Subtasks */}
             {displaySubtasks.length > 0 && (
               <div
                 className="w-full mb-5 overflow-y-auto"
@@ -313,7 +299,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                     <svg width={16} height={16} viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
                       {sub.status === 'done' ? (
                         <>
-                          <circle cx="8" cy="8" r="7" fill="#50FA7B" />
+                          <circle cx="8" cy="8" r="7" fill="var(--accent-green)" />
                           <path
                             d="M5 8.5L7 10.5L11 6"
                             stroke="white"
@@ -324,12 +310,12 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                           />
                         </>
                       ) : (
-                        <circle cx="8" cy="8" r="6.5" stroke="#555570" strokeWidth="1" />
+                        <circle cx="8" cy="8" r="6.5" stroke="var(--text-placeholder)" strokeWidth="1" />
                       )}
                     </svg>
                     <span
                       className={`text-[14px] truncate ${sub.status === 'done' ? 'line-through' : ''}`}
-                      style={{ color: '#8888A0' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       {sub.name}
                     </span>
@@ -338,21 +324,21 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               </div>
             )}
 
-            {/* Line 4: Period + timer */}
+            {/* Period + timer */}
             {(() => {
               const info = getPeriodInfo(focusState.periodKey);
               const PeriodIcon = info.icon;
               return (
                 <div className="flex items-center gap-1.5 mb-8">
-                  <PeriodIcon style={{ width: 14, height: 14, color: '#555570' }} />
-                  <span style={{ fontSize: 12, color: '#555570' }}>
+                  <PeriodIcon style={{ width: 14, height: 14, color: 'var(--text-placeholder)' }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-placeholder)' }}>
                     {info.label}
                   </span>
-                  <span style={{ fontSize: 12, color: '#555570' }}> · </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-placeholder)' }}> · </span>
                   <span
                     style={{
                       fontSize: 12,
-                      color: '#555570',
+                      color: 'var(--text-placeholder)',
                       fontFamily: "'SF Mono', 'JetBrains Mono', monospace",
                     }}
                   >
@@ -362,20 +348,19 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               );
             })()}
 
-            {/* Line 5: Action buttons */}
+            {/* Action buttons */}
             <div className="flex items-center gap-3">
               <button
                 onClick={handleDone}
-                className="flex items-center gap-2 font-semibold text-white transition-all"
+                className="flex items-center gap-2 font-semibold transition-all"
                 style={{
-                  background: '#6C9CFC',
+                  background: 'var(--accent-blue)',
+                  color: 'var(--btn-text)',
                   borderRadius: 10,
                   height: 44,
                   padding: '0 24px',
                   fontSize: 14,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#5A8AEA'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#6C9CFC'; }}
               >
                 ✓ Feito
               </button>
@@ -384,20 +369,20 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                 className="flex items-center gap-2 transition-all"
                 style={{
                   background: 'transparent',
-                  border: '1px solid #333350',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: 10,
                   height: 44,
                   padding: '0 24px',
                   fontSize: 14,
-                  color: '#8888A0',
+                  color: 'var(--text-secondary)',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = '#555570';
-                  e.currentTarget.style.color = '#E8E8F0';
+                  e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = '#333350';
-                  e.currentTarget.style.color = '#8888A0';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
                 }}
               >
                 → Próxima
@@ -411,10 +396,10 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
           const nextInfo = focusState.nextPeriod ? getPeriodInfo(focusState.nextPeriod) : null;
           return (
             <>
-              <span style={{ fontSize: 14, fontWeight: 400, color: '#50FA7B', opacity: 0.6, marginBottom: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--accent-green)', opacity: 0.6, marginBottom: 8 }}>
                 Tudo feito por agora ✓
               </span>
-              <p style={{ fontSize: 13, color: '#555570', marginBottom: 32 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-placeholder)', marginBottom: 32 }}>
                 {info.label} concluída
               </p>
               <div className="flex items-center gap-3">
@@ -424,20 +409,20 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                     className="flex items-center gap-2 font-medium transition-all"
                     style={{
                       background: 'transparent',
-                      border: '1px solid #333350',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: 10,
                       height: 44,
                       padding: '0 24px',
                       fontSize: 14,
-                      color: '#8888A0',
+                      color: 'var(--text-secondary)',
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.borderColor = '#6C9CFC';
-                      e.currentTarget.style.color = '#E8E8F0';
+                      e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.borderColor = '#333350';
-                      e.currentTarget.style.color = '#8888A0';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
                     }}
                   >
                     Continuar para {nextInfo.label} →
@@ -448,18 +433,18 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                   className="flex items-center gap-2 font-medium transition-all"
                   style={{
                     background: 'transparent',
-                    border: '1px solid #333350',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: 10,
                     height: 44,
                     padding: '0 24px',
                     fontSize: 14,
-                    color: '#555570',
+                    color: 'var(--text-placeholder)',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.color = '#8888A0';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.color = '#555570';
+                    e.currentTarget.style.color = 'var(--text-placeholder)';
                   }}
                 >
                   Voltar ao Meu Dia
@@ -471,10 +456,10 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
 
         {focusState.type === 'all-done' && (
           <>
-            <span style={{ fontSize: 14, fontWeight: 400, color: '#50FA7B', opacity: 0.6, marginBottom: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--accent-green)', opacity: 0.6, marginBottom: 8 }}>
               Dia concluído ✓
             </span>
-            <p style={{ fontSize: 13, color: '#555570', marginBottom: 32 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-placeholder)', marginBottom: 32 }}>
               Bom trabalho.
             </p>
             <button
@@ -482,20 +467,20 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',
-                border: '1px solid #333350',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: 10,
                 height: 44,
                 padding: '0 24px',
                 fontSize: 14,
-                color: '#8888A0',
+                color: 'var(--text-secondary)',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = '#6C9CFC';
-                e.currentTarget.style.color = '#E8E8F0';
+                e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#333350';
-                e.currentTarget.style.color = '#8888A0';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
               Voltar ao Meu Dia
@@ -505,7 +490,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
 
         {focusState.type === 'empty' && (
           <>
-            <p style={{ fontSize: 14, color: '#555570', marginBottom: 24 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-placeholder)', marginBottom: 24 }}>
               Nenhuma tarefa para focar. Agende tarefas no Meu Dia.
             </p>
             <button
@@ -513,12 +498,12 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',
-                border: '1px solid #333350',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: 10,
                 height: 44,
                 padding: '0 24px',
                 fontSize: 14,
-                color: '#8888A0',
+                color: 'var(--text-secondary)',
               }}
             >
               Voltar
@@ -561,3 +546,4 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     </div>
   );
 }
+

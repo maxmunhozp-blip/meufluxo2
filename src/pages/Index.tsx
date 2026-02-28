@@ -718,16 +718,16 @@ const Index = () => {
     <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
-        <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: '#0F0F17', borderRight: '1px solid rgba(255,255,255,0.04)', transition: 'width 250ms ease-out' }}>
+         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-base)', borderRight: '1px solid var(--bg-hover)', transition: 'width 250ms ease-out' }}>
           <div className="flex flex-col items-center gap-1 pt-3 px-1">
             {/* Meu Dia */}
             <button
               onClick={sidebarProps.onToggleMyDay}
               className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
               title="Meu Dia"
-              style={{ color: '#8888A0' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#E8E8F0'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8888A0'; }}
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
               <Sun className="w-4 h-4" />
             </button>
@@ -735,12 +735,12 @@ const Index = () => {
             <button
               className="w-9 h-9 flex items-center justify-center rounded-lg"
               title="Minha Semana"
-              style={{ color: '#E8E8F0', background: 'rgba(255,255,255,0.06)' }}
+              style={{ color: 'var(--text-primary)', background: 'var(--bg-active)' }}
             >
               <CalendarDays className="w-4 h-4" />
             </button>
           </div>
-          <div className="mx-2 my-2" style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+          <div className="mx-2 my-2" style={{ height: 1, background: 'var(--border-input)' }} />
           {/* Project dots */}
           <div className="flex flex-col items-center gap-1.5 px-1 flex-1 overflow-y-auto">
             {projects.map(p => (
@@ -749,7 +749,7 @@ const Index = () => {
                 onClick={() => { sidebarProps.onSelectProject(p.id); }}
                 title={p.name}
                 className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
@@ -848,7 +848,7 @@ const Index = () => {
         ) : activeProject ? (
           <>
             {/* Tabs: Tarefas / Notas */}
-            <div className="flex items-center border-b" style={{ borderColor: 'rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>
+             <div className="flex items-center border-b" style={{ borderColor: 'var(--border-input)', background: 'hsl(var(--bg-app))' }}>
               <TaskListHeader
                 projectName={activeProject.name}
                 pendingCount={pendingCount}
@@ -859,22 +859,22 @@ const Index = () => {
                 onMonthChange={setActiveMonth}
               />
             </div>
-            <div className="flex items-center gap-0 px-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>
+            <div className="flex items-center gap-0 px-6" style={{ borderBottom: '1px solid var(--border-input)', background: 'hsl(var(--bg-app))' }}>
               <button
                 onClick={() => setProjectViewTab('tasks')}
                 className="px-3 py-2 text-sm font-medium transition-colors relative"
-                style={{ color: projectViewTab === 'tasks' ? '#E8E8F0' : '#555570' }}
+                style={{ color: projectViewTab === 'tasks' ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
               >
                 Tarefas
-                {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#6C9CFC' }} />}
+                {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
               </button>
               <button
                 onClick={() => setProjectViewTab('notes')}
                 className="px-3 py-2 text-sm font-medium transition-colors relative"
-                style={{ color: projectViewTab === 'notes' ? '#E8E8F0' : '#555570' }}
+                style={{ color: projectViewTab === 'notes' ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
               >
                 Notas
-                {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#6C9CFC' }} />}
+                {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
               </button>
               {/* Spacer + actions */}
               <div className="flex-1" />
@@ -885,9 +885,9 @@ const Index = () => {
               <button
                 onClick={() => setShowTemplateModal(true)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg ml-1"
-                style={{ color: '#8888A0' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; e.currentTarget.style.background = 'transparent'; }}
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent'; }}
                 title="Configurar template de entregas"
               >
                 <Settings className="w-4 h-4" />

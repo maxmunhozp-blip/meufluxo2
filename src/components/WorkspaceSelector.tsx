@@ -72,12 +72,12 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 group transition-colors"
       >
-        <span className="text-[12px] font-medium truncate max-w-[100px]" style={{ color: '#8888A0' }}>
+        <span className="text-[12px] font-medium truncate max-w-[100px]" style={{ color: 'var(--text-secondary)' }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
           className={`w-3 h-3 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`}
-          style={{ color: '#8888A0' }}
+          style={{ color: 'var(--text-secondary)' }}
         />
       </button>
 
