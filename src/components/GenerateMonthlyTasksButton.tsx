@@ -34,13 +34,15 @@ export function GenerateMonthlyTasksButton({
       const yearStr = target.getFullYear();
 
       // Check existing instances
-      const { data: existingInstances } = await (supabase.from('monthly_instances' as any) as any)
+      const { data: existingInstances } = await supabase
+        .from('monthly_instances')
         .select('id, template_id')
         .eq('project_id', projectId)
         .eq('month', monthDate);
 
       // Load templates
-      const { data: templates, error: tErr } = await (supabase.from('client_delivery_templates' as any) as any)
+      const { data: templates, error: tErr } = await supabase
+        .from('client_delivery_templates')
         .select('*')
         .eq('project_id', projectId)
         .eq('is_active', true)
@@ -57,7 +59,8 @@ export function GenerateMonthlyTasksButton({
         const confirmed = window.confirm(`${monthName} ${yearStr} já foi gerado. Gerar novamente? (As tarefas anteriores não serão removidas)`);
         if (!confirmed) return;
         // Delete old instances
-        await (supabase.from('monthly_instances' as any) as any)
+        await supabase
+          .from('monthly_instances')
           .delete()
           .eq('project_id', projectId)
           .eq('month', monthDate);
@@ -107,7 +110,8 @@ export function GenerateMonthlyTasksButton({
         if (!sectionId) continue;
 
         // Create monthly instance
-        const { data: instance, error: instErr } = await (supabase.from('monthly_instances' as any) as any)
+        const { data: instance, error: instErr } = await supabase
+          .from('monthly_instances')
           .insert({
             template_id: template.id,
             project_id: projectId,
@@ -125,14 +129,15 @@ export function GenerateMonthlyTasksButton({
         }
 
         // Generate tasks from template
-        const tasksToInsert = (template.tasks_template || []).map((t: any, idx: number) => ({
+        const tasksTemplate = Array.isArray(template.tasks_template) ? template.tasks_template : [];
+        const tasksToInsert = tasksTemplate.map((t: any, idx: number) => ({
           title: t.title || 'Tarefa sem título',
           project_id: projectId,
           workspace_id: workspaceId,
           section_id: sectionId,
           position: idx,
-          status: 'pending',
-          priority: 'low',
+          status: 'pending' as const,
+          priority: 'low' as const,
           template_id: template.id,
           monthly_instance_id: instance.id,
           service_tag_id: t.tipo_trabalho || null,
