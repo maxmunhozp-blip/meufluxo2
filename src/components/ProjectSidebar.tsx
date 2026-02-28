@@ -330,6 +330,7 @@ interface ProjectSidebarProps {
   onRenameSection?: (id: string, title: string) => void;
   onDeleteSection?: (id: string) => void;
   onMoveTaskToProject?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
+  onMoveTaskToSection?: (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => void;
 }
 
 export function ProjectSidebar({
@@ -343,7 +344,7 @@ export function ProjectSidebar({
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
-  onRenameSection, onDeleteSection, onMoveTaskToProject,
+  onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -527,6 +528,7 @@ export function ProjectSidebar({
                     onCancelSectionRename={() => setRenamingSectionId(null)}
                     sectionRenameRef={sectionRenameRef}
                     onDropTask={onMoveTaskToProject}
+                    onDropTaskToSection={onMoveTaskToSection}
                     isDraggingTask={isDraggingTask}
                   />
                 )
