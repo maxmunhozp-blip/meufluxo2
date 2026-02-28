@@ -811,6 +811,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_section_positions: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
