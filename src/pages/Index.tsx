@@ -6,7 +6,7 @@ import {
   CollisionDetection,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Menu } from 'lucide-react';
+import { Menu, Sun, CalendarDays } from 'lucide-react';
 import { StatusCheckbox } from '@/components/StatusCheckbox';
 import { ProjectSidebar } from '@/components/ProjectSidebar';
 import { BottomNav } from '@/components/BottomNav';
@@ -64,6 +64,7 @@ const Index = () => {
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [isTimelineActive, setIsTimelineActive] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     try {
       const raw = localStorage.getItem('meufluxo_expanded_sections');
@@ -585,7 +586,7 @@ const Index = () => {
     sections: sectionList,
     activeProjectId,
     activeSectionId,
-    onSelectProject: (id: string) => { setActiveSectionId(null); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
+    onSelectProject: (id: string) => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
     onSelectSection: (sectionId: string) => {
       const section = sectionList.find(s => s.id === sectionId);
       if (section) {
@@ -604,9 +605,9 @@ const Index = () => {
     onImport: importData,
     onLogout: handleLogout,
     isMyDayView,
-    onToggleMyDay: () => { setActiveSectionId(null); setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
+    onToggleMyDay: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
     isMyTasksView,
-    onToggleMyTasks: () => { setActiveSectionId(null); setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
+    onToggleMyTasks: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
     isMyWeekView,
     onToggleMyWeek: () => { setActiveSectionId(null); setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
     tasks: taskList,
@@ -660,17 +661,61 @@ const Index = () => {
 
   return (
     <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
-      {/* Desktop sidebar (always visible >1024px) */}
-      <div className="hidden lg:block flex-shrink-0" style={{ width: Math.min(sidebarWidth, 240), minWidth: 120, maxWidth: '25vw' }}>
-        <ProjectSidebar {...sidebarProps} />
-      </div>
-      {/* Sidebar resize handle (desktop only) */}
-      <div
-        className="hidden lg:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
-        onMouseDown={(e) => handleResizeMouseDown('sidebar', e)}
-      >
-        <div className="w-[2px] mx-auto h-full group-hover:bg-primary/40 transition-colors" />
-      </div>
+      {/* Desktop sidebar — collapses to mini mode during timeline */}
+      {isMyWeekView && isTimelineActive ? (
+        <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: '#0F0F17', borderRight: '1px solid rgba(255,255,255,0.04)', transition: 'width 250ms ease-out' }}>
+          <div className="flex flex-col items-center gap-1 pt-3 px-1">
+            {/* Meu Dia */}
+            <button
+              onClick={sidebarProps.onToggleMyDay}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+              title="Meu Dia"
+              style={{ color: '#8888A0' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#E8E8F0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8888A0'; }}
+            >
+              <Sun className="w-4 h-4" />
+            </button>
+            {/* Minha Semana */}
+            <button
+              className="w-9 h-9 flex items-center justify-center rounded-lg"
+              title="Minha Semana"
+              style={{ color: '#E8E8F0', background: 'rgba(255,255,255,0.06)' }}
+            >
+              <CalendarDays className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="mx-2 my-2" style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+          {/* Project dots */}
+          <div className="flex flex-col items-center gap-1.5 px-1 flex-1 overflow-y-auto">
+            {projects.map(p => (
+              <button
+                key={p.id}
+                onClick={() => { sidebarProps.onSelectProject(p.id); }}
+                title={p.name}
+                className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="hidden lg:block flex-shrink-0" style={{ width: Math.min(sidebarWidth, 240), minWidth: 120, maxWidth: '25vw', transition: 'width 250ms ease-out' }}>
+            <ProjectSidebar {...sidebarProps} />
+          </div>
+          {/* Sidebar resize handle (desktop only) */}
+          <div
+            className="hidden lg:flex items-stretch w-1 cursor-col-resize group hover:bg-primary/20 transition-colors relative z-20"
+            onMouseDown={(e) => handleResizeMouseDown('sidebar', e)}
+          >
+            <div className="w-[2px] mx-auto h-full group-hover:bg-primary/40 transition-colors" />
+          </div>
+        </>
+      )}
 
       {/* Tablet sidebar (collapsible overlay 768-1024px) + Mobile sidebar (overlay <768px) */}
       {mobileSidebarOpen && (
@@ -720,6 +765,7 @@ const Index = () => {
             selectedTaskId={selectedTaskId || undefined}
             isPro={planLimits.isPro}
             onUpgrade={() => setShowUpgradeModal(true)}
+            onViewModeChange={(mode) => setIsTimelineActive(mode === 'timeline')}
           />
         ) : isMyTasksView ? (
           <>
