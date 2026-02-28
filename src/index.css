@@ -16,69 +16,69 @@
   /* ---- DARK MODE (padrão do MeuFluxo) ---- */
   :root,
   [data-theme="dark"] {
-    /* shadcn base tokens (HSL) */
-    --background: 0 0% 5%;
-    --foreground: 0 0% 90%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 90%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 90%;
-    --primary: 217 91% 60%;
+    /* shadcn base tokens (HSL) — blue-tinted neutrals */
+    --background: 240 24% 7%;
+    --foreground: 240 6% 90%;
+    --card: 240 22% 13%;
+    --card-foreground: 240 6% 90%;
+    --popover: 240 22% 13%;
+    --popover-foreground: 240 6% 90%;
+    --primary: 222 80% 70%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 54%;
-    --accent: 217 91% 60%;
+    --secondary: 240 20% 16%;
+    --secondary-foreground: 240 6% 90%;
+    --muted: 240 18% 18%;
+    --muted-foreground: 240 4% 54%;
+    --accent: 222 80% 70%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 17%;
-    --input: 0 0% 14%;
-    --ring: 217 91% 60%;
+    --border: 240 16% 19%;
+    --input: 240 20% 16%;
+    --ring: 222 80% 70%;
     --radius: 0.5rem;
 
-    /* Backgrounds */
-    --bg-base: #0D0D0D;
-    --bg-surface: #1A1A1A;
-    --bg-elevated: #242424;
-    --bg-input: #151515;
-    --bg-focus: #0A0A0A;
+    /* Backgrounds — each level ~5% luminance step */
+    --bg-base: #0F0F17;
+    --bg-surface: #1A1A28;
+    --bg-elevated: #242438;
+    --bg-input: #15152A;
+    --bg-focus: #0A0A12;
     --bg-hover: rgba(255, 255, 255, 0.04);
     --bg-active: rgba(255, 255, 255, 0.08);
-    --bg-app: 0 0% 5%;
-    --bg-surface-hsl: 0 0% 10%;
-    --bg-surface-alt: 0 0% 12%;
-    --bg-elevated-hsl: 0 0% 14%;
-    --bg-active-hsl: 0 0% 18%;
-    --bg-hover-hsl: 0 0% 13%;
-    --bg-subtask: 0 0% 11%;
-    --bg-input-hsl: 0 0% 8%;
-    --bg-overlay: 0 0% 0% / 0.5;
+    --bg-app: 240 24% 7%;
+    --bg-surface-hsl: 240 22% 13%;
+    --bg-surface-alt: 240 20% 14%;
+    --bg-elevated-hsl: 240 21% 18%;
+    --bg-active-hsl: 240 18% 20%;
+    --bg-hover-hsl: 240 20% 15%;
+    --bg-subtask: 240 22% 12%;
+    --bg-input-hsl: 240 29% 12%;
+    --bg-overlay: 240 24% 0% / 0.5;
 
-    /* Text */
-    --text-primary: #E5E5E5;
-    --text-secondary: #8A8A8A;
-    --text-tertiary: #6E6E6E;
-    --text-placeholder: #555555;
-    --text-primary-hsl: 0 0% 90%;
-    --text-secondary-hsl: 0 0% 54%;
-    --text-muted: 0 0% 38%;
-    --text-completed: 0 0% 38%;
+    /* Text — contrast ratio hierarchy ~2x per step */
+    --text-primary: #E8E8F0;
+    --text-secondary: #8888A0;
+    --text-tertiary: #6E6E84;
+    --text-placeholder: #555568;
+    --text-primary-hsl: 240 14% 93%;
+    --text-secondary-hsl: 240 10% 58%;
+    --text-muted: 240 8% 40%;
+    --text-completed: 240 8% 40%;
 
-    /* Accents */
-    --accent-blue: #3B82F6;
+    /* Accents — recalibrated for dark (vibrant for visibility) */
+    --accent-blue: #6C9CFC;
     --accent-amber: #FFB86C;
     --accent-green: #50DA7C;
 
     /* Buttons */
-    --btn-primary: #3B82F6;
+    --btn-primary: #6C9CFC;
     --btn-warning: #C47A1A;
     --btn-success: #2D8A4E;
     --btn-text: #FFFFFF;
 
     /* Client colors */
-    --client-blue: #3B82F6;
+    --client-blue: #6C9CFC;
     --client-amber: #FFB86C;
     --client-rose: #FF6B9D;
     --client-green: #50DA7C;
@@ -87,27 +87,27 @@
     --client-olive: #E6D44D;
 
     /* Borders */
-    --border-subtle: #2A2A2A;
+    --border-subtle: #2A2A3C;
     --border-input: rgba(255, 255, 255, 0.10);
-    --border-focus: #3B82F6;
-    --border-subtle-hsl: 0 0% 17%;
-    --border-input-hsl: 0 0% 22%;
+    --border-focus: #6C9CFC;
+    --border-subtle-hsl: 240 16% 19%;
+    --border-input-hsl: 240 14% 24%;
 
     /* States */
-    --selection-bg: rgba(59, 130, 246, 0.3);
+    --selection-bg: rgba(108, 156, 252, 0.3);
     --highlight-bg: rgba(255, 184, 108, 0.25);
     --scrollbar-thumb: rgba(255, 255, 255, 0.15);
     --scrollbar-track: transparent;
 
     /* Status */
     --status-done: 140 94% 65%;
-    --status-progress: 217 91% 60%;
-    --status-pending: 0 0% 38%;
+    --status-progress: 222 80% 70%;
+    --status-pending: 240 8% 40%;
     --status-overdue: 0 84% 60%;
     --priority-high: 0 84% 60%;
     --priority-medium: 45 100% 72%;
 
-    /* Shadows */
+    /* Shadows — black pure (high opacity) for dark mode */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -119,7 +119,7 @@
     --warning-muted: 30 80% 60%;
 
     /* Project palette (HSL) */
-    --project-1: 217 91% 60%;
+    --project-1: 222 80% 70%;
     --project-2: 30 100% 71%;
     --project-3: 330 100% 63%;
     --project-4: 140 94% 65%;
@@ -128,23 +128,23 @@
     --project-7: 65 93% 77%;
 
     /* Sidebar */
-    --bg-sidebar: 0 0% 5%;
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 217 91% 60%;
+    --bg-sidebar: 240 24% 7%;
+    --sidebar-background: 240 24% 7%;
+    --sidebar-foreground: 240 14% 93%;
+    --sidebar-primary: 222 80% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 17%;
-    --sidebar-ring: 217 91% 60%;
-    --sidebar-active: 0 0% 18%;
-    --sidebar-separator: 0 0% 17%;
-    --sidebar-label: 0 0% 54%;
+    --sidebar-accent: 240 20% 16%;
+    --sidebar-accent-foreground: 240 6% 90%;
+    --sidebar-border: 240 16% 19%;
+    --sidebar-ring: 222 80% 70%;
+    --sidebar-active: 240 18% 20%;
+    --sidebar-separator: 240 16% 19%;
+    --sidebar-label: 240 10% 58%;
 
     /* Dropdown tokens */
-    --dropdown-bg: 0 0% 10%;
-    --dropdown-border: 0 0% 17%;
-    --dropdown-hover: 0 0% 18%;
+    --dropdown-bg: 240 22% 13%;
+    --dropdown-border: 240 16% 19%;
+    --dropdown-hover: 240 18% 20%;
   }
 
   /* ---- LIGHT MODE (warm ivory) ---- */
