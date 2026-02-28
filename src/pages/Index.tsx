@@ -689,6 +689,8 @@ const Index = () => {
     onDeleteServiceTag: deleteServiceTag,
     onCycleTheme: cycleTheme,
     themePreference: preference,
+    onRenameSection: handleRenameSection,
+    onDeleteSection: handleDeleteSection,
   };
 
   // Determine active view for bottom nav
