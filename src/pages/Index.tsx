@@ -860,7 +860,7 @@ const Index = () => {
               />
             </div>
             <div style={{ height: 24 }} />
-            <div className="flex items-center px-8" style={{ borderBottom: '1px solid var(--border-subtle)', gap: 24 }}>
+            <div className="flex items-center" style={{ padding: '0 32px', borderBottom: '1px solid var(--border-subtle)', gap: 24 }}>
               <button
                 onClick={() => setProjectViewTab('tasks')}
                 className="relative transition-colors"
@@ -873,7 +873,7 @@ const Index = () => {
                 }}
               >
                 Tarefas
-                {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
+                {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
               <button
                 onClick={() => setProjectViewTab('notes')}
@@ -887,7 +887,7 @@ const Index = () => {
                 }}
               >
                 Notas
-                {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
+                {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
               {/* Spacer + actions */}
               <div className="flex-1" />

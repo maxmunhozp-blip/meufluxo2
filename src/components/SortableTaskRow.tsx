@@ -246,7 +246,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   return (
     <div ref={setNodeRef} data-task-id={task.id} className="relative">
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
-      <div className="flex" style={{ marginBottom: 4 }}>
+      <div className="flex" style={{ marginBottom: 12 }}>
         <div
           className={`flex-1 min-w-0 group cursor-pointer transition-all duration-150 relative ${
             isDragSource ? 'opacity-40' : ''
