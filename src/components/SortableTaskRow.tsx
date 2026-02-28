@@ -70,9 +70,11 @@ function SubtaskDragOverlay({ subtask }: { subtask: Subtask }) {
   );
 }
 
-function SubtaskDndWrapper({ subtasks, taskId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask }: {
+function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask }: {
   subtasks: Subtask[];
   taskId: string;
+  parentProjectId: string;
+  parentSectionId: string;
   selectedSubtaskId?: string;
   onSelectSubtask?: (subtask: Subtask) => void;
   onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
@@ -131,6 +133,8 @@ function SubtaskDndWrapper({ subtasks, taskId, selectedSubtaskId, onSelectSubtas
             key={sub.id}
             subtask={sub}
             parentTaskId={taskId}
+            parentProjectId={parentProjectId}
+            parentSectionId={parentSectionId}
             isSelected={selectedSubtaskId === sub.id}
             isDragging={activeSubtaskId === sub.id}
             dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
@@ -433,6 +437,8 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           <SubtaskDndWrapper
             subtasks={task.subtasks!}
             taskId={task.id}
+            parentProjectId={task.projectId}
+            parentSectionId={task.section}
             selectedSubtaskId={selectedSubtaskId}
             onSelectSubtask={onSelectSubtask}
             onSubtaskStatusChange={onSubtaskStatusChange}
