@@ -37,6 +37,7 @@ interface TaskSectionProps {
   onMoveToSection?: (taskId: string, sectionId: string) => void;
   projectColor?: string;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  fadingOutTaskId?: string | null;
 }
 
 // Footer input with Tab-indent support
@@ -154,6 +155,7 @@ export function TaskSection({
   onMoveToSection,
   projectColor,
   onAddSubtask,
+  fadingOutTaskId,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -302,6 +304,7 @@ export function TaskSection({
                 sections={allSections}
                 onMoveToSection={onMoveToSection}
                 onAddSubtask={onAddSubtask}
+                isFadingOut={fadingOutTaskId === task.id}
               />
             ))}
           </SortableContext>
