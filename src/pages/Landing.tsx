@@ -6,6 +6,8 @@ import appMockup from '@/assets/app-mockup.png';
 import mockupMeuDia from '@/assets/mockup-meu-dia.jpg';
 import mockupProjeto from '@/assets/mockup-projeto.jpg';
 import mockupFoco from '@/assets/mockup-foco.jpg';
+import demoDragDrop from '@/assets/demo-drag-drop.mp4';
+import demoFocusMode from '@/assets/demo-focus-mode.mp4';
 import {
   CheckCircle2, Brain, Shield, Zap, ArrowRight, Sparkles,
   Sun, Moon, Eye, Clock, ListChecks, Users, Calendar,
@@ -273,6 +275,79 @@ export default function Landing() {
           <ChevronDown className="w-5 h-5 text-muted-foreground/50" />
         </motion.div>
       </motion.section>
+
+      {/* ─── VIDEO DEMOS ─── */}
+      <section className="py-24 px-6 border-t border-border/30">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={fadeUp}
+            className="text-center mb-16"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Em movimento</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Veja como flui.
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Animações suaves, transições gentis e interações que fazem sentido.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Drag & Drop demo */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeUp}
+              custom={0}
+            >
+              <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/30 mb-4">
+                <video
+                  src={demoDragDrop}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-auto"
+                />
+                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-foreground mb-1">Drag & Drop inteligente</h3>
+                <p className="text-sm text-muted-foreground">Arraste tarefas entre clientes com um gesto. Desfaça com um clique.</p>
+              </div>
+            </motion.div>
+
+            {/* Focus Mode demo */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeUp}
+              custom={1}
+            >
+              <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/30 mb-4">
+                <video
+                  src={demoFocusMode}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-auto"
+                />
+                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-foreground mb-1">Modo Foco imersivo</h3>
+                <p className="text-sm text-muted-foreground">Uma tarefa de cada vez. Sem distrações, sem ansiedade.</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       {/* ─── SOCIAL PROOF BAR ─── */}
       <section className="py-12 border-y border-border/30">
