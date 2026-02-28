@@ -1,11 +1,11 @@
-import { useState, useRef, useMemo } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User } from 'lucide-react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Project, Task, ServiceTag } from '@/types/task';
+import { Project, Task, Section, ServiceTag } from '@/types/task';
 import { ContextMenu } from './ContextMenu';
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { ProjectMembersModal } from './ProjectMembersModal';
@@ -15,13 +15,163 @@ import { ServiceTagsManager } from './ServiceTagsManager';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
-// Apple-style transition
 const APPLE_EASE = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+const SIDEBAR_EXPANSION_KEY = 'meufluxo_sidebar_expanded_projects';
+
+function loadExpandedProjects(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(SIDEBAR_EXPANSION_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function SortableProjectItem({
+  project,
+  isActive,
+  isExpanded,
+  sections,
+  tasks,
+  activeSectionId,
+  onSelect,
+  onSelectSection,
+  onToggleExpand,
+  onContextMenu,
+  onColorClick,
+}: {
+  project: Project;
+  isActive: boolean;
+  isExpanded: boolean;
+  sections: Section[];
+  tasks: Task[];
+  activeSectionId?: string | null;
+  onSelect: () => void;
+  onSelectSection?: (sectionId: string) => void;
+  onToggleExpand: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
+  onColorClick: (e: React.MouseEvent) => void;
+}) {
+  const {
+    attributes, listeners, setNodeRef, transform, transition, isDragging,
+  } = useSortable({ id: project.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 200ms ease',
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const projectTaskCount = useMemo(
+    () => tasks.filter(t => t.projectId === project.id && t.status !== 'done' && !t.parentTaskId).length,
+    [tasks, project.id]
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div
+        className="group w-full flex items-center gap-1.5 cursor-pointer relative select-none"
+        onContextMenu={onContextMenu}
+        style={{
+          height: 36,
+          paddingLeft: 6,
+          paddingRight: 10,
+          borderRadius: 8,
+          color: isActive ? '#E8E8F0' : '#8888A0',
+          fontWeight: isActive ? 500 : 400,
+          fontSize: 14,
+          transition: `color 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = style.transform || ''; }}
+        onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = `${style.transform || ''} scale(0.98)`.trim(); }}
+        onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = style.transform || ''; }}
+      >
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
+        </div>
+        {/* Chevron for expand/collapse */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
+          className="w-4 h-4 flex items-center justify-center flex-shrink-0"
+          style={{ marginLeft: 4 }}
+        >
+          <ChevronRight
+            className="w-3 h-3 transition-transform"
+            style={{
+              color: '#555570',
+              transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 200ms ease-out',
+            }}
+          />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
+          className="w-2 h-2 rounded-full flex-shrink-0 hover:scale-125 transition-transform"
+          style={{ background: project.color }}
+        />
+        <span className="truncate flex-1 text-left" onClick={onSelect}>{project.name}</span>
+        {projectTaskCount > 0 && (
+          <span className="text-[12px] tabular-nums flex-shrink-0" style={{ color: '#555570' }}>
+            {projectTaskCount}
+          </span>
+        )}
+      </div>
+
+      {/* Expandable sections list */}
+      <div
+        style={{
+          overflow: 'hidden',
+          maxHeight: isExpanded ? `${sections.length * 32 + 4}px` : '0px',
+          opacity: isExpanded ? 1 : 0,
+          transition: 'max-height 200ms ease-out, opacity 150ms ease-out 50ms',
+        }}
+      >
+        {sections.map(section => {
+          const sectionTaskCount = tasks.filter(t => t.section === section.id && t.status !== 'done' && !t.parentTaskId).length;
+          const isSectionActive = activeSectionId === section.id;
+          return (
+            <button
+              key={section.id}
+              onClick={() => onSelectSection?.(section.id)}
+              className="w-full flex items-center gap-2 select-none"
+              style={{
+                height: 30,
+                paddingLeft: 28,
+                paddingRight: 10,
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 400,
+                color: isSectionActive ? '#E8E8F0' : '#8888A0',
+                transition: `color 150ms ease-out, background 120ms ease-out`,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; if (!isSectionActive) e.currentTarget.style.color = '#E8E8F0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = '#8888A0'; }}
+            >
+              <span className="truncate flex-1 text-left">{section.title}</span>
+              {sectionTaskCount > 0 && (
+                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: '#555570' }}>
+                  {sectionTaskCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 interface ProjectSidebarProps {
   projects: Project[];
+  sections?: Section[];
   activeProjectId: string;
+  activeSectionId?: string | null;
   onSelectProject: (id: string) => void;
+  onSelectSection?: (sectionId: string) => void;
   onCreateProject: (name: string, color: string) => void;
   onRenameProject: (id: string, name: string) => void;
   onDeleteProject: (id: string) => void;
@@ -59,71 +209,9 @@ interface ProjectSidebarProps {
   onDeleteServiceTag?: (id: string) => Promise<void>;
 }
 
-function SortableProjectItem({
-  project,
-  isActive,
-  onSelect,
-  onContextMenu,
-  onColorClick,
-}: {
-  project: Project;
-  isActive: boolean;
-  onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
-  onColorClick: (e: React.MouseEvent) => void;
-}) {
-  const {
-    attributes, listeners, setNodeRef, transform, transition, isDragging,
-  } = useSortable({ id: project.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms ease',
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      className="group w-full flex items-center gap-2.5 cursor-pointer relative select-none"
-      onClick={onSelect}
-      onContextMenu={onContextMenu}
-      style={{
-        ...style,
-        height: 36,
-        paddingLeft: 10,
-        paddingRight: 10,
-        borderRadius: 8,
-        color: isActive ? '#E8E8F0' : '#8888A0',
-        fontWeight: isActive ? 500 : 400,
-        fontSize: 13,
-        transition: `color 200ms ${APPLE_EASE}, font-weight 200ms ${APPLE_EASE}, background 120ms ease-out, transform 60ms ease-out`,
-      }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = style.transform || ''; }}
-      onMouseDown={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.transform = `${style.transform || ''} scale(0.98)`.trim(); }}
-      onMouseUp={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.transform = style.transform || ''; }}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GripVertical className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
-      </div>
-      <button
-        onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0 hover:scale-125 transition-transform"
-        style={{ background: project.color }}
-      />
-      <span className="truncate">{project.name}</span>
-    </div>
-  );
-}
-
 export function ProjectSidebar({
-  projects, activeProjectId, onSelectProject, onCreateProject, onRenameProject, onDeleteProject,
+  projects, sections: allSections = [], activeProjectId, activeSectionId, onSelectProject, onSelectSection,
+  onCreateProject, onRenameProject, onDeleteProject,
   onChangeColor, onReorderProjects, onDuplicateProject, onExport, onImport, onLogout,
   isMyDayView, onToggleMyDay, isMyTasksView, onToggleMyTasks, isMyWeekView, onToggleMyWeek,
   tasks = [], workspaces = [], activeWorkspaceId, workspaceMembers = [],
@@ -143,9 +231,18 @@ export function ProjectSidebar({
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showServiceTags, setShowServiceTags] = useState(false);
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>(loadExpandedProjects);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleProjectExpand = (projectId: string) => {
+    setExpandedProjects(prev => {
+      const next = { ...prev, [projectId]: !prev[projectId] };
+      localStorage.setItem(SIDEBAR_EXPANSION_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -256,7 +353,13 @@ export function ProjectSidebar({
                     key={project.id}
                     project={project}
                     isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView}
+                    isExpanded={!!expandedProjects[project.id]}
+                    sections={allSections.filter(s => s.projectId === project.id)}
+                    tasks={tasks}
+                    activeSectionId={activeSectionId}
                     onSelect={() => onSelectProject(project.id)}
+                    onSelectSection={onSelectSection}
+                    onToggleExpand={() => toggleProjectExpand(project.id)}
                     onContextMenu={(e) => { e.preventDefault(); setContextMenu({ projectId: project.id, x: e.clientX, y: e.clientY }); }}
                     onColorClick={(e) => { e.stopPropagation(); const rect = (e.target as HTMLElement).getBoundingClientRect(); setColorPicker({ projectId: project.id, x: rect.right + 8, y: rect.top }); }}
                   />
