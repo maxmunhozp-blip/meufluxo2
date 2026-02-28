@@ -63,19 +63,19 @@ function SortableProjectItem({
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className="group w-full flex items-center gap-1.5 cursor-pointer relative select-none"
+        className="group w-full flex items-center gap-2 cursor-pointer relative select-none"
         onContextMenu={onContextMenu}
         style={{
           height: 36,
-          paddingLeft: 6,
-          paddingRight: 10,
+          paddingLeft: 8,
+          paddingRight: 12,
           borderRadius: 'var(--radius-md)',
           color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
-          transition: `color 150ms ease-out, background 150ms ease-out`,
+          transition: 'all 150ms ease-out',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         <div
@@ -90,22 +90,21 @@ function SortableProjectItem({
         <button
           onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
           className="w-4 h-4 flex items-center justify-center flex-shrink-0"
-          style={{ marginLeft: 4 }}
         >
           <ChevronRight
             className="w-3 h-3 transition-transform"
             style={{
-              color: 'var(--text-placeholder)',
+              color: 'var(--text-tertiary)',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
               transition: 'transform 150ms ease-out',
             }}
           />
         </button>
-        {/* Color dot — 6px */}
+        {/* Color dot — 6px with 8px margin-right */}
         <button
           onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
           className="flex-shrink-0 hover:scale-125 transition-transform"
-          style={{ width: 6, height: 6, borderRadius: '50%', background: project.color }}
+          style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4 }}
         />
         <span className="truncate flex-1 text-left" onClick={onSelect}>{project.name}</span>
       </div>
@@ -135,20 +134,20 @@ function SortableProjectItem({
               className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 28,
-                paddingLeft: 24,
-                paddingRight: 10,
+                paddingLeft: 32,
+                paddingRight: 12,
                 borderRadius: 'var(--radius-sm)',
                 fontSize: 12,
                 fontWeight: 400,
                 color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                transition: `color var(--transition-normal), background var(--transition-normal)`,
+                transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
               {totalTasks > 0 && (
-                <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                <span className="text-[12px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
                   {doneTasks}/{totalTasks}
                 </span>
               )}
@@ -309,31 +308,32 @@ export function ProjectSidebar({
       className="w-full flex items-center gap-2.5 cursor-pointer select-none"
       style={{
         height: 36,
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingLeft: 12,
+        paddingRight: 12,
         borderRadius: 'var(--radius-md)',
         fontSize: 14,
-        color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-        fontWeight: active ? 600 : 400,
-        transition: `color var(--transition-normal), background var(--transition-normal)`,
+        fontWeight: 400,
+        color: active ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        background: active ? 'var(--accent-subtle)' : 'transparent',
+        transition: 'all 150ms ease-out',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--text-primary)' : 'var(--text-secondary)', transition: `color var(--transition-normal)` }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'color 150ms ease-out' }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
+        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
       )}
     </button>
   );
 
   return (
     <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: 'var(--bg-base)', width: 260 }}>
-      <nav className="flex-1 overflow-y-auto" style={{ padding: '16px 8px' }}>
+      <nav className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 16px 16px 16px' }}>
         {/* Navigation label */}
-        <div style={{ marginBottom: 8, paddingLeft: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' }}>
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' as const }}>
             Navegação
           </span>
         </div>
@@ -348,14 +348,15 @@ export function ProjectSidebar({
               className="w-full flex items-center gap-2.5 cursor-pointer select-none"
               style={{
                 height: 36,
-                paddingLeft: 10,
-                paddingRight: 10,
+                paddingLeft: 12,
+                paddingRight: 12,
                 borderRadius: 'var(--radius-md)',
                 fontSize: 14,
+                fontWeight: 400,
                 color: 'var(--text-secondary)',
-                transition: `color var(--transition-normal), background var(--transition-normal)`,
+                transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               aria-label={`Tema atual: ${themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}. Clique para alternar.`}
             >
@@ -373,8 +374,8 @@ export function ProjectSidebar({
         </div>
 
         {/* Clients label */}
-        <div style={{ marginBottom: 8, paddingLeft: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' }}>
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' as const }}>
             Clientes
           </span>
         </div>
@@ -420,9 +421,9 @@ export function ProjectSidebar({
       </nav>
 
       {/* "+ Novo Cliente" sticky bottom */}
-      <div style={{ padding: '0 8px 16px 8px', flexShrink: 0 }}>
+      <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', padding: '0 16px' }}>
         {creatingProject ? (
-          <div className="flex items-center" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
+          <div className="flex items-center" style={{ height: 36 }}>
             <input
               ref={inputRef}
               value={newProjectName}
@@ -431,25 +432,23 @@ export function ProjectSidebar({
               onBlur={() => { if (newProjectName.trim()) handleCreate(); else setCreatingProject(false); }}
               autoFocus
               placeholder="Nome do cliente..."
-              className="w-full h-7 px-2 text-[13px] rounded-md border focus:outline-none"
-              style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
+              className="w-full h-7 px-2 text-[14px] rounded-md border focus:outline-none"
+              style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
             />
           </div>
         ) : (
           <button
             onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-            className="w-full flex items-center text-[12px] select-none"
+            className="w-full flex items-center select-none"
             style={{
               height: 36,
-              paddingLeft: 10,
-              paddingRight: 10,
-              color: 'var(--text-placeholder)',
+              fontSize: 14,
+              color: 'var(--text-tertiary)',
               fontWeight: 400,
-              borderRadius: 'var(--radius-md)',
-              transition: `color var(--transition-normal)`,
+              transition: 'all 150ms ease-out',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
           >
             + Novo Cliente
           </button>

@@ -85,8 +85,8 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
       <button
         onClick={open}
         disabled={isCreatingTask}
-        className="h-9 w-full px-6 flex items-center text-[13px] opacity-0 group-hover/section:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ color: 'hsl(var(--text-muted) / 0.6)' }}
+        className="w-full flex items-center opacity-0 group-hover/section:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ height: 40, paddingLeft: 24, paddingRight: 12, fontSize: 14, color: 'var(--text-tertiary)' }}
       >
         Adicionar tarefa...
       </button>
@@ -203,12 +203,20 @@ export function TaskSection({
   };
 
   return (
-    <div ref={mergedRef} style={sectionStyle} className={`group/section mt-2 ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id}>
+    <div ref={mergedRef} style={sectionStyle} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
       <div
-        className="group h-10 w-full px-6 flex items-center gap-2 transition-colors duration-100 relative"
-        style={{ background: isDropTarget || isOver ? 'var(--bg-hover)' : undefined }}
-        onMouseEnter={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-        onMouseLeave={e => { if (!isDropTarget && !isOver) e.currentTarget.style.background = 'transparent'; }}
+        className="group w-full flex items-center gap-2 transition-colors relative"
+        style={{
+          height: 40,
+          paddingLeft: 12,
+          paddingRight: 12,
+          borderRadius: 'var(--radius-md)',
+          background: isDropTarget || isOver ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
+          marginBottom: 4,
+          transition: 'all 150ms ease-out',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
         onContextMenu={(e) => {
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY });
@@ -219,7 +227,7 @@ export function TaskSection({
           {...sectionListeners}
           className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity hidden md:block"
         >
-          <GripVertical className="w-4 h-4 text-nd-text-muted" />
+          <GripVertical className="w-4 h-4" style={{ color: 'var(--text-placeholder)' }} />
         </div>
 
         {isRenaming ? (
@@ -232,7 +240,8 @@ export function TaskSection({
               if (e.key === 'Escape') setIsRenaming(false);
             }}
             onBlur={confirmRename}
-            className="flex-1 h-7 px-2 text-[14px] font-semibold text-nd-text bg-nd-input rounded border border-primary focus:outline-none tracking-[0.02em]"
+            className="flex-1 h-7 px-2 rounded border focus:outline-none"
+            style={{ fontSize: 14, fontWeight: 600, background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
           />
         ) : (
           <button
@@ -240,18 +249,15 @@ export function TaskSection({
             onDoubleClick={(e) => { e.stopPropagation(); startRename(); }}
             className="flex items-center gap-2 flex-1 min-w-0"
           >
-            <span className="w-5 h-5 flex items-center justify-center rounded hover:bg-nd-hover transition-colors duration-100 flex-shrink-0">
+            <span className="w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
               <Play
-                className={`w-3 h-3 text-nd-text-muted fill-nd-text-muted transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
+                className={`w-3 h-3 fill-current transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
+                style={{ color: 'var(--text-tertiary)' }}
               />
             </span>
-            <span className="text-[14px] font-semibold text-nd-text tracking-[0.02em] truncate">
+            <span className="truncate" style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
-            {/* When collapsed, show a tiny inline progress bar instead of numeric count.
-                Research: numbers create urgency bias in ADHD brains (Bartoli 2022).
-                A subtle bar communicates progress without triggering anxiety. */}
-            {/* Collapsed: show simple fraction + check if all done */}
             {!isExpanded && tasks.length > 0 && (() => {
               const done = tasks.filter(t => t.status === 'done').length;
               const total = tasks.length;
@@ -259,9 +265,9 @@ export function TaskSection({
               return (
                 <span className="ml-2 flex items-center gap-1.5 flex-shrink-0">
                   {allDone ? (
-                    <span className="text-[11px]" style={{ color: 'hsl(var(--status-done))' }}>✓</span>
+                    <span style={{ fontSize: 12, color: 'hsl(var(--status-done))' }}>✓</span>
                   ) : (
-                    <span className="text-[12px]" style={{ color: 'var(--text-placeholder)' }}>{done}/{total}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{done}/{total}</span>
                   )}
                 </span>
               );
