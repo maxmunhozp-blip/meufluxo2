@@ -386,6 +386,13 @@ export function ProjectSidebar({
     // Safety net: mouseup means drag is over
     const handleMouseUp = () => setTimeout(handleGlobalDragEnd, 100);
     document.addEventListener('mouseup', handleMouseUp);
+    // Reset when drag leaves the viewport entirely
+    const handleDragLeaveDocument = (e: DragEvent) => {
+      if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+        handleGlobalDragEnd();
+      }
+    };
+    document.addEventListener('dragleave', handleDragLeaveDocument);
 
     return () => {
       window.removeEventListener('meufluxo:task-drag-start', handleDragStart);
@@ -393,6 +400,7 @@ export function ProjectSidebar({
       document.removeEventListener('dragend', handleGlobalDragEnd);
       document.removeEventListener('drop', handleGlobalDragEnd);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('dragleave', handleDragLeaveDocument);
     };
   }, []);
 
