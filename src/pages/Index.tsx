@@ -17,6 +17,7 @@ import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { MyTasksView } from '@/components/MyTasksView';
 import { MyWeekView } from '@/components/MyWeekView';
 import { MyDayView } from '@/components/MyDayView';
+import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,6 +66,7 @@ const Index = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
+  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     try {
       const raw = localStorage.getItem('meufluxo_expanded_sections');
@@ -226,6 +228,7 @@ const Index = () => {
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
     setSelectedTaskId(null);
+    setProjectViewTab('tasks');
     setFocusedTaskId(null);
     setMobileSidebarOpen(false);
   };
@@ -784,15 +787,44 @@ const Index = () => {
           </>
         ) : activeProject ? (
           <>
-            <TaskListHeader
-              projectName={activeProject.name}
-              pendingCount={pendingCount}
-              onNewTask={createNewTask}
-              filter={filter}
-              onFilterChange={setFilter}
-            />
-            <ColumnHeader />
+            {/* Tabs: Tarefas / Notas */}
+            <div className="flex items-center border-b" style={{ borderColor: 'rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>
+              <TaskListHeader
+                projectName={activeProject.name}
+                pendingCount={pendingCount}
+                onNewTask={createNewTask}
+                filter={filter}
+                onFilterChange={setFilter}
+              />
+            </div>
+            <div className="flex items-center gap-0 px-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>
+              <button
+                onClick={() => setProjectViewTab('tasks')}
+                className="px-3 py-2 text-sm font-medium transition-colors relative"
+                style={{ color: projectViewTab === 'tasks' ? '#E8E8F0' : '#555570' }}
+              >
+                Tarefas
+                {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#6C9CFC' }} />}
+              </button>
+              <button
+                onClick={() => setProjectViewTab('notes')}
+                className="px-3 py-2 text-sm font-medium transition-colors relative"
+                style={{ color: projectViewTab === 'notes' ? '#E8E8F0' : '#555570' }}
+              >
+                Notas
+                {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#6C9CFC' }} />}
+              </button>
+            </div>
 
+            {projectViewTab === 'notes' ? (
+              <ProjectNotesView
+                projectId={activeProjectId}
+                workspaceId={activeWorkspaceId}
+                userId={session?.user?.id || ''}
+              />
+            ) : (
+            <>
+            <ColumnHeader />
         <div className="flex-1 overflow-y-auto" ref={listRef}>
           <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
@@ -889,6 +921,8 @@ const Index = () => {
             </div>
           )}
         </div>
+            </>
+            )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
