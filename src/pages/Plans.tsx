@@ -118,8 +118,9 @@ export default function Plans() {
             </div>
 
             <button
-              className="w-full h-10 rounded-lg text-[13px] font-bold text-white transition-opacity hover:opacity-90"
+              className="w-full h-10 rounded-lg text-[13px] font-bold transition-opacity hover:opacity-90"
               style={{
+                color: 'var(--btn-text)',
                 background: 'linear-gradient(135deg, hsl(45 93% 47%), hsl(35 93% 47%))',
                 boxShadow: '0 2px 12px hsl(45 93% 47% / 0.25)',
               }}

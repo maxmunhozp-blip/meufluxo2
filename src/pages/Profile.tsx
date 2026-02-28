@@ -73,10 +73,10 @@ export default function Profile() {
                 {(fullName || session.user.email || '?').charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'var(--overlay-bg)' }}>
               <Camera className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
             </div>
-            {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/60"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
+            {uploading && <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}><div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--text-primary)', borderTopColor: 'transparent' }} /></div>}
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ''; }} />
         </div>
