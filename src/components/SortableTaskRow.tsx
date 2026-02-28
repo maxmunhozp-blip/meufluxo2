@@ -245,6 +245,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '1';
     }
+    // ALWAYS dispatch cleanup, no matter what happened
     window.dispatchEvent(new CustomEvent('meufluxo:task-drag-end'));
   };
   const [expanded, setExpanded] = useState(false);
