@@ -669,17 +669,19 @@ const Index = () => {
     }
   };
 
-  if (loading) {
+  // Redirect to auth if no session (must be in useEffect, not during render)
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate('/auth');
+    }
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: 'hsl(var(--bg-app))' }}>
         <p className="text-nd-text-secondary animate-pulse">Carregando...</p>
       </div>
     );
-  }
-
-  if (!session) {
-    navigate('/auth');
-    return null;
   }
 
   const panelOpen = selectedTask !== null;
