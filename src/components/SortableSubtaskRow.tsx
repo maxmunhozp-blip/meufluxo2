@@ -47,6 +47,9 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       parentTaskId: parentTaskId,
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    e.dataTransfer.setData('application/x-task-id', subtask.id);
+    e.dataTransfer.setData('application/x-task-project', parentProjectId);
+    e.dataTransfer.setData('application/x-task-name', subtask.name);
     e.dataTransfer.effectAllowed = 'move';
     const ghost = document.createElement('div');
     ghost.textContent = subtask.name;
