@@ -114,9 +114,13 @@ function SortableProjectItem({
       <div
         style={{
           overflow: 'hidden',
-          maxHeight: isExpanded ? `${sections.length * 28 + 4}px` : '0px',
+          maxHeight: isExpanded ? `${sections.length * 32 + 4}px` : '0px',
           opacity: isExpanded ? 1 : 0,
           transition: 'max-height 150ms ease-out, opacity 150ms ease-out',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          paddingTop: isExpanded ? 4 : 0,
         }}
       >
         {sections.map(section => {
@@ -131,13 +135,13 @@ function SortableProjectItem({
               className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 28,
-                paddingLeft: 32,
+                paddingLeft: 24,
                 paddingRight: 10,
                 borderRadius: 'var(--radius-sm)',
                 fontSize: 12,
                 fontWeight: 400,
                 color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                transition: `color 150ms ease-out, background 150ms ease-out`,
+                transition: `color var(--transition-normal), background var(--transition-normal)`,
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -413,9 +417,12 @@ export function ProjectSidebar({
           </SortableContext>
         </DndContext>
 
-        {/* New client */}
+      </nav>
+
+      {/* "+ Novo Cliente" sticky bottom */}
+      <div style={{ padding: '0 8px 16px 8px', flexShrink: 0 }}>
         {creatingProject ? (
-          <div className="flex items-center" style={{ height: 40, paddingLeft: 10, paddingRight: 10 }}>
+          <div className="flex items-center" style={{ height: 36, paddingLeft: 10, paddingRight: 10 }}>
             <input
               ref={inputRef}
               value={newProjectName}
@@ -429,27 +436,25 @@ export function ProjectSidebar({
             />
           </div>
         ) : (
-          <div style={{ paddingBottom: 16, paddingTop: 8 }}>
-            <button
-              onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-              className="w-full flex items-center text-[12px] select-none"
-              style={{
-                height: 36,
-                paddingLeft: 10,
-                paddingRight: 10,
-                color: 'var(--text-placeholder)',
-                fontWeight: 400,
-                borderRadius: 'var(--radius-md)',
-                transition: `color var(--transition-normal)`,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
-            >
-              + Novo Cliente
-            </button>
-          </div>
+          <button
+            onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
+            className="w-full flex items-center text-[12px] select-none"
+            style={{
+              height: 36,
+              paddingLeft: 10,
+              paddingRight: 10,
+              color: 'var(--text-placeholder)',
+              fontWeight: 400,
+              borderRadius: 'var(--radius-md)',
+              transition: `color var(--transition-normal)`,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+          >
+            + Novo Cliente
+          </button>
         )}
-      </nav>
+      </div>
 
       {/* Footer */}
       <div className="relative" style={{ borderTop: '1px solid var(--border-subtle)' }}>
