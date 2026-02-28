@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -24,6 +24,8 @@ interface TaskDetailPanelProps {
   serviceTags?: ServiceTag[];
   currentUserId?: string;
   parentTaskName?: string;
+  isPro?: boolean;
+  onUpgrade?: () => void;
   onClose: () => void;
   onUpdateTask: (task: Task) => void;
   onAddMember: (taskId: string, userId: string) => void;
@@ -644,7 +646,7 @@ function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelati
 }
 
 
-export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
+export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, isPro = true, onUpgrade, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -964,11 +966,26 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
 
             <MetaRow label="Repetir">
-              <RecurrencePicker
-                recurrenceType={localTask.recurrenceType || null}
-                recurrenceConfig={localTask.recurrenceConfig}
-                onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })}
-              />
+              {isPro ? (
+                <RecurrencePicker
+                  recurrenceType={localTask.recurrenceType || null}
+                  recurrenceConfig={localTask.recurrenceConfig}
+                  onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })}
+                />
+              ) : (
+                <button
+                  onClick={onUpgrade}
+                  className="h-8 px-2 text-[12px] rounded flex items-center gap-1.5 transition-colors"
+                  style={{ color: '#8888A0' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+                >
+                  <span>Não repete</span>
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide border border-yellow-500/20 bg-yellow-500/10 text-yellow-500">
+                    <Sparkles className="w-2.5 h-2.5" /> PRO
+                  </span>
+                </button>
+              )}
             </MetaRow>
           </div>
 
