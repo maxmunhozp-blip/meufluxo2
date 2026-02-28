@@ -255,7 +255,7 @@ export function TaskSection({
                 style={{ color: 'var(--text-tertiary)' }}
               />
             </span>
-            <span className="truncate" style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
+            <span className="truncate" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
             {!isExpanded && tasks.length > 0 && (() => {

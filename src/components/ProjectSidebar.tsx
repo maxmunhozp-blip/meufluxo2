@@ -106,7 +106,7 @@ function SortableProjectItem({
           className="flex-shrink-0 hover:scale-125 transition-transform"
           style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4 }}
         />
-        <span className="truncate flex-1 text-left" onClick={onSelect}>{project.name}</span>
+        <span className="truncate flex-1 text-left" style={{ lineHeight: 1.5 }} onClick={onSelect}>{project.name}</span>
       </div>
 
       {/* Expandable sections */}
@@ -139,8 +139,8 @@ function SortableProjectItem({
                 borderRadius: 'var(--radius-sm)',
                 fontSize: 12,
                 fontWeight: 400,
+                lineHeight: 1.5,
                 color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                transition: 'all 150ms ease-out',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -333,7 +333,7 @@ export function ProjectSidebar({
       <nav className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 16px 16px 16px' }}>
         {/* Navigation label */}
         <div style={{ marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' as const }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             Navegação
           </span>
         </div>
@@ -350,7 +350,7 @@ export function ProjectSidebar({
 
         {/* Clients label */}
         <div style={{ marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' as const }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             Clientes
           </span>
         </div>
