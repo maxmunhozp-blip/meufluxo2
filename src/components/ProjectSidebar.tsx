@@ -482,7 +482,20 @@ export function ProjectSidebar({
   );
 
   return (
-    <aside className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]" style={{ width: 260, minWidth: 260, maxWidth: 260 }}>
+    <aside
+      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]"
+      style={{ width: 260, minWidth: 260, maxWidth: 260 }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingTask(false);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsDraggingTask(false);
+        }
+      }}
+    >
       {/* NAVEGAÇÃO — flex-shrink-0 */}
       <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
         <div style={{ marginBottom: 8 }}>
