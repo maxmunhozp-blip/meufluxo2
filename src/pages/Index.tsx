@@ -851,31 +851,35 @@ const Index = () => {
               />
             </div>
             <div style={{ height: 24 }} />
-            <div className="flex items-center" style={{ padding: '0 32px', borderBottom: '1px solid var(--border-subtle)', gap: 24 }}>
+            <div className="flex items-center" style={{ padding: '0 32px', borderBottom: '1px solid var(--border-subtle)', gap: 16 }}>
               <button
                 onClick={() => setProjectViewTab('tasks')}
-                className="relative transition-colors"
+                className="relative"
                 style={{
                   height: 40,
                   fontSize: 14,
                   fontWeight: 500,
                   color: projectViewTab === 'tasks' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
-                  transition: 'all 150ms ease-out',
+                  transition: 'color 150ms ease-out',
                 }}
+                onMouseEnter={e => { if (projectViewTab !== 'tasks') e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (projectViewTab !== 'tasks') e.currentTarget.style.color = 'var(--text-tertiary)'; }}
               >
                 Tarefas
                 {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
               <button
                 onClick={() => setProjectViewTab('notes')}
-                className="relative transition-colors"
+                className="relative"
                 style={{
                   height: 40,
                   fontSize: 14,
                   fontWeight: 500,
                   color: projectViewTab === 'notes' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
-                  transition: 'all 150ms ease-out',
+                  transition: 'color 150ms ease-out',
                 }}
+                onMouseEnter={e => { if (projectViewTab !== 'notes') e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (projectViewTab !== 'notes') e.currentTarget.style.color = 'var(--text-tertiary)'; }}
               >
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
@@ -943,9 +947,9 @@ const Index = () => {
               />
               <button
                 onClick={() => setShowTemplateModal(true)}
-                className="flex items-center justify-center rounded-lg"
-                style={{ width: 36, height: 36, color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                className="flex items-center justify-center"
+                style={{ width: 36, height: 36, borderRadius: 8, color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
                 title="Configurar template de entregas"
               >
@@ -965,7 +969,7 @@ const Index = () => {
             ) : (
             <>
             <ColumnHeader />
-        <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 32px 32px 32px' }} ref={listRef}>
+        <div className="flex-1 overflow-y-auto sidebar-scroll section-list" style={{ padding: '16px 32px 32px 32px' }} ref={listRef}>
           <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
               {projectSections.map(section => {
