@@ -867,6 +867,8 @@ const Index = () => {
                 serviceTags={serviceTags}
                 currentUserId={session?.user?.id}
                 parentTaskName={parentTaskName}
+                isPro={planLimits.isPro}
+                onUpgrade={() => setShowUpgradeModal(true)}
                 onClose={() => setSelectedTaskId(null)}
                 onUpdateTask={handleUpdateTask}
                 onAddMember={addTaskMember}

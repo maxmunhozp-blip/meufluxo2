@@ -696,8 +696,20 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       const task = tasksState.find(t => t.id === id);
       if (task?.recurrenceType) {
         const { calculateNextOccurrence } = await import('@/lib/recurrence');
-          const nextDate = calculateNextOccurrence(task.dueDate, task.recurrenceType, task.recurrenceConfig);
-          if (nextDate) {
+        const baseDate = task.scheduledDate || task.dueDate;
+        const nextDate = calculateNextOccurrence(baseDate, task.recurrenceType, task.recurrenceConfig);
+        if (nextDate) {
+          // Anti-duplicate check
+          const { data: existing } = await supabase
+            .from('tasks')
+            .select('id')
+            .eq('title', task.name)
+            .eq('project_id', task.projectId)
+            .eq('scheduled_date', nextDate)
+            .not('status', 'eq', 'done')
+            .limit(1);
+
+          if (!existing || existing.length === 0) {
             const { data } = await supabase.from('tasks').insert({
               title: task.name,
               section_id: task.section,
@@ -705,23 +717,26 @@ export function useSupabaseData(): UseSupabaseDataReturn {
               status: 'pending',
               priority: task.priority || 'low',
               description: task.description || null,
-              due_date: nextDate,
+              scheduled_date: nextDate,
+              due_date: null,
               day_period: task.dayPeriod || 'morning',
               recurrence_type: task.recurrenceType,
               recurrence_config: (task.recurrenceConfig as any) || null,
               assignee: task.assignee || null,
+              service_tag_id: task.serviceTagId || null,
               position: 0,
               created_by: session?.user?.id || null,
               workspace_id: activeWorkspaceId,
             }).select().single();
-          if (data) {
-            const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
-            setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [newTask, ...prev]);
+            if (data) {
+              const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
+              setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [newTask, ...prev]);
+            }
           }
         }
       }
     }
-  }, [tasksState, session]);
+  }, [tasksState, session, activeWorkspaceId]);
   // Duplicate task
   const duplicateTaskFn = useCallback(async (taskId: string): Promise<string> => {
     const task = tasksState.find(t => t.id === taskId);
