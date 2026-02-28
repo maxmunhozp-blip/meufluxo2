@@ -273,12 +273,13 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
             {/* Line 1: Project badge */}
             {project && (
               <span
-                className="px-4 py-1.5 rounded-[6px] text-[12px] font-semibold mb-5"
+                className="flex items-center gap-2 px-4 py-1.5 rounded-[6px] text-[12px] font-semibold mb-5"
                 style={{
-                  background: `${project.color}26`,
-                  color: project.color,
+                  background: 'rgba(255,255,255,0.04)',
+                  color: '#E8E8F0',
                 }}
               >
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: project.color }} />
                 {project.name}
               </span>
             )}

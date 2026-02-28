@@ -61,17 +61,6 @@ function WeekTaskCard({
 
   const isDone = task.status === 'done';
 
-  // Parse hex/hsl color to rgba for background
-  const bgColor = projectColor.startsWith('#')
-    ? `${projectColor}14` // ~0.08 opacity
-    : `color-mix(in srgb, ${projectColor} 8%, transparent)`;
-  const bgHover = projectColor.startsWith('#')
-    ? `${projectColor}26` // ~0.15 opacity
-    : `color-mix(in srgb, ${projectColor} 15%, transparent)`;
-  const borderColor = projectColor.startsWith('#')
-    ? `${projectColor}66` // ~0.4 opacity
-    : projectColor;
-
   return (
     <div
       ref={setNodeRef}
@@ -82,14 +71,14 @@ function WeekTaskCard({
       {...listeners}
     >
       <div
-        className={`rounded-md px-2 py-1.5 transition-colors ${isSelected ? 'ring-1 ring-white/10' : ''}`}
+        className={`rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-colors ${isSelected ? 'ring-1 ring-white/10' : ''}`}
         style={{
-          background: bgColor,
-          borderLeft: `2px solid ${borderColor}`,
+          background: '#2A2A42',
+          borderLeft: `3px solid ${projectColor}`,
           borderRadius: 6,
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = bgHover; }}
-        onMouseLeave={e => { e.currentTarget.style.background = bgColor; }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#333350'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#2A2A42'; }}
       >
         <span
           className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}

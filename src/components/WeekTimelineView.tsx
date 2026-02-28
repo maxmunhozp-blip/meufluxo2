@@ -255,7 +255,7 @@ export function WeekTimelineView({
                 className={`flex-1 min-w-[80px] md:min-w-[100px] flex flex-col items-center justify-center h-12 border-r border-border last:border-r-0 relative ${
                   current ? 'border-t-2 border-t-primary' : ''
                 }`}
-                style={overload ? { background: 'hsla(42, 60%, 55%, 0.08)' } : undefined}
+                style={overload ? { background: 'hsla(42, 60%, 55%, 0.05)' } : undefined}
               >
                 <span className={`text-[11px] uppercase tracking-wider ${current ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                   {DAY_LABELS[i]}
@@ -264,7 +264,9 @@ export function WeekTimelineView({
                   {format(d, 'dd')}
                 </span>
                 {overload && (
-                  <span className="absolute bottom-0.5 text-[9px] text-muted-foreground">{overload} clientes</span>
+                  <span className="absolute bottom-0.5 flex items-center gap-0.5 text-[9px]" style={{ color: '#FFB86C' }} title={`${overload} clientes neste dia`}>
+                    ⚠ {overload}
+                  </span>
                 )}
               </div>
             );
@@ -328,11 +330,16 @@ export function WeekTimelineView({
                         {dayTasks.map(task => (
                           <div key={task.id} className="relative h-[28px]">
                             <div
-                              className="h-[28px] rounded-[6px] px-2 flex items-center cursor-pointer select-none overflow-hidden"
-                              style={{ background: `${row.project.color}B3` }}
+                              className="h-[28px] rounded-[4px] px-2 flex items-center cursor-pointer select-none overflow-hidden transition-colors"
+                              style={{
+                                background: '#2A2A42',
+                                borderLeft: `3px solid ${row.project.color}`,
+                              }}
                               onClick={() => onSelectTask(task)}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#333350'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = '#2A2A42'; }}
                             >
-                              <span className="text-[11px] font-medium truncate text-primary-foreground drop-shadow-sm">
+                              <span className="text-[11px] font-medium truncate" style={{ color: '#E8E8F0' }}>
                                 {task.name}
                               </span>
                             </div>
@@ -351,14 +358,15 @@ export function WeekTimelineView({
       <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
         {activeDragTask ? (
           <div
-            className="h-[28px] rounded-[6px] px-2 flex items-center shadow-lg border border-primary/30"
+            className="h-[28px] rounded-[4px] px-2 flex items-center shadow-lg"
             style={{
-              background: projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9',
-              opacity: 0.85,
+              background: '#2A2A42',
+              borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#4A90D9'}`,
+              opacity: 0.9,
               minWidth: 120,
             }}
           >
-            <span className="text-[11px] font-medium text-primary-foreground truncate">{activeDragTask.name}</span>
+            <span className="text-[11px] font-medium truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
           </div>
         ) : null}
       </DragOverlay>

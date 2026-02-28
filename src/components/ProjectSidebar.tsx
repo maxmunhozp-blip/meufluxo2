@@ -114,7 +114,7 @@ function SortableProjectItem({
       </div>
       <button
         onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
-        className="w-2 h-2 rounded-full flex-shrink-0 hover:scale-150 transition-transform"
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0 hover:scale-125 transition-transform"
         style={{ background: project.color }}
       />
       <span className="truncate">{project.name}</span>
