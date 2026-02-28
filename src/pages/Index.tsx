@@ -60,6 +60,7 @@ const Index = () => {
   } = useSupabaseData();
 
   const [activeProjectId, setActiveProjectId] = useState('');
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
@@ -144,8 +145,12 @@ const Index = () => {
 
   const activeProject = projects.find(p => p.id === activeProjectId);
   const projectSections = useMemo(
-    () => sectionList.filter(s => s.projectId === activeProjectId),
-    [activeProjectId, sectionList]
+    () => {
+      const all = sectionList.filter(s => s.projectId === activeProjectId);
+      if (activeSectionId) return all.filter(s => s.id === activeSectionId);
+      return all;
+    },
+    [activeProjectId, sectionList, activeSectionId]
   );
 
   const allProjectTasks = useMemo(
@@ -577,8 +582,18 @@ const Index = () => {
 
   const sidebarProps = {
     projects,
+    sections: sectionList,
     activeProjectId,
-    onSelectProject: (id: string) => { setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
+    activeSectionId,
+    onSelectProject: (id: string) => { setActiveSectionId(null); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
+    onSelectSection: (sectionId: string) => {
+      const section = sectionList.find(s => s.id === sectionId);
+      if (section) {
+        setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false);
+        handleSelectProject(section.projectId);
+        setActiveSectionId(sectionId);
+      }
+    },
     onCreateProject: handleCreateProject,
     onRenameProject: handleRenameProject,
     onDeleteProject: handleDeleteProject,
@@ -589,11 +604,11 @@ const Index = () => {
     onImport: importData,
     onLogout: handleLogout,
     isMyDayView,
-    onToggleMyDay: () => { setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
+    onToggleMyDay: () => { setActiveSectionId(null); setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
     isMyTasksView,
-    onToggleMyTasks: () => { setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
+    onToggleMyTasks: () => { setActiveSectionId(null); setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
     isMyWeekView,
-    onToggleMyWeek: () => { setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
+    onToggleMyWeek: () => { setActiveSectionId(null); setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
     tasks: taskList,
     workspaces,
     activeWorkspaceId,
