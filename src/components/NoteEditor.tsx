@@ -1,22 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Trash2, Bold, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Trash2, Bold, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus, Link2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LinkPreview } from './LinkPreview';
+import { Project } from '@/types/task';
 
 interface NoteEditorProps {
   noteId: string | null;
-  projectId: string;
+  projectId: string | null;
   workspaceId: string;
   userId: string;
   onBack: () => void;
   onSaved: () => void;
   onDelete: () => void;
+  projects?: Project[];
+  isModal?: boolean;
 }
 
-export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onSaved, onDelete }: NoteEditorProps) {
+export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onSaved, onDelete, projects = [], isModal = false }: NoteEditorProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [pinned, setPinned] = useState(false);
+  const [linkedProjectId, setLinkedProjectId] = useState<string | null>(projectId);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [currentNoteId, setCurrentNoteId] = useState<string | null>(noteId);
   const [urls, setUrls] = useState<string[]>([]);
@@ -32,6 +37,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
       setTitle('');
       setContent('');
       setPinned(false);
+      setLinkedProjectId(projectId);
       setCurrentNoteId(null);
       return;
     }
@@ -47,6 +53,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
         setContent(c?.text || '');
         setImages(c?.images || []);
         setPinned(data.pinned);
+        setLinkedProjectId(data.project_id);
         setCurrentNoteId(data.id);
       }
     })();
@@ -59,7 +66,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     setUrls(found);
   }, [content]);
 
-  const save = useCallback(async (t: string, c: string, p: boolean, imgs: string[]) => {
+  const save = useCallback(async (t: string, c: string, p: boolean, imgs: string[], projId: string | null) => {
     setSaveStatus('saving');
     try {
       if (currentNoteId) {
@@ -69,6 +76,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
             title: t,
             content: { text: c, images: imgs },
             pinned: p,
+            project_id: projId,
           })
           .eq('id', currentNoteId);
       } else {
@@ -78,7 +86,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
             title: t,
             content: { text: c, images: imgs },
             pinned: p,
-            project_id: projectId,
+            project_id: projId,
             workspace_id: workspaceId,
             created_by: userId,
           })
@@ -92,27 +100,33 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     } catch {
       setSaveStatus('idle');
     }
-  }, [currentNoteId, projectId, workspaceId, userId, onSaved]);
+  }, [currentNoteId, workspaceId, userId, onSaved]);
 
-  const triggerAutoSave = useCallback((t: string, c: string, p: boolean, imgs: string[]) => {
+  const triggerAutoSave = useCallback((t: string, c: string, p: boolean, imgs: string[], projId: string | null) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => save(t, c, p, imgs), 1000);
+    saveTimerRef.current = setTimeout(() => save(t, c, p, imgs, projId), 1000);
   }, [save]);
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    triggerAutoSave(val, content, pinned, images);
+    triggerAutoSave(val, content, pinned, images, linkedProjectId);
   };
 
   const handleContentChange = (val: string) => {
     setContent(val);
-    triggerAutoSave(title, val, pinned, images);
+    triggerAutoSave(title, val, pinned, images, linkedProjectId);
   };
 
   const togglePin = () => {
     const newPinned = !pinned;
     setPinned(newPinned);
-    save(title, content, newPinned, images);
+    save(title, content, newPinned, images, linkedProjectId);
+  };
+
+  const handleLinkProject = (projId: string | null) => {
+    setLinkedProjectId(projId);
+    setShowProjectPicker(false);
+    save(title, content, pinned, images, projId);
   };
 
   const handleDelete = async () => {
@@ -132,7 +146,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     const { data: urlData } = supabase.storage.from('notes-images').getPublicUrl(path);
     const newImages = [...images, urlData.publicUrl];
     setImages(newImages);
-    triggerAutoSave(title, content, pinned, newImages);
+    triggerAutoSave(title, content, pinned, newImages, linkedProjectId);
   };
 
   const handlePaste = async (e: React.ClipboardEvent) => {
@@ -163,7 +177,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     const selected = content.substring(start, end);
     const newContent = content.substring(0, start) + prefix + selected + suffix + content.substring(end);
     setContent(newContent);
-    triggerAutoSave(title, newContent, pinned, images);
+    triggerAutoSave(title, newContent, pinned, images, linkedProjectId);
     setTimeout(() => {
       el.focus();
       el.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
@@ -195,8 +209,10 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     }
   };
 
+  const linkedProject = projects.find(p => p.id === linkedProjectId);
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden" style={{ background: '#0F0F17' }}>
+    <div className={`flex flex-col overflow-hidden ${isModal ? 'h-full' : 'flex-1'}`} style={{ background: '#0F0F17' }}>
       {/* Header */}
       <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: '#8888A0' }}
@@ -204,7 +220,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar às notas
+          {isModal ? 'Fechar' : 'Voltar às notas'}
         </button>
         <div className="flex items-center gap-2">
           {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: '#555570' }}>Salvo</span>}
@@ -259,6 +275,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           placeholder="Sem título"
           className="w-full bg-transparent outline-none font-bold"
           style={{ fontSize: 20, color: '#E8E8F0' }}
+          autoFocus={!noteId}
         />
         <textarea
           ref={editorRef}
@@ -291,6 +308,49 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           <LinkPreview key={`${url}-${i}`} url={url} />
         ))}
       </div>
+
+      {/* Project link footer */}
+      {projects.length > 0 && (
+        <div className="flex-shrink-0 px-4 py-2 relative" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <button
+            onClick={() => setShowProjectPicker(!showProjectPicker)}
+            className="flex items-center gap-1.5 text-xs transition-colors"
+            style={{ color: '#555570' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
+          >
+            <Link2 className="w-3 h-3" />
+            Vincular a projeto: {linkedProject ? linkedProject.name : 'Nenhum'}
+          </button>
+
+          {showProjectPicker && (
+            <div className="absolute bottom-full left-4 mb-1 rounded-lg py-1 shadow-lg z-50" style={{ background: '#1A1A28', border: '1px solid #333350', minWidth: 200 }}>
+              <button
+                onClick={() => handleLinkProject(null)}
+                className="w-full text-left px-3 py-1.5 text-xs transition-colors"
+                style={{ color: !linkedProjectId ? '#6C9CFC' : '#8888A0' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                Nenhum (nota rápida)
+              </button>
+              {projects.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => handleLinkProject(p.id)}
+                  className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors"
+                  style={{ color: linkedProjectId === p.id ? '#6C9CFC' : '#8888A0' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxImg && (

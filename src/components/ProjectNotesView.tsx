@@ -2,14 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotesList, NoteItem } from './NotesList';
 import { NoteEditor } from './NoteEditor';
+import { Project } from '@/types/task';
 
 interface ProjectNotesViewProps {
   projectId: string;
   workspaceId: string;
   userId: string;
+  projects?: Project[];
 }
 
-export function ProjectNotesView({ projectId, workspaceId, userId }: ProjectNotesViewProps) {
+export function ProjectNotesView({ projectId, workspaceId, userId, projects = [] }: ProjectNotesViewProps) {
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +47,7 @@ export function ProjectNotesView({ projectId, workspaceId, userId }: ProjectNote
         onBack={() => { setIsEditing(false); setActiveNoteId(null); }}
         onSaved={loadNotes}
         onDelete={() => { loadNotes(); setIsEditing(false); setActiveNoteId(null); }}
+        projects={projects}
       />
     );
   }
