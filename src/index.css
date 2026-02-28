@@ -151,66 +151,66 @@
   [data-theme="light"] {
     /* shadcn base tokens */
     --background: 36 28% 94%;
-    --foreground: 30 20% 7%;
-    --card: 0 0% 100%;
-    --card-foreground: 30 20% 7%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 30 20% 7%;
-    --primary: 224 76% 48%;
+    --foreground: 36 10% 9%;
+    --card: 36 18% 91%;
+    --card-foreground: 36 10% 9%;
+    --popover: 36 18% 91%;
+    --popover-foreground: 36 10% 9%;
+    --primary: 220 60% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 30 8% 85%;
-    --secondary-foreground: 30 20% 7%;
+    --secondary-foreground: 36 10% 9%;
     --muted: 30 10% 88%;
     --muted-foreground: 20 10% 35%;
-    --accent: 224 76% 48%;
+    --accent: 220 60% 45%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 16% 78%;
-    --input: 30 16% 78%;
-    --ring: 224 76% 48%;
+    --border: 30 12% 78%;
+    --input: 30 10% 76%;
+    --ring: 220 60% 45%;
 
     /* Backgrounds */
     --bg-base: #F5F0E8;
-    --bg-surface: #FFFFFF;
-    --bg-elevated: #F0EBE3;
+    --bg-surface: #EDE8DF;
+    --bg-elevated: #E5E0D7;
     --bg-input: #EFEBE3;
     --bg-focus: #FAF8F4;
     --bg-hover: #EBE6DD;
     --bg-active: #E3DED5;
     --bg-app: 36 28% 94%;
-    --bg-surface-hsl: 0 0% 100%;
-    --bg-surface-alt: 36 18% 89%;
+    --bg-surface-hsl: 36 18% 91%;
+    --bg-surface-alt: 36 16% 89%;
     --bg-elevated-hsl: 30 14% 87%;
     --bg-active-hsl: 30 12% 85%;
     --bg-hover-hsl: 36 20% 90%;
     --bg-subtask: 36 18% 90%;
     --bg-input-hsl: 36 20% 92%;
-    --bg-overlay: 30 20% 7% / 0.4;
+    --bg-overlay: 36 10% 9% / 0.4;
 
     /* Text */
-    --text-primary: #1A1207;
-    --text-secondary: #6B5D4D;
+    --text-primary: #1A1814;
+    --text-secondary: #6B6560;
     --text-tertiary: #78726D;
     --text-placeholder: #908A84;
-    --text-primary-hsl: 30 20% 7%;
-    --text-secondary-hsl: 20 10% 35%;
+    --text-primary-hsl: 36 10% 9%;
+    --text-secondary-hsl: 20 6% 40%;
     --text-muted: 20 5% 45%;
     --text-completed: 20 5% 55%;
 
     /* Accents */
-    --accent-blue: #2563EB;
+    --accent-blue: #2E56B5;
     --accent-amber: #945A10;
     --accent-green: #1E6C38;
 
     /* Buttons */
-    --btn-primary: #2563EB;
+    --btn-primary: #2E56B5;
     --btn-warning: #9A5E10;
     --btn-success: #1E6C38;
     --btn-text: #FFFFFF;
 
     /* Client colors */
-    --client-blue: #2563EB;
+    --client-blue: #4A7CE0;
     --client-amber: #C47A1A;
     --client-rose: #D4598A;
     --client-green: #2D8A4E;
@@ -221,9 +221,9 @@
     /* Borders */
     --border-subtle: #D4C9B8;
     --border-input: #C8C3BB;
-    --border-focus: #2563EB;
-    --border-subtle-hsl: 30 16% 78%;
-    --border-input-hsl: 30 10% 78%;
+    --border-focus: #2E56B5;
+    --border-subtle-hsl: 30 12% 78%;
+    --border-input-hsl: 30 10% 76%;
 
     /* States */
     --selection-bg: #C8D8F5;
@@ -233,7 +233,7 @@
 
     /* Status */
     --status-done: 145 55% 33%;
-    --status-progress: 224 76% 48%;
+    --status-progress: 220 60% 45%;
     --status-pending: 20 5% 55%;
     --status-overdue: 0 84% 50%;
     --priority-high: 0 84% 50%;
@@ -250,7 +250,7 @@
     --warning-muted: 30 70% 45%;
 
     /* Project palette (light) */
-    --project-1: 224 76% 48%;
+    --project-1: 220 60% 45%;
     --project-2: 30 85% 42%;
     --project-3: 330 60% 55%;
     --project-4: 145 55% 33%;
@@ -261,20 +261,20 @@
     /* Sidebar */
     --bg-sidebar: 36 28% 94%;
     --sidebar-background: 36 28% 94%;
-    --sidebar-foreground: 30 20% 7%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-foreground: 36 10% 9%;
+    --sidebar-primary: 220 60% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 30 12% 85%;
-    --sidebar-accent-foreground: 30 20% 7%;
-    --sidebar-border: 30 16% 78%;
-    --sidebar-ring: 224 76% 48%;
+    --sidebar-accent-foreground: 36 10% 9%;
+    --sidebar-border: 30 12% 78%;
+    --sidebar-ring: 220 60% 45%;
     --sidebar-active: 30 14% 83%;
-    --sidebar-separator: 30 16% 78%;
-    --sidebar-label: 20 10% 35%;
+    --sidebar-separator: 30 12% 78%;
+    --sidebar-label: 20 6% 40%;
 
     /* Dropdown tokens */
-    --dropdown-bg: 0 0% 100%;
-    --dropdown-border: 30 16% 78%;
+    --dropdown-bg: 36 18% 91%;
+    --dropdown-border: 30 12% 78%;
     --dropdown-hover: 30 14% 87%;
   }
 }
@@ -283,59 +283,59 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --background: 36 28% 94%;
-    --foreground: 30 20% 7%;
-    --card: 0 0% 100%;
-    --card-foreground: 30 20% 7%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 30 20% 7%;
-    --primary: 224 76% 48%;
+    --foreground: 36 10% 9%;
+    --card: 36 18% 91%;
+    --card-foreground: 36 10% 9%;
+    --popover: 36 18% 91%;
+    --popover-foreground: 36 10% 9%;
+    --primary: 220 60% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 30 8% 85%;
-    --secondary-foreground: 30 20% 7%;
+    --secondary-foreground: 36 10% 9%;
     --muted: 30 10% 88%;
-    --muted-foreground: 20 10% 35%;
-    --accent: 224 76% 48%;
+    --muted-foreground: 20 6% 40%;
+    --accent: 220 60% 45%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 16% 78%;
-    --input: 30 16% 78%;
-    --ring: 224 76% 48%;
+    --border: 30 12% 78%;
+    --input: 30 10% 76%;
+    --ring: 220 60% 45%;
 
     --bg-base: #F5F0E8;
-    --bg-surface: #FFFFFF;
-    --bg-elevated: #F0EBE3;
+    --bg-surface: #EDE8DF;
+    --bg-elevated: #E5E0D7;
     --bg-input: #EFEBE3;
     --bg-focus: #FAF8F4;
     --bg-hover: #EBE6DD;
     --bg-active: #E3DED5;
     --bg-app: 36 28% 94%;
-    --bg-surface-hsl: 0 0% 100%;
-    --bg-surface-alt: 36 18% 89%;
+    --bg-surface-hsl: 36 18% 91%;
+    --bg-surface-alt: 36 16% 89%;
     --bg-elevated-hsl: 30 14% 87%;
     --bg-active-hsl: 30 12% 85%;
     --bg-hover-hsl: 36 20% 90%;
     --bg-subtask: 36 18% 90%;
     --bg-input-hsl: 36 20% 92%;
-    --bg-overlay: 30 20% 7% / 0.4;
+    --bg-overlay: 36 10% 9% / 0.4;
 
-    --text-primary: #1A1207;
-    --text-secondary: #6B5D4D;
+    --text-primary: #1A1814;
+    --text-secondary: #6B6560;
     --text-tertiary: #78726D;
     --text-placeholder: #908A84;
-    --text-primary-hsl: 30 20% 7%;
-    --text-secondary-hsl: 20 10% 35%;
+    --text-primary-hsl: 36 10% 9%;
+    --text-secondary-hsl: 20 6% 40%;
     --text-muted: 20 5% 45%;
     --text-completed: 20 5% 55%;
 
-    --accent-blue: #2563EB;
+    --accent-blue: #2E56B5;
     --accent-amber: #945A10;
     --accent-green: #1E6C38;
-    --btn-primary: #2563EB;
+    --btn-primary: #2E56B5;
     --btn-warning: #9A5E10;
     --btn-success: #1E6C38;
     --btn-text: #FFFFFF;
-    --client-blue: #2563EB;
+    --client-blue: #4A7CE0;
     --client-amber: #C47A1A;
     --client-rose: #D4598A;
     --client-green: #2D8A4E;
@@ -344,16 +344,16 @@
     --client-olive: #856E12;
     --border-subtle: #D4C9B8;
     --border-input: #C8C3BB;
-    --border-focus: #2563EB;
-    --border-subtle-hsl: 30 16% 78%;
-    --border-input-hsl: 30 10% 78%;
+    --border-focus: #2E56B5;
+    --border-subtle-hsl: 30 12% 78%;
+    --border-input-hsl: 30 10% 76%;
     --selection-bg: #C8D8F5;
     --highlight-bg: rgba(180, 140, 60, 0.18);
     --scrollbar-thumb: rgba(0, 0, 0, 0.15);
     --scrollbar-track: transparent;
 
     --status-done: 145 55% 33%;
-    --status-progress: 224 76% 48%;
+    --status-progress: 220 60% 45%;
     --status-pending: 20 5% 55%;
     --status-overdue: 0 84% 50%;
     --priority-high: 0 84% 50%;
@@ -365,7 +365,7 @@
     --overlay-bg: rgba(26, 24, 20, 0.4);
     --warning-muted: 30 70% 45%;
 
-    --project-1: 224 76% 48%;
+    --project-1: 220 60% 45%;
     --project-2: 30 85% 42%;
     --project-3: 330 60% 55%;
     --project-4: 145 55% 33%;
@@ -375,18 +375,18 @@
 
     --bg-sidebar: 36 28% 94%;
     --sidebar-background: 36 28% 94%;
-    --sidebar-foreground: 30 20% 7%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-foreground: 36 10% 9%;
+    --sidebar-primary: 220 60% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 30 12% 85%;
-    --sidebar-accent-foreground: 30 20% 7%;
-    --sidebar-border: 30 16% 78%;
-    --sidebar-ring: 224 76% 48%;
+    --sidebar-accent-foreground: 36 10% 9%;
+    --sidebar-border: 30 12% 78%;
+    --sidebar-ring: 220 60% 45%;
     --sidebar-active: 30 14% 83%;
-    --sidebar-separator: 30 16% 78%;
-    --sidebar-label: 20 10% 35%;
-    --dropdown-bg: 0 0% 100%;
-    --dropdown-border: 30 16% 78%;
+    --sidebar-separator: 30 12% 78%;
+    --sidebar-label: 20 6% 40%;
+    --dropdown-bg: 36 18% 91%;
+    --dropdown-border: 30 12% 78%;
     --dropdown-hover: 30 14% 87%;
   }
 }
