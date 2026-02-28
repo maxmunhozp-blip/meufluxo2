@@ -46,6 +46,60 @@ export type Database = {
           },
         ]
       }
+      client_delivery_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          position: number | null
+          project_id: string
+          recurrence: string | null
+          tasks_template: Json
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          position?: number | null
+          project_id: string
+          recurrence?: string | null
+          tasks_template?: Json
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          position?: number | null
+          project_id?: string
+          recurrence?: string | null
+          tasks_template?: Json
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_delivery_templates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_delivery_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
@@ -74,6 +128,118 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_instances: {
+        Row: {
+          created_at: string | null
+          id: string
+          month: string
+          project_id: string
+          status: string | null
+          tasks_generated_at: string | null
+          template_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          month: string
+          project_id: string
+          status?: string | null
+          tasks_generated_at?: string | null
+          template_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          month?: string
+          project_id?: string
+          status?: string | null
+          tasks_generated_at?: string | null
+          template_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_instances_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "client_delivery_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_instances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_reports: {
+        Row: {
+          generated_at: string | null
+          id: string
+          month: string
+          pdf_url: string | null
+          project_id: string
+          sections: Json
+          summary: Json | null
+          title: string | null
+          updated_at: string | null
+          whatsapp_text: string | null
+          workspace_id: string
+        }
+        Insert: {
+          generated_at?: string | null
+          id?: string
+          month: string
+          pdf_url?: string | null
+          project_id: string
+          sections?: Json
+          summary?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          whatsapp_text?: string | null
+          workspace_id: string
+        }
+        Update: {
+          generated_at?: string | null
+          id?: string
+          month?: string
+          pdf_url?: string | null
+          project_id?: string
+          sections?: Json
+          summary?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          whatsapp_text?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_reports_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
