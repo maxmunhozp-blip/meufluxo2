@@ -208,6 +208,20 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
 }
 
 export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask }: SortableTaskRowProps) {
+  // HTML5 drag for cross-area drag to sidebar
+  const handleNativeDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/x-task-id', task.id);
+    e.dataTransfer.setData('application/x-task-project', task.projectId);
+    e.dataTransfer.setData('application/x-task-name', task.name);
+    e.dataTransfer.effectAllowed = 'move';
+    // Create custom ghost
+    const ghost = document.createElement('div');
+    ghost.textContent = task.name;
+    ghost.style.cssText = 'position:fixed;top:-1000px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;padding:8px 12px;max-width:200px;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:9999;pointer-events:none;';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 10, 16);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+  };
   const [expanded, setExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(task.name);
@@ -244,7 +258,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   };
 
   return (
-    <div ref={setNodeRef} data-task-id={task.id} className="relative">
+    <div ref={setNodeRef} data-task-id={task.id} className="relative" draggable onDragStart={handleNativeDragStart}>
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>
         <div
