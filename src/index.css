@@ -2,67 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   MeuFluxo 2.0 — Theme Token System
+   
+   ARQUITETURA:
+   1. Tokens semânticos (nunca referencie cores diretamente)
+   2. Troca de tema = troca de variáveis no :root
+   3. Componentes NUNCA usam hex literal
+   4. prefers-color-scheme como fallback inteligente
+   ============================================================ */
+
 @layer base {
-  :root {
-    /* Base backgrounds — Neuroinclusive Dark Mode */
-    --background: 240 33% 5%;       /* #0F0F17 */
-    --foreground: 240 14% 92%;      /* #E8E8F0 */
-
-    --card: 240 24% 12%;            /* #1A1A28 */
+  /* ---- DARK MODE (padrão do MeuFluxo) ---- */
+  :root,
+  [data-theme="dark"] {
+    /* shadcn base tokens (HSL) */
+    --background: 240 33% 5%;
+    --foreground: 240 14% 92%;
+    --card: 240 24% 12%;
     --card-foreground: 240 14% 92%;
-
     --popover: 240 24% 12%;
     --popover-foreground: 240 14% 92%;
-
-    --primary: 220 96% 71%;         /* #6C9CFC */
+    --primary: 220 96% 71%;
     --primary-foreground: 240 33% 5%;
-
     --secondary: 240 14% 16%;
     --secondary-foreground: 240 14% 92%;
-
     --muted: 240 12% 18%;
-    --muted-foreground: 240 10% 52%; /* #8888A0 */
-
+    --muted-foreground: 240 10% 52%;
     --accent: 220 96% 71%;
     --accent-foreground: 240 33% 5%;
-
-    --destructive: 30 100% 71%;     /* #FFB86C — never red */
+    --destructive: 30 100% 71%;
     --destructive-foreground: 240 33% 5%;
-
     --border: 240 14% 16%;
-    --input: 240 18% 14%;           /* #1E1E30 */
+    --input: 240 18% 14%;
     --ring: 220 96% 71%;
-
     --radius: 0.5rem;
 
-    /* Neurodivergent Design Tokens */
-    --bg-app: 240 33% 5%;           /* #0F0F17 */
-    --bg-surface: 240 24% 12%;      /* #1A1A28 */
+    /* Backgrounds */
+    --bg-base: #0F0F17;
+    --bg-surface: #1A1A28;
+    --bg-elevated: #242438;
+    --bg-input: #15152A;
+    --bg-focus: #0A0A12;
+    --bg-hover: rgba(255, 255, 255, 0.04);
+    --bg-active: rgba(255, 255, 255, 0.08);
+    --bg-app: 240 33% 5%;
+    --bg-surface-hsl: 240 24% 12%;
     --bg-surface-alt: 240 16% 14%;
-    --bg-elevated: 240 14% 18%;
-    --bg-active: 240 22% 21%;       /* #2A2A42 */
-    --bg-hover: 240 22% 15%;        /* #1E1E30 */
+    --bg-elevated-hsl: 240 14% 18%;
+    --bg-active-hsl: 240 22% 21%;
+    --bg-hover-hsl: 240 22% 15%;
     --bg-subtask: 240 16% 13%;
-    --bg-input: 240 18% 14%;        /* #1E1E30 */
+    --bg-input-hsl: 240 18% 14%;
     --bg-overlay: 0 0% 0% / 0.5;
 
-    --text-primary: 240 14% 92%;    /* #E8E8F0 */
-    --text-secondary: 240 10% 52%;  /* #8888A0 */
-    --text-muted: 240 10% 38%;      /* #555570 */
+    /* Text */
+    --text-primary: #E8E8F0;
+    --text-secondary: #A0A0B0;
+    --text-tertiary: #6E6E82;
+    --text-placeholder: #555570;
+    --text-primary-hsl: 240 14% 92%;
+    --text-secondary-hsl: 240 10% 52%;
+    --text-muted: 240 10% 38%;
     --text-completed: 240 10% 38%;
 
-    --border-subtle: 240 14% 16%;
-    --border-input: 240 10% 22%;
+    /* Accents */
+    --accent-blue: #6C9CFC;
+    --accent-amber: #FFB86C;
+    --accent-green: #50DA7C;
 
-    --status-done: 140 94% 65%;     /* #50FA7B */
-    --status-progress: 220 96% 71%; /* #6C9CFC */
+    /* Buttons */
+    --btn-primary: #4A7CE0;
+    --btn-warning: #C47A1A;
+    --btn-success: #2D8A4E;
+    --btn-text: #FFFFFF;
+
+    /* Client colors */
+    --client-blue: #6C9CFC;
+    --client-amber: #FFB86C;
+    --client-rose: #FF6B9D;
+    --client-green: #50DA7C;
+    --client-purple: #BD93F9;
+    --client-teal: #5AC8D8;
+    --client-olive: #E6D44D;
+
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-input: rgba(255, 255, 255, 0.10);
+    --border-focus: #6C9CFC;
+    --border-subtle-hsl: 240 14% 16%;
+    --border-input-hsl: 240 10% 22%;
+
+    /* States */
+    --selection-bg: rgba(108, 156, 252, 0.3);
+    --highlight-bg: rgba(255, 184, 108, 0.25);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+    --scrollbar-track: transparent;
+
+    /* Status */
+    --status-done: 140 94% 65%;
+    --status-progress: 220 96% 71%;
     --status-pending: 240 10% 38%;
-    --status-overdue: 30 100% 71%;  /* #FFB86C */
-
+    --status-overdue: 30 100% 71%;
     --priority-high: 30 100% 71%;
     --priority-medium: 45 100% 72%;
 
-    /* Project palette */
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+    /* Overlays */
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+
+    /* Warning muted (non-punitive) */
+    --warning-muted: 30 80% 60%;
+
+    /* Project palette (HSL) */
     --project-1: 220 96% 71%;
     --project-2: 30 100% 71%;
     --project-3: 330 100% 63%;
@@ -71,7 +127,8 @@
     --project-6: 189 95% 77%;
     --project-7: 65 93% 77%;
 
-    --bg-sidebar: 240 33% 5%;       /* #0F0F17 */
+    /* Sidebar */
+    --bg-sidebar: 240 33% 5%;
     --sidebar-background: 240 33% 5%;
     --sidebar-foreground: 240 14% 92%;
     --sidebar-primary: 220 96% 71%;
@@ -80,7 +137,7 @@
     --sidebar-accent-foreground: 240 14% 92%;
     --sidebar-border: 240 14% 16%;
     --sidebar-ring: 220 96% 71%;
-    --sidebar-active: 240 22% 21%;  /* #2A2A42 */
+    --sidebar-active: 240 22% 21%;
     --sidebar-separator: 240 20% 18%;
     --sidebar-label: 240 10% 52%;
 
@@ -88,9 +145,249 @@
     --dropdown-bg: 240 22% 11%;
     --dropdown-border: 240 18% 20%;
     --dropdown-hover: 240 22% 21%;
+  }
 
-    /* Warning muted (non-punitive) */
-    --warning-muted: 30 80% 60%;
+  /* ---- LIGHT MODE (warm ivory) ---- */
+  [data-theme="light"] {
+    /* shadcn base tokens */
+    --background: 36 28% 94%;
+    --foreground: 30 10% 9%;
+    --card: 36 22% 91%;
+    --card-foreground: 30 10% 9%;
+    --popover: 36 22% 91%;
+    --popover-foreground: 30 10% 9%;
+    --primary: 220 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 8% 85%;
+    --secondary-foreground: 30 10% 9%;
+    --muted: 30 10% 88%;
+    --muted-foreground: 20 6% 40%;
+    --accent: 220 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 30 82% 33%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 82%;
+    --input: 30 10% 78%;
+    --ring: 20 5% 48%;
+
+    /* Backgrounds */
+    --bg-base: #F5F0E8;
+    --bg-surface: #EDE8DF;
+    --bg-elevated: #E5E0D7;
+    --bg-input: #EFEBE3;
+    --bg-focus: #FAF8F4;
+    --bg-hover: #EBE6DD;
+    --bg-active: #E3DED5;
+    --bg-app: 36 28% 94%;
+    --bg-surface-hsl: 36 22% 91%;
+    --bg-surface-alt: 36 18% 89%;
+    --bg-elevated-hsl: 30 14% 87%;
+    --bg-active-hsl: 30 12% 85%;
+    --bg-hover-hsl: 36 20% 90%;
+    --bg-subtask: 36 18% 90%;
+    --bg-input-hsl: 36 20% 92%;
+    --bg-overlay: 30 10% 9% / 0.4;
+
+    /* Text */
+    --text-primary: #1A1814;
+    --text-secondary: #6B6560;
+    --text-tertiary: #78726D;
+    --text-placeholder: #908A84;
+    --text-primary-hsl: 30 10% 9%;
+    --text-secondary-hsl: 20 6% 40%;
+    --text-muted: 20 5% 45%;
+    --text-completed: 20 5% 55%;
+
+    /* Accents */
+    --accent-blue: #2E56B5;
+    --accent-amber: #945A10;
+    --accent-green: #1E6C38;
+
+    /* Buttons */
+    --btn-primary: #2E56B5;
+    --btn-warning: #9A5E10;
+    --btn-success: #1E6C38;
+    --btn-text: #FFFFFF;
+
+    /* Client colors */
+    --client-blue: #4A7CE0;
+    --client-amber: #C47A1A;
+    --client-rose: #D4598A;
+    --client-green: #2D8A4E;
+    --client-purple: #7C5BBF;
+    --client-teal: #2A8E9E;
+    --client-olive: #856E12;
+
+    /* Borders */
+    --border-subtle: #D8D3CB;
+    --border-input: #C8C3BB;
+    --border-focus: #7E7872;
+    --border-subtle-hsl: 30 12% 82%;
+    --border-input-hsl: 30 10% 78%;
+
+    /* States */
+    --selection-bg: #C8D8F5;
+    --highlight-bg: rgba(180, 140, 60, 0.18);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+    --scrollbar-track: transparent;
+
+    /* Status */
+    --status-done: 145 55% 33%;
+    --status-progress: 220 60% 45%;
+    --status-pending: 20 5% 55%;
+    --status-overdue: 30 82% 33%;
+    --priority-high: 30 82% 33%;
+    --priority-medium: 40 70% 40%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(120, 100, 80, 0.08);
+    --shadow-md: 0 4px 12px rgba(120, 100, 80, 0.10);
+    --shadow-lg: 0 8px 24px rgba(120, 100, 80, 0.12);
+
+    /* Overlays */
+    --overlay-bg: rgba(26, 24, 20, 0.4);
+
+    --warning-muted: 30 70% 45%;
+
+    /* Project palette (light) */
+    --project-1: 220 70% 56%;
+    --project-2: 30 85% 42%;
+    --project-3: 330 60% 55%;
+    --project-4: 145 55% 33%;
+    --project-5: 259 50% 55%;
+    --project-6: 189 55% 38%;
+    --project-7: 50 78% 32%;
+
+    /* Sidebar */
+    --bg-sidebar: 36 28% 94%;
+    --sidebar-background: 36 28% 94%;
+    --sidebar-foreground: 30 10% 9%;
+    --sidebar-primary: 220 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 12% 85%;
+    --sidebar-accent-foreground: 30 10% 9%;
+    --sidebar-border: 30 12% 82%;
+    --sidebar-ring: 20 5% 48%;
+    --sidebar-active: 30 14% 83%;
+    --sidebar-separator: 30 12% 82%;
+    --sidebar-label: 20 6% 40%;
+
+    /* Dropdown tokens */
+    --dropdown-bg: 36 22% 91%;
+    --dropdown-border: 30 12% 82%;
+    --dropdown-hover: 30 14% 87%;
+  }
+}
+
+/* ---- SYSTEM PREFERENCE FALLBACK ---- */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --background: 36 28% 94%;
+    --foreground: 30 10% 9%;
+    --card: 36 22% 91%;
+    --card-foreground: 30 10% 9%;
+    --popover: 36 22% 91%;
+    --popover-foreground: 30 10% 9%;
+    --primary: 220 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 8% 85%;
+    --secondary-foreground: 30 10% 9%;
+    --muted: 30 10% 88%;
+    --muted-foreground: 20 6% 40%;
+    --accent: 220 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 30 82% 33%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 82%;
+    --input: 30 10% 78%;
+    --ring: 20 5% 48%;
+
+    --bg-base: #F5F0E8;
+    --bg-surface: #EDE8DF;
+    --bg-elevated: #E5E0D7;
+    --bg-input: #EFEBE3;
+    --bg-focus: #FAF8F4;
+    --bg-hover: #EBE6DD;
+    --bg-active: #E3DED5;
+    --bg-app: 36 28% 94%;
+    --bg-surface-hsl: 36 22% 91%;
+    --bg-surface-alt: 36 18% 89%;
+    --bg-elevated-hsl: 30 14% 87%;
+    --bg-active-hsl: 30 12% 85%;
+    --bg-hover-hsl: 36 20% 90%;
+    --bg-subtask: 36 18% 90%;
+    --bg-input-hsl: 36 20% 92%;
+    --bg-overlay: 30 10% 9% / 0.4;
+
+    --text-primary: #1A1814;
+    --text-secondary: #6B6560;
+    --text-tertiary: #78726D;
+    --text-placeholder: #908A84;
+    --text-primary-hsl: 30 10% 9%;
+    --text-secondary-hsl: 20 6% 40%;
+    --text-muted: 20 5% 45%;
+    --text-completed: 20 5% 55%;
+
+    --accent-blue: #2E56B5;
+    --accent-amber: #945A10;
+    --accent-green: #1E6C38;
+    --btn-primary: #2E56B5;
+    --btn-warning: #9A5E10;
+    --btn-success: #1E6C38;
+    --btn-text: #FFFFFF;
+    --client-blue: #4A7CE0;
+    --client-amber: #C47A1A;
+    --client-rose: #D4598A;
+    --client-green: #2D8A4E;
+    --client-purple: #7C5BBF;
+    --client-teal: #2A8E9E;
+    --client-olive: #856E12;
+    --border-subtle: #D8D3CB;
+    --border-input: #C8C3BB;
+    --border-focus: #7E7872;
+    --border-subtle-hsl: 30 12% 82%;
+    --border-input-hsl: 30 10% 78%;
+    --selection-bg: #C8D8F5;
+    --highlight-bg: rgba(180, 140, 60, 0.18);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+    --scrollbar-track: transparent;
+
+    --status-done: 145 55% 33%;
+    --status-progress: 220 60% 45%;
+    --status-pending: 20 5% 55%;
+    --status-overdue: 30 82% 33%;
+    --priority-high: 30 82% 33%;
+    --priority-medium: 40 70% 40%;
+
+    --shadow-sm: 0 1px 2px rgba(120, 100, 80, 0.08);
+    --shadow-md: 0 4px 12px rgba(120, 100, 80, 0.10);
+    --shadow-lg: 0 8px 24px rgba(120, 100, 80, 0.12);
+    --overlay-bg: rgba(26, 24, 20, 0.4);
+    --warning-muted: 30 70% 45%;
+
+    --project-1: 220 70% 56%;
+    --project-2: 30 85% 42%;
+    --project-3: 330 60% 55%;
+    --project-4: 145 55% 33%;
+    --project-5: 259 50% 55%;
+    --project-6: 189 55% 38%;
+    --project-7: 50 78% 32%;
+
+    --bg-sidebar: 36 28% 94%;
+    --sidebar-background: 36 28% 94%;
+    --sidebar-foreground: 30 10% 9%;
+    --sidebar-primary: 220 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 12% 85%;
+    --sidebar-accent-foreground: 30 10% 9%;
+    --sidebar-border: 30 12% 82%;
+    --sidebar-ring: 20 5% 48%;
+    --sidebar-active: 30 14% 83%;
+    --sidebar-separator: 30 12% 82%;
+    --sidebar-label: 20 6% 40%;
+    --dropdown-bg: 36 22% 91%;
+    --dropdown-border: 30 12% 82%;
+    --dropdown-hover: 30 14% 87%;
   }
 }
 
@@ -112,40 +409,37 @@
   }
 }
 
-/* Text selection — legible, low-contrast */
+/* Text selection — uses token */
 ::selection {
-  background: rgba(108, 156, 252, 0.3);
-  color: #E8E8F0;
+  background: var(--selection-bg);
+  color: var(--text-primary);
 }
 ::-moz-selection {
-  background: rgba(108, 156, 252, 0.3);
-  color: #E8E8F0;
+  background: var(--selection-bg);
+  color: var(--text-primary);
 }
 
-/* Highlight/marker — legible yellow */
+/* Highlight/marker */
 mark, .highlight, [data-highlight] {
-  background: rgba(255, 184, 108, 0.25);
-  color: #E8E8F0;
+  background: var(--highlight-bg);
+  color: var(--text-primary);
   padding: 1px 3px;
   border-radius: 2px;
 }
 
-/* Scrollbar styling for neurodivergent comfort */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border-subtle));
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--text-muted));
+  background: var(--text-tertiary);
 }
 
 /* Global transitions — neuroinclusive, no bounce/shake */
