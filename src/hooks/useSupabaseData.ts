@@ -1115,6 +1115,28 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       content_type: file.type || null,
     });
     if (dbError) { toast.error('Erro ao salvar anexo'); throw dbError; }
+    // Refetch to update UI immediately (don't rely solely on realtime)
+    const { data: newAtt } = await (supabase.from('task_attachments' as any) as any)
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (newAtt) {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const attachment: Attachment = {
+        id: newAtt.id,
+        taskId: newAtt.task_id,
+        userId: newAtt.user_id,
+        fileName: newAtt.file_name,
+        filePath: newAtt.file_path,
+        fileSize: newAtt.file_size,
+        contentType: newAtt.content_type,
+        createdAt: newAtt.created_at,
+        url: `${SUPABASE_URL}/storage/v1/object/public/task-attachments/${newAtt.file_path}`,
+      };
+      setAttachmentsState(prev => prev.some(x => x.id === attachment.id) ? prev : [...prev, attachment]);
+    }
     toast.success('Anexo enviado');
   }, [session]);
 
