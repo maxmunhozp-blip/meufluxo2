@@ -396,6 +396,16 @@ export function ProjectSidebar({
     };
   }, []);
 
+  // Safety timeout: force-reset drag state after 5s
+  useEffect(() => {
+    if (!isDraggingTask) return;
+    const safetyTimer = setTimeout(() => {
+      console.warn('Drag state safety timeout - forcing reset');
+      setIsDraggingTask(false);
+    }, 5000);
+    return () => clearTimeout(safetyTimer);
+  }, [isDraggingTask]);
+
   const toggleProjectExpand = (projectId: string) => {
     setExpandedProjects(prev => {
       const next = { ...prev, [projectId]: !prev[projectId] };
