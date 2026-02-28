@@ -100,13 +100,16 @@ function SortableProjectItem({
         >
           <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
         </div>
-        {/* Chevron */}
+        {/* Chevron — 24×24 touch target */}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
-          className="w-4 h-4 flex items-center justify-center flex-shrink-0"
+          className="flex items-center justify-center flex-shrink-0"
+          style={{ width: 24, height: 24, minWidth: 24, minHeight: 24, borderRadius: 4 }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
           <ChevronRight
-            className="w-3 h-3 transition-transform"
+            className="w-3 h-3"
             style={{
               color: 'var(--text-tertiary)',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
@@ -271,17 +274,7 @@ export function ProjectSidebar({
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-expand active project
-  useEffect(() => {
-    if (activeProjectId && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView) {
-      setExpandedProjects(prev => {
-        if (prev[activeProjectId]) return prev;
-        const next = { ...prev, [activeProjectId]: true };
-        localStorage.setItem(SIDEBAR_EXPANSION_KEY, JSON.stringify(next));
-        return next;
-      });
-    }
-  }, [activeProjectId, isMyDayView, isMyWeekView, isMyTasksView, isNotesView]);
+  // No auto-expand: clicking a client name navigates but does NOT expand sidebar sub-items
 
   const toggleProjectExpand = (projectId: string) => {
     setExpandedProjects(prev => {
