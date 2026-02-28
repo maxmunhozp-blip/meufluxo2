@@ -21,7 +21,7 @@ const Auth = () => {
         if (pendingCode) {
           navigate(`/invite/${pendingCode}`, { replace: true });
         } else {
-          navigate('/', { replace: true });
+          navigate('/app', { replace: true });
         }
       }
     });
@@ -31,7 +31,7 @@ const Auth = () => {
         if (pendingCode) {
           navigate(`/invite/${pendingCode}`, { replace: true });
         } else {
-          navigate('/', { replace: true });
+          navigate('/app', { replace: true });
         }
       }
     });

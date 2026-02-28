@@ -163,6 +163,14 @@ const Index = () => {
     }
   }, [loading, session, navigate]);
 
+  // Failsafe timeout
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!session) navigate('/auth', { replace: true });
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [session, navigate]);
+
   // Set active project when projects load
   useEffect(() => {
     if (projects.length > 0 && !projects.find(p => p.id === activeProjectId)) {
