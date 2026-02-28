@@ -6,23 +6,32 @@ import { toast } from 'sonner';
 interface GenerateMonthlyTasksButtonProps {
   projectId: string;
   workspaceId: string;
+  activeMonth?: Date;
   onTasksGenerated?: () => void;
 }
+
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export function GenerateMonthlyTasksButton({
   projectId,
   workspaceId,
+  activeMonth,
   onTasksGenerated,
 }: GenerateMonthlyTasksButtonProps) {
   const [generating, setGenerating] = useState(false);
 
   const handleGenerate = useCallback(async () => {
+    if (!projectId || !workspaceId) {
+      toast.error('Selecione um projeto primeiro.');
+      return;
+    }
+
     setGenerating(true);
     try {
-      const now = new Date();
-      const monthDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      const monthName = monthNames[now.getMonth()];
+      const target = activeMonth || new Date();
+      const monthDate = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-01`;
+      const monthName = MONTH_NAMES[target.getMonth()];
+      const yearStr = target.getFullYear();
 
       // Check existing instances
       const { data: existingInstances } = await (supabase.from('monthly_instances' as any) as any)
@@ -39,18 +48,14 @@ export function GenerateMonthlyTasksButton({
 
       if (tErr) throw tErr;
       if (!templates || templates.length === 0) {
-        toast.error('Nenhum template ativo encontrado. Configure os templates primeiro.');
-        setGenerating(false);
+        toast.error('Nenhum template ativo encontrado. Configure os templates primeiro (⚙️).');
         return;
       }
 
       // Check if already generated
       if (existingInstances && existingInstances.length > 0) {
-        const confirmed = window.confirm(`${monthName} já foi gerado. Gerar novamente? (As tarefas anteriores não serão removidas)`);
-        if (!confirmed) {
-          setGenerating(false);
-          return;
-        }
+        const confirmed = window.confirm(`${monthName} ${yearStr} já foi gerado. Gerar novamente? (As tarefas anteriores não serão removidas)`);
+        if (!confirmed) return;
         // Delete old instances
         await (supabase.from('monthly_instances' as any) as any)
           .delete()
@@ -68,26 +73,35 @@ export function GenerateMonthlyTasksButton({
       let totalTasks = 0;
 
       for (const template of templates) {
-        // Find matching section or use first one
-        let sectionId = sections?.[0]?.id;
+        // Try to find a matching existing section, otherwise create one
+        let sectionId: string | undefined;
         const matchingSection = sections?.find(s =>
-          s.name.toLowerCase().includes(template.name.toLowerCase())
+          s.name.toLowerCase().includes(template.name.toLowerCase()) ||
+          template.name.toLowerCase().includes(s.name.toLowerCase())
         );
-        if (matchingSection) sectionId = matchingSection.id;
 
-        if (!sectionId) {
-          // Create a section for this template
-          const { data: newSection } = await supabase
+        if (matchingSection) {
+          sectionId = matchingSection.id;
+        } else {
+          // Create a new section for this template
+          const { data: newSection, error: secErr } = await supabase
             .from('sections')
             .insert({
-              name: `${template.name} — ${monthName} ${now.getFullYear()}`,
+              name: template.name || `Seção ${template.position + 1}`,
               project_id: projectId,
               workspace_id: workspaceId,
-              position: 0,
+              position: (sections?.length || 0) + template.position,
             })
             .select('id')
             .single();
+
+          if (secErr) {
+            console.error('Erro ao criar seção:', secErr);
+            continue;
+          }
           sectionId = newSection?.id;
+          // Add to local list so next template can find it
+          sections?.push({ id: sectionId!, name: template.name });
         }
 
         if (!sectionId) continue;
@@ -137,15 +151,19 @@ export function GenerateMonthlyTasksButton({
         }
       }
 
-      toast.success(`${totalTasks} tarefas geradas para ${monthName}`);
+      if (totalTasks > 0) {
+        toast.success(`✓ ${totalTasks} tarefas de ${monthName} geradas com sucesso`);
+      } else {
+        toast.warning('Nenhuma tarefa foi gerada. Verifique se o template possui tarefas.');
+      }
       onTasksGenerated?.();
     } catch (err) {
       console.error('Erro ao gerar tarefas:', err);
-      toast.error('Erro ao gerar tarefas do mês');
+      toast.error('✗ Erro ao gerar tarefas. Verifique o template.');
     } finally {
       setGenerating(false);
     }
-  }, [projectId, workspaceId, onTasksGenerated]);
+  }, [projectId, workspaceId, activeMonth, onTasksGenerated]);
 
   return (
     <button
@@ -154,7 +172,7 @@ export function GenerateMonthlyTasksButton({
       className="flex items-center gap-2"
       style={{
         padding: '8px 16px',
-        borderRadius: 'var(--radius-md)',
+        borderRadius: 8,
         border: '1px solid var(--accent-blue)',
         color: 'var(--accent-blue)',
         background: 'transparent',
