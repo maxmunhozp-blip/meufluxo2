@@ -407,17 +407,25 @@ const Index = () => {
     reorderProjects(reordered);
   }, [reorderProjects]);
 
-  const handleCreateSection = useCallback(async () => {
-    const project = projects.find(p => p.id === activeProjectId);
-    if (!project) return;
-    const title = generateSectionTitle(project.name);
+  const [isCreatingSection, setIsCreatingSection] = useState(false);
+  const newSectionInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCreateSection = useCallback(() => {
+    setIsCreatingSection(true);
+    setTimeout(() => newSectionInputRef.current?.focus(), 0);
+  }, []);
+
+  const confirmCreateSection = useCallback(async (name: string) => {
+    setIsCreatingSection(false);
+    const trimmed = name.trim();
+    if (!trimmed) return;
     try {
-      const id = await createSectionFn(title, activeProjectId);
+      const id = await createSectionFn(trimmed, activeProjectId);
       setExpandedSections(prev => ({ ...prev, [id]: true }));
     } catch (err) {
       console.error('Erro ao criar seção:', err);
     }
-  }, [activeProjectId, projects, createSectionFn]);
+  }, [activeProjectId, createSectionFn]);
 
   const handleRenameSection = useCallback((id: string, title: string) => {
     renameSectionFn(id, title);
@@ -1048,15 +1056,36 @@ const Index = () => {
             </DragOverlay>
           </DndContext>
 
-          <button
-            onClick={handleCreateSection}
-            className="flex items-center transition-colors"
-            style={{ height: 40, paddingLeft: 32, fontSize: 14, color: 'var(--text-tertiary)', marginTop: 16, transition: 'all 150ms ease-out' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-          >
-            + Nova Seção
-          </button>
+          {isCreatingSection ? (
+            <div style={{ marginTop: 16, paddingLeft: 16, paddingRight: 16 }}>
+              <input
+                ref={newSectionInputRef}
+                defaultValue=""
+                placeholder="Nome da seção..."
+                onKeyDown={e => {
+                  if (e.key === 'Enter') confirmCreateSection((e.target as HTMLInputElement).value);
+                  if (e.key === 'Escape') setIsCreatingSection(false);
+                }}
+                onBlur={e => confirmCreateSection(e.target.value)}
+                className="w-full h-10 px-3 rounded-lg border focus:outline-none"
+                style={{
+                  fontSize: 14, fontWeight: 600,
+                  background: 'var(--bg-input)', color: 'var(--text-primary)',
+                  borderColor: 'var(--border-focus)',
+                }}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={handleCreateSection}
+              className="flex items-center transition-colors"
+              style={{ height: 40, paddingLeft: 32, fontSize: 14, color: 'var(--text-tertiary)', marginTop: 16, transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+            >
+              + Nova Seção
+            </button>
+          )}
 
           {projectSections.length === 0 && (
             <div className="flex items-center justify-center h-32">
