@@ -577,10 +577,24 @@ mark, .highlight, [data-highlight] {
   animation-delay: 300ms;
 }
 
-/* Eliminate subpixel gap between sidebar and main content */
-.h-screen.flex > div > aside,
-.h-screen.flex > aside {
+/* NUCLEAR: Remove all lines between sidebar and content */
+aside {
+  border: none !important;
   border-right: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+aside + div,
+aside + main,
+aside ~ main,
+aside ~ div {
+  border-left: none !important;
+}
+[data-panel-resize-handle-id],
+[data-resize-handle] {
+  width: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Respect prefers-reduced-motion */
