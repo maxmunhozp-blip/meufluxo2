@@ -57,7 +57,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, isSelected, isDraggi
         if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
         startRename();
       }}
-      className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/50 hover:bg-nd-hover transition-all duration-300 ease-out cursor-pointer pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 group/sub ${
+      className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 group/sub ${
         isSelected ? 'bg-nd-active' : ''
       } ${isParentDragging ? 'opacity-40' : ''}`}
     >
