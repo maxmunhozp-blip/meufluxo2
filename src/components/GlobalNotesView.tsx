@@ -83,22 +83,22 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="h-14 px-6 flex items-center border-b" style={{ borderColor: 'rgba(255,255,255,0.04)', background: 'hsl(var(--bg-app))' }}>
-        <h1 className="text-[18px] font-bold" style={{ color: '#E8E8F0' }}>Notas</h1>
+      <div className="h-14 px-6 flex items-center" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>Notas</h1>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-1 px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="flex items-center gap-1 px-4 py-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {(['all', 'quick'] as const).map(f => (
           <button
             key={f}
             onClick={() => { setFilter(f); setShowProjectDropdown(false); }}
             className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
             style={{
-              color: filter === f ? '#E8E8F0' : '#555570',
-              background: filter === f ? 'rgba(255,255,255,0.06)' : 'transparent',
+              color: filter === f ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              background: filter === f ? 'var(--bg-elevated)' : 'transparent',
             }}
-            onMouseEnter={e => { if (filter !== f) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+            onMouseEnter={e => { if (filter !== f) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
             onMouseLeave={e => { if (filter !== f) e.currentTarget.style.background = 'transparent'; }}
           >
             {f === 'all' ? 'Todas' : 'Rápidas'}
@@ -109,22 +109,22 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
             className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1"
             style={{
-              color: selectedProjectForFilter ? '#E8E8F0' : '#555570',
-              background: selectedProjectForFilter ? 'rgba(255,255,255,0.06)' : 'transparent',
+              color: selectedProjectForFilter ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              background: selectedProjectForFilter ? 'var(--bg-elevated)' : 'transparent',
             }}
           >
             {selectedProjectForFilter ? selectedProjectForFilter.name : 'Por projeto'}
             <ChevronDown className="w-3 h-3" />
           </button>
           {showProjectDropdown && (
-            <div className="absolute top-full left-0 mt-1 rounded-lg py-1 shadow-lg z-50" style={{ background: '#1A1A28', border: '1px solid #333350', minWidth: 180 }}>
+            <div className="absolute top-full left-0 mt-1 rounded-lg py-1 shadow-lg z-50" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', minWidth: 180 }}>
               {projects.map(p => (
                 <button
                   key={p.id}
                   onClick={() => { setFilter(p.id); setShowProjectDropdown(false); }}
                   className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors"
-                  style={{ color: filter === p.id ? '#6C9CFC' : '#8888A0' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  style={{ color: filter === p.id ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
@@ -145,9 +145,9 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
             setIsEditing(true);
           }}
           className="w-full flex items-center gap-2 px-4 py-3 rounded-lg transition-colors"
-          style={{ background: '#1A1A28', color: '#E8E8F0' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#1E1E30'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1A1A28'; }}
+          style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; }}
         >
           <Plus className="w-4 h-4" />
           <span className="text-sm font-medium">Nova nota rápida</span>
@@ -155,7 +155,7 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
         </button>
 
         {!isPro && (
-          <p className="text-[11px] px-1" style={{ color: '#555570' }}>
+          <p className="text-[11px] px-1" style={{ color: 'var(--text-tertiary)' }}>
             {quickNotesCount}/10 notas rápidas · {canCreateQuickNote ? `${10 - quickNotesCount} restantes` : 'Limite atingido'}
           </p>
         )}
@@ -167,24 +167,24 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
               key={note.id}
               onClick={() => { setActiveNoteId(note.id); setIsEditing(true); }}
               className="w-full text-left px-4 py-3 rounded-lg transition-colors"
-              style={{ background: '#1A1A28' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1E1E30'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#1A1A28'; }}
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  {note.pinned && <Pin className="w-3 h-3 flex-shrink-0" style={{ color: '#8888A0' }} />}
-                  <span className="text-sm font-medium truncate" style={{ color: '#E8E8F0' }}>
+                  {note.pinned && <Pin className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+                  <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                     {note.title || 'Sem título'}
                   </span>
                 </div>
                 {noteProject && (
-                  <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: '#8888A0' }}>
+                  <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: 'var(--text-secondary)' }}>
                     {noteProject.name}
                   </span>
                 )}
               </div>
-              <div className="text-[11px] mt-1" style={{ color: '#555570' }}>
+              <div className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
                 {noteProject ? noteProject.name : 'Nota rápida'} · Atualizado {formatDistanceToNow(new Date(note.updated_at), { addSuffix: true, locale: ptBR })}
               </div>
             </button>
@@ -192,7 +192,7 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
         })}
 
         {sorted.length === 0 && (
-          <div className="text-center py-12" style={{ color: '#555570' }}>
+          <div className="text-center py-12" style={{ color: 'var(--text-tertiary)' }}>
             <p className="text-sm">Nenhuma nota encontrada</p>
           </div>
         )}

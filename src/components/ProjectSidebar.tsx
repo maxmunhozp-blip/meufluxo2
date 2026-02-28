@@ -341,31 +341,6 @@ export function ProjectSidebar({
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
-          {/* Theme Toggle inline in nav */}
-          {onCycleTheme && (
-            <button
-              onClick={onCycleTheme}
-              className="w-full flex items-center gap-2.5 cursor-pointer select-none"
-              style={{
-                height: 36,
-                paddingLeft: 12,
-                paddingRight: 12,
-                borderRadius: 'var(--radius-md)',
-                fontSize: 14,
-                fontWeight: 400,
-                color: 'var(--text-secondary)',
-                transition: 'all 150ms ease-out',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-              aria-label={`Tema atual: ${themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}. Clique para alternar.`}
-            >
-              {themePreference === 'dark' ? <Moon className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} /> :
-               themePreference === 'light' ? <Sun className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} /> :
-               <Monitor className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />}
-              <span>{themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}</span>
-            </button>
-          )}
         </div>
 
         {/* Separator — 24px gap above and below */}
@@ -476,6 +451,22 @@ export function ProjectSidebar({
           </div>
           <div className="flex-1" />
 
+          {/* Theme toggle icon */}
+          {onCycleTheme && (
+            <button
+              onClick={onCycleTheme}
+              className="w-7 h-7 flex items-center justify-center rounded-md"
+              title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+            >
+              {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
+               themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
+               <Monitor className="w-4 h-4" strokeWidth={1.5} />}
+            </button>
+          )}
+
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
               style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
@@ -521,15 +512,6 @@ export function ProjectSidebar({
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <Tag className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Tipos de trabalho
             </button>
-            {onCycleTheme && (
-              <button onClick={() => { onCycleTheme(); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                {themePreference === 'dark' ? <Moon className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> :
-                 themePreference === 'light' ? <Sun className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> :
-                 <Monitor className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
-                {themePreference === 'dark' ? 'Tema: Escuro' : themePreference === 'light' ? 'Tema: Claro' : 'Tema: Sistema'}
-              </button>
-            )}
             <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <HelpCircle className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Como usar

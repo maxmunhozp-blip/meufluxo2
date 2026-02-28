@@ -38,15 +38,15 @@ function DayDropCell({ clientKey, dateStr, isToday: isTodayCol, overloadCount, c
   return (
     <div
       ref={setNodeRef}
-      className="flex-1 min-w-[80px] md:min-w-[100px] border-r last:border-r-0 p-1 space-y-1"
+      className="flex-1 min-w-[80px] md:min-w-[100px] p-1 space-y-1"
       style={{
-        borderColor: 'rgba(255,255,255,0.04)',
+        borderRight: '1px solid var(--border-subtle)',
         background: isOver
-          ? 'rgba(108,156,252,0.08)'
+          ? 'var(--accent-subtle)'
           : isTodayCol
-            ? 'rgba(108,156,252,0.04)'
+            ? 'var(--accent-subtle)'
             : overloadCount
-              ? 'rgba(255,184,108,0.05)'
+              ? 'var(--warning-bg)'
               : undefined,
         transition: 'background 120ms ease-out',
       }}
@@ -58,7 +58,7 @@ function DayDropCell({ clientKey, dateStr, isToday: isTodayCol, overloadCount, c
 
 /* ── Client row type ─────── */
 interface ClientRow {
-  key: string; // normalized section name
+  key: string;
   displayName: string;
   projects: { project: Project; sectionId: string }[];
   tasks: Task[];
@@ -81,7 +81,6 @@ export function WeekTimelineView({
 
   const weekDateStrs = useMemo(() => weekDates.map(d => format(d, 'yyyy-MM-dd')), [weekDates]);
 
-  // Collect all tasks in this week (including rollover)
   const allRelevantTasks = useMemo(() => {
     const result: Task[] = [];
     tasks.forEach(t => {
@@ -90,7 +89,6 @@ export function WeekTimelineView({
       if (dateKey && weekDateStrs.includes(dateKey)) {
         result.push({ ...t, dueDate: dateKey });
       }
-      // Scheduled subtasks as pseudo-tasks
       const collectSubs = (subs: typeof t.subtasks) => {
         if (!subs) return;
         for (const sub of subs) {
@@ -113,7 +111,6 @@ export function WeekTimelineView({
       collectSubs(t.subtasks);
     });
 
-    // Rollover: overdue tasks not in this week → show on today
     const todayStr = format(todayStart, 'yyyy-MM-dd');
     tasks.forEach(t => {
       if (t.parentTaskId || t.status === 'done') return;
@@ -130,7 +127,6 @@ export function WeekTimelineView({
     return result;
   }, [tasks, weekDateStrs, todayStart]);
 
-  // Group by CLIENT (section name, case-insensitive)
   const clientRows = useMemo(() => {
     const map = new Map<string, ClientRow>();
 
@@ -143,28 +139,19 @@ export function WeekTimelineView({
       const key = sectionName.trim().toLowerCase();
 
       if (!map.has(key)) {
-        map.set(key, {
-          key,
-          displayName: sectionName.trim(),
-          projects: [],
-          tasks: [],
-        });
+        map.set(key, { key, displayName: sectionName.trim(), projects: [], tasks: [] });
       }
 
       const row = map.get(key)!;
       row.tasks.push(t);
-
-      // Track unique projects for this client
       if (!row.projects.some(p => p.project.id === project.id)) {
         row.projects.push({ project, sectionId: section?.id || '' });
       }
     }
 
-    // Sort rows alphabetically
     return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
   }, [allRelevantTasks, sections, projects]);
 
-  // Overload indicator: days with 3+ different clients
   const overloadDays = useMemo(() => {
     const dayClients: Record<string, Set<string>> = {};
     weekDateStrs.forEach(d => { dayClients[d] = new Set(); });
@@ -185,9 +172,7 @@ export function WeekTimelineView({
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
-    if (data?.type === 'timeline-task') {
-      setActiveDragTask(data.task as Task);
-    }
+    if (data?.type === 'timeline-task') setActiveDragTask(data.task as Task);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -212,28 +197,28 @@ export function WeekTimelineView({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Sticky header row */}
-          <div className="flex flex-shrink-0 sticky top-0 z-20" style={{ background: '#0F0F17', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="flex flex-shrink-0 sticky top-0 z-20" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-subtle)' }}>
             {/* Client label column spacer */}
-            <div className="w-[120px] md:w-[160px] flex-shrink-0 sticky left-0 z-30" style={{ background: '#0F0F17', borderRight: '1px solid rgba(255,255,255,0.04)' }} />
+            <div className="w-[120px] md:w-[160px] flex-shrink-0 sticky left-0 z-30" style={{ background: 'var(--bg-base)', borderRight: '1px solid var(--border-subtle)' }} />
             {/* Day headers */}
             {weekDates.map((d) => {
               const dateStr = format(d, 'yyyy-MM-dd');
               const overload = overloadDays[dateStr];
               const current = isToday(d);
-              const dayOfWeek = (d.getDay() + 6) % 7; // Mon=0
+              const dayOfWeek = (d.getDay() + 6) % 7;
               return (
                 <div
                   key={dateStr}
                   className="flex-1 min-w-[80px] md:min-w-[100px] flex flex-col items-center justify-center h-12 relative"
                   style={{
-                    borderRight: '1px solid rgba(255,255,255,0.04)',
-                    background: current ? 'rgba(108,156,252,0.04)' : undefined,
+                    borderRight: '1px solid var(--border-subtle)',
+                    background: current ? 'var(--accent-subtle)' : undefined,
                   }}
                 >
                   <span style={{
                     fontSize: 11,
                     fontWeight: 600,
-                    color: current ? '#6C9CFC' : '#555570',
+                    color: current ? 'var(--accent-blue)' : 'var(--text-tertiary)',
                     textTransform: 'uppercase' as const,
                     letterSpacing: 0.5,
                   }}>
@@ -242,14 +227,14 @@ export function WeekTimelineView({
                   <span style={{
                     fontSize: 16,
                     fontWeight: current ? 700 : 500,
-                    color: current ? '#6C9CFC' : '#8888A0',
+                    color: current ? 'var(--accent-blue)' : 'var(--text-secondary)',
                   }}>
                     {format(d, 'dd')}
                   </span>
                   {overload && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#FFB86C' }} />
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: 'var(--warning)' }} />
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
                         <p className="text-xs">{overload} clientes neste dia — considere redistribuir</p>
@@ -265,11 +250,10 @@ export function WeekTimelineView({
           <div className="flex-1 overflow-auto">
             {clientRows.length === 0 && (
               <div className="flex items-center justify-center h-40">
-                <span className="text-[13px]" style={{ color: '#555570' }}>Nenhuma tarefa agendada esta semana</span>
+                <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Nenhuma tarefa agendada esta semana</span>
               </div>
             )}
             {clientRows.map((row) => {
-              // Group tasks by day
               const tasksByDay: Record<string, Task[]> = {};
               weekDateStrs.forEach(d => { tasksByDay[d] = []; });
               row.tasks.forEach(t => {
@@ -279,8 +263,6 @@ export function WeekTimelineView({
 
               const maxTasks = Math.max(1, ...Object.values(tasksByDay).map(arr => arr.length));
               const rowHeight = Math.max(48, maxTasks * 32 + 12);
-
-              // Project names for tooltip
               const projectNames = row.projects.map(p => p.project.name).join(', ');
 
               return (
@@ -289,7 +271,7 @@ export function WeekTimelineView({
                   className="flex"
                   style={{
                     minHeight: `${rowHeight}px`,
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderBottom: '1px solid var(--border-subtle)',
                   }}
                 >
                   {/* Client label (sticky left) */}
@@ -298,8 +280,8 @@ export function WeekTimelineView({
                       <div
                         className="w-[120px] md:w-[160px] flex-shrink-0 flex items-center gap-1.5 px-2 md:px-3 sticky left-0 z-10 cursor-default"
                         style={{
-                          background: '#0F0F17',
-                          borderRight: '1px solid rgba(255,255,255,0.04)',
+                          background: 'var(--bg-base)',
+                          borderRight: '1px solid var(--border-subtle)',
                         }}
                       >
                         {/* Project color dots */}
@@ -307,12 +289,12 @@ export function WeekTimelineView({
                           {row.projects.map(p => (
                             <span
                               key={p.project.id}
-                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                               style={{ background: p.project.color }}
                             />
                           ))}
                         </div>
-                        <span className="text-[14px] font-medium truncate" style={{ color: '#E8E8F0' }}>
+                        <span className="truncate" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                           {row.displayName}
                         </span>
                       </div>
@@ -340,16 +322,18 @@ export function WeekTimelineView({
                           return (
                             <div
                               key={task.id}
-                              className="h-[28px] rounded-[6px] px-2 flex items-center cursor-pointer select-none overflow-hidden transition-colors"
+                              className="h-[28px] px-2 flex items-center cursor-pointer select-none overflow-hidden"
                               style={{
-                                background: '#2A2A42',
-                                borderLeft: `3px solid ${project?.color || '#6C9CFC'}`,
+                                borderRadius: 'var(--radius-sm)',
+                                background: 'var(--bg-elevated)',
+                                borderLeft: `3px solid ${project?.color || 'var(--accent-blue)'}`,
+                                transition: 'all 150ms ease-out',
                               }}
                               onClick={() => onSelectTask(task)}
-                              onMouseEnter={e => { e.currentTarget.style.background = '#333350'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = '#2A2A42'; }}
+                              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                             >
-                              <span className="text-[12px] truncate" style={{ color: '#E8E8F0' }}>
+                              <span className="truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>
                                 {task.name}
                               </span>
                             </div>
@@ -367,15 +351,16 @@ export function WeekTimelineView({
         <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
           {activeDragTask ? (
             <div
-              className="h-[28px] rounded-[6px] px-2 flex items-center shadow-lg"
+              className="h-[28px] px-2 flex items-center shadow-lg"
               style={{
-                background: '#2A2A42',
-                borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`,
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-elevated)',
+                borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
                 opacity: 0.9,
                 minWidth: 120,
               }}
             >
-              <span className="text-[12px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
+              <span className="truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
             </div>
           ) : null}
         </DragOverlay>
