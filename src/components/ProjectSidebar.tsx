@@ -32,6 +32,7 @@ function SortableProjectItem({
   sections,
   tasks,
   activeSectionId,
+  isDraggingTask,
   onSelect,
   onSelectSection,
   onToggleExpand,
@@ -45,6 +46,7 @@ function SortableProjectItem({
   onCancelSectionRename,
   sectionRenameRef,
   onDropTask,
+  onDropTaskToSection,
 }: {
   project: Project;
   isActive: boolean;
@@ -52,6 +54,7 @@ function SortableProjectItem({
   sections: Section[];
   tasks: Task[];
   activeSectionId?: string | null;
+  isDraggingTask?: boolean;
   onSelect: () => void;
   onSelectSection?: (sectionId: string) => void;
   onToggleExpand: () => void;
@@ -65,8 +68,10 @@ function SortableProjectItem({
   onCancelSectionRename?: () => void;
   sectionRenameRef?: React.RefObject<HTMLInputElement>;
   onDropTask?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
+  onDropTaskToSection?: (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: project.id });
@@ -78,27 +83,61 @@ function SortableProjectItem({
   };
 
   const handleNativeDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes('application/x-task-id')) return;
+    if (!e.dataTransfer.types.includes('application/x-task-id') && !e.dataTransfer.types.includes('application/json')) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setIsDragOver(true);
+    if (!dragOverSectionId) setIsDragOver(true);
   };
 
   const handleNativeDragLeave = (e: React.DragEvent) => {
-    // Only clear if leaving the container, not entering a child
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
     setIsDragOver(false);
+    setDragOverSectionId(null);
   };
 
   const handleNativeDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    setDragOverSectionId(null);
     const taskId = e.dataTransfer.getData('application/x-task-id');
     const sourceProjectId = e.dataTransfer.getData('application/x-task-project');
     const taskName = e.dataTransfer.getData('application/x-task-name');
     if (!taskId || sourceProjectId === project.id) return;
     onDropTask?.(taskId, sourceProjectId, project.id, taskName);
   };
+
+  const handleSectionDragOver = (e: React.DragEvent, sectionId: string) => {
+    if (!e.dataTransfer.types.includes('application/x-task-id') && !e.dataTransfer.types.includes('application/json')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSectionId(sectionId);
+    setIsDragOver(false);
+  };
+
+  const handleSectionDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setDragOverSectionId(null);
+  };
+
+  const handleSectionDrop = (e: React.DragEvent, sectionId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverSectionId(null);
+    setIsDragOver(false);
+    const taskId = e.dataTransfer.getData('application/x-task-id');
+    const sourceProjectId = e.dataTransfer.getData('application/x-task-project');
+    const taskName = e.dataTransfer.getData('application/x-task-name');
+    if (!taskId) return;
+    if (onDropTaskToSection) {
+      onDropTaskToSection(taskId, sourceProjectId, project.id, sectionId, taskName);
+    } else if (sourceProjectId !== project.id) {
+      onDropTask?.(taskId, sourceProjectId, project.id, taskName);
+    }
+  };
+
+  const showDragHint = isDraggingTask && !isDragOver && !dragOverSectionId;
 
   return (
     <div
@@ -115,13 +154,18 @@ function SortableProjectItem({
           height: 36,
           paddingLeft: 8,
           paddingRight: 12,
-          borderRadius: isDragOver ? 8 : undefined,
-          border: isDragOver ? '2px dashed var(--accent)' : '2px solid transparent',
+          borderRadius: 8,
+          border: isDragOver
+            ? '2px solid var(--accent-blue)'
+            : showDragHint
+              ? '2px dashed var(--text-placeholder)'
+              : '2px solid transparent',
           background: isDragOver ? 'var(--accent-subtle)' : undefined,
           color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
           transition: 'all 150ms ease-out',
+          transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
         }}
         onMouseEnter={e => { if (!isDragOver) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
         onMouseLeave={e => { if (!isDragOver) e.currentTarget.style.background = isDragOver ? 'var(--accent-subtle)' : 'transparent'; }}
@@ -158,6 +202,12 @@ function SortableProjectItem({
           style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4 }}
         />
         <span className="truncate flex-1 text-left" style={{ lineHeight: 1.5 }} onClick={onSelect}>{project.name}</span>
+        {/* Drop hint */}
+        {isDragOver && (
+          <span className="text-[10px] font-medium whitespace-nowrap flex-shrink-0" style={{ color: 'var(--accent-blue)' }}>
+            → Entrada
+          </span>
+        )}
       </div>
 
       {/* Expandable sections */}
@@ -176,6 +226,8 @@ function SortableProjectItem({
         {sections.map(section => {
           const isSectionActive = activeSectionId === section.id;
           const isRenaming = renamingSectionId === section.id;
+          const isSectionDragOver = dragOverSectionId === section.id;
+          const showSectionHint = isDraggingTask && !isSectionDragOver;
           if (isRenaming) {
             return (
               <div key={section.id} className="flex items-center" style={{ height: 28, paddingLeft: 32, paddingRight: 12 }}>
@@ -196,6 +248,9 @@ function SortableProjectItem({
               key={section.id}
               onClick={() => onSelectSection?.(section.id)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onSectionContextMenu?.(e, section.id); }}
+              onDragOver={(e) => handleSectionDragOver(e, section.id)}
+              onDragLeave={handleSectionDragLeave}
+              onDrop={(e) => handleSectionDrop(e, section.id)}
               className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 28,
@@ -205,10 +260,17 @@ function SortableProjectItem({
                 fontSize: 12,
                 fontWeight: 400,
                 lineHeight: 1.5,
-                color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                color: isSectionDragOver ? 'var(--accent-blue)' : isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                border: isSectionDragOver
+                  ? '2px solid var(--accent-blue)'
+                  : showSectionHint
+                    ? '1px dashed var(--text-placeholder)'
+                    : '2px solid transparent',
+                background: isSectionDragOver ? 'var(--accent-subtle)' : undefined,
+                transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--bg-elevated)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; } }}
+              onMouseLeave={e => { if (!isSectionDragOver) { e.currentTarget.style.background = isSectionDragOver ? 'var(--accent-subtle)' : 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; } }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
             </button>
@@ -309,7 +371,18 @@ export function ProjectSidebar({
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // No auto-expand: clicking a client name navigates but does NOT expand sidebar sub-items
+  // Listen for cross-area task drag events
+  const [isDraggingTask, setIsDraggingTask] = useState(false);
+  useEffect(() => {
+    const handleDragStart = () => setIsDraggingTask(true);
+    const handleDragEnd = () => setIsDraggingTask(false);
+    window.addEventListener('meufluxo:task-drag-start', handleDragStart);
+    window.addEventListener('meufluxo:task-drag-end', handleDragEnd);
+    return () => {
+      window.removeEventListener('meufluxo:task-drag-start', handleDragStart);
+      window.removeEventListener('meufluxo:task-drag-end', handleDragEnd);
+    };
+  }, []);
 
   const toggleProjectExpand = (projectId: string) => {
     setExpandedProjects(prev => {
@@ -454,6 +527,7 @@ export function ProjectSidebar({
                     onCancelSectionRename={() => setRenamingSectionId(null)}
                     sectionRenameRef={sectionRenameRef}
                     onDropTask={onMoveTaskToProject}
+                    isDraggingTask={isDraggingTask}
                   />
                 )
               ))}
