@@ -489,28 +489,28 @@ mark, .highlight, [data-highlight] {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--scrollbar-thumb);
 }
 
 /* Firefox thin scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* Sidebar scroll */
 .sidebar-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 .sidebar-scroll::-webkit-scrollbar { width: 4px; }
 .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
-.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb); }
 
 /* Global transitions */
 * {
@@ -533,16 +533,7 @@ mark, .highlight, [data-highlight] {
   margin-top: 24px;
 }
 
-/* Scrollbar theming for light mode */
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-}
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-}
-[data-theme="light"] * {
-  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
-}
+/* Light mode scrollbar now handled by --scrollbar-thumb token */
 
 @keyframes dropline-in {
   from { opacity: 0; transform: scaleX(0.3); transform-origin: left; }

@@ -47,9 +47,9 @@ export function LinkPreview({ url }: LinkPreviewProps) {
         target="_blank"
         rel="noopener noreferrer"
         className="block rounded-lg overflow-hidden transition-colors group"
-        style={{ background: '#1E1E30', border: '1px solid #333350', maxWidth: 480 }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
+        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', maxWidth: 480 }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
       >
         <div className="relative" style={{ aspectRatio: '16/9' }}>
           <img
@@ -65,8 +65,8 @@ export function LinkPreview({ url }: LinkPreviewProps) {
           </div>
         </div>
         <div className="p-3">
-          <div className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{data.title}</div>
-          <div className="text-[11px] mt-0.5" style={{ color: '#555570' }}>{data.domain}</div>
+          <div className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>{data.title}</div>
+          <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{data.domain}</div>
         </div>
       </a>
     );
@@ -78,9 +78,9 @@ export function LinkPreview({ url }: LinkPreviewProps) {
       target="_blank"
       rel="noopener noreferrer"
       className="flex gap-3 rounded-lg p-3 transition-colors"
-      style={{ background: '#1E1E30', border: '1px solid #333350' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
     >
       {data.image && (
         <img
@@ -92,11 +92,11 @@ export function LinkPreview({ url }: LinkPreviewProps) {
         />
       )}
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{data.title}</div>
+        <div className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>{data.title}</div>
         {data.description && (
-          <div className="text-xs mt-0.5 line-clamp-2" style={{ color: '#8888A0' }}>{data.description}</div>
+          <div className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{data.description}</div>
         )}
-        <div className="text-[11px] mt-1" style={{ color: '#555570' }}>{data.domain}</div>
+        <div className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>{data.domain}</div>
       </div>
     </a>
   );
