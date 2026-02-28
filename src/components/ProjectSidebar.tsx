@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -196,6 +196,8 @@ interface ProjectSidebarProps {
   getProjectMembers?: (projectId: string) => WorkspaceMember[];
   isSuperAdmin?: boolean;
   serviceTags?: ServiceTag[];
+  onCycleTheme?: () => void;
+  themePreference?: 'dark' | 'light' | 'system';
   onCreateServiceTag?: (name: string, icon: string) => Promise<void>;
   onRenameServiceTag?: (id: string, name: string) => Promise<void>;
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
@@ -212,6 +214,7 @@ export function ProjectSidebar({
   onSwitchWorkspace, onInviteToWorkspace, onCreateWorkspace, onRenameWorkspace, onDeleteWorkspace,
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
+  onCycleTheme, themePreference,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -488,6 +491,15 @@ export function ProjectSidebar({
               onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <Tag className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Tipos de trabalho
             </button>
+            {onCycleTheme && (
+              <button onClick={() => { onCycleTheme(); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                {themePreference === 'dark' ? <Moon className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> :
+                 themePreference === 'light' ? <Sun className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> :
+                 <Monitor className="w-3.5 h-3.5" style={{ color: '#6B7280' }} />}
+                {themePreference === 'dark' ? 'Tema: Escuro' : themePreference === 'light' ? 'Tema: Claro' : 'Tema: Sistema'}
+              </button>
+            )}
             <button onClick={() => { setShowHowToUse(true); setShowSettings(false); }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: '#E5E5E5' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#1F1F1F'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <HelpCircle className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /> Como usar

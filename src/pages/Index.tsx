@@ -23,6 +23,7 @@ import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { GlobalNotesView } from '@/components/GlobalNotesView';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, Project } from '@/types/task';
@@ -63,6 +64,8 @@ const Index = () => {
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
     planLimits, showUpgradeModal, setShowUpgradeModal,
   } = useSupabaseData();
+
+  const { preference, cycleTheme } = useTheme();
 
   const [activeProjectId, setActiveProjectId] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -629,9 +632,6 @@ const Index = () => {
 
   const panelOpen = selectedTask !== null;
   const sectionIds = projectSections.map(s => `section-${s.id}`);
-
-
-
   const sidebarProps = {
     projects,
     sections: sectionList,
@@ -683,6 +683,8 @@ const Index = () => {
     onRenameServiceTag: renameServiceTag,
     onChangeServiceTagIcon: changeServiceTagIcon,
     onDeleteServiceTag: deleteServiceTag,
+    onCycleTheme: cycleTheme,
+    themePreference: preference,
   };
 
   // Determine active view for bottom nav
