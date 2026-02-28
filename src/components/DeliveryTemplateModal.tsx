@@ -62,7 +62,6 @@ export function DeliveryTemplateModal({
           is_active: t.is_active,
           tasks_template: t.tasks_template || [],
         })));
-        // Expand all sections by default
         const expanded: Record<number, boolean> = {};
         data.forEach((_: any, i: number) => { expanded[i] = true; });
         setExpandedSections(expanded);
@@ -136,12 +135,10 @@ export function DeliveryTemplateModal({
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      // Delete existing templates for this project
       await (supabase.from('client_delivery_templates' as any) as any)
         .delete()
         .eq('project_id', projectId);
 
-      // Insert new templates
       if (templates.length > 0) {
         const rows = templates.map((t, i) => ({
           project_id: projectId,
@@ -174,20 +171,20 @@ export function DeliveryTemplateModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose} />
+      <div className="absolute inset-0" style={{ background: 'var(--overlay-bg)' }} onClick={onClose} />
       <div
         className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl overflow-hidden"
-        style={{ background: '#0D0D0D', border: '1px solid #2A2A2A' }}
+        style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 h-14 flex-shrink-0" style={{ borderBottom: '1px solid #2A2A2A' }}>
+        <div className="flex items-center justify-between px-4 h-14 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <div className="flex items-center gap-2">
-            <Package className="w-4 h-4" style={{ color: '#6C9CFC' }} />
-            <h2 className="text-[16px] font-semibold" style={{ color: '#E5E5E5' }}>
+            <Package className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
+            <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-primary)' }}>
               Template de Entregas — {projectName}
             </h2>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ color: '#8888A0' }}>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ color: 'var(--text-secondary)' }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -196,7 +193,7 @@ export function DeliveryTemplateModal({
         <div className="flex-1 overflow-y-auto p-4" style={{ gap: 16, display: 'flex', flexDirection: 'column' }}>
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <p style={{ color: '#8888A0', fontSize: 14 }}>Carregando...</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Carregando...</p>
             </div>
           ) : (
             <>
@@ -204,17 +201,17 @@ export function DeliveryTemplateModal({
                 <div
                   key={sIdx}
                   className="rounded-lg overflow-hidden"
-                  style={{ background: '#1A1A1A', border: '1px solid #2A2A2A' }}
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
                 >
                   {/* Section Header */}
-                  <div className="flex items-center gap-2 px-3 h-11" style={{ borderBottom: expandedSections[sIdx] ? '1px solid #2A2A2A' : 'none' }}>
+                  <div className="flex items-center gap-2 px-3 h-11" style={{ borderBottom: expandedSections[sIdx] ? '1px solid var(--border-subtle)' : 'none' }}>
                     <button
                       onClick={() => toggleSection(sIdx)}
                       className="w-5 h-5 flex items-center justify-center flex-shrink-0"
                     >
                       {expandedSections[sIdx]
-                        ? <ChevronDown className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
-                        : <ChevronRight className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
+                        ? <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+                        : <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
                       }
                     </button>
                     <input
@@ -222,27 +219,27 @@ export function DeliveryTemplateModal({
                       onChange={e => updateSection(sIdx, 'name', e.target.value)}
                       placeholder="Nome da seção (ex: Redes Sociais)"
                       className="flex-1 bg-transparent text-[14px] font-medium outline-none"
-                      style={{ color: '#E5E5E5' }}
+                      style={{ color: 'var(--text-primary)' }}
                     />
                     <select
                       value={section.recurrence}
                       onChange={e => updateSection(sIdx, 'recurrence', e.target.value)}
                       className="text-[12px] rounded px-2 py-1 outline-none"
-                      style={{ background: '#0D0D0D', color: '#8888A0', border: '1px solid #2A2A2A' }}
+                      style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
                     >
                       <option value="monthly">Mensal</option>
                       <option value="biweekly">Quinzenal</option>
                       <option value="weekly">Semanal</option>
                     </select>
-                    <span className="text-[12px] tabular-nums" style={{ color: '#555570' }}>
+                    <span className="text-[12px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>
                       {section.tasks_template.length}
                     </span>
                     <button
                       onClick={() => deleteSection(sIdx)}
                       className="w-7 h-7 flex items-center justify-center rounded"
-                      style={{ color: '#8888A0' }}
-                      onMouseEnter={e => { e.currentTarget.style.color = '#F59E0B'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+                      style={{ color: 'var(--text-secondary)' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--warning-muted))'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -257,19 +254,19 @@ export function DeliveryTemplateModal({
                           className="flex items-center gap-2 group"
                           style={{ paddingLeft: 8 }}
                         >
-                          <GripVertical className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100" style={{ color: '#555570', transition: 'opacity 150ms ease-out' }} />
+                          <GripVertical className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100" style={{ color: 'var(--text-placeholder)', transition: 'opacity 150ms ease-out' }} />
                           <input
                             value={task.title}
                             onChange={e => updateTask(sIdx, tIdx, 'title', e.target.value)}
                             placeholder="Título da tarefa"
                             className="flex-1 bg-transparent text-[13px] outline-none"
-                            style={{ color: '#E5E5E5', height: 32 }}
+                            style={{ color: 'var(--text-primary)', height: 32 }}
                           />
                           <select
                             value={task.tipo_trabalho}
                             onChange={e => updateTask(sIdx, tIdx, 'tipo_trabalho', e.target.value)}
                             className="text-[12px] rounded px-2 py-1 outline-none max-w-[140px]"
-                            style={{ background: '#0D0D0D', color: '#8888A0', border: '1px solid #2A2A2A' }}
+                            style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
                           >
                             <option value="">Tipo de trabalho</option>
                             {serviceTags.map(tag => (
@@ -279,7 +276,7 @@ export function DeliveryTemplateModal({
                           <button
                             onClick={() => deleteTask(sIdx, tIdx)}
                             className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100"
-                            style={{ color: '#8888A0', transition: 'opacity 150ms ease-out' }}
+                            style={{ color: 'var(--text-secondary)', transition: 'opacity 150ms ease-out' }}
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -288,8 +285,8 @@ export function DeliveryTemplateModal({
                       <button
                         onClick={() => addTask(sIdx)}
                         className="flex items-center gap-1.5 text-[12px] px-2 py-1.5 rounded"
-                        style={{ color: '#6C9CFC' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(108,156,252,0.08)'; }}
+                        style={{ color: 'var(--accent-blue)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-blue-muted)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                       >
                         <Plus className="w-3 h-3" />
@@ -303,9 +300,9 @@ export function DeliveryTemplateModal({
               <button
                 onClick={addSection}
                 className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-lg w-full justify-center"
-                style={{ color: '#8888A0', border: '1px dashed #2A2A2A' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#E5E5E5'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8888A0'; }}
+                style={{ color: 'var(--text-secondary)', border: '1px dashed var(--border-subtle)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
               >
                 <Plus className="w-3.5 h-3.5" />
                 Adicionar seção
@@ -315,11 +312,11 @@ export function DeliveryTemplateModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-4 h-14 flex-shrink-0" style={{ borderTop: '1px solid #2A2A2A' }}>
+        <div className="flex items-center justify-end gap-3 px-4 h-14 flex-shrink-0" style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <button
             onClick={onClose}
             className="px-4 py-2 text-[13px] rounded-lg"
-            style={{ color: '#8888A0' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             Cancelar
           </button>
@@ -328,8 +325,8 @@ export function DeliveryTemplateModal({
             disabled={saving}
             className="px-4 py-2 text-[13px] rounded-lg font-medium"
             style={{
-              background: '#3B82F6',
-              color: '#fff',
+              background: 'var(--btn-primary)',
+              color: 'var(--btn-text)',
               opacity: saving ? 0.6 : 1,
               transition: 'opacity 150ms ease-out',
             }}
