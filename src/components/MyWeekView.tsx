@@ -40,12 +40,14 @@ function WeekTaskCard({
   isSelected,
   onSelect,
   truncate,
+  isRolledOverOrigin,
 }: {
   task: Task;
   projectColor: string;
   isSelected: boolean;
   onSelect: () => void;
   truncate?: boolean;
+  isRolledOverOrigin?: boolean;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -90,7 +92,7 @@ function WeekTaskCard({
         onMouseLeave={e => { e.currentTarget.style.background = bgColor; }}
       >
         <span
-          className={`text-[12px] leading-[1.4] block ${isDone ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
+          className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
           style={{ color: '#E8E8F0', fontWeight: 400 }}
         >
           {task.name}
@@ -169,6 +171,9 @@ function DayColumn({
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const project = projects.find(p => p.id === task.projectId);
+            // Check if this task is shown on a past day but was rolled over to today
+            const taskDate = task.scheduledDate || task.dueDate;
+            const isRolledOverOrigin = !isCurrentDay && task.status !== 'done' && !!taskDate && taskDate === dateStr && isBefore(dayDate, startOfDay(new Date()));
             return (
               <WeekTaskCard
                 key={task.id}
@@ -177,6 +182,7 @@ function DayColumn({
                 isSelected={selectedTaskId === task.id}
                 onSelect={() => onSelectTask(task)}
                 truncate={truncateText}
+                isRolledOverOrigin={isRolledOverOrigin}
               />
             );
           })}
