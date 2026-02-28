@@ -72,18 +72,20 @@ function WeekTaskCard({
       {...listeners}
     >
       <div
-        className={`rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-colors ${isSelected ? 'ring-1 ring-white/10' : ''}`}
+        className={`rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-colors ${isSelected ? 'ring-1' : ''}`}
         style={{
-          background: '#2A2A42',
+          background: 'var(--bg-elevated)',
           borderLeft: `3px solid ${projectColor}`,
-          borderRadius: 6,
+          borderRadius: 'var(--radius-sm)',
+          transition: 'all 150ms ease-out',
+          ...(isSelected ? { boxShadow: '0 0 0 1px var(--border-interactive)' } : {}),
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#333350'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#2A2A42'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
       >
         <span
           className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
-          style={{ color: '#E8E8F0', fontWeight: 400 }}
+          style={{ color: 'var(--text-primary)', fontWeight: 400 }}
         >
           {task.name}
         </span>
@@ -128,20 +130,20 @@ function DayColumn({
       ref={setNodeRef}
       className="flex flex-col flex-1 min-w-0 transition-colors"
       style={{
-        background: isCurrentDay ? '#1A1A28' : 'transparent',
-        borderRight: '1px solid rgba(255,255,255,0.04)',
+        background: isCurrentDay ? 'var(--accent-subtle)' : 'transparent',
+        borderRight: '1px solid var(--border-subtle)',
         ...(highlight ? {
-          border: '1px dashed #6C9CFC',
-          background: 'rgba(108,156,252,0.04)',
+          border: '1px dashed var(--accent-blue)',
+          background: 'var(--accent-subtle)',
         } : {}),
       }}
     >
       {/* Column header */}
-      <div className="flex flex-col items-center justify-center py-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="flex flex-col items-center justify-center py-2 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <span style={{
           fontSize: 11,
           fontWeight: 500,
-          color: isCurrentDay ? '#6C9CFC' : '#8888A0',
+          color: isCurrentDay ? 'var(--accent-blue)' : 'var(--text-secondary)',
           textTransform: 'uppercase' as const,
           letterSpacing: 0.5,
         }}>
@@ -150,7 +152,7 @@ function DayColumn({
         <span style={{
           fontSize: 18,
           fontWeight: 600,
-          color: isCurrentDay ? '#E8E8F0' : '#8888A0',
+          color: isCurrentDay ? 'var(--text-primary)' : 'var(--text-secondary)',
         }}>
           {dayNumber}
         </span>
@@ -249,15 +251,15 @@ function WeekSourceSidebar({
 
   if (collapsed) {
     return (
-      <div className="hidden md:flex w-10 flex-shrink-0 flex-col items-center pt-3 gap-2" style={{ background: 'hsl(var(--bg-sidebar))', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
-        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded transition-colors" style={{ color: '#8888A0' }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+      <div className="hidden md:flex w-10 flex-shrink-0 flex-col items-center pt-3 gap-2" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
+        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded transition-colors" style={{ color: 'var(--text-secondary)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
         >
           <ChevronRight className="w-4 h-4" />
         </button>
         {totalPending > 0 && (
-          <span className="text-[10px] font-bold rounded-full w-6 h-6 flex items-center justify-center" style={{ color: '#6C9CFC', background: 'rgba(108,156,252,0.1)' }}>
+          <span className="text-[10px] font-bold rounded-full w-6 h-6 flex items-center justify-center" style={{ color: 'var(--accent-blue)', background: 'var(--accent-subtle)' }}>
             {totalPending}
           </span>
         )}
@@ -270,22 +272,22 @@ function WeekSourceSidebar({
       ref={masterListDropRef}
       className="hidden md:flex w-[280px] flex-shrink-0 flex-col transition-colors duration-200"
       style={{
-        background: isMasterListOver ? 'rgba(108,156,252,0.04)' : 'hsl(var(--bg-sidebar))',
-        borderRight: isMasterListOver ? '1px solid rgba(108,156,252,0.4)' : '1px solid rgba(255,255,255,0.04)',
+        background: isMasterListOver ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+        borderRight: isMasterListOver ? '1px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
       }}
     >
       {/* Header */}
-      <div className="px-3 pt-3 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="px-3 pt-3 pb-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E8F0' }}>Master List</span>
-            <span style={{ fontSize: 10, fontWeight: 500, color: '#6C9CFC', background: 'rgba(108,156,252,0.1)', borderRadius: 10, padding: '1px 7px' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Master List</span>
+            <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--accent-blue)', background: 'var(--accent-subtle)', borderRadius: 10, padding: '1px 7px' }}>
               {totalPending}
             </span>
           </div>
-          <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded transition-colors" style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+          <button onClick={onToggle} className="w-6 h-6 flex items-center justify-center rounded transition-colors" style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -295,8 +297,8 @@ function WeekSourceSidebar({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar tarefa..."
-          className="w-full h-7 px-2.5 text-[12px] bg-transparent rounded-md border focus:outline-none placeholder:text-[#555570] transition-colors"
-          style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.06)' }}
+          className="w-full h-7 px-2.5 text-[12px] bg-transparent rounded-md border focus:outline-none transition-colors"
+          style={{ color: 'var(--text-primary)', borderColor: 'var(--border-subtle)' }}
         />
       </div>
 
@@ -310,14 +312,14 @@ function WeekSourceSidebar({
                 onClick={() => toggleProject(project.id)}
                 className="w-full h-8 px-3 flex items-center gap-2 transition-colors"
                 style={{ color: project.color }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <Play className={`w-2.5 h-2.5 fill-current transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
                 <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.3 }} className="truncate flex-1 text-left">
                   {project.name}
                 </span>
-                <span style={{ fontSize: 10, color: '#555570' }}>{totalCount}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{totalCount}</span>
               </button>
               {expanded && (
                 <div>
@@ -325,7 +327,7 @@ function WeekSourceSidebar({
                     <div key={section.id}>
                       {sectionGroups.length > 1 && (
                         <div className="px-5 py-1">
-                          <span style={{ fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: '#555570', fontWeight: 500 }}>
+                          <span style={{ fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: 'var(--text-tertiary)', fontWeight: 500 }}>
                             {section.title}
                           </span>
                         </div>
@@ -345,7 +347,7 @@ function WeekSourceSidebar({
         })}
         {groupedData.length === 0 && (
           <div className="px-3 py-8 text-center">
-            <span style={{ fontSize: 12, color: '#555570' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               {searchQuery ? 'Nenhuma tarefa encontrada' : 'Nenhuma tarefa pendente'}
             </span>
           </div>
@@ -354,8 +356,8 @@ function WeekSourceSidebar({
 
       {/* Footer hint */}
       {!hintDismissed && totalPending > 0 && (
-        <div className="px-3 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-          <span style={{ fontSize: 11, color: '#555570' }}>
+        <div className="px-3 py-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {isMasterListOver ? '← Solte para desagendar' : 'Arraste tarefas para agendar na semana'}
           </span>
         </div>
@@ -393,11 +395,11 @@ function MasterListOverlay({
       <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
       <div
         className="fixed left-0 top-0 bottom-0 z-50 w-[300px] flex flex-col animate-slide-in-left"
-        style={{ background: '#1A1A28', boxShadow: '4px 0 16px rgba(0,0,0,0.3)' }}
+        style={{ background: 'var(--bg-surface)', boxShadow: '4px 0 16px rgba(0,0,0,0.3)' }}
       >
-        <div className="h-12 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E8F0' }}>Master List</span>
-          <button onClick={onClose} style={{ color: '#8888A0' }}><X className="w-4 h-4" /></button>
+        <div className="h-12 px-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Master List</span>
+          <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X className="w-4 h-4" /></button>
         </div>
         <div className="flex-1 overflow-y-auto py-2">
           {groupedData.map(({ project, sectionGroups }) => {
@@ -411,7 +413,7 @@ function MasterListOverlay({
                 {expanded && sectionGroups.map(({ section, tasks: sTasks }) => (
                   <div key={section.id} className="pl-6">
                     {sTasks.map(t => (
-                      <div key={t.id} className="h-8 flex items-center px-2" style={{ fontSize: 13, color: '#E8E8F0' }}>
+                      <div key={t.id} className="h-8 flex items-center px-2" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                         {t.name}
                       </div>
                     ))}

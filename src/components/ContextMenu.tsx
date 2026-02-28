@@ -36,12 +36,16 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
   return (
     <div
       ref={ref}
-      className="fixed z-[100] py-1 rounded-lg border border-nd-border"
+      className="fixed"
       style={{
         left: position.x,
         top: position.y,
-        background: 'hsl(var(--bg-surface))',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        zIndex: 9999,
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 8,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+        padding: 4,
         minWidth: 160,
       }}
     >
@@ -51,16 +55,30 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
             <button
               onMouseEnter={() => setOpenSub(i)}
               onMouseLeave={() => setOpenSub(null)}
-              className="w-full h-8 px-3 text-left text-[13px] rounded hover:bg-nd-hover transition-colors text-nd-text flex items-center justify-between"
+              className="w-full flex items-center justify-between select-none"
+              style={{
+                height: 36,
+                padding: '8px 12px',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 400,
+                color: 'var(--text-primary)',
+                transition: 'all 150ms ease-out',
+              }}
+              onMouseDown={e => e.currentTarget.style.background = 'var(--bg-overlay)'}
             >
               {item.label}
-              <ChevronRight className="w-3.5 h-3.5 text-nd-text-muted" />
+              <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
               {openSub === i && (
                 <div
-                  className="absolute left-full top-0 ml-1 py-1 rounded-lg border border-nd-border z-[101]"
+                  className="absolute left-full top-0 ml-1"
                   style={{
-                    background: 'hsl(var(--bg-surface))',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                    zIndex: 9999,
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 8,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                    padding: 4,
                     minWidth: 180,
                     maxHeight: 240,
                     overflowY: 'auto',
@@ -70,9 +88,18 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
                     <button
                       key={ci}
                       onClick={() => { child.onClick?.(); onClose(); }}
-                      className={`w-full h-8 px-3 text-left text-[13px] rounded hover:bg-nd-hover transition-colors truncate ${
-                        child.danger ? 'text-nd-overdue' : 'text-nd-text'
-                      }`}
+                      className="w-full text-left truncate select-none"
+                      style={{
+                        height: 36,
+                        padding: '8px 12px',
+                        borderRadius: 6,
+                        fontSize: 14,
+                        fontWeight: 400,
+                        color: child.danger ? 'var(--error)' : 'var(--text-primary)',
+                        transition: 'all 150ms ease-out',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = child.danger ? 'var(--error-bg)' : 'var(--bg-overlay)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       {child.label}
                     </button>
@@ -83,9 +110,18 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
           ) : (
             <button
               onClick={() => { item.onClick?.(); onClose(); }}
-              className={`w-full h-8 px-3 text-left text-[13px] rounded hover:bg-nd-hover transition-colors ${
-                item.danger ? 'text-nd-overdue' : 'text-nd-text'
-              }`}
+              className="w-full text-left select-none"
+              style={{
+                height: 36,
+                padding: '8px 12px',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 400,
+                color: item.danger ? 'var(--error)' : 'var(--text-primary)',
+                transition: 'all 150ms ease-out',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = item.danger ? 'var(--error-bg)' : 'var(--bg-overlay)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               {item.label}
             </button>
