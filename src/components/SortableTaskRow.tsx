@@ -29,6 +29,7 @@ interface SortableTaskRowProps {
   sections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  isFadingOut?: boolean;
 }
 
 function formatDate(dateStr?: string): string {
@@ -207,7 +208,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask, isFadingOut }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('application/x-task-id', task.id);
@@ -258,7 +259,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   };
 
   return (
-    <div ref={setNodeRef} data-task-id={task.id} className="relative" draggable onDragStart={handleNativeDragStart}>
+    <div ref={setNodeRef} data-task-id={task.id} className="relative" draggable onDragStart={handleNativeDragStart} style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}>
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>
         <div

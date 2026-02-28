@@ -95,6 +95,7 @@ const Index = () => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [activeMonth, setActiveMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
   // Check super_admin role
   useEffect(() => {
@@ -464,6 +465,10 @@ const Index = () => {
       if (targetSectionId) subtaskUpdates.section_id = targetSectionId;
       await supabase.from('tasks').update(subtaskUpdates).eq('parent_task_id', taskId);
 
+      // Fade-out animation before removing from list
+      setFadingOutTaskId(taskId);
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       // Optimistically update local state
       setTasks(prev => prev.map(t => {
         if (t.id === taskId || t.parentTaskId === taskId) {
@@ -471,10 +476,12 @@ const Index = () => {
         }
         return t;
       }));
+      setFadingOutTaskId(null);
 
       toast({ title: `✓ Tarefa movida para ${targetProject.name}`, duration: 3000 });
     } catch (err) {
       console.error('Erro ao mover tarefa:', err);
+      setFadingOutTaskId(null);
       toast({ title: 'Erro ao mover tarefa', variant: 'destructive', duration: 3000 });
     }
   }, [projects, sectionList, setTasks]);
@@ -1076,6 +1083,7 @@ const Index = () => {
                       });
                     }}
                     onAddSubtask={addSubtask}
+                    fadingOutTaskId={fadingOutTaskId}
                   />
                 );
               })}
