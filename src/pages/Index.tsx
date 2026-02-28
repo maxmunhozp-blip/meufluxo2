@@ -194,30 +194,26 @@ const Index = () => {
     [taskList, activeProjectId]
   );
 
-  // Filter by month: tasks created within the active month window
+  // Filter by month: show task if ANY of its dates fall within the active month
+  const isInMonth = useCallback((t: Task) => {
+    const dates = [t.dueDate, t.scheduledDate].filter(Boolean) as string[];
+    if (dates.length === 0) return true; // Tasks without dates always visible
+    return dates.some(d => d >= monthStart && d <= monthEnd);
+  }, [monthStart, monthEnd]);
+
   const monthFilteredTasks = useMemo(
-    () => allProjectTasks.filter(t => {
-      // Use dueDate or scheduledDate or createdAt (fallback to always show)
-      const date = t.dueDate || t.scheduledDate;
-      if (!date) return true; // Tasks without dates always visible
-      return date >= monthStart && date <= monthEnd;
-    }),
-    [allProjectTasks, monthStart, monthEnd]
+    () => allProjectTasks.filter(isInMonth),
+    [allProjectTasks, isInMonth]
   );
 
   const pendingCount = monthFilteredTasks.filter(t => t.status !== 'done').length;
 
   const filterTasks = useCallback((tasks: Task[]) => {
-    // Apply month filter first
-    const monthFiltered = tasks.filter(t => {
-      const date = t.dueDate || t.scheduledDate;
-      if (!date) return true;
-      return date >= monthStart && date <= monthEnd;
-    });
+    const monthFiltered = tasks.filter(isInMonth);
     if (filter === 'pending') return monthFiltered.filter(t => t.status !== 'done');
     if (filter === 'done') return monthFiltered.filter(t => t.status === 'done');
     return monthFiltered;
-  }, [filter, monthStart, monthEnd]);
+  }, [filter, isInMonth]);
 
   const visibleTaskIds = useMemo(() => {
     const ids: string[] = [];
