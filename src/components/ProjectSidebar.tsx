@@ -37,6 +37,13 @@ function SortableProjectItem({
   onToggleExpand,
   onContextMenu,
   onColorClick,
+  onSectionContextMenu,
+  renamingSectionId,
+  renameSectionValue,
+  onRenameSectionValueChange,
+  onConfirmSectionRename,
+  onCancelSectionRename,
+  sectionRenameRef,
 }: {
   project: Project;
   isActive: boolean;
@@ -49,6 +56,13 @@ function SortableProjectItem({
   onToggleExpand: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onColorClick: (e: React.MouseEvent) => void;
+  onSectionContextMenu?: (e: React.MouseEvent, sectionId: string) => void;
+  renamingSectionId?: string | null;
+  renameSectionValue?: string;
+  onRenameSectionValueChange?: (v: string) => void;
+  onConfirmSectionRename?: () => void;
+  onCancelSectionRename?: () => void;
+  sectionRenameRef?: React.RefObject<HTMLInputElement>;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -123,14 +137,28 @@ function SortableProjectItem({
         }}
       >
         {sections.map(section => {
-          const sectionTasks = tasks.filter(t => t.section === section.id && !t.parentTaskId);
-          const doneTasks = sectionTasks.filter(t => t.status === 'done').length;
-          const totalTasks = sectionTasks.length;
           const isSectionActive = activeSectionId === section.id;
+          const isRenaming = renamingSectionId === section.id;
+          if (isRenaming) {
+            return (
+              <div key={section.id} className="flex items-center" style={{ height: 28, paddingLeft: 32, paddingRight: 12 }}>
+                <input
+                  ref={sectionRenameRef}
+                  value={renameSectionValue || ''}
+                  onChange={e => onRenameSectionValueChange?.(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') onConfirmSectionRename?.(); if (e.key === 'Escape') onCancelSectionRename?.(); }}
+                  onBlur={() => onConfirmSectionRename?.()}
+                  className="w-full h-6 px-2 text-[12px] rounded border focus:outline-none"
+                  style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
+                />
+              </div>
+            );
+          }
           return (
             <button
               key={section.id}
               onClick={() => onSelectSection?.(section.id)}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onSectionContextMenu?.(e, section.id); }}
               className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 28,
@@ -146,11 +174,6 @@ function SortableProjectItem({
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
-              {totalTasks > 0 && (
-                <span className="text-[12px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
-                  {doneTasks}/{totalTasks}
-                </span>
-              )}
             </button>
           );
         })}
@@ -205,6 +228,8 @@ interface ProjectSidebarProps {
   onRenameServiceTag?: (id: string, name: string) => Promise<void>;
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
   onDeleteServiceTag?: (id: string) => Promise<void>;
+  onRenameSection?: (id: string, title: string) => void;
+  onDeleteSection?: (id: string) => void;
 }
 
 export function ProjectSidebar({
@@ -218,6 +243,7 @@ export function ProjectSidebar({
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
+  onRenameSection, onDeleteSection,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -231,6 +257,10 @@ export function ProjectSidebar({
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showServiceTags, setShowServiceTags] = useState(false);
+  const [sectionContextMenu, setSectionContextMenu] = useState<{ sectionId: string; x: number; y: number } | null>(null);
+  const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
+  const [renameSectionValue, setRenameSectionValue] = useState('');
+  const sectionRenameRef = useRef<HTMLInputElement>(null);
   // Default: collapsed. Active project auto-expands.
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>(() => {
     const stored = loadExpandedProjects();
@@ -388,6 +418,13 @@ export function ProjectSidebar({
                     onToggleExpand={() => toggleProjectExpand(project.id)}
                     onContextMenu={(e) => { e.preventDefault(); setContextMenu({ projectId: project.id, x: e.clientX, y: e.clientY }); }}
                     onColorClick={(e) => { e.stopPropagation(); const rect = (e.target as HTMLElement).getBoundingClientRect(); setColorPicker({ projectId: project.id, x: rect.right + 8, y: rect.top }); }}
+                    onSectionContextMenu={(e, sectionId) => { setSectionContextMenu({ sectionId, x: e.clientX, y: e.clientY }); }}
+                    renamingSectionId={renamingSectionId}
+                    renameSectionValue={renameSectionValue}
+                    onRenameSectionValueChange={setRenameSectionValue}
+                    onConfirmSectionRename={() => { if (renamingSectionId && renameSectionValue.trim()) onRenameSection?.(renamingSectionId, renameSectionValue.trim()); setRenamingSectionId(null); }}
+                    onCancelSectionRename={() => setRenamingSectionId(null)}
+                    sectionRenameRef={sectionRenameRef}
                   />
                 )
               ))}
@@ -543,7 +580,38 @@ export function ProjectSidebar({
         />
       )}
 
-      {/* Color picker */}
+      {/* Section context menu */}
+      {sectionContextMenu && (
+        <ContextMenu
+          position={{ x: sectionContextMenu.x, y: sectionContextMenu.y }}
+          onClose={() => setSectionContextMenu(null)}
+          items={[
+            {
+              label: 'Renomear',
+              onClick: () => {
+                const section = allSections.find(s => s.id === sectionContextMenu.sectionId);
+                if (section) {
+                  setRenamingSectionId(section.id);
+                  setRenameSectionValue(section.title);
+                  setTimeout(() => sectionRenameRef.current?.focus(), 0);
+                }
+              },
+            },
+            {
+              label: 'Excluir',
+              danger: true,
+              onClick: () => {
+                const section = allSections.find(s => s.id === sectionContextMenu.sectionId);
+                const name = section?.title || 'esta seção';
+                if (window.confirm(`Excluir seção "${name}" e todas suas tarefas?`)) {
+                  onDeleteSection?.(sectionContextMenu.sectionId);
+                }
+              },
+            },
+          ]}
+        />
+      )}
+
       {colorPicker && (
         <>
           <div className="fixed inset-0 z-[99]" onClick={() => setColorPicker(null)} />
