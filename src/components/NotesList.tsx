@@ -15,7 +15,7 @@ interface NotesListProps {
   notes: NoteItem[];
   onSelectNote: (noteId: string) => void;
   onNewNote: () => void;
-  maxNotes?: number; // undefined = unlimited
+  maxNotes?: number;
   onUpgrade?: () => void;
 }
 
@@ -32,9 +32,9 @@ export function NotesList({ notes, onSelectNote, onNewNote, maxNotes, onUpgrade 
       <button
         onClick={onNewNote}
         className="w-full flex items-center gap-2 px-4 py-3 rounded-lg transition-colors"
-        style={{ background: '#1A1A28', color: '#E8E8F0' }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#1E1E30'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#1A1A28'; }}
+        style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; }}
       >
         <Plus className="w-4 h-4" />
         <span className="text-sm font-medium">Nova nota</span>
@@ -42,7 +42,7 @@ export function NotesList({ notes, onSelectNote, onNewNote, maxNotes, onUpgrade 
       </button>
 
       {maxNotes != null && (
-        <p className="text-[11px] px-1" style={{ color: '#555570' }}>
+        <p className="text-[11px] px-1" style={{ color: 'var(--text-placeholder)' }}>
           {notes.length}/{maxNotes} notas · {atLimit ? 'Limite atingido' : `${maxNotes - notes.length} restantes`}
         </p>
       )}
@@ -52,24 +52,24 @@ export function NotesList({ notes, onSelectNote, onNewNote, maxNotes, onUpgrade 
           key={note.id}
           onClick={() => onSelectNote(note.id)}
           className="w-full text-left px-4 py-3 rounded-lg transition-colors"
-          style={{ background: '#1A1A28' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#1E1E30'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1A1A28'; }}
+          style={{ background: 'var(--bg-surface)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; }}
         >
           <div className="flex items-center gap-1.5">
-            {note.pinned && <Pin className="w-3 h-3 flex-shrink-0" style={{ color: '#8888A0' }} />}
-            <span className="text-sm font-medium truncate" style={{ color: '#E8E8F0' }}>
+            {note.pinned && <Pin className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-secondary)' }} />}
+            <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
               {note.title || 'Sem título'}
             </span>
           </div>
-          <div className="text-[11px] mt-1" style={{ color: '#555570' }}>
+          <div className="text-[11px] mt-1" style={{ color: 'var(--text-placeholder)' }}>
             Atualizado {formatDistanceToNow(new Date(note.updated_at), { addSuffix: true, locale: ptBR })}
           </div>
         </button>
       ))}
 
       {notes.length === 0 && (
-        <div className="text-center py-12" style={{ color: '#555570' }}>
+        <div className="text-center py-12" style={{ color: 'var(--text-placeholder)' }}>
           <p className="text-sm">Nenhuma nota ainda</p>
           <p className="text-xs mt-1">Clique em "Nova nota" para começar</p>
         </div>

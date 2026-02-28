@@ -34,36 +34,35 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
   return (
     <header
       className="h-14 flex items-center justify-between px-4 md:px-6 flex-shrink-0 w-full"
-      style={{ background: 'hsl(var(--bg-app))' }}
+      style={{ background: 'var(--bg-base)' }}
     >
       <div className="flex items-center gap-3 min-w-0">
-        <h1 className="text-[18px] font-semibold truncate" style={{ color: '#E5E5E5' }}>{projectName}</h1>
+        <h1 className="text-[18px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{projectName}</h1>
       </div>
 
-      {/* Month navigation */}
       {onMonthChange && (
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={goToPrev}
             className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ color: '#6B7280' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E5E5E5'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.background = 'transparent'; }}
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span
             className="text-[13px] font-medium tabular-nums min-w-[100px] text-center"
-            style={{ color: isCurrentMonth ? '#E5E5E5' : '#8A8A8A' }}
+            style={{ color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
           >
             {MONTH_NAMES[currentMonth]} {currentYear}
           </span>
           <button
             onClick={goToNext}
             className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ color: '#6B7280' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E5E5E5'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.background = 'transparent'; }}
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
           >
             <ChevronRight className="w-4 h-4" />
           </button>

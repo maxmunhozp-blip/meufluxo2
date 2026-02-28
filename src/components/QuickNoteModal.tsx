@@ -31,18 +31,19 @@ export function QuickNoteModal({ open, onClose, workspaceId, userId, projects, o
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[150] flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
+      style={{ background: 'var(--overlay-bg)' }}
       onClick={e => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className="rounded-xl shadow-2xl overflow-hidden"
+        className="rounded-xl overflow-hidden"
         style={{
           width: '90vw',
           maxWidth: 640,
           height: '70vh',
           maxHeight: 600,
-          background: '#0F0F17',
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'var(--shadow-lg)',
         }}
       >
         <NoteEditor
