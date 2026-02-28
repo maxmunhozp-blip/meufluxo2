@@ -27,6 +27,7 @@ interface MyWeekViewProps {
   selectedTaskId?: string;
   isPro?: boolean;
   onUpgrade?: () => void;
+  onViewModeChange?: (mode: 'columns' | 'timeline') => void;
 }
 
 type ViewMode = '3days' | 'week' | 'timeline';
@@ -544,6 +545,7 @@ export function MyWeekView({
   selectedTaskId,
   isPro,
   onUpgrade,
+  onViewModeChange,
 }: MyWeekViewProps) {
   const [dayOffset, setDayOffset] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -585,7 +587,13 @@ export function MyWeekView({
     }
     setViewMode(mode);
     localStorage.setItem('meufluxo_week_view', mode);
+    onViewModeChange?.(mode === 'timeline' ? 'timeline' : 'columns');
   };
+
+  // Notify parent on mount with initial mode
+  useEffect(() => {
+    onViewModeChange?.(effectiveView === 'timeline' ? 'timeline' : 'columns');
+  }, [effectiveView]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
