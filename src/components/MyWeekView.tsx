@@ -774,8 +774,8 @@ export function MyWeekView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
-      <div className="h-12 px-3 md:px-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <h1 style={{ fontSize: 16, fontWeight: 700, color: '#E8E8F0' }} className="whitespace-nowrap md:text-[18px]">
+      <div className="h-12 px-3 md:px-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }} className="whitespace-nowrap">
           Minha Semana
         </h1>
 
@@ -877,14 +877,6 @@ export function MyWeekView({
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            <WeekSourceSidebar
-              projects={projects}
-              sections={sections}
-              tasks={tasks}
-              collapsed={sidebarCollapsed}
-              onToggle={toggleSidebar}
-            />
-
             <div className="flex-1 flex overflow-x-auto md:overflow-hidden">
               {visibleDates.map((dayDate) => {
                 const dateKey = format(dayDate, 'yyyy-MM-dd');
@@ -915,7 +907,7 @@ export function MyWeekView({
                     opacity: 0.95,
                   }}
                 >
-                  <span className="text-[12px] truncate" style={{ color: '#E8E8F0' }}>{activeDragTask.name}</span>
+                  <span className="text-[12px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
                 </div>
               ) : activeDragSubtask ? (
                 <div
@@ -926,7 +918,7 @@ export function MyWeekView({
                     opacity: 0.95,
                   }}
                 >
-                  <span className="text-[11px] truncate" style={{ color: '#E8E8F0' }}>{activeDragSubtask.subtask.name}</span>
+                  <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragSubtask.subtask.name}</span>
                 </div>
               ) : null}
             </DragOverlay>
