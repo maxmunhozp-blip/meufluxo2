@@ -19,6 +19,7 @@ interface MyDayViewProps {
   sections: Section[];
   serviceTags?: ServiceTag[];
   userName: string;
+  isPro?: boolean;
   onUpdateTask: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
@@ -63,6 +64,7 @@ function DayTaskCard({
   onStatusChange,
   showProjectBadge,
   projectName,
+  rolloverDays,
 }: {
   task: Task;
   projectColor: string;
@@ -71,6 +73,7 @@ function DayTaskCard({
   onStatusChange: (id: string, s: TaskStatus) => void;
   showProjectBadge?: boolean;
   projectName?: string;
+  rolloverDays?: number;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -146,6 +149,16 @@ function DayTaskCard({
         {task.name}
       </span>
 
+      {/* Rollover badge */}
+      {rolloverDays && rolloverDays > 0 && (
+        <span
+          className="flex-shrink-0 ml-2 whitespace-nowrap"
+          style={{ fontSize: 10, color: '#FFB86C', fontWeight: 400 }}
+        >
+          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
+        </span>
+      )}
+
       {/* Project badge — only when grouping by service */}
       {showProjectBadge && projectName && (
         <span
@@ -174,6 +187,7 @@ function PeriodSection({
   onSelectTask,
   onStatusChange,
   showProjectBadge,
+  rolloverMap,
 }: {
   period: typeof PERIODS[number];
   tasks: Task[];
@@ -183,6 +197,7 @@ function PeriodSection({
   onSelectTask: (t: Task) => void;
   onStatusChange: (id: string, s: TaskStatus) => void;
   showProjectBadge?: boolean;
+  rolloverMap: Map<string, number>;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `period-${period.key}`,
@@ -243,6 +258,7 @@ function PeriodSection({
                     onStatusChange={onStatusChange}
                     showProjectBadge={showProjectBadge}
                     projectName={project?.name}
+                    rolloverDays={rolloverMap.get(task.id)}
                   />
                 </div>
               );
@@ -262,6 +278,7 @@ export function MyDayView({
   sections,
   serviceTags = [],
   userName,
+  isPro = false,
   onUpdateTask,
   onStatusChange,
   onSelectTask,
@@ -315,20 +332,34 @@ export function MyDayView({
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
 
-    tasks.forEach(t => {
-      if (t.parentTaskId || t.status === 'done' || !t.dueDate) return;
-      if (scheduled.some(s => s.id === t.id)) return;
-      if (t.scheduledDate) return;
+    if (isPro) {
+      tasks.forEach(t => {
+        if (t.parentTaskId || t.status === 'done') return;
+        if (scheduled.some(s => s.id === t.id)) return;
 
-      const dueDate = parseISO(t.dueDate);
-      if (isBefore(startOfDay(dueDate), todayStart)) {
-        const days = t.rolloverCount && t.rolloverCount > 0
-          ? t.rolloverCount
-          : differenceInCalendarDays(todayStart, dueDate);
-        rMap.set(t.id, days);
-        overdue.push(t);
-      }
-    });
+        // Rollover for scheduledDate < today
+        if (t.scheduledDate && t.scheduledDate < todayStr) {
+          const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
+          if (days > 0) {
+            rMap.set(t.id, days);
+            overdue.push(t);
+          }
+          return;
+        }
+
+        // Rollover for dueDate < today (no scheduledDate)
+        if (!t.scheduledDate && t.dueDate) {
+          const dueDate = parseISO(t.dueDate);
+          if (isBefore(startOfDay(dueDate), todayStart)) {
+            const days = t.rolloverCount && t.rolloverCount > 0
+              ? t.rolloverCount
+              : differenceInCalendarDays(todayStart, dueDate);
+            rMap.set(t.id, days);
+            overdue.push(t);
+          }
+        }
+      });
+    }
 
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
   }, [tasks, todayStr]);
@@ -338,6 +369,18 @@ export function MyDayView({
     todayTasks.forEach(t => {
       const p = rolloverMap.has(t.id) ? 'morning' : (t.dayPeriod || 'morning');
       map[p].push(t);
+    });
+    // Sort rollover tasks first (by rollover_count desc), then normal tasks
+    Object.keys(map).forEach(key => {
+      const period = key as DayPeriod;
+      map[period].sort((a, b) => {
+        const aRoll = rolloverMap.get(a.id) || 0;
+        const bRoll = rolloverMap.get(b.id) || 0;
+        if (aRoll > 0 && bRoll === 0) return -1;
+        if (aRoll === 0 && bRoll > 0) return 1;
+        if (aRoll > 0 && bRoll > 0) return bRoll - aRoll;
+        return 0;
+      });
     });
     return map;
   }, [todayTasks, rolloverMap]);
@@ -495,6 +538,7 @@ export function MyDayView({
                           onStatusChange={onStatusChange}
                           showProjectBadge
                           projectName={project?.name}
+                          rolloverDays={rolloverMap.get(task.id)}
                         />
                       );
                     })}
@@ -532,6 +576,7 @@ export function MyDayView({
                     selectedTaskId={selectedTaskId}
                     onSelectTask={onSelectTask}
                     onStatusChange={onStatusChange}
+                    rolloverMap={rolloverMap}
                   />
                 );
               })}

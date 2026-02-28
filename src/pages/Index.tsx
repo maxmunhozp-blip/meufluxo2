@@ -686,6 +686,7 @@ const Index = () => {
             sections={sectionList}
             serviceTags={serviceTags}
             userName={profiles.find(p => p.id === session?.user?.id)?.fullName || session?.user?.email || 'Usuário'}
+            isPro={planLimits.isPro}
             onUpdateTask={handleUpdateTask}
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
