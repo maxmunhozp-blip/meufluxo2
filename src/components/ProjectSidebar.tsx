@@ -372,16 +372,27 @@ export function ProjectSidebar({
   const renameRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Listen for cross-area task drag events
+  // Listen for cross-area task drag events with global cleanup
   const [isDraggingTask, setIsDraggingTask] = useState(false);
   useEffect(() => {
     const handleDragStart = () => setIsDraggingTask(true);
-    const handleDragEnd = () => setIsDraggingTask(false);
+    const handleGlobalDragEnd = () => setIsDraggingTask(false);
+
     window.addEventListener('meufluxo:task-drag-start', handleDragStart);
-    window.addEventListener('meufluxo:task-drag-end', handleDragEnd);
+    window.addEventListener('meufluxo:task-drag-end', handleGlobalDragEnd);
+    // These fire even when drop happens outside the window or browser cancels
+    document.addEventListener('dragend', handleGlobalDragEnd);
+    document.addEventListener('drop', handleGlobalDragEnd);
+    // Safety net: mouseup means drag is over
+    const handleMouseUp = () => setTimeout(handleGlobalDragEnd, 100);
+    document.addEventListener('mouseup', handleMouseUp);
+
     return () => {
       window.removeEventListener('meufluxo:task-drag-start', handleDragStart);
-      window.removeEventListener('meufluxo:task-drag-end', handleDragEnd);
+      window.removeEventListener('meufluxo:task-drag-end', handleGlobalDragEnd);
+      document.removeEventListener('dragend', handleGlobalDragEnd);
+      document.removeEventListener('drop', handleGlobalDragEnd);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
