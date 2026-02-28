@@ -211,10 +211,21 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
 export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask, isFadingOut }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
+    const dragData = {
+      taskId: task.id,
+      taskTitle: task.name,
+      sourceProjectId: task.projectId,
+      sourceSectionId: task.section,
+      isSubtask: !!task.parentTaskId,
+      parentTaskId: task.parentTaskId || null,
+    };
+
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.setData('application/x-task-id', task.id);
     e.dataTransfer.setData('application/x-task-project', task.projectId);
     e.dataTransfer.setData('application/x-task-name', task.name);
     e.dataTransfer.effectAllowed = 'move';
+
     // Create custom ghost
     const ghost = document.createElement('div');
     ghost.textContent = task.name;
@@ -222,6 +233,19 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
     document.body.appendChild(ghost);
     e.dataTransfer.setDragImage(ghost, 10, 16);
     setTimeout(() => document.body.removeChild(ghost), 0);
+
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+
+    window.dispatchEvent(new CustomEvent('meufluxo:task-drag-start', { detail: dragData }));
+  };
+
+  const handleNativeDragEnd = (e: React.DragEvent) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+    window.dispatchEvent(new CustomEvent('meufluxo:task-drag-end'));
   };
   const [expanded, setExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -259,7 +283,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   };
 
   return (
-    <div ref={setNodeRef} data-task-id={task.id} className="relative" draggable onDragStart={handleNativeDragStart} style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}>
+    <div ref={setNodeRef} data-task-id={task.id} className="relative" draggable onDragStart={handleNativeDragStart} onDragEnd={handleNativeDragEnd} style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}>
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>
         <div
