@@ -770,7 +770,7 @@ const Index = () => {
     <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
-         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-base)', borderRight: '1px solid var(--border-subtle)', transition: 'width 250ms ease-out' }}>
+         <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-surface)', transition: 'width 250ms ease-out' }}>
           <div className="flex flex-col items-center gap-1 pt-3 px-1">
             {/* Meu Dia */}
             <button
