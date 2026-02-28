@@ -246,14 +246,17 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   return (
     <div ref={setNodeRef} data-task-id={task.id} className="relative">
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
-      <div className="flex">
+      <div className="flex" style={{ marginBottom: 4 }}>
         <div
-          className={`flex-1 min-w-0 group min-h-[44px] border-b cursor-pointer transition-all duration-150 relative ${
+          className={`flex-1 min-w-0 group cursor-pointer transition-all duration-150 relative ${
             isDragSource ? 'opacity-40' : ''
           }`}
           style={{
+            minHeight: 40,
             opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
             background: isSelected ? 'var(--bg-active)' : undefined,
+            borderRadius: 6,
+            transition: 'all 150ms ease-out',
           }}
           onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-hover)'; }}
           onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
@@ -279,7 +282,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
 
-          <div className="h-full px-4 md:px-6 flex items-center">
+          <div className="h-full px-3 md:px-4 flex items-center" style={{ padding: '0 12px' }}>
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {hasSubtasks ? (
                 <button

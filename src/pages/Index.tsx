@@ -848,7 +848,7 @@ const Index = () => {
         ) : activeProject ? (
           <>
             {/* Tabs: Tarefas / Notas */}
-             <div className="flex items-center border-b" style={{ borderColor: 'var(--border-input)', background: 'hsl(var(--bg-app))' }}>
+             <div style={{ padding: '32px 32px 0 32px' }}>
               <TaskListHeader
                 projectName={activeProject.name}
                 pendingCount={pendingCount}
@@ -859,19 +859,32 @@ const Index = () => {
                 onMonthChange={setActiveMonth}
               />
             </div>
-            <div className="flex items-center gap-0 px-6" style={{ borderBottom: '1px solid var(--border-input)', background: 'hsl(var(--bg-app))' }}>
+            <div style={{ height: 24 }} />
+            <div className="flex items-center px-8" style={{ borderBottom: '1px solid var(--border-subtle)', gap: 24 }}>
               <button
                 onClick={() => setProjectViewTab('tasks')}
-                className="px-3 py-2 text-sm font-medium transition-colors relative"
-                style={{ color: projectViewTab === 'tasks' ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
+                className="relative transition-colors"
+                style={{
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: projectViewTab === 'tasks' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+                  transition: 'all 150ms ease-out',
+                }}
               >
                 Tarefas
                 {projectViewTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
               </button>
               <button
                 onClick={() => setProjectViewTab('notes')}
-                className="px-3 py-2 text-sm font-medium transition-colors relative"
-                style={{ color: projectViewTab === 'notes' ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
+                className="relative transition-colors"
+                style={{
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: projectViewTab === 'notes' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+                  transition: 'all 150ms ease-out',
+                }}
               >
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--accent-blue)' }} />}
@@ -885,13 +898,13 @@ const Index = () => {
               />
               <button
                 onClick={() => setShowTemplateModal(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg ml-1"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent'; }}
+                className="flex items-center justify-center rounded-lg"
+                style={{ width: 36, height: 36, color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
                 title="Configurar template de entregas"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-5 h-5" />
               </button>
             </div>
 
@@ -907,7 +920,7 @@ const Index = () => {
             ) : (
             <>
             <ColumnHeader />
-        <div className="flex-1 overflow-y-auto" ref={listRef}>
+        <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 32px 32px 32px' }} ref={listRef}>
           <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
               {projectSections.map(section => {
@@ -992,7 +1005,10 @@ const Index = () => {
 
           <button
             onClick={handleCreateSection}
-            className="h-10 w-full px-6 flex items-center text-[13px] text-nd-text-muted hover:text-nd-text-secondary transition-colors mt-2"
+            className="flex items-center transition-colors"
+            style={{ height: 40, paddingLeft: 32, fontSize: 14, color: 'var(--text-tertiary)', marginTop: 16, transition: 'all 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
           >
             + Nova Seção
           </button>

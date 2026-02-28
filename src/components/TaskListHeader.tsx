@@ -32,13 +32,10 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
   };
 
   return (
-    <header
-      className="flex items-center justify-between flex-shrink-0 w-full"
-      style={{ background: 'var(--bg-base)', padding: '32px 32px 0 32px' }}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }} className="truncate">{projectName}</h1>
-      </div>
+    <div className="flex items-center justify-between w-full">
+      <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>
+        {projectName}
+      </h1>
 
       {onMonthChange && (
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -52,7 +49,7 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span
-            className="tabular-nums min-w-[120px] text-center"
+            className="tabular-nums min-w-[140px] text-center"
             style={{ fontSize: 14, fontWeight: 500, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
           >
             {MONTH_NAMES[currentMonth]} {currentYear}
@@ -68,8 +65,6 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
           </button>
         </div>
       )}
-
-      <div className="flex items-center gap-3 md:gap-4 flex-shrink-0" />
-    </header>
+    </div>
   );
 }

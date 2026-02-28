@@ -203,15 +203,15 @@ export function TaskSection({
   };
 
   return (
-    <div ref={mergedRef} style={sectionStyle} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
+    <div ref={mergedRef} style={{ ...sectionStyle, marginBottom: 24 }} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
       <div
         className="group w-full flex items-center gap-2 transition-colors relative"
         style={{
           height: 40,
-          paddingLeft: 12,
-          paddingRight: 12,
-          borderRadius: 'var(--radius-md)',
-          background: isDropTarget || isOver ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
+          paddingLeft: 16,
+          paddingRight: 16,
+          borderRadius: 8,
+          background: 'var(--bg-elevated)',
           marginBottom: 4,
           transition: 'all 150ms ease-out',
         }}
