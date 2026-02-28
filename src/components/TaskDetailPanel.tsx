@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -445,14 +446,16 @@ function ServiceTagPicker({
   );
 }
 
-// Rich description editor — bold + yellow highlight only
-function RichDescription({ value, onChange, placeholder }: { value: string; onChange: (html: string) => void; placeholder: string }) {
+// Rich description editor — full formatting, images, link previews
+function RichDescription({ value, onChange, placeholder, onUploadImage }: { value: string; onChange: (html: string) => void; placeholder: string; onUploadImage?: (file: File) => Promise<string | null> }) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [isBold, setIsBold] = useState(false);
-  const [isHighlight, setIsHighlight] = useState(false);
+  const [formats, setFormats] = useState({ bold: false, italic: false, underline: false, strikethrough: false, highlight: false });
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [detectedUrls, setDetectedUrls] = useState<string[]>([]);
 
-  // Sync external value only when not focused (avoid cursor jump)
+  // Sync external value only when not focused
   useEffect(() => {
     if (!isFocused && editorRef.current) {
       const current = editorRef.current.innerHTML;
@@ -461,88 +464,196 @@ function RichDescription({ value, onChange, placeholder }: { value: string; onCh
   }, [value, isFocused]);
 
   const checkFormats = () => {
-    setIsBold(document.queryCommandState('bold'));
-    const bg = document.queryCommandValue('backColor');
-    setIsHighlight(bg === 'rgb(255, 255, 0)' || bg === 'rgba(255, 255, 0, 0.35)' || bg === '#ffff00');
+    setFormats({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      underline: document.queryCommandState('underline'),
+      strikethrough: document.queryCommandState('strikeThrough'),
+      highlight: (() => {
+        const bg = document.queryCommandValue('backColor');
+        return bg === 'rgb(255, 255, 0)' || bg === 'rgba(255, 255, 0, 0.35)' || bg === '#ffff00';
+      })(),
+    });
   };
+
+  const extractUrls = useCallback(() => {
+    if (!editorRef.current) return;
+    const text = editorRef.current.innerText || '';
+    const urlRegex = /https?:\/\/[^\s<>]+/g;
+    const found = text.match(urlRegex) || [];
+    setDetectedUrls(prev => {
+      if (prev.length === found.length && prev.every((u, i) => u === found[i])) return prev;
+      return found;
+    });
+  }, []);
 
   const handleInput = () => {
     if (!editorRef.current) return;
     onChange(editorRef.current.innerHTML);
     checkFormats();
+    extractUrls();
   };
 
-  const toggleBold = (e: React.MouseEvent) => {
+  const execCmd = (cmd: string, val?: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     editorRef.current?.focus();
-    document.execCommand('bold');
+    document.execCommand(cmd, false, val);
     checkFormats();
   };
 
   const toggleHighlight = (e: React.MouseEvent) => {
     e.preventDefault();
     editorRef.current?.focus();
-    if (isHighlight) {
-      document.execCommand('backColor', false, 'transparent');
-    } else {
-      document.execCommand('backColor', false, 'rgba(255, 255, 0, 0.35)');
-    }
+    document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)');
     checkFormats();
   };
 
+  const insertList = (ordered: boolean) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList');
+    handleInput();
+  };
+
+  const insertCheckbox = (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    document.execCommand('insertHTML', false, '<div><input type="checkbox" style="margin-right:6px;vertical-align:middle;" /> </div>');
+    handleInput();
+  };
+
+  const insertHR = (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:8px 0;" />');
+    handleInput();
+  };
+
+  const insertHeading = (e: React.MouseEvent) => {
+    e.preventDefault();
+    editorRef.current?.focus();
+    document.execCommand('formatBlock', false, 'h3');
+    handleInput();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Allow bold shortcut
-    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-      // native execCommand handles it
-      setTimeout(checkFormats, 0);
-      return;
-    }
-    // Ctrl+Shift+H for highlight
     if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
       e.preventDefault();
-      if (isHighlight) {
-        document.execCommand('backColor', false, 'transparent');
-      } else {
-        document.execCommand('backColor', false, 'rgba(255, 255, 0, 0.35)');
-      }
+      document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)');
       checkFormats();
+      return;
     }
-    // Block all other formatting shortcuts (italic, underline)
-    if ((e.metaKey || e.ctrlKey) && ['i', 'u'].includes(e.key.toLowerCase())) {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'X') {
       e.preventDefault();
+      document.execCommand('strikeThrough');
+      checkFormats();
+      return;
+    }
+    setTimeout(checkFormats, 0);
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items || !onUploadImage) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const url = await onUploadImage(file);
+          if (url && editorRef.current) {
+            document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
+            handleInput();
+          }
+        }
+        return;
+      }
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0 || !onUploadImage) return;
+    e.preventDefault();
+    for (const file of files) {
+      const url = await onUploadImage(file);
+      if (url && editorRef.current) {
+        document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
+        handleInput();
+      }
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onUploadImage) return;
+    e.target.value = '';
+    const url = await onUploadImage(file);
+    if (url && editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
+      handleInput();
+    }
+  };
+
+  const handleEditorClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      setLightboxImg((target as HTMLImageElement).src);
+    }
+    if (target.tagName === 'A') {
+      e.preventDefault();
+      window.open((target as HTMLAnchorElement).href, '_blank');
     }
   };
 
   const isEmpty = !value || value === '<br>' || value.replace(/<[^>]*>/g, '').trim() === '';
 
+  const toolbarButtons = [
+    { icon: Bold, active: formats.bold, action: execCmd('bold'), title: 'Negrito (Ctrl+B)' },
+    { icon: Italic, active: formats.italic, action: execCmd('italic'), title: 'Itálico (Ctrl+I)' },
+    { icon: Underline, active: formats.underline, action: execCmd('underline'), title: 'Sublinhado (Ctrl+U)' },
+    { icon: Strikethrough, active: formats.strikethrough, action: execCmd('strikeThrough'), title: 'Riscado (Ctrl+Shift+X)' },
+    { icon: Highlighter, active: formats.highlight, action: toggleHighlight, title: 'Destaque (Ctrl+Shift+H)' },
+    null, // separator
+    { icon: List, active: false, action: insertList(false), title: 'Lista' },
+    { icon: ListOrdered, active: false, action: insertList(true), title: 'Lista numerada' },
+    { icon: CheckSquare, active: false, action: insertCheckbox, title: 'Checkbox' },
+    { icon: Minus, active: false, action: insertHR, title: 'Separador' },
+    { icon: Heading2, active: false, action: insertHeading, title: 'Heading' },
+    ...(onUploadImage ? [{ icon: ImagePlus, active: false, action: (e: React.MouseEvent) => { e.preventDefault(); fileInputRef.current?.click(); }, title: 'Imagem' }] : []),
+  ];
+
   return (
     <div className="relative group">
       {/* Toolbar — appears on focus */}
       {isFocused && (
-        <div className="flex items-center gap-1 mb-2">
-          <button
-            onMouseDown={toggleBold}
-            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-            style={{
-              color: isBold ? '#E8E8F0' : '#555570',
-              background: isBold ? 'rgba(255,255,255,0.08)' : 'transparent',
-            }}
-            title="Negrito (Ctrl+B)"
-          >
-            <Bold className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onMouseDown={toggleHighlight}
-            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-            style={{
-              color: isHighlight ? '#FFFF00' : '#555570',
-              background: isHighlight ? 'rgba(255,255,0,0.1)' : 'transparent',
-            }}
-            title="Destaque amarelo (Ctrl+Shift+H)"
-          >
-            <Highlighter className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex items-center gap-0.5 mb-2 flex-wrap" style={{ background: '#1A1A28', borderRadius: 8, padding: '4px 6px' }}>
+          {toolbarButtons.map((btn, i) => {
+            if (!btn) return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'rgba(255,255,255,0.06)' }} />;
+            const Icon = btn.icon;
+            return (
+              <button
+                key={btn.title}
+                onMouseDown={btn.action}
+                className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+                style={{
+                  color: btn.active ? '#E8E8F0' : '#555570',
+                  background: btn.active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#E8E8F0'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = btn.active ? 'rgba(255,255,255,0.08)' : 'transparent'; e.currentTarget.style.color = btn.active ? '#E8E8F0' : '#555570'; }}
+                title={btn.title}
+              >
+                <Icon className="w-3.5 h-3.5" />
+              </button>
+            );
+          })}
         </div>
+      )}
+
+      {onUploadImage && (
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
       )}
 
       {/* Editor */}
@@ -551,11 +662,15 @@ function RichDescription({ value, onChange, placeholder }: { value: string; onCh
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
-        onFocus={() => { setIsFocused(true); checkFormats(); }}
+        onFocus={() => { setIsFocused(true); checkFormats(); extractUrls(); }}
         onBlur={() => setIsFocused(false)}
         onKeyDown={handleKeyDown}
         onKeyUp={checkFormats}
         onMouseUp={checkFormats}
+        onPaste={handlePaste}
+        onDrop={handleDrop}
+        onDragOver={e => e.preventDefault()}
+        onClick={handleEditorClick}
         className="w-full min-h-[36px] bg-transparent border-none focus:outline-none"
         style={{ fontSize: 14, color: '#8888A0', lineHeight: 1.6, padding: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
       />
@@ -567,7 +682,95 @@ function RichDescription({ value, onChange, placeholder }: { value: string; onCh
           {placeholder}
         </div>
       )}
+
+      {/* Link previews below editor */}
+      {detectedUrls.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {detectedUrls.map((url, i) => (
+            <LinkPreviewInline key={`${url}-${i}`} url={url} />
+          ))}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{ background: '#0D0D15E6' }}
+          onClick={() => setLightboxImg(null)}
+        >
+          <img src={lightboxImg} alt="" className="max-w-[90vw] max-h-[90vh] rounded-lg" />
+        </div>
+      )}
     </div>
+  );
+}
+
+// Inline link preview for description
+function LinkPreviewInline({ url }: { url: string }) {
+  const [meta, setMeta] = useState<{ title?: string; description?: string; image?: string; domain?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isYoutube = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/.test(url);
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  const ytId = ytMatch?.[1];
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data } = await supabase.functions.invoke('fetch-og', { body: { url } });
+        if (!cancelled && data) {
+          setMeta({
+            title: data.title,
+            description: data.description,
+            image: data.image,
+            domain: new URL(url).hostname.replace('www.', ''),
+          });
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [url]);
+
+  if (isYoutube && ytId) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden transition-colors" style={{ background: '#1E1E30', border: '1px solid #333350', maxWidth: 400 }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
+      >
+        <div className="relative" style={{ aspectRatio: '16/9' }}>
+          <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+              <div className="w-0 h-0 ml-1" style={{ borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid white' }} />
+            </div>
+          </div>
+        </div>
+        <div className="px-3 py-2">
+          <p className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{meta?.title || 'YouTube'}</p>
+          <p className="text-[11px]" style={{ color: '#555570' }}>youtube.com</p>
+        </div>
+      </a>
+    );
+  }
+
+  if (loading) return null;
+  if (!meta?.title) return null;
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-lg transition-colors" style={{ background: '#1E1E30', border: '1px solid #333350', maxWidth: 400 }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
+    >
+      {meta.image && <img src={meta.image} alt="" className="w-[60px] h-[60px] rounded object-cover flex-shrink-0" />}
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{meta.title}</p>
+        {meta.description && <p className="text-[12px] mt-0.5 line-clamp-2" style={{ color: '#8888A0' }}>{meta.description}</p>}
+        <p className="text-[11px] mt-1" style={{ color: '#555570' }}>{meta.domain}</p>
+      </div>
+    </a>
   );
 }
 // Inline date picker using Popover + Calendar
@@ -834,12 +1037,20 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             style={{ fontSize: 18, fontWeight: 600, color: '#E8E8F0', lineHeight: 1.4, padding: 0 }}
           />
 
-          {/* 2. Description — Rich text with bold + yellow highlight */}
+          {/* 2. Description — Rich text with formatting, images, link previews */}
           <div className="mb-5">
             <RichDescription
               value={localTask.description || ''}
               onChange={(html) => pushUpdateDebounced({ ...localTask, description: html })}
-              placeholder="Adicionar notas..."
+              placeholder="Adicione detalhes, links ou imagens..."
+              onUploadImage={async (file: File) => {
+                const ext = file.name.split('.').pop();
+                const path = `${currentUserId}/${crypto.randomUUID()}.${ext}`;
+                const { error } = await supabase.storage.from('task-attachments').upload(path, file);
+                if (error) return null;
+                const { data: urlData } = supabase.storage.from('task-attachments').getPublicUrl(path);
+                return urlData.publicUrl;
+              }}
             />
           </div>
 
