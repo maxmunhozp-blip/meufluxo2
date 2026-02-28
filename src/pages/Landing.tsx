@@ -129,6 +129,9 @@ export default function Landing() {
             <button onClick={() => scrollTo('pricing')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Planos
             </button>
+            <button onClick={() => scrollTo('faq')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              FAQ
+            </button>
             <button
               onClick={() => navigate('/auth')}
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"
@@ -162,6 +165,7 @@ export default function Landing() {
             <button onClick={() => scrollTo('features')} className="block w-full text-left text-sm text-muted-foreground">Funcionalidades</button>
             <button onClick={() => scrollTo('science')} className="block w-full text-left text-sm text-muted-foreground">A Ciência</button>
             <button onClick={() => scrollTo('pricing')} className="block w-full text-left text-sm text-muted-foreground">Planos</button>
+            <button onClick={() => scrollTo('faq')} className="block w-full text-left text-sm text-muted-foreground">FAQ</button>
             <hr className="border-border" />
             <button onClick={() => navigate('/auth')} className="block w-full text-left text-sm font-medium text-foreground">Entrar</button>
             <button onClick={() => navigate('/auth')} className="w-full h-11 rounded-full bg-primary text-primary-foreground text-sm font-semibold">Começar grátis</button>
@@ -514,6 +518,75 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ─── FAQ ─── */}
+      <section id="faq" className="py-24 px-6 border-t border-border/30">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            className="text-center mb-16"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Dúvidas frequentes</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+              Perguntas & Respostas
+            </h2>
+          </motion.div>
+
+          <div className="space-y-4">
+            {[
+              {
+                q: 'O que significa ser "projetado para neurodivergentes"?',
+                a: 'Cada decisão de design foi baseada em pesquisas sobre TDAH, TEA e dificuldades executivas. Removemos barras de progresso punitivas, usamos cores gentis (âmbar ao invés de vermelho para atrasos), oferecemos Modo Foco para uma tarefa de cada vez, e minimizamos a carga cognitiva com interfaces limpas e hierarquia visual clara.',
+              },
+              {
+                q: 'Preciso ter um diagnóstico para usar o MeuFluxo?',
+                a: 'Não. O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você — com ou sem diagnóstico.',
+              },
+              {
+                q: 'Qual a diferença entre o plano Free e o Pro?',
+                a: 'O plano Free oferece até 3 clientes/projetos, tarefas ilimitadas, subtarefas, modo foco e colaboração básica. O Pro desbloqueia clientes ilimitados, Timeline View, tarefas recorrentes, rollover automático de tarefas atrasadas, notas ilimitadas e upload de imagens.',
+              },
+              {
+                q: 'Posso usar o MeuFluxo com minha equipe?',
+                a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas que geram ansiedade.',
+              },
+              {
+                q: 'O que é o "Rollover Automático"?',
+                a: 'Tarefas atrasadas não desaparecem nem ficam vermelhas. Elas são gentilmente movidas para o dia seguinte com um indicador âmbar discreto. Sem culpa, sem punição — apenas continuidade.',
+              },
+              {
+                q: 'Meus dados estão seguros?',
+                a: 'Sim. Usamos criptografia em trânsito e em repouso, autenticação segura e políticas de acesso por linha (RLS) que garantem que cada usuário só acessa seus próprios dados.',
+              },
+              {
+                q: 'Posso cancelar o plano Pro a qualquer momento?',
+                a: 'Sim, sem compromisso. Você pode fazer downgrade para o plano Free a qualquer momento e manterá acesso aos seus dados.',
+              },
+            ].map((item, i) => (
+              <motion.details
+                key={i}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i * 0.5}
+                className="group rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden"
+              >
+                <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-sm font-medium text-foreground hover:text-primary transition-colors list-none [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
+                </summary>
+                <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+                  {item.a}
+                </div>
+              </motion.details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── FINAL CTA ─── */}
       <section className="py-24 px-6 border-t border-border/30">
         <motion.div
@@ -548,6 +621,7 @@ export default function Landing() {
           <div className="flex items-center gap-6">
             <button onClick={() => scrollTo('features')} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Funcionalidades</button>
             <button onClick={() => scrollTo('pricing')} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Planos</button>
+            <button onClick={() => scrollTo('faq')} className="text-xs text-muted-foreground hover:text-foreground transition-colors">FAQ</button>
             <button onClick={() => navigate('/auth')} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Entrar</button>
           </div>
         </div>
