@@ -774,6 +774,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_monthly_report: {
+        Args: { p_month?: string; p_project_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
