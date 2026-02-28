@@ -756,7 +756,7 @@ const Index = () => {
 
   if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView) {
     return (
-      <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
+      <div className="h-screen flex" style={{ background: 'var(--bg-surface)' }}>
         <div className="hidden lg:block"><ProjectSidebar {...sidebarProps} /></div>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[14px] text-nd-text-secondary">Crie um projeto para começar.</p>
@@ -767,7 +767,7 @@ const Index = () => {
   }
 
   return (
-    <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
+    <div className="h-screen flex" style={{ background: 'var(--bg-surface)' }}>
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
          <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-surface)', transition: 'width 250ms ease-out' }}>
@@ -825,7 +825,7 @@ const Index = () => {
         </>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 transition-none pb-14 md:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 transition-none pb-14 md:pb-0" style={{ background: 'var(--bg-base)' }}>
         {/* Tablet hamburger (768-1024px) */}
         <div className="hidden md:flex lg:hidden items-center h-12 px-3 border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
           <button
