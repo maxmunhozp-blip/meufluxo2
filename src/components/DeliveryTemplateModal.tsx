@@ -42,7 +42,8 @@ export function DeliveryTemplateModal({
   // Load existing templates
   useEffect(() => {
     const load = async () => {
-      const { data, error } = await (supabase.from('client_delivery_templates' as any) as any)
+      const { data, error } = await supabase
+        .from('client_delivery_templates')
         .select('*')
         .eq('project_id', projectId)
         .order('position');
@@ -135,7 +136,8 @@ export function DeliveryTemplateModal({
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      await (supabase.from('client_delivery_templates' as any) as any)
+      await supabase
+        .from('client_delivery_templates')
         .delete()
         .eq('project_id', projectId);
 
@@ -153,7 +155,8 @@ export function DeliveryTemplateModal({
           })),
         }));
 
-        const { error } = await (supabase.from('client_delivery_templates' as any) as any)
+        const { error } = await supabase
+          .from('client_delivery_templates')
           .insert(rows);
 
         if (error) throw error;

@@ -886,6 +886,60 @@ const Index = () => {
                 projectId={activeProjectId}
                 workspaceId={activeWorkspaceId || ''}
                 activeMonth={activeMonth}
+                onTasksGenerated={async () => {
+                  // Refresh sections and tasks from DB
+                  const { data: secData } = await supabase
+                    .from('sections')
+                    .select('*')
+                    .eq('project_id', activeProjectId)
+                    .order('position');
+                  if (secData) {
+                    const newSecs = secData.map((s: any) => ({
+                      id: s.id, title: s.name, projectId: s.project_id, workspaceId: s.workspace_id
+                    }));
+                    setSections(prev => {
+                      const others = prev.filter(s => s.projectId !== activeProjectId);
+                      return [...others, ...newSecs];
+                    });
+                  }
+                  const { data: taskData } = await supabase
+                    .from('tasks')
+                    .select('*, task_members(*)')
+                    .eq('project_id', activeProjectId)
+                    .is('parent_task_id', null)
+                    .order('position');
+                  if (taskData) {
+                    const newTasks = taskData.map((row: any) => ({
+                      id: row.id,
+                      name: row.title,
+                      status: row.status as any,
+                      priority: row.priority,
+                      section: row.section_id,
+                      projectId: row.project_id,
+                      workspaceId: row.workspace_id,
+                      dueDate: row.due_date || undefined,
+                      scheduledDate: row.scheduled_date || undefined,
+                      description: row.description || '',
+                      assignee: row.assignee || undefined,
+                      createdBy: row.created_by || undefined,
+                      dayPeriod: (row.day_period as any) || 'morning',
+                      recurrenceType: row.recurrence_type || undefined,
+                      recurrenceConfig: row.recurrence_config || undefined,
+                      serviceTagId: row.service_tag_id || undefined,
+                      rolloverCount: row.rollover_count || 0,
+                      originalDueDate: row.original_due_date || undefined,
+                      position: row.position ?? 0,
+                      subtasks: [],
+                      members: (row.task_members || []).map((m: any) => ({
+                        id: m.id, taskId: m.task_id, userId: m.user_id
+                      })),
+                    }));
+                    setTasks(prev => {
+                      const others = prev.filter(t => t.projectId !== activeProjectId);
+                      return [...others, ...newTasks];
+                    });
+                  }
+                }}
               />
               <button
                 onClick={() => setShowTemplateModal(true)}
