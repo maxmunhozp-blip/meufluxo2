@@ -66,7 +66,7 @@ function formatDateDisplay(dateStr: string | undefined): string {
   return `${d}/${m}/${y}`;
 }
 
-// Inline assignee picker — Apple minimal
+// Inline assignee picker
 function AssigneePicker({ value, profiles, onChange, onSelectProfile, onRemoveProfile }: { value: string; profiles: Profile[]; onChange: (name: string) => void; onSelectProfile?: (userId: string) => void; onRemoveProfile?: (userId: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -98,15 +98,15 @@ function AssigneePicker({ value, profiles, onChange, onSelectProfile, onRemovePr
         className="h-8 w-full text-left text-[13px] bg-transparent focus:outline-none flex items-center cursor-pointer"
       >
         {value ? (
-          <span style={{ color: '#E8E8F0' }}>{value}</span>
+          <span style={{ color: 'var(--text-primary)' }}>{value}</span>
         ) : (
-          <span style={{ color: '#555570' }}>Nenhum</span>
+          <span style={{ color: 'var(--text-tertiary)' }}>Nenhum</span>
         )}
       </button>
 
       {open && (
         <div className="absolute left-0 top-9 z-50 w-56 rounded-lg border overflow-hidden"
-          style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-md)' }}
         >
           <div className="p-2">
             <input
@@ -114,43 +114,42 @@ function AssigneePicker({ value, profiles, onChange, onSelectProfile, onRemovePr
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar..."
-              className="w-full h-8 px-2 text-[13px] bg-transparent rounded border focus:outline-none placeholder:text-nd-text-muted"
-              style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.06)' }}
+              className="w-full h-8 px-2 text-[13px] bg-transparent rounded border focus:outline-none"
+              style={{ color: 'var(--text-primary)', borderColor: 'var(--border-subtle)' }}
             />
           </div>
           <div className="max-h-40 overflow-y-auto">
             {value && (
               <button
                 onClick={() => {
-                  // Find the profile matching current assignee to remove from task_members
                   const matchedProfile = profiles.find(p => (p.fullName || '') === value);
                   if (matchedProfile) onRemoveProfile?.(matchedProfile.id);
                   onChange('');
                   setOpen(false);
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-nd-hover transition-colors"
-                style={{ color: '#8888A0' }}
+                style={{ color: 'var(--text-secondary)' }}
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Remover</span>
               </button>
             )}
             {filtered.length === 0 && (
-              <p className="px-3 py-2 text-[12px]" style={{ color: '#555570' }}>Nenhum membro</p>
+              <p className="px-3 py-2 text-[12px]" style={{ color: 'var(--text-tertiary)' }}>Nenhum membro</p>
             )}
             {filtered.map(p => (
               <button
                 key={p.id}
                 onClick={() => { onChange(p.fullName || ''); onSelectProfile?.(p.id); setOpen(false); }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-nd-hover transition-colors"
-                style={{ color: '#E8E8F0' }}
+                style={{ color: 'var(--text-primary)' }}
               >
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                  style={{ background: 'rgba(108,156,252,0.15)', color: '#6C9CFC' }}>
+                  style={{ background: 'var(--accent-subtle)', color: 'var(--accent-blue)' }}>
                   {(p.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
                 </div>
                 <span className="truncate flex-1">{p.fullName || 'Sem nome'}</span>
-                {value === p.fullName && <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#6C9CFC' }} />}
+                {value === p.fullName && <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-blue)' }} />}
               </button>
             ))}
           </div>
@@ -189,7 +188,7 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
       ref={setNodeRef}
       style={{ ...style, transition: `${style.transition || 'transform 200ms ease'}, background 120ms ease-out` }}
       className="group h-8 flex items-center gap-1 px-1 rounded-md cursor-pointer"
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       onClick={() => {
         if (isRenaming) return;
@@ -205,7 +204,7 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
       }}
     >
       <div {...attributes} {...listeners} className="w-4 h-4 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <GripVertical className="w-3.5 h-3.5" style={{ color: '#8888A0' }} />
+        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
       </div>
       <div onClick={(e) => e.stopPropagation()}>
         <StatusCheckbox status={subtask.status} onChange={onStatusChange} size={16} />
@@ -223,19 +222,19 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
           onClick={(e) => e.stopPropagation()}
           onDoubleClick={(e) => e.stopPropagation()}
           className="flex-1 h-6 px-1 text-[13px] bg-transparent rounded border focus:outline-none min-w-0"
-          style={{ color: '#E8E8F0', borderColor: '#6C9CFC' }}
+          style={{ color: 'var(--text-primary)', borderColor: 'var(--accent-blue)' }}
         />
       ) : (
         <span className={`flex-1 text-[13px] truncate ${
           subtask.status === 'done' ? 'line-through opacity-50' : ''
-        }`} style={{ color: subtask.status === 'done' ? '#555570' : '#E8E8F0', transition: 'color 200ms ease-out, opacity 200ms ease-out' }}>
+        }`} style={{ color: subtask.status === 'done' ? 'var(--text-tertiary)' : 'var(--text-primary)', transition: 'color 200ms ease-out, opacity 200ms ease-out' }}>
           {subtask.name}
         </span>
       )}
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
         className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ color: '#8888A0' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -243,11 +242,11 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
   );
 }
 
-// Metadata row — Apple-style inline
+// Metadata row
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center" style={{ height: 32 }}>
-      <span className="flex-shrink-0" style={{ width: 100, fontSize: 12, color: '#555570', fontWeight: 400 }}>{label}</span>
+      <span className="flex-shrink-0" style={{ width: 100, fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 400 }}>{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
@@ -255,16 +254,9 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
 
 // Inline service tag picker with CRUD
 function ServiceTagPicker({
-  value,
-  tags,
-  onChange,
-  onCreateTag,
-  onRenameTag,
-  onDeleteTag,
+  value, tags, onChange, onCreateTag, onRenameTag, onDeleteTag,
 }: {
-  value?: string;
-  tags: ServiceTag[];
-  onChange: (id: string | undefined) => void;
+  value?: string; tags: ServiceTag[]; onChange: (id: string | undefined) => void;
   onCreateTag?: (name: string, icon: string) => Promise<void>;
   onRenameTag?: (id: string, name: string) => Promise<void>;
   onDeleteTag?: (id: string) => Promise<void>;
@@ -277,17 +269,12 @@ function ServiceTagPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const addRef = useRef<HTMLInputElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
-
   const selectedTag = tags.find(t => t.id === value);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setAdding(false);
-        setEditingId(null);
-      }
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) { setOpen(false); setAdding(false); setEditingId(null); }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -296,8 +283,7 @@ function ServiceTagPicker({
   const handleAdd = async () => {
     if (!newName.trim() || !onCreateTag) return;
     await onCreateTag(newName.trim(), 'tag');
-    setNewName('');
-    setAdding(false);
+    setNewName(''); setAdding(false);
   };
 
   const handleRename = async (id: string) => {
@@ -315,127 +301,84 @@ function ServiceTagPicker({
 
   return (
     <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="h-8 w-full text-left text-[13px] bg-transparent focus:outline-none flex items-center cursor-pointer"
-      >
+      <button type="button" onClick={() => setOpen(!open)} className="h-8 w-full text-left text-[13px] bg-transparent focus:outline-none flex items-center cursor-pointer">
         {selectedTag ? (
-          <span style={{ color: '#E8E8F0' }}>{selectedTag.name}</span>
+          <span style={{ color: 'var(--text-primary)' }}>{selectedTag.name}</span>
         ) : (
-          <span style={{ color: '#555570' }}>Nenhum</span>
+          <span style={{ color: 'var(--text-tertiary)' }}>Nenhum</span>
         )}
       </button>
 
       {open && (
-        <div
-          className="absolute left-0 top-9 z-50 w-64 rounded-lg border overflow-hidden"
-          style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-        >
+        <div className="absolute left-0 top-9 z-50 w-64 rounded-lg border overflow-hidden"
+          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-md)' }}>
           <div className="max-h-56 overflow-y-auto py-1">
-            {/* "Nenhum" option */}
-            <button
-              onClick={() => { onChange(undefined); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-white/5 transition-colors"
-              style={{ color: !value ? '#E8E8F0' : '#8888A0' }}
-            >
-              {!value && <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#6C9CFC' }} />}
+            <button onClick={() => { onChange(undefined); setOpen(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-nd-hover transition-colors"
+              style={{ color: !value ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+              {!value && <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-blue)' }} />}
               {value && <span className="w-3.5 flex-shrink-0" />}
               <span>Nenhum</span>
             </button>
 
-            {/* Existing tags */}
             {tags.map(tag => {
               const TagIcon = getTagIcon(tag.icon);
               const isEditing = editingId === tag.id;
               return (
-                <div key={tag.id} className="group flex items-center gap-1 px-3 py-1.5 hover:bg-white/5 transition-colors">
+                <div key={tag.id} className="group flex items-center gap-1 px-3 py-1.5 hover:bg-nd-hover transition-colors">
                   {value === tag.id ? (
-                    <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#6C9CFC' }} />
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-blue)' }} />
                   ) : (
-                    <TagIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#555570' }} />
+                    <TagIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
                   )}
-
                   {isEditing ? (
-                    <input
-                      ref={editRef}
-                      value={editValue}
-                      onChange={e => setEditValue(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') handleRename(tag.id);
-                        if (e.key === 'Escape') setEditingId(null);
-                      }}
-                      onBlur={() => handleRename(tag.id)}
-                      autoFocus
+                    <input ref={editRef} value={editValue} onChange={e => setEditValue(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleRename(tag.id); if (e.key === 'Escape') setEditingId(null); }}
+                      onBlur={() => handleRename(tag.id)} autoFocus
                       className="flex-1 h-6 px-1 text-[13px] bg-transparent rounded border focus:outline-none min-w-0"
-                      style={{ color: '#E8E8F0', borderColor: '#6C9CFC' }}
-                      onClick={e => e.stopPropagation()}
-                    />
+                      style={{ color: 'var(--text-primary)', borderColor: 'var(--accent-blue)' }}
+                      onClick={e => e.stopPropagation()} />
                   ) : (
-                    <button
-                      onClick={() => { onChange(tag.id); setOpen(false); }}
+                    <button onClick={() => { onChange(tag.id); setOpen(false); }}
                       className="flex-1 text-left text-[13px] truncate min-w-0"
-                      style={{ color: '#E8E8F0' }}
-                    >
-                      {tag.name}
-                    </button>
+                      style={{ color: 'var(--text-primary)' }}>{tag.name}</button>
                   )}
-
                   {onRenameTag && !isEditing && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setEditingId(tag.id); setEditValue(tag.name); }}
+                    <button onClick={(e) => { e.stopPropagation(); setEditingId(tag.id); setEditValue(tag.name); }}
                       className="w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ color: '#8888A0' }}
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </button>
+                      style={{ color: 'var(--text-secondary)' }}><Pencil className="w-3 h-3" /></button>
                   )}
                   {onDeleteTag && !isEditing && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(tag.id, tag.name); }}
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(tag.id, tag.name); }}
                       className="w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ color: '#8888A0' }}
+                      style={{ color: 'var(--text-secondary)' }}
                       onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                      <Trash2 className="w-3 h-3" /></button>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* Add new tag */}
           {onCreateTag && (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} className="p-2">
+            <div style={{ borderTop: '1px solid var(--border-subtle)' }} className="p-2">
               {adding ? (
                 <div className="flex items-center gap-2">
-                  <input
-                    ref={addRef}
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') handleAdd();
-                      if (e.key === 'Escape') { setAdding(false); setNewName(''); }
-                    }}
+                  <input ref={addRef} value={newName} onChange={e => setNewName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setAdding(false); setNewName(''); } }}
                     onBlur={() => { if (newName.trim()) handleAdd(); else setAdding(false); }}
-                    autoFocus
-                    placeholder="Nome do tipo..."
-                    className="flex-1 h-7 px-2 text-[13px] bg-transparent rounded border focus:outline-none placeholder:text-[#555570]"
-                    style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.1)' }}
-                  />
+                    autoFocus placeholder="Nome do tipo..."
+                    className="flex-1 h-7 px-2 text-[13px] bg-transparent rounded border focus:outline-none"
+                    style={{ color: 'var(--text-primary)', borderColor: 'var(--border-subtle)' }} />
                 </div>
               ) : (
-                <button
-                  onClick={() => { setAdding(true); setTimeout(() => addRef.current?.focus(), 0); }}
+                <button onClick={() => { setAdding(true); setTimeout(() => addRef.current?.focus(), 0); }}
                   className="flex items-center gap-1 text-[12px] transition-colors w-full px-1 py-1"
-                  style={{ color: '#555570' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Adicionar tipo
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
+                  <Plus className="w-3.5 h-3.5" /> Adicionar tipo
                 </button>
               )}
             </div>
@@ -446,7 +389,7 @@ function ServiceTagPicker({
   );
 }
 
-// Rich description editor — full formatting, images, link previews
+// Rich description editor
 function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = false }: { value: string; onChange: (html: string) => void; placeholder: string; onUploadImage?: (file: File) => Promise<string | null>; isPro?: boolean }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -455,7 +398,6 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [detectedUrls, setDetectedUrls] = useState<string[]>([]);
 
-  // Sync external value only when not focused
   useEffect(() => {
     if (!isFocused && editorRef.current) {
       const current = editorRef.current.innerHTML;
@@ -487,68 +429,23 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
     });
   }, []);
 
-  const handleInput = () => {
-    if (!editorRef.current) return;
-    onChange(editorRef.current.innerHTML);
-    checkFormats();
-    extractUrls();
-  };
-
-  const execCmd = (cmd: string, val?: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
-    document.execCommand(cmd, false, val);
-    checkFormats();
-  };
+  const handleInput = () => { if (!editorRef.current) return; onChange(editorRef.current.innerHTML); checkFormats(); extractUrls(); };
+  const execCmd = (cmd: string, val?: string) => (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand(cmd, false, val); checkFormats(); };
 
   const toggleHighlight = (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
+    e.preventDefault(); editorRef.current?.focus();
     document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)');
     checkFormats();
   };
 
-  const insertList = (ordered: boolean) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
-    document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList');
-    handleInput();
-  };
-
-  const insertCheckbox = (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
-    document.execCommand('insertHTML', false, '<div><input type="checkbox" style="margin-right:6px;vertical-align:middle;" /> </div>');
-    handleInput();
-  };
-
-  const insertHR = (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
-    document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:8px 0;" />');
-    handleInput();
-  };
-
-  const insertHeading = (e: React.MouseEvent) => {
-    e.preventDefault();
-    editorRef.current?.focus();
-    document.execCommand('formatBlock', false, 'h3');
-    handleInput();
-  };
+  const insertList = (ordered: boolean) => (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList'); handleInput(); };
+  const insertCheckbox = (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand('insertHTML', false, '<div><input type="checkbox" style="margin-right:6px;vertical-align:middle;" /> </div>'); handleInput(); };
+  const insertHR = (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid var(--border-subtle);margin:8px 0;" />'); handleInput(); };
+  const insertHeading = (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand('formatBlock', false, 'h3'); handleInput(); };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
-      e.preventDefault();
-      document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)');
-      checkFormats();
-      return;
-    }
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'X') {
-      e.preventDefault();
-      document.execCommand('strikeThrough');
-      checkFormats();
-      return;
-    }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') { e.preventDefault(); document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)'); checkFormats(); return; }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'X') { e.preventDefault(); document.execCommand('strikeThrough'); checkFormats(); return; }
     setTimeout(checkFormats, 0);
   };
 
@@ -559,13 +456,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) {
-          const url = await onUploadImage(file);
-          if (url && editorRef.current) {
-            document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
-            handleInput();
-          }
-        }
+        if (file) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); } }
         return;
       }
     }
@@ -575,36 +466,19 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     if (files.length === 0 || !onUploadImage) return;
     e.preventDefault();
-    for (const file of files) {
-      const url = await onUploadImage(file);
-      if (url && editorRef.current) {
-        document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
-        handleInput();
-      }
-    }
+    for (const file of files) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); } }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !onUploadImage) return;
-    e.target.value = '';
+    const file = e.target.files?.[0]; if (!file || !onUploadImage) return; e.target.value = '';
     const url = await onUploadImage(file);
-    if (url && editorRef.current) {
-      editorRef.current.focus();
-      document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`);
-      handleInput();
-    }
+    if (url && editorRef.current) { editorRef.current.focus(); document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); }
   };
 
   const handleEditorClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.tagName === 'IMG') {
-      setLightboxImg((target as HTMLImageElement).src);
-    }
-    if (target.tagName === 'A') {
-      e.preventDefault();
-      window.open((target as HTMLAnchorElement).href, '_blank');
-    }
+    if (target.tagName === 'IMG') setLightboxImg((target as HTMLImageElement).src);
+    if (target.tagName === 'A') { e.preventDefault(); window.open((target as HTMLAnchorElement).href, '_blank'); }
   };
 
   const isEmpty = !value || value === '<br>' || value.replace(/<[^>]*>/g, '').trim() === '';
@@ -615,7 +489,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
     { icon: Underline, active: formats.underline, action: execCmd('underline'), title: 'Sublinhado (Ctrl+U)' },
     { icon: Strikethrough, active: formats.strikethrough, action: execCmd('strikeThrough'), title: 'Riscado (Ctrl+Shift+X)' },
     { icon: Highlighter, active: formats.highlight, action: toggleHighlight, title: 'Destaque (Ctrl+Shift+H)' },
-    null, // separator
+    null,
     { icon: List, active: false, action: insertList(false), title: 'Lista' },
     { icon: ListOrdered, active: false, action: insertList(true), title: 'Lista numerada' },
     { icon: CheckSquare, active: false, action: insertCheckbox, title: 'Checkbox' },
@@ -626,25 +500,18 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
 
   return (
     <div className="relative group">
-      {/* Toolbar — appears on focus */}
       {isFocused && (
-        <div className="flex items-center gap-0.5 mb-2 flex-wrap" style={{ background: '#1A1A28', borderRadius: 8, padding: '4px 6px' }}>
+        <div className="flex items-center gap-0.5 mb-2 flex-wrap" style={{ background: 'var(--bg-elevated)', borderRadius: 8, padding: '4px 6px' }}>
           {toolbarButtons.map((btn, i) => {
-            if (!btn) return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'rgba(255,255,255,0.06)' }} />;
+            if (!btn) return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
             const Icon = btn.icon;
             return (
-              <button
-                key={btn.title}
-                onMouseDown={btn.action}
+              <button key={btn.title} onMouseDown={btn.action}
                 className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-                style={{
-                  color: btn.active ? '#E8E8F0' : '#555570',
-                  background: btn.active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#E8E8F0'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = btn.active ? 'rgba(255,255,255,0.08)' : 'transparent'; e.currentTarget.style.color = btn.active ? '#E8E8F0' : '#555570'; }}
-                title={btn.title}
-              >
+                style={{ color: btn.active ? 'var(--text-primary)' : 'var(--text-tertiary)', background: btn.active ? 'var(--bg-active)' : 'transparent' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = btn.active ? 'var(--bg-active)' : 'transparent'; e.currentTarget.style.color = btn.active ? 'var(--text-primary)' : 'var(--text-tertiary)'; }}
+                title={btn.title}>
                 <Icon className="w-3.5 h-3.5" />
               </button>
             );
@@ -652,53 +519,26 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
         </div>
       )}
 
-      {onUploadImage && (
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-      )}
+      {onUploadImage && <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />}
 
-      {/* Editor */}
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        onFocus={() => { setIsFocused(true); checkFormats(); extractUrls(); }}
-        onBlur={() => setIsFocused(false)}
-        onKeyDown={handleKeyDown}
-        onKeyUp={checkFormats}
-        onMouseUp={checkFormats}
-        onPaste={handlePaste}
-        onDrop={handleDrop}
-        onDragOver={e => e.preventDefault()}
-        onClick={handleEditorClick}
+      <div ref={editorRef} contentEditable suppressContentEditableWarning onInput={handleInput}
+        onFocus={() => { setIsFocused(true); checkFormats(); extractUrls(); }} onBlur={() => setIsFocused(false)}
+        onKeyDown={handleKeyDown} onKeyUp={checkFormats} onMouseUp={checkFormats}
+        onPaste={handlePaste} onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={handleEditorClick}
         className="w-full min-h-[36px] bg-transparent border-none focus:outline-none"
-        style={{ fontSize: 14, color: '#8888A0', lineHeight: 1.6, padding: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-      />
+        style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, padding: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }} />
       {isEmpty && !isFocused && (
-        <div
-          className="absolute top-0 left-0 pointer-events-none"
-          style={{ fontSize: 14, color: '#555570', lineHeight: 1.6 }}
-        >
-          {placeholder}
-        </div>
+        <div className="absolute top-0 left-0 pointer-events-none" style={{ fontSize: 14, color: 'var(--text-tertiary)', lineHeight: 1.6 }}>{placeholder}</div>
       )}
 
-      {/* Link previews below editor — PRO only */}
       {isPro && detectedUrls.length > 0 && (
         <div className="mt-3 space-y-2">
-          {detectedUrls.map((url, i) => (
-            <LinkPreviewInline key={`${url}-${i}`} url={url} />
-          ))}
+          {detectedUrls.map((url, i) => (<LinkPreviewInline key={`${url}-${i}`} url={url} />))}
         </div>
       )}
 
-      {/* Lightbox */}
       {lightboxImg && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center"
-          style={{ background: '#0D0D15E6' }}
-          onClick={() => setLightboxImg(null)}
-        >
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }} onClick={() => setLightboxImg(null)}>
           <img src={lightboxImg} alt="" className="max-w-[90vw] max-h-[90vh] rounded-lg" />
         </div>
       )}
@@ -706,7 +546,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
   );
 }
 
-// Inline link preview for description
+// Inline link preview
 function LinkPreviewInline({ url }: { url: string }) {
   const [meta, setMeta] = useState<{ title?: string; description?: string; image?: string; domain?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -720,14 +560,7 @@ function LinkPreviewInline({ url }: { url: string }) {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         const { data } = await supabase.functions.invoke('fetch-og', { body: { url } });
-        if (!cancelled && data) {
-          setMeta({
-            title: data.title,
-            description: data.description,
-            image: data.image,
-            domain: new URL(url).hostname.replace('www.', ''),
-          });
-        }
+        if (!cancelled && data) { setMeta({ title: data.title, description: data.description, image: data.image, domain: new URL(url).hostname.replace('www.', '') }); }
       } catch { /* ignore */ }
       if (!cancelled) setLoading(false);
     })();
@@ -736,10 +569,10 @@ function LinkPreviewInline({ url }: { url: string }) {
 
   if (isYoutube && ytId) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden transition-colors" style={{ background: '#1E1E30', border: '1px solid #333350', maxWidth: 400 }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
-      >
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden transition-colors"
+        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', maxWidth: 400 }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}>
         <div className="relative" style={{ aspectRatio: '16/9' }}>
           <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -749,56 +582,45 @@ function LinkPreviewInline({ url }: { url: string }) {
           </div>
         </div>
         <div className="px-3 py-2">
-          <p className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{meta?.title || 'YouTube'}</p>
-          <p className="text-[11px]" style={{ color: '#555570' }}>youtube.com</p>
+          <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>{meta?.title || 'YouTube'}</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>youtube.com</p>
         </div>
       </a>
     );
   }
 
-  if (loading) return null;
-  if (!meta?.title) return null;
+  if (loading || !meta?.title) return null;
 
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-lg transition-colors" style={{ background: '#1E1E30', border: '1px solid #333350', maxWidth: 400 }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#333350'; }}
-    >
+    <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-lg transition-colors"
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', maxWidth: 400 }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}>
       {meta.image && <img src={meta.image} alt="" className="w-[60px] h-[60px] rounded object-cover flex-shrink-0" />}
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium truncate" style={{ color: '#E8E8F0' }}>{meta.title}</p>
-        {meta.description && <p className="text-[12px] mt-0.5 line-clamp-2" style={{ color: '#8888A0' }}>{meta.description}</p>}
-        <p className="text-[11px] mt-1" style={{ color: '#555570' }}>{meta.domain}</p>
+        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>{meta.title}</p>
+        {meta.description && <p className="text-[12px] mt-0.5 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{meta.description}</p>}
+        <p className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>{meta.domain}</p>
       </div>
     </a>
   );
 }
-// Inline date picker using Popover + Calendar
+
+// Inline date picker
 function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelative }: {
-  value?: string;
-  onChange: (val: string | undefined) => void;
-  placeholder: string;
-  clearLabel?: string;
-  showRelative?: boolean;
+  value?: string; onChange: (val: string | undefined) => void; placeholder: string; clearLabel?: string; showRelative?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-
-  const selectedDate = value ? (() => {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  })() : undefined;
+  const selectedDate = value ? (() => { const [y, m, d] = value.split('-').map(Number); return new Date(y, m - 1, d); })() : undefined;
 
   const handleSelect = (date: Date | undefined) => {
     if (!date) { onChange(undefined); setOpen(false); return; }
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    onChange(`${y}-${m}-${d}`);
-    setOpen(false);
+    const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
+    onChange(`${y}-${m}-${d}`); setOpen(false);
   };
 
   const renderLabel = () => {
-    if (!value) return <span className="text-[13px]" style={{ color: '#555570' }}>{placeholder}</span>;
+    if (!value) return <span className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>{placeholder}</span>;
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const [y, m, d] = value.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
@@ -806,43 +628,30 @@ function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelati
     const diffDays = Math.ceil((dt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     if (showRelative) {
-      if (diffDays < 0) {
-        const label = Math.abs(diffDays) === 1 ? 'Ontem' : `${Math.abs(diffDays)}d atrás`;
-        return <span className="text-[13px] font-medium" style={{ color: 'hsl(var(--status-overdue))' }}>{label}</span>;
-      }
-      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Hoje</span>;
-      if (diffDays === 1) return <span className="text-[13px] font-medium" style={{ color: '#FFB86C' }}>Amanhã</span>;
+      if (diffDays < 0) { const label = Math.abs(diffDays) === 1 ? 'Ontem' : `${Math.abs(diffDays)}d atrás`; return <span className="text-[13px] font-medium" style={{ color: 'hsl(var(--status-overdue))' }}>{label}</span>; }
+      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: 'var(--warning)' }}>Hoje</span>;
+      if (diffDays === 1) return <span className="text-[13px] font-medium" style={{ color: 'var(--warning)' }}>Amanhã</span>;
     } else {
-      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: '#6C9CFC' }}>Hoje</span>;
+      if (diffDays === 0) return <span className="text-[13px] font-medium" style={{ color: 'var(--accent-blue)' }}>Hoje</span>;
     }
     const formatted = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} (${weekDays[dt.getDay()]})`;
-    return <span className="text-[13px]" style={{ color: '#E8E8F0' }}>{formatted}</span>;
+    return <span className="text-[13px]" style={{ color: 'var(--text-primary)' }}>{formatted}</span>;
   };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className="h-8 w-full text-left bg-transparent focus:outline-none cursor-pointer flex items-center">
-          {renderLabel()}
-        </button>
+        <button type="button" className="h-8 w-full text-left bg-transparent focus:outline-none cursor-pointer flex items-center">{renderLabel()}</button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start" side="bottom" sideOffset={4}
-        style={{ background: 'hsl(var(--bg-surface))', borderColor: 'rgba(255,255,255,0.06)', zIndex: 60 }}>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleSelect}
-          initialFocus
-          className={cn("p-3 pointer-events-auto")}
-          locale={ptBR}
-        />
+        style={{ background: 'hsl(var(--bg-surface-hsl))', borderColor: 'var(--border-subtle)', zIndex: 60 }}>
+        <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} initialFocus className={cn("p-3 pointer-events-auto")} locale={ptBR} />
         {value && (
           <div className="px-3 pb-3 flex justify-between">
             <button onClick={() => { onChange(undefined); setOpen(false); }}
-              className="text-[12px] transition-colors" style={{ color: '#8888A0' }}
+              className="text-[12px] transition-colors" style={{ color: 'var(--text-secondary)' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
-            >{clearLabel || 'Limpar'}</button>
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>{clearLabel || 'Limpar'}</button>
           </div>
         )}
       </PopoverContent>
@@ -864,64 +673,28 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setLocalTask(task);
-    setCommentText('');
-    setAddingSubtask(false);
-    setNewSubtaskName('');
-  }, [task.id]);
-
-  useEffect(() => {
-    setLocalTask(prev => ({ ...prev, subtasks: task.subtasks, members: task.members }));
-  }, [task.subtasks, task.members]);
+  useEffect(() => { setLocalTask(task); setCommentText(''); setAddingSubtask(false); setNewSubtaskName(''); }, [task.id]);
+  useEffect(() => { setLocalTask(prev => ({ ...prev, subtasks: task.subtasks, members: task.members })); }, [task.subtasks, task.members]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestTaskRef = useRef<Task>(localTask);
 
-  const pushUpdate = useCallback((updated: Task) => {
-    setLocalTask(updated);
-    latestTaskRef.current = updated;
-    onUpdateTask(updated);
-  }, [onUpdateTask]);
-
+  const pushUpdate = useCallback((updated: Task) => { setLocalTask(updated); latestTaskRef.current = updated; onUpdateTask(updated); }, [onUpdateTask]);
   const pushUpdateDebounced = useCallback((updated: Task) => {
-    setLocalTask(updated);
-    latestTaskRef.current = updated;
+    setLocalTask(updated); latestTaskRef.current = updated;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      onUpdateTask(latestTaskRef.current);
-      debounceRef.current = null;
-    }, 500);
+    debounceRef.current = setTimeout(() => { onUpdateTask(latestTaskRef.current); debounceRef.current = null; }, 500);
   }, [onUpdateTask]);
 
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-        onUpdateTask(latestTaskRef.current);
-      }
-    };
-  }, [onUpdateTask]);
+  useEffect(() => { return () => { if (debounceRef.current) { clearTimeout(debounceRef.current); onUpdateTask(latestTaskRef.current); } }; }, [onUpdateTask]);
+  useEffect(() => { const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, [onClose]);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  const autoResize = (el: HTMLTextAreaElement | null) => {
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
-  };
-
+  const autoResize = (el: HTMLTextAreaElement | null) => { if (!el) return; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
   useEffect(() => { autoResize(titleRef.current); }, [localTask.name]);
   useEffect(() => { autoResize(descRef.current); }, [localTask.description]);
 
   const cycleStatus = () => {
-    const next: TaskStatus =
-      localTask.status === 'pending' ? 'in_progress' :
-      localTask.status === 'in_progress' ? 'done' : 'pending';
+    const next: TaskStatus = localTask.status === 'pending' ? 'in_progress' : localTask.status === 'in_progress' ? 'done' : 'pending';
     pushUpdate({ ...localTask, status: next });
   };
 
@@ -942,141 +715,89 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const doneSubCount = subtasks.filter(s => s.status === 'done').length;
   const totalSubCount = subtasks.length;
 
-  const updateSubtaskStatus = (subId: string, status: TaskStatus) => {
-    setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).map(s => s.id === subId ? { ...s, status } : s) }));
-    onUpdateSubtask(subId, { status });
-  };
-
-  const updateSubtaskName = (subId: string, name: string) => {
-    setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).map(s => s.id === subId ? { ...s, name } : s) }));
-    onUpdateSubtask(subId, { name });
-  };
-
-  const deleteSubtask = (subId: string) => {
-    setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).filter(s => s.id !== subId) }));
-    onDeleteSubtask(localTask.id, subId);
-  };
-
-  const addSubtask = () => {
-    if (!newSubtaskName.trim()) return;
-    onAddSubtask(localTask.id, newSubtaskName.trim());
-    setNewSubtaskName('');
-    setAddingSubtask(false);
-  };
+  const updateSubtaskStatus = (subId: string, status: TaskStatus) => { setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).map(s => s.id === subId ? { ...s, status } : s) })); onUpdateSubtask(subId, { status }); };
+  const updateSubtaskName = (subId: string, name: string) => { setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).map(s => s.id === subId ? { ...s, name } : s) })); onUpdateSubtask(subId, { name }); };
+  const deleteSubtask = (subId: string) => { setLocalTask(prev => ({ ...prev, subtasks: (prev.subtasks || []).filter(s => s.id !== subId) })); onDeleteSubtask(localTask.id, subId); };
+  const addSubtask = () => { if (!newSubtaskName.trim()) return; onAddSubtask(localTask.id, newSubtaskName.trim()); setNewSubtaskName(''); setAddingSubtask(false); };
 
   const taskComments = allComments.filter(c => c.taskId === localTask.id);
   const taskAttachments = attachments.filter(a => a.taskId === localTask.id);
   const projectSections = sections.filter(s => s.projectId === localTask.projectId);
 
-  const handleAddComment = () => {
-    if (!commentText.trim()) return;
-    onAddComment(localTask.id, commentText.trim());
-    setCommentText('');
-  };
+  const handleAddComment = () => { if (!commentText.trim()) return; onAddComment(localTask.id, commentText.trim()); setCommentText(''); };
 
   return (
     <div
-      className="fixed right-0 top-0 h-screen z-50 flex flex-col animate-slide-in-right
-        w-full md:w-full inset-0 md:inset-auto md:relative md:right-auto md:top-auto"
-      style={{
-        background: 'hsl(var(--bg-surface))',
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '-4px 0 12px rgba(0,0,0,0.3)',
-      }}
-    >
-      {/* Top bar — minimal */}
-      <div className="h-11 flex items-center justify-between px-4 md:px-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      className="fixed right-0 top-0 h-screen z-50 flex flex-col animate-slide-in-right w-full md:w-full inset-0 md:inset-auto md:relative md:right-auto md:top-auto"
+      style={{ background: 'var(--bg-surface)', borderLeft: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-lg)' }}>
+      {/* Top bar */}
+      <div className="h-11 flex items-center justify-between px-4 md:px-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {(() => {
-          const si = statusIcons[localTask.status];
-          const Icon = si.icon;
+          const si = statusIcons[localTask.status]; const Icon = si.icon;
           return (
-            <button onClick={cycleStatus} title={si.label}
-              className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-              style={{ color: si.color }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
+            <button onClick={cycleStatus} title={si.label} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: si.color }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <Icon className="w-[18px] h-[18px]" />
             </button>
           );
         })()}
-        <button onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-          style={{ color: '#8888A0' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#E8E8F0'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8888A0'; }}
-        >
+        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--text-secondary)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Breadcrumb for subtasks */}
+      {/* Breadcrumb */}
       {localTask.parentTaskId && parentTaskName && (
         <div className="px-4 md:px-5 pt-3 pb-1 flex items-center gap-1 text-[12px]">
-          <button onClick={onNavigateToParent} className="truncate max-w-[200px] transition-colors"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#6C9CFC'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
-          >{parentTaskName}</button>
-          <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: '#555570' }} />
-          <span style={{ color: '#E8E8F0' }} className="truncate">{localTask.name || 'Subtarefa'}</span>
+          <button onClick={onNavigateToParent} className="truncate max-w-[200px] transition-colors" style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-blue)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>{parentTaskName}</button>
+          <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+          <span style={{ color: 'var(--text-primary)' }} className="truncate">{localTask.name || 'Subtarefa'}</span>
         </div>
       )}
 
-      {/* Scrollable content */}
+      {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 md:px-5 pt-5 pb-20">
-          {/* 1. Title */}
-          <textarea
-            ref={titleRef}
-            value={localTask.name}
+          {/* Title */}
+          <textarea ref={titleRef} value={localTask.name}
             onChange={(e) => { pushUpdateDebounced({ ...localTask, name: e.target.value }); autoResize(e.target); }}
-            placeholder="Nome da tarefa..."
-            rows={1}
+            placeholder="Nome da tarefa..." rows={1}
             className="w-full bg-transparent border-none focus:outline-none resize-none overflow-hidden mb-2"
-            style={{ fontSize: 18, fontWeight: 600, color: '#E8E8F0', lineHeight: 1.4, padding: 0 }}
-          />
+            style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4, padding: 0 }} />
 
-          {/* 2. Description — Rich text with formatting, images, link previews */}
+          {/* Description */}
           <div className="mb-5">
-            <RichDescription
-              value={localTask.description || ''}
-              onChange={(html) => pushUpdateDebounced({ ...localTask, description: html })}
-              placeholder="Adicione detalhes, links ou imagens..."
-              isPro={isPro}
+            <RichDescription value={localTask.description || ''} onChange={(html) => pushUpdateDebounced({ ...localTask, description: html })}
+              placeholder="Adicione detalhes, links ou imagens..." isPro={isPro}
               onUploadImage={isPro ? async (file: File) => {
-                const ext = file.name.split('.').pop();
-                const path = `${currentUserId}/${crypto.randomUUID()}.${ext}`;
+                const ext = file.name.split('.').pop(); const path = `${currentUserId}/${crypto.randomUUID()}.${ext}`;
                 const { error } = await supabase.storage.from('task-attachments').upload(path, file);
-                if (error) return null;
-                const { data: urlData } = supabase.storage.from('task-attachments').getPublicUrl(path);
-                return urlData.publicUrl;
-              } : undefined}
-            />
+                if (error) return null; const { data: urlData } = supabase.storage.from('task-attachments').getPublicUrl(path); return urlData.publicUrl;
+              } : undefined} />
           </div>
 
-          {/* 3. Subtasks */}
+          {/* Subtasks */}
           {(subtasks.length > 0 || addingSubtask) && (
             <div className="mb-5">
               {totalSubCount > 0 && (
                 <div className="flex items-center justify-between mb-2">
-                  <span style={{ fontSize: 12, color: '#555570', fontWeight: 400 }}>Subtarefas</span>
-                  <span style={{ fontSize: 11, color: '#555570' }}>{doneSubCount}/{totalSubCount}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 400 }}>Subtarefas</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{doneSubCount}/{totalSubCount}</span>
                 </div>
               )}
-
               <DndContext sensors={subtaskSensors} collisionDetection={closestCenter} onDragEnd={handleSubtaskDragEnd}>
                 <SortableContext items={subtasks.map(s => s.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-0">
                     {subtasks.map((sub) => (
-                      <SortableSubtaskRow
-                        key={sub.id}
-                        subtask={sub}
+                      <SortableSubtaskRow key={sub.id} subtask={sub}
                         onStatusChange={(s) => updateSubtaskStatus(sub.id, s)}
                         onNameChange={(name) => updateSubtaskName(sub.id, name)}
-                        onDelete={() => deleteSubtask(sub.id)}
-                        onSelect={onSelectSubtask}
-                      />
+                        onDelete={() => deleteSubtask(sub.id)} onSelect={onSelectSubtask} />
                     ))}
                   </div>
                 </SortableContext>
@@ -1087,115 +808,61 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
           {addingSubtask ? (
             <div className="flex items-center gap-2 mb-5 px-1">
               <div className="w-4 h-4" />
-              <input
-                ref={newSubRef}
-                value={newSubtaskName}
-                onChange={(e) => setNewSubtaskName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') addSubtask();
-                  if (e.key === 'Escape') { setAddingSubtask(false); setNewSubtaskName(''); }
-                }}
+              <input ref={newSubRef} value={newSubtaskName} onChange={(e) => setNewSubtaskName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') addSubtask(); if (e.key === 'Escape') { setAddingSubtask(false); setNewSubtaskName(''); } }}
                 onBlur={() => { if (newSubtaskName.trim()) addSubtask(); else setAddingSubtask(false); }}
-                autoFocus
-                placeholder="Nome da subtarefa..."
-                className="flex-1 h-7 text-[13px] bg-transparent border-none focus:outline-none"
-                style={{ color: '#E8E8F0' }}
-              />
+                autoFocus placeholder="Nome da subtarefa..."
+                className="flex-1 h-7 text-[13px] bg-transparent border-none focus:outline-none" style={{ color: 'var(--text-primary)' }} />
             </div>
           ) : (
-            <button
-              onClick={() => { setAddingSubtask(true); setTimeout(() => newSubRef.current?.focus(), 0); }}
-              className="mb-5 text-[13px] flex items-center gap-1 transition-colors"
-              style={{ color: '#555570' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#8888A0'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#555570'; }}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Adicionar subtarefa
+            <button onClick={() => { setAddingSubtask(true); setTimeout(() => newSubRef.current?.focus(), 0); }}
+              className="mb-5 text-[13px] flex items-center gap-1 transition-colors" style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
+              <Plus className="w-3.5 h-3.5" /> Adicionar subtarefa
             </button>
           )}
 
-          {/* 4. Separator */}
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 16 }} />
+          {/* Separator */}
+          <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 16 }} />
 
-          {/* 5. Metadata — 2-column, transparent, text-only */}
+          {/* Metadata */}
           <div className="mb-5">
             <MetaRow label="Responsável">
-              <AssigneePicker
-                value={localTask.assignee || ''}
-                profiles={profiles}
+              <AssigneePicker value={localTask.assignee || ''} profiles={profiles}
                 onChange={(name) => pushUpdateDebounced({ ...localTask, assignee: name })}
-                onSelectProfile={(userId) => {
-                  const alreadyMember = (localTask.members || []).some(m => m.userId === userId);
-                  if (!alreadyMember) onAddMember(localTask.id, userId);
-                }}
-                onRemoveProfile={(userId) => {
-                  onRemoveMember(localTask.id, userId);
-                }}
-              />
+                onSelectProfile={(userId) => { const alreadyMember = (localTask.members || []).some(m => m.userId === userId); if (!alreadyMember) onAddMember(localTask.id, userId); }}
+                onRemoveProfile={(userId) => { onRemoveMember(localTask.id, userId); }} />
             </MetaRow>
-
-            {/* "Fazer em" + "Entregar até" — Popover Calendar */}
             <MetaRow label="Fazer em">
-              <DatePickerInline
-                value={localTask.scheduledDate}
-                onChange={(val) => pushUpdate({ ...localTask, scheduledDate: val })}
-                placeholder="Quando vai fazer?"
-                clearLabel="Limpar"
-              />
+              <DatePickerInline value={localTask.scheduledDate} onChange={(val) => pushUpdate({ ...localTask, scheduledDate: val })} placeholder="Quando vai fazer?" clearLabel="Limpar" />
             </MetaRow>
-
             <MetaRow label="Entregar até">
-              <DatePickerInline
-                value={localTask.dueDate}
-                onChange={(val) => pushUpdate({ ...localTask, dueDate: val })}
-                placeholder="Sem prazo"
-                clearLabel="Limpar"
-                showRelative
-              />
+              <DatePickerInline value={localTask.dueDate} onChange={(val) => pushUpdate({ ...localTask, dueDate: val })} placeholder="Sem prazo" clearLabel="Limpar" showRelative />
             </MetaRow>
-
             <MetaRow label="Seção">
-              <select
-                value={localTask.section}
-                onChange={(e) => pushUpdate({ ...localTask, section: e.target.value })}
+              <select value={localTask.section} onChange={(e) => pushUpdate({ ...localTask, section: e.target.value })}
                 className="h-8 w-full bg-transparent text-[13px] border-none focus:outline-none appearance-none cursor-pointer [color-scheme:dark]"
-                style={{ color: '#E8E8F0' }}
-              >
-                {projectSections.map(s => (
-                  <option key={s.id} value={s.id} style={{ background: '#1A1A28' }}>{s.title}</option>
-                ))}
+                style={{ color: 'var(--text-primary)' }}>
+                {projectSections.map(s => (<option key={s.id} value={s.id} style={{ background: 'var(--bg-surface)' }}>{s.title}</option>))}
               </select>
             </MetaRow>
-
             <MetaRow label="Tipo de trabalho">
-              <ServiceTagPicker
-                value={localTask.serviceTagId}
-                tags={serviceTags}
+              <ServiceTagPicker value={localTask.serviceTagId} tags={serviceTags}
                 onChange={(id) => pushUpdate({ ...localTask, serviceTagId: id })}
-                onCreateTag={onCreateServiceTag}
-                onRenameTag={onRenameServiceTag}
-                onDeleteTag={onDeleteServiceTag}
-              />
+                onCreateTag={onCreateServiceTag} onRenameTag={onRenameServiceTag} onDeleteTag={onDeleteServiceTag} />
             </MetaRow>
-
             <MetaRow label="Repetir">
               {isPro ? (
-                <RecurrencePicker
-                  recurrenceType={localTask.recurrenceType || null}
-                  recurrenceConfig={localTask.recurrenceConfig}
-                  onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })}
-                />
+                <RecurrencePicker recurrenceType={localTask.recurrenceType || null} recurrenceConfig={localTask.recurrenceConfig}
+                  onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })} />
               ) : (
-                <button
-                  onClick={onUpgrade}
-                  className="h-8 px-2 text-[12px] rounded flex items-center gap-1.5 transition-colors"
-                  style={{ color: '#8888A0' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
-                >
+                <button onClick={onUpgrade} className="h-8 px-2 text-[12px] rounded flex items-center gap-1.5 transition-colors"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
                   <span>Não repete</span>
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide border border-yellow-500/20 bg-yellow-500/10 text-yellow-500">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide" style={{ border: '1px solid var(--warning-bg)', background: 'var(--warning-bg)', color: 'var(--warning)' }}>
                     <Sparkles className="w-2.5 h-2.5" /> PRO
                   </span>
                 </button>
@@ -1203,162 +870,106 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
           </div>
 
-          {/* 6. Collapsible tabs: Anexos | Atividade */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+          {/* Tabs: Anexos | Atividade */}
+          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 12 }}>
             <div className="flex items-center gap-4 mb-3">
-              <button
-                onClick={() => setActiveTab(activeTab === 'attachments' ? null : 'attachments')}
+              <button onClick={() => setActiveTab(activeTab === 'attachments' ? null : 'attachments')}
                 className="text-[12px] transition-colors flex items-center gap-1"
-                style={{
-                  color: activeTab === 'attachments' ? '#E8E8F0' : '#555570',
-                  fontWeight: activeTab === 'attachments' ? 500 : 400,
-                }}
-                onMouseEnter={e => { if (activeTab !== 'attachments') e.currentTarget.style.color = '#8888A0'; }}
-                onMouseLeave={e => { if (activeTab !== 'attachments') e.currentTarget.style.color = '#555570'; }}
-              >
-                <Paperclip className="w-3 h-3" />
-                Anexos{taskAttachments.length > 0 ? ` (${taskAttachments.length})` : ''}
+                style={{ color: activeTab === 'attachments' ? 'var(--text-primary)' : 'var(--text-tertiary)', fontWeight: activeTab === 'attachments' ? 500 : 400 }}
+                onMouseEnter={e => { if (activeTab !== 'attachments') e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { if (activeTab !== 'attachments') e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
+                <Paperclip className="w-3 h-3" /> Anexos{taskAttachments.length > 0 ? ` (${taskAttachments.length})` : ''}
               </button>
-              <button
-                onClick={() => setActiveTab(activeTab === 'activity' ? null : 'activity')}
-                className="text-[12px] transition-colors"
-                style={{
-                  color: activeTab === 'activity' ? '#E8E8F0' : '#555570',
-                  fontWeight: activeTab === 'activity' ? 500 : 400,
-                }}
-                onMouseEnter={e => { if (activeTab !== 'activity') e.currentTarget.style.color = '#8888A0'; }}
-                onMouseLeave={e => { if (activeTab !== 'activity') e.currentTarget.style.color = '#555570'; }}
-              >
+              <button onClick={() => setActiveTab(activeTab === 'activity' ? null : 'activity')}
+                className="text-[12px] transition-colors flex items-center gap-1"
+                style={{ color: activeTab === 'activity' ? 'var(--text-primary)' : 'var(--text-tertiary)', fontWeight: activeTab === 'activity' ? 500 : 400 }}
+                onMouseEnter={e => { if (activeTab !== 'activity') e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { if (activeTab !== 'activity') e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
                 Atividade{taskComments.length > 0 ? ` (${taskComments.length})` : ''}
               </button>
             </div>
 
-            {/* Attachments tab */}
+            {/* Attachments */}
             {activeTab === 'attachments' && (
-              <div className="animate-fade-in">
-                <div className="flex items-center justify-end mb-2">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingFile}
-                    className="text-[12px] flex items-center gap-1 transition-colors"
-                    style={{ color: '#8888A0' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
-                  >
-                    <Paperclip className="w-3 h-3" />
-                    {uploadingFile ? 'Enviando...' : 'Anexar'}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={async (e) => {
-                      const files = e.target.files;
-                      if (!files?.length) return;
-                      setUploadingFile(true);
-                      try {
-                        for (const file of Array.from(files)) {
-                          await onUploadAttachment(localTask.id, file);
-                        }
-                      } finally {
-                        setUploadingFile(false);
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                      }
-                    }}
-                  />
-                </div>
-                {taskAttachments.length === 0 ? (
-                  <p className="text-[12px]" style={{ color: '#555570' }}>Nenhum anexo</p>
-                ) : (
-                  <div className="space-y-1">
-                    {taskAttachments.map(att => {
-                      const isImage = att.contentType?.startsWith('image/');
-                      const sizeKb = Math.round(att.fileSize / 1024);
-                      const sizeLabel = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
-                      return (
-                        <div key={att.id} className="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-nd-hover transition-colors">
-                          {isImage ? <ImageIcon className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} /> : <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#8888A0' }} />}
-                          <div className="flex-1 min-w-0">
-                            <a href={att.url} target="_blank" rel="noopener noreferrer"
-                              className="text-[13px] truncate block transition-colors"
-                              style={{ color: '#E8E8F0' }}
-                              onMouseEnter={e => { e.currentTarget.style.color = '#6C9CFC'; }}
-                              onMouseLeave={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-                            >{att.fileName}</a>
-                            <span className="text-[11px]" style={{ color: '#555570' }}>{sizeLabel}</span>
-                          </div>
-                          <a href={att.url} download={att.fileName} target="_blank" rel="noopener noreferrer"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#8888A0' }}>
-                            <Download className="w-3.5 h-3.5" />
-                          </a>
-                          {att.userId === currentUserId && (
-                            <button onClick={() => onDeleteAttachment(att.id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#8888A0' }}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+              <div className="space-y-2 mb-4">
+                {taskAttachments.map(att => (
+                  <div key={att.id} className="flex items-center gap-2 group py-1.5 px-2 rounded-md"
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                    {att.contentType?.startsWith('image/') ? <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+                      : <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />}
+                    <span className="text-[13px] truncate flex-1" style={{ color: 'var(--text-primary)' }}>{att.fileName}</span>
+                    <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                      {att.fileSize < 1024 * 1024 ? `${Math.round(att.fileSize / 1024)}KB` : `${(att.fileSize / (1024 * 1024)).toFixed(1)}MB`}
+                    </span>
+                    <a href={supabase.storage.from('task-attachments').getPublicUrl(att.filePath).data.publicUrl} target="_blank" rel="noopener noreferrer"
+                      className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
+                      <Download className="w-3 h-3" />
+                    </a>
+                    <button onClick={() => onDeleteAttachment(att.id)}
+                      className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
-                )}
+                ))}
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1 text-[12px] transition-colors px-2 py-1.5" style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
+                  <Plus className="w-3 h-3" /> {uploadingFile ? 'Enviando...' : 'Adicionar anexo'}
+                </button>
+                <input ref={fileInputRef} type="file" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0]; if (!file) return; e.target.value = '';
+                  setUploadingFile(true); await onUploadAttachment(localTask.id, file); setUploadingFile(false);
+                }} />
               </div>
             )}
 
-            {/* Activity tab */}
+            {/* Comments */}
             {activeTab === 'activity' && (
-              <div className="animate-fade-in">
-                <div className="space-y-0">
-                  {taskComments.map((comment, idx) => (
-                    <div key={comment.id}
-                      className={`group py-3 ${idx < taskComments.length - 1 ? '' : ''}`}
-                      style={{ borderBottom: idx < taskComments.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-medium" style={{ color: '#E8E8F0' }}>{comment.author}</span>
-                        <span className="text-[12px]" style={{ color: '#555570' }}>{formatCommentDate(comment.date)}</span>
-                        {comment.authorId === currentUserId && (
-                          <button onClick={() => onDeleteComment(comment.id)}
-                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#8888A0' }}>
-                            <Trash2 className="w-3.5 h-3.5" />
+              <div className="space-y-3 mb-4">
+                {taskComments.map(c => {
+                  const profile = profiles.find(p => p.id === c.userId);
+                  return (
+                    <div key={c.id} className="group">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold"
+                          style={{ background: 'var(--accent-subtle)', color: 'var(--accent-blue)' }}>
+                          {(profile?.fullName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                        </div>
+                        <span className="text-[12px] font-medium" style={{ color: 'var(--text-primary)' }}>{profile?.fullName || 'Usuário'}</span>
+                        <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{formatCommentDate(c.createdAt)}</span>
+                        {c.userId === currentUserId && (
+                          <button onClick={() => onDeleteComment(c.id)}
+                            className="ml-auto w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}
+                            onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
+                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         )}
                       </div>
-                      <p className="text-[14px] mt-1" style={{ color: '#E8E8F0', lineHeight: 1.6 }}>{comment.text}</p>
+                      <p className="text-[13px] pl-7" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{c.content}</p>
                     </div>
-                  ))}
+                  );
+                })}
+
+                <div className="flex gap-2 items-start">
+                  <textarea ref={commentRef} value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                    placeholder="Adicionar comentário..."
+                    className="flex-1 text-[13px] bg-transparent border rounded-lg px-3 py-2 focus:outline-none resize-none min-h-[36px]"
+                    style={{ color: 'var(--text-primary)', borderColor: 'var(--border-subtle)' }}
+                    rows={1} />
+                  {commentText.trim() && (
+                    <button onClick={handleAddComment} className="h-9 px-3 rounded-lg text-[12px] font-medium"
+                      style={{ background: 'var(--accent-blue)', color: 'var(--btn-text)' }}>Enviar</button>
+                  )}
                 </div>
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Sticky comment input */}
-      <div className="flex-shrink-0 px-4 md:px-5 py-3" style={{ background: 'hsl(var(--bg-surface))', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="relative">
-          <textarea
-            ref={commentRef}
-            value={commentText}
-            onChange={(e) => { setCommentText(e.target.value); autoResize(e.target); }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); }
-            }}
-            placeholder="Escreva uma atualização..."
-            rows={1}
-            className="w-full min-h-[36px] py-2 pl-3 pr-20 text-[14px] bg-transparent rounded-lg border focus:outline-none resize-none"
-            style={{ color: '#E8E8F0', borderColor: 'rgba(255,255,255,0.06)', lineHeight: 1.5 }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#6C9CFC'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-          />
-          {commentText.trim() && (
-            <button onClick={handleAddComment}
-              className="absolute right-3 bottom-2 px-3 py-1 text-[12px] font-medium rounded transition-opacity hover:opacity-90"
-              style={{ background: '#6C9CFC', color: '#0F0F17' }}>
-              Enviar
-            </button>
-          )}
         </div>
       </div>
     </div>
