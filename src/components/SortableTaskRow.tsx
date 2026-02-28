@@ -29,6 +29,8 @@ interface SortableTaskRowProps {
   sections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
+  onConvertSubtaskToTask?: (subtaskId: string) => void;
   isFadingOut?: boolean;
 }
 
@@ -70,7 +72,7 @@ function SubtaskDragOverlay({ subtask }: { subtask: Subtask }) {
   );
 }
 
-function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask }: {
+function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection }: {
   subtasks: Subtask[];
   taskId: string;
   parentProjectId: string;
@@ -80,6 +82,10 @@ function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId,
   onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
   onReorderSubtasks?: (taskId: string, subtaskIds: string[]) => void;
   onRenameSubtask?: (subtaskId: string, name: string) => void;
+  sections?: Section[];
+  onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
+  onConvertToTask?: (subtaskId: string) => void;
+  onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const subtaskIds = subtasks.map(s => s.id);
@@ -141,6 +147,10 @@ function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId,
             onSelect={onSelectSubtask}
             onStatusChange={onSubtaskStatusChange}
             onRename={onRenameSubtask}
+            sections={sections}
+            onDeleteSubtask={onDeleteSubtask}
+            onConvertToTask={onConvertToTask}
+            onMoveSubtaskToSection={onMoveSubtaskToSection}
           />
         ))}
       </SortableContext>
@@ -212,7 +222,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask, isFadingOut }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, isFadingOut }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -444,6 +454,10 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             onSubtaskStatusChange={onSubtaskStatusChange}
             onReorderSubtasks={onReorderSubtasks}
             onRenameSubtask={onRenameSubtask}
+            sections={sections}
+            onDeleteSubtask={onDeleteSubtask}
+            onConvertToTask={onConvertSubtaskToTask}
+            onMoveSubtaskToSection={(subtaskId, sectionId) => onMoveToSection?.(subtaskId, sectionId)}
           />
           <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
         </div>

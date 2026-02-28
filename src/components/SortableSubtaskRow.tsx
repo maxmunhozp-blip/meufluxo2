@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical } from 'lucide-react';
-import { Subtask, TaskStatus } from '@/types/task';
+import { Subtask, TaskStatus, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { DropIndicatorLine } from './DropIndicatorLine';
+import { ContextMenu } from './ContextMenu';
 
 interface SortableSubtaskRowProps {
   subtask: Subtask;
@@ -16,13 +17,18 @@ interface SortableSubtaskRowProps {
   onSelect?: (subtask: Subtask) => void;
   onStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
   onRename?: (subtaskId: string, name: string) => void;
+  sections?: Section[];
+  onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
+  onConvertToTask?: (subtaskId: string) => void;
+  onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection }: SortableSubtaskRowProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(subtask.name);
   const renameRef = useRef<HTMLInputElement>(null);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const {
     attributes,
@@ -61,6 +67,12 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     window.dispatchEvent(new CustomEvent('meufluxo:task-drag-end'));
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
   const subDone = subtask.status === 'done';
 
   const startRename = () => {
@@ -76,6 +88,30 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     }
     setIsRenaming(false);
   };
+
+  // Build context menu items
+  const contextMenuItems = [
+    {
+      label: 'Converter em tarefa',
+      onClick: () => onConvertToTask?.(subtask.id),
+    },
+    ...(sections && sections.filter(s => s.id !== parentSectionId).length > 0 ? [{
+      label: 'Mover para seção',
+      children: sections.filter(s => s.id !== parentSectionId).map(s => ({
+        label: s.title,
+        onClick: () => onMoveSubtaskToSection?.(subtask.id, s.id),
+      })),
+    }] : []),
+    {
+      label: 'Excluir subtarefa',
+      danger: true,
+      onClick: () => {
+        if (window.confirm(`Excluir "${subtask.name}"?`)) {
+          onDeleteSubtask?.(parentTaskId, subtask.id);
+        }
+      },
+    },
+  ];
 
   return (
     <div
@@ -93,6 +129,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
         startRename();
       }}
+      onContextMenu={handleContextMenu}
       className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 group/sub ${
         isSelected ? 'bg-nd-active' : ''
       } ${isParentDragging ? 'opacity-40' : ''}`}
@@ -132,6 +169,14 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         <span className="text-[12px] text-nd-text-secondary flex-shrink-0">
           {subtask.subtasks.filter(s => s.status === 'done').length}/{subtask.subtasks.length}
         </span>
+      )}
+
+      {contextMenu && (
+        <ContextMenu
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+          items={contextMenuItems}
+        />
       )}
     </div>
   );

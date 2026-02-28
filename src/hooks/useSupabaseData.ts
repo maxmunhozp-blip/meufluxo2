@@ -662,6 +662,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       recurrence_type: task.recurrenceType || null,
       recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null,
+      parent_task_id: task.parentTaskId || null,
     }).eq('id', task.id);
 
     if (task.parentTaskId) {
@@ -677,7 +678,21 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         };
       }));
     } else {
-      setTasksState(prev => prev.map(t => t.id === task.id ? task : t));
+      // Check if this was previously a subtask being promoted to independent task
+      setTasksState(prev => {
+        const wasSubtask = prev.some(t => (t.subtasks || []).some(s => s.id === task.id));
+        if (wasSubtask) {
+          // Remove from parent's subtasks and add as top-level task
+          return [
+            ...prev.map(t => ({
+              ...t,
+              subtasks: (t.subtasks || []).filter(s => s.id !== task.id),
+            })),
+            task,
+          ];
+        }
+        return prev.map(t => t.id === task.id ? task : t);
+      });
     }
   }, []);
 
