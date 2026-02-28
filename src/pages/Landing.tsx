@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import appMockup from '@/assets/app-mockup.png';
 import {
   CheckCircle2, Brain, Shield, Zap, ArrowRight, Sparkles,
   Sun, Moon, Eye, Clock, ListChecks, Users, Calendar,
@@ -231,6 +232,28 @@ export default function Landing() {
             >
               Conhecer mais <ChevronDown className="w-4 h-4" />
             </button>
+          </motion.div>
+
+          {/* App mockup */}
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={4}
+            className="mt-16 relative max-w-5xl mx-auto"
+          >
+            <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/30">
+              <img
+                src={appMockup}
+                alt="MeuFluxo — Dashboard de gerenciamento de tarefas com visão Meu Dia"
+                className="w-full h-auto"
+                loading="eager"
+              />
+              {/* Gradient overlay at bottom for smooth blend */}
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+            </div>
+            {/* Glow behind mockup */}
+            <div className="absolute -inset-4 -z-10 rounded-2xl bg-primary/5 blur-3xl" />
           </motion.div>
         </div>
 
