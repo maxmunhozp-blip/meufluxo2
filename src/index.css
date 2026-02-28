@@ -161,6 +161,14 @@
     --dropdown-border: 240 4% 16%;
     --dropdown-hover: 240 3% 14%;
 
+    /* Temporal context — non-punitive (ADHD research) */
+    --temporal-past-bg: rgba(251, 191, 36, 0.12);
+    --temporal-past-text: #FBBF24;
+    --temporal-future-bg: rgba(96, 165, 250, 0.12);
+    --temporal-future-text: #60A5FA;
+    --temporal-today-bg: #2563EB;
+    --temporal-today-hover: #1D4ED8;
+
     /* Design system utilities */
     --radius-sm: 6px;
     --radius-md: 8px;
@@ -308,6 +316,14 @@
     --sidebar-active: 30 14% 86%;
     --sidebar-separator: 30 14% 85%;
     --sidebar-label: 24 16% 36%;
+
+    /* Temporal context — light mode */
+    --temporal-past-bg: rgba(217, 119, 6, 0.10);
+    --temporal-past-text: #B45309;
+    --temporal-future-bg: rgba(37, 99, 235, 0.10);
+    --temporal-future-text: #1D4ED8;
+    --temporal-today-bg: #2563EB;
+    --temporal-today-hover: #1D4ED8;
 
     /* Dropdown tokens */
     --dropdown-bg: 0 0% 100%;
