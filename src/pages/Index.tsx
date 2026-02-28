@@ -336,14 +336,14 @@ const Index = () => {
     }
   }, [deleteTaskFn, selectedTaskId, focusedTaskId, visibleTaskIds, taskList, createTask, pushUndo]);
 
-  const createTaskInSection = useCallback(async (sectionId: string) => {
+  const createTaskInSection = useCallback(async (sectionId: string, taskName?: string) => {
     const project = projects.find(p => p.id === activeProjectId);
     const shortName = project ? project.name.replace(/^\d+\s*/, '') : '';
-    const prefix = `[${shortName}] Campanha - `;
+    const name = taskName || `[${shortName}] Campanha - `;
     setCreatingSectionId(sectionId);
     try {
       const newId = await createTask({
-        name: prefix,
+        name,
         status: 'pending',
         section: sectionId,
         projectId: activeProjectId,

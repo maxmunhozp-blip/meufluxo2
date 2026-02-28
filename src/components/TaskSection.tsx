@@ -23,7 +23,7 @@ interface TaskSectionProps {
   isDropTarget?: boolean;
   onRenameSection: (id: string, title: string) => void;
   onDeleteSection: (id: string) => void;
-  onAddTaskInSection: (sectionId: string) => void;
+  onAddTaskInSection: (sectionId: string, taskName?: string) => void;
   isCreatingTask?: boolean;
   onDeleteTask?: (taskId: string) => void;
   onDuplicateTask?: (taskId: string) => void;
@@ -44,7 +44,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
   sectionId: string;
   tasks: Task[];
   isCreatingTask: boolean;
-  onAddTaskInSection: (sectionId: string) => void;
+  onAddTaskInSection: (sectionId: string, taskName?: string) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
 }) {
   const [isActive, setIsActive] = useState(false);
@@ -68,8 +68,8 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
       await onAddSubtask(lastTask.id, trimmed);
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
-      // For root task, use existing flow
-      onAddTaskInSection(sectionId);
+      // Pass the typed name to create the task with the correct title
+      onAddTaskInSection(sectionId, trimmed);
       setIsActive(false);
     }
   }, [value, indented, lastTask, onAddSubtask, onAddTaskInSection, sectionId]);
