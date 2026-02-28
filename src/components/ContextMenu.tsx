@@ -44,7 +44,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border-default)',
         borderRadius: 8,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         padding: 4,
         minWidth: 160,
       }}
@@ -77,7 +77,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
                     background: 'var(--bg-elevated)',
                     border: '1px solid var(--border-default)',
                     borderRadius: 8,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                     padding: 4,
                     minWidth: 180,
                     maxHeight: 240,

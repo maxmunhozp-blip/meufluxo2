@@ -170,7 +170,7 @@ function DayColumn({
               <WeekTaskCard
                 key={task.id}
                 task={task}
-                projectColor={project?.color || '#6C9CFC'}
+                projectColor={project?.color || 'var(--accent-blue)'}
                 isSelected={selectedTaskId === task.id}
                 onSelect={() => onSelectTask(task)}
                 truncate={truncateText}
@@ -442,7 +442,7 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
     opacity: isDragging ? 0.5 : 1,
-    outline: isDragging ? '1px dashed #6C9CFC' : 'none',
+    outline: isDragging ? '1px dashed var(--accent-blue)' : 'none',
   };
 
   return (
@@ -453,7 +453,7 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
         {...attributes}
         {...listeners}
         className="flex items-center gap-1.5 h-[32px] px-4 mx-1 rounded-md cursor-grab active:cursor-grabbing transition-colors"
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         {subtasks.length > 0 ? (
@@ -461,14 +461,14 @@ function SourceTaskItem({ task, projectColor, subtasks = [] }: { task: Task; pro
             onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
             onPointerDown={(e) => e.stopPropagation()}
             className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0"
-            style={{ color: '#555570' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
           </button>
         ) : (
           <div className="w-3.5 flex-shrink-0" />
         )}
-        <span style={{ fontSize: 13, color: '#E8E8F0' }} className="truncate flex-1">{task.name}</span>
+        <span style={{ fontSize: 13, color: 'var(--text-primary)' }} className="truncate flex-1">{task.name}</span>
       </div>
       {expanded && subtasks.length > 0 && (
         <div className="ml-4">
@@ -496,7 +496,7 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
     opacity: isDragging ? 0.5 : 1,
-    outline: isDragging ? '1px dashed #6C9CFC' : 'none',
+    outline: isDragging ? '1px dashed var(--accent-blue)' : 'none',
   };
 
   return (
@@ -507,7 +507,7 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
         {...attributes}
         {...listeners}
         className="flex items-center gap-1.5 h-[28px] px-2.5 mx-1 rounded-md cursor-grab active:cursor-grabbing transition-colors"
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
         {nestedSubs.length > 0 ? (
@@ -515,14 +515,14 @@ function SourceSubtaskItem({ subtask, task, projectColor }: { subtask: Subtask; 
             onClick={(e) => { e.stopPropagation(); setExpanded(prev => !prev); }}
             onPointerDown={(e) => e.stopPropagation()}
             className="w-3 h-3 flex items-center justify-center flex-shrink-0"
-            style={{ color: '#555570' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-150 ${expanded ? '' : '-rotate-90'}`} />
           </button>
         ) : (
           <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: `${projectColor}80` }} />
         )}
-        <span style={{ fontSize: 11, color: '#8888A0' }} className="truncate flex-1">{subtask.name}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-secondary)' }} className="truncate flex-1">{subtask.name}</span>
       </div>
       {expanded && nestedSubs.length > 0 && (
         <div className="ml-4">
@@ -782,9 +782,9 @@ export function MyWeekView({
         <div className="flex items-center gap-1 md:gap-2">
           {/* Nav arrows */}
           <button onClick={navigateBack} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -794,42 +794,42 @@ export function MyWeekView({
             onClick={goToToday}
             className="h-7 px-3 text-[12px] rounded-md transition-colors"
             style={{
-              border: '1px solid #333350',
+              border: '1px solid var(--border-default)',
               borderRadius: 6,
-              color: todayVisible ? '#E8E8F0' : '#8888A0',
-              background: todayVisible ? '#2A2A42' : 'transparent',
+              color: todayVisible ? 'var(--text-primary)' : 'var(--text-secondary)',
+              background: todayVisible ? 'var(--bg-elevated)' : 'transparent',
             }}
             onMouseEnter={e => {
-              if (!todayVisible) { e.currentTarget.style.borderColor = '#6C9CFC'; e.currentTarget.style.color = '#E8E8F0'; }
+              if (!todayVisible) { e.currentTarget.style.borderColor = 'var(--accent-blue)'; e.currentTarget.style.color = 'var(--text-primary)'; }
             }}
             onMouseLeave={e => {
-              if (!todayVisible) { e.currentTarget.style.borderColor = '#333350'; e.currentTarget.style.color = '#8888A0'; }
+              if (!todayVisible) { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.color = 'var(--text-secondary)'; }
             }}
           >
             Hoje
           </button>
 
           <button onClick={navigateForward} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: '#8888A0' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; }}
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
 
           {/* Date range */}
-          <span className="hidden md:inline text-[13px] ml-1" style={{ color: '#8888A0' }}>
+          <span className="hidden md:inline text-[13px] ml-1" style={{ color: 'var(--text-secondary)' }}>
             {dateRangeLabel}
           </span>
 
           {/* View toggle */}
-          <div className="ml-1 md:ml-3 flex items-center rounded-md overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="ml-1 md:ml-3 flex items-center rounded-md overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
             <button
               onClick={() => toggleViewMode('3days')}
               className="px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
               style={{
-                background: effectiveView === '3days' ? '#6C9CFC' : 'transparent',
-                color: effectiveView === '3days' ? '#0F0F17' : '#8888A0',
+                background: effectiveView === '3days' ? 'var(--accent-blue)' : 'transparent',
+                color: effectiveView === '3days' ? 'var(--bg-base)' : 'var(--text-secondary)',
               }}
             >
               3 dias
@@ -839,8 +839,8 @@ export function MyWeekView({
                 onClick={() => toggleViewMode('week')}
                 className="px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
                 style={{
-                  background: effectiveView === 'week' ? '#6C9CFC' : 'transparent',
-                  color: effectiveView === 'week' ? '#0F0F17' : '#8888A0',
+                  background: effectiveView === 'week' ? 'var(--accent-blue)' : 'transparent',
+                  color: effectiveView === 'week' ? 'var(--bg-base)' : 'var(--text-secondary)',
                 }}
               >
                 Semana
@@ -850,8 +850,8 @@ export function MyWeekView({
               onClick={() => toggleViewMode('timeline')}
               className="flex items-center gap-1 px-2 md:px-2.5 h-7 text-[11px] font-medium transition-colors"
               style={{
-                background: effectiveView === 'timeline' ? '#6C9CFC' : 'transparent',
-                color: effectiveView === 'timeline' ? '#0F0F17' : '#8888A0',
+                background: effectiveView === 'timeline' ? 'var(--accent-blue)' : 'transparent',
+                color: effectiveView === 'timeline' ? 'var(--bg-base)' : 'var(--text-secondary)',
               }}
             >
               <BarChart3 className="w-3.5 h-3.5" />
@@ -903,7 +903,7 @@ export function MyWeekView({
                   className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg"
                   style={{
                     background: 'hsl(var(--bg-surface))',
-                    borderLeft: `2px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || '#6C9CFC'}`,
+                    borderLeft: `2px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
                     opacity: 0.95,
                   }}
                 >
@@ -949,10 +949,10 @@ export function MyWeekView({
         <button
           onClick={() => setMobileOverlay(true)}
           className="fixed bottom-20 left-4 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-          style={{ background: '#2A2A42', border: '1px solid #333350' }}
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
         >
-          <List className="w-5 h-5" style={{ color: '#8888A0' }} />
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: '#6C9CFC', color: '#0F0F17' }}>
+          <List className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: 'var(--accent-blue)', color: 'var(--bg-base)' }}>
             {pendingCount > 99 ? '99' : pendingCount}
           </span>
         </button>
