@@ -6,7 +6,9 @@ import {
   CollisionDetection,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Menu, Sun, CalendarDays } from 'lucide-react';
+import { Menu, Sun, CalendarDays, Settings, CalendarPlus } from 'lucide-react';
+import { DeliveryTemplateModal } from '@/components/DeliveryTemplateModal';
+import { GenerateMonthlyTasksButton } from '@/components/GenerateMonthlyTasksButton';
 import { StatusCheckbox } from '@/components/StatusCheckbox';
 import { ProjectSidebar } from '@/components/ProjectSidebar';
 import { BottomNav } from '@/components/BottomNav';
@@ -88,6 +90,7 @@ const Index = () => {
   const [isMyDayView, setIsMyDayView] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   // Check super_admin role
   useEffect(() => {
@@ -840,6 +843,22 @@ const Index = () => {
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#6C9CFC' }} />}
               </button>
+              {/* Spacer + actions */}
+              <div className="flex-1" />
+              <GenerateMonthlyTasksButton
+                projectId={activeProjectId}
+                workspaceId={activeWorkspaceId || ''}
+              />
+              <button
+                onClick={() => setShowTemplateModal(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg ml-1"
+                style={{ color: '#8888A0' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#E8E8F0'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#8888A0'; e.currentTarget.style.background = 'transparent'; }}
+                title="Configurar template de entregas"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             </div>
 
             {projectViewTab === 'notes' ? (
@@ -1035,6 +1054,15 @@ const Index = () => {
         isPro={planLimits.isPro}
         onUpgrade={() => setShowUpgradeModal(true)}
       />
+      {showTemplateModal && activeProject && (
+        <DeliveryTemplateModal
+          projectId={activeProjectId}
+          workspaceId={activeWorkspaceId || ''}
+          projectName={activeProject.name}
+          serviceTags={serviceTags}
+          onClose={() => setShowTemplateModal(false)}
+        />
+      )}
     </div>
   );
 };

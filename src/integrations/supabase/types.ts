@@ -552,6 +552,8 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          metrics: Json | null
+          monthly_instance_id: string | null
           original_due_date: string | null
           parent_task_id: string | null
           position: number
@@ -564,6 +566,7 @@ export type Database = {
           section_id: string
           service_tag_id: string | null
           status: Database["public"]["Enums"]["task_status"]
+          template_id: string | null
           title: string
           workspace_id: string | null
         }
@@ -575,6 +578,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          metrics?: Json | null
+          monthly_instance_id?: string | null
           original_due_date?: string | null
           parent_task_id?: string | null
           position?: number
@@ -587,6 +592,7 @@ export type Database = {
           section_id: string
           service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          template_id?: string | null
           title: string
           workspace_id?: string | null
         }
@@ -598,6 +604,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          metrics?: Json | null
+          monthly_instance_id?: string | null
           original_due_date?: string | null
           parent_task_id?: string | null
           position?: number
@@ -610,10 +618,18 @@ export type Database = {
           section_id?: string
           service_tag_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          template_id?: string | null
           title?: string
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_monthly_instance_id_fkey"
+            columns: ["monthly_instance_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_instances"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_parent_task_id_fkey"
             columns: ["parent_task_id"]
@@ -640,6 +656,13 @@ export type Database = {
             columns: ["service_tag_id"]
             isOneToOne: false
             referencedRelation: "service_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "client_delivery_templates"
             referencedColumns: ["id"]
           },
           {
