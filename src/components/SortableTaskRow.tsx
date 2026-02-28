@@ -313,15 +313,16 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           }}
           onContextMenu={handleContextMenu}
         >
-          {/* Drag handle — @dnd-kit reorder + native cross-client drag */}
+          {/* Drag handle — ONLY native HTML5 drag for cross-client move */}
           <div
-            {...attributes}
-            {...listeners}
             draggable
-            onDragStart={handleNativeDragStart}
+            onDragStart={(e) => {
+              e.stopPropagation();
+              handleNativeDragStart(e);
+            }}
             onDragEnd={handleNativeDragEnd}
             className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
-            title="Arrastar para reordenar ou mover"
+            title="Arrastar para outro cliente"
           >
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
