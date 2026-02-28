@@ -66,10 +66,10 @@ function SortableProjectItem({
         className="group w-full flex items-center gap-1.5 cursor-pointer relative select-none"
         onContextMenu={onContextMenu}
         style={{
-          height: 40,
+          height: 36,
           paddingLeft: 6,
           paddingRight: 10,
-          borderRadius: 8,
+          borderRadius: 'var(--radius-md)',
           color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
@@ -114,7 +114,7 @@ function SortableProjectItem({
       <div
         style={{
           overflow: 'hidden',
-          maxHeight: isExpanded ? `${sections.length * 32 + 4}px` : '0px',
+          maxHeight: isExpanded ? `${sections.length * 28 + 4}px` : '0px',
           opacity: isExpanded ? 1 : 0,
           transition: 'max-height 150ms ease-out, opacity 150ms ease-out',
         }}
@@ -130,10 +130,10 @@ function SortableProjectItem({
               onClick={() => onSelectSection?.(section.id)}
               className="w-full flex items-center gap-2 select-none"
               style={{
-                height: 30,
+                height: 28,
                 paddingLeft: 32,
                 paddingRight: 10,
-                borderRadius: 6,
+                borderRadius: 'var(--radius-sm)',
                 fontSize: 12,
                 fontWeight: 400,
                 color: isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -304,81 +304,80 @@ export function ProjectSidebar({
       onClick={onClick}
       className="w-full flex items-center gap-2.5 cursor-pointer select-none"
       style={{
-        height: 40,
+        height: 36,
         paddingLeft: 10,
         paddingRight: 10,
-        borderRadius: 8,
+        borderRadius: 'var(--radius-md)',
         fontSize: 14,
         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
         fontWeight: active ? 600 : 400,
-        transition: `color 150ms ease-out, background 150ms ease-out`,
+        transition: `color var(--transition-normal), background var(--transition-normal)`,
       }}
       onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--text-primary)' : 'var(--text-secondary)', transition: `color 150ms ease-out` }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--text-primary)' : 'var(--text-secondary)', transition: `color var(--transition-normal)` }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-[10px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
+        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
       )}
     </button>
   );
 
   return (
     <aside className="h-screen flex flex-col z-30 sticky top-0" style={{ background: 'var(--bg-base)', width: 260 }}>
-      <nav className="flex-1 px-2 pt-3 overflow-y-auto">
-        {/* Navigation section */}
-        <div style={{ marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-placeholder)', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+      <nav className="flex-1 overflow-y-auto" style={{ padding: '16px 8px' }}>
+        {/* Navigation label */}
+        <div style={{ marginBottom: 8, paddingLeft: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' }}>
             Navegação
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
+          {/* Theme Toggle inline in nav */}
+          {onCycleTheme && (
+            <button
+              onClick={onCycleTheme}
+              className="w-full flex items-center gap-2.5 cursor-pointer select-none"
+              style={{
+                height: 36,
+                paddingLeft: 10,
+                paddingRight: 10,
+                borderRadius: 'var(--radius-md)',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                transition: `color var(--transition-normal), background var(--transition-normal)`,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              aria-label={`Tema atual: ${themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}. Clique para alternar.`}
+            >
+              {themePreference === 'dark' ? <Moon className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} /> :
+               themePreference === 'light' ? <Sun className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} /> :
+               <Monitor className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />}
+              <span>{themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}</span>
+            </button>
+          )}
         </div>
 
-        {/* Theme Toggle */}
-        {onCycleTheme && (
-          <button
-            onClick={onCycleTheme}
-            className="w-full flex items-center gap-2 cursor-pointer select-none mt-2"
-            style={{
-              height: 40,
-              paddingLeft: 12,
-              paddingRight: 12,
-              borderRadius: 8,
-              fontSize: 14,
-              color: 'var(--text-secondary)',
-              transition: 'color 150ms ease-out, background 150ms ease-out',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            aria-label={`Tema atual: ${themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}. Clique para alternar.`}
-          >
-            {themePreference === 'dark' ? <Moon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} /> :
-             themePreference === 'light' ? <Sun className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} /> :
-             <Monitor className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.5} />}
-            <span>{themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}</span>
-          </button>
-        )}
-
-        {/* Separator */}
-        <div style={{ margin: '12px 0' }}>
+        {/* Separator — 24px gap above and below */}
+        <div style={{ margin: '24px 0' }}>
           <div style={{ height: 1, background: 'var(--border-subtle)' }} />
         </div>
 
-        {/* Clients section */}
-        <div style={{ marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-placeholder)', letterSpacing: 1.2, paddingLeft: 10, textTransform: 'uppercase' }}>
+        {/* Clients label */}
+        <div style={{ marginBottom: 8, paddingLeft: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase' }}>
             Clientes
           </span>
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {projects.map((project) => (
                 renamingId === project.id ? (
                   <div key={project.id} className="flex items-center gap-2.5" style={{ height: 40, paddingLeft: 10, paddingRight: 10 }}>
@@ -430,23 +429,25 @@ export function ProjectSidebar({
             />
           </div>
         ) : (
-          <button
-            onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
-            className="w-full flex items-center text-[12px] select-none"
-            style={{
-              height: 36,
-              paddingLeft: 10,
-              paddingRight: 10,
-              color: 'var(--text-placeholder)',
-              fontWeight: 400,
-              borderRadius: 8,
-              transition: `color 150ms ease-out`,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
-          >
-            + Novo Cliente
-          </button>
+          <div style={{ paddingBottom: 16, paddingTop: 8 }}>
+            <button
+              onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
+              className="w-full flex items-center text-[12px] select-none"
+              style={{
+                height: 36,
+                paddingLeft: 10,
+                paddingRight: 10,
+                color: 'var(--text-placeholder)',
+                fontWeight: 400,
+                borderRadius: 'var(--radius-md)',
+                transition: `color var(--transition-normal)`,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+            >
+              + Novo Cliente
+            </button>
+          </div>
         )}
       </nav>
 
