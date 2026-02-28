@@ -18,6 +18,8 @@ import { MyTasksView } from '@/components/MyTasksView';
 import { MyWeekView } from '@/components/MyWeekView';
 import { MyDayView } from '@/components/MyDayView';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
+import { GlobalNotesView } from '@/components/GlobalNotesView';
+import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,6 +69,8 @@ const Index = () => {
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
+  const [isNotesView, setIsNotesView] = useState(false);
+  const [showQuickNote, setShowQuickNote] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     try {
       const raw = localStorage.getItem('meufluxo_expanded_sections');
@@ -99,6 +103,18 @@ const Index = () => {
   const [detailWidth, setDetailWidth] = useState(() => Number(localStorage.getItem('meufluxo-detail-width')) || 580);
   const listRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ target: 'sidebar' | 'detail'; startX: number; startWidth: number } | null>(null);
+
+  // Ctrl+Shift+N quick note shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'N') {
+        e.preventDefault();
+        setShowQuickNote(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleResizeMouseDown = useCallback((target: 'sidebar' | 'detail', e: ReactMouseEvent) => {
     e.preventDefault();
@@ -589,7 +605,7 @@ const Index = () => {
     sections: sectionList,
     activeProjectId,
     activeSectionId,
-    onSelectProject: (id: string) => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
+    onSelectProject: (id: string) => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(false); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
     onSelectSection: (sectionId: string) => {
       const section = sectionList.find(s => s.id === sectionId);
       if (section) {
@@ -608,11 +624,13 @@ const Index = () => {
     onImport: importData,
     onLogout: handleLogout,
     isMyDayView,
-    onToggleMyDay: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
+    onToggleMyDay: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(false); setIsMyDayView(true); setIsMyTasksView(false); setIsMyWeekView(false); },
     isMyTasksView,
-    onToggleMyTasks: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
+    onToggleMyTasks: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(false); setIsMyTasksView(prev => !prev); setIsMyWeekView(false); setIsMyDayView(false); },
     isMyWeekView,
-    onToggleMyWeek: () => { setActiveSectionId(null); setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
+    onToggleMyWeek: () => { setActiveSectionId(null); setIsNotesView(false); setIsMyWeekView(true); setIsMyTasksView(false); setIsMyDayView(false); },
+    isNotesView,
+    onToggleNotes: () => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(true); setIsMyDayView(false); setIsMyTasksView(false); setIsMyWeekView(false); },
     tasks: taskList,
     workspaces,
     activeWorkspaceId,
@@ -650,7 +668,7 @@ const Index = () => {
     }
   };
 
-  if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView) {
+  if (!activeProject && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView) {
     return (
       <div className="h-screen flex" style={{ background: 'hsl(var(--bg-app))' }}>
         <div className="hidden lg:block"><ProjectSidebar {...sidebarProps} /></div>
@@ -785,6 +803,12 @@ const Index = () => {
               onStatusChange={handleStatusChange}
             />
           </>
+        ) : isNotesView ? (
+          <GlobalNotesView
+            workspaceId={activeWorkspaceId}
+            userId={session?.user?.id || ''}
+            projects={projects}
+          />
         ) : activeProject ? (
           <>
             {/* Tabs: Tarefas / Notas */}
@@ -821,6 +845,7 @@ const Index = () => {
                 projectId={activeProjectId}
                 workspaceId={activeWorkspaceId}
                 userId={session?.user?.id || ''}
+                projects={projects}
               />
             ) : (
             <>
@@ -995,6 +1020,14 @@ const Index = () => {
       <UpgradeModal
         open={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
+      />
+      <QuickNoteModal
+        open={showQuickNote}
+        onClose={() => setShowQuickNote(false)}
+        workspaceId={activeWorkspaceId}
+        userId={session?.user?.id || ''}
+        projects={projects}
+        onSaved={() => {}}
       />
     </div>
   );

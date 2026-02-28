@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -187,6 +187,8 @@ interface ProjectSidebarProps {
   onToggleMyTasks?: () => void;
   isMyWeekView?: boolean;
   onToggleMyWeek?: () => void;
+  isNotesView?: boolean;
+  onToggleNotes?: () => void;
   tasks?: Task[];
   workspaces?: Workspace[];
   activeWorkspaceId?: string | null;
@@ -214,6 +216,7 @@ export function ProjectSidebar({
   onCreateProject, onRenameProject, onDeleteProject,
   onChangeColor, onReorderProjects, onDuplicateProject, onExport, onImport, onLogout,
   isMyDayView, onToggleMyDay, isMyTasksView, onToggleMyTasks, isMyWeekView, onToggleMyWeek,
+  isNotesView, onToggleNotes,
   tasks = [], workspaces = [], activeWorkspaceId, workspaceMembers = [],
   onSwitchWorkspace, onInviteToWorkspace, onCreateWorkspace, onRenameWorkspace, onDeleteWorkspace,
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
@@ -323,6 +326,7 @@ export function ProjectSidebar({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
+          <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
         {/* Separator — near-invisible */}
