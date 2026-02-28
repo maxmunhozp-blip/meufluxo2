@@ -669,12 +669,23 @@ const Index = () => {
     }
   };
 
-  // Redirect to auth if no session (must be in useEffect, not during render)
+  // Redirect to auth if no session — with timeout failsafe
   useEffect(() => {
     if (!loading && !session) {
-      navigate('/auth');
+      navigate('/auth', { replace: true });
     }
   }, [loading, session, navigate]);
+
+  // Failsafe: if loading takes more than 5 seconds, redirect to auth
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!session) {
+        console.warn('Loading timeout — redirecting to /auth');
+        navigate('/auth', { replace: true });
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [session, navigate]);
 
   if (loading || !session) {
     return (
