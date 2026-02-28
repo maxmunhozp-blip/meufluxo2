@@ -441,6 +441,44 @@ const Index = () => {
     return newId;
   }, [duplicateProject]);
 
+  // Move task (and subtasks) to another project via drag-drop to sidebar
+  const handleMoveTaskToProject = useCallback(async (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => {
+    if (sourceProjectId === targetProjectId) return;
+    const targetProject = projects.find(p => p.id === targetProjectId);
+    if (!targetProject) return;
+    try {
+      // Move the task: update project_id and clear section_id (use first section of target or null)
+      const targetSections = sectionList.filter(s => s.projectId === targetProjectId);
+      const targetSectionId = targetSections.length > 0 ? targetSections[0].id : null;
+
+      // Update the main task
+      const updates: Record<string, unknown> = { project_id: targetProjectId };
+      if (targetSectionId) {
+        updates.section_id = targetSectionId;
+      }
+      const { error } = await supabase.from('tasks').update(updates).eq('id', taskId);
+      if (error) throw error;
+
+      // Move all subtasks too
+      const subtaskUpdates: Record<string, unknown> = { project_id: targetProjectId };
+      if (targetSectionId) subtaskUpdates.section_id = targetSectionId;
+      await supabase.from('tasks').update(subtaskUpdates).eq('parent_task_id', taskId);
+
+      // Optimistically update local state
+      setTasks(prev => prev.map(t => {
+        if (t.id === taskId || t.parentTaskId === taskId) {
+          return { ...t, projectId: targetProjectId, section: targetSectionId || t.section };
+        }
+        return t;
+      }));
+
+      toast({ title: `✓ Tarefa movida para ${targetProject.name}`, duration: 3000 });
+    } catch (err) {
+      console.error('Erro ao mover tarefa:', err);
+      toast({ title: 'Erro ao mover tarefa', variant: 'destructive', duration: 3000 });
+    }
+  }, [projects, sectionList, setTasks]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -691,6 +729,7 @@ const Index = () => {
     themePreference: preference,
     onRenameSection: handleRenameSection,
     onDeleteSection: handleDeleteSection,
+    onMoveTaskToProject: handleMoveTaskToProject,
   };
 
   // Determine active view for bottom nav

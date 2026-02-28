@@ -44,6 +44,7 @@ function SortableProjectItem({
   onConfirmSectionRename,
   onCancelSectionRename,
   sectionRenameRef,
+  onDropTask,
 }: {
   project: Project;
   isActive: boolean;
@@ -63,7 +64,9 @@ function SortableProjectItem({
   onConfirmSectionRename?: () => void;
   onCancelSectionRename?: () => void;
   sectionRenameRef?: React.RefObject<HTMLInputElement>;
+  onDropTask?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
 }) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: project.id });
@@ -74,8 +77,37 @@ function SortableProjectItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleNativeDragOver = (e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes('application/x-task-id')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleNativeDragLeave = (e: React.DragEvent) => {
+    // Only clear if leaving the container, not entering a child
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  };
+
+  const handleNativeDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const taskId = e.dataTransfer.getData('application/x-task-id');
+    const sourceProjectId = e.dataTransfer.getData('application/x-task-project');
+    const taskName = e.dataTransfer.getData('application/x-task-name');
+    if (!taskId || sourceProjectId === project.id) return;
+    onDropTask?.(taskId, sourceProjectId, project.id, taskName);
+  };
+
   return (
-    <div ref={setNodeRef} style={style}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDrop}
+    >
       <div
         className="group w-full flex items-center gap-2 cursor-pointer relative select-none"
         onContextMenu={onContextMenu}
@@ -83,14 +115,16 @@ function SortableProjectItem({
           height: 36,
           paddingLeft: 8,
           paddingRight: 12,
-          borderRadius: 'var(--radius-md)',
+          borderRadius: isDragOver ? 8 : undefined,
+          border: isDragOver ? '2px dashed var(--accent)' : '2px solid transparent',
+          background: isDragOver ? 'var(--accent-subtle)' : undefined,
           color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
           transition: 'all 150ms ease-out',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={e => { if (!isDragOver) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+        onMouseLeave={e => { if (!isDragOver) e.currentTarget.style.background = isDragOver ? 'var(--accent-subtle)' : 'transparent'; }}
       >
         <div
           {...attributes}
@@ -233,6 +267,7 @@ interface ProjectSidebarProps {
   onDeleteServiceTag?: (id: string) => Promise<void>;
   onRenameSection?: (id: string, title: string) => void;
   onDeleteSection?: (id: string) => void;
+  onMoveTaskToProject?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
 }
 
 export function ProjectSidebar({
@@ -246,7 +281,7 @@ export function ProjectSidebar({
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
-  onRenameSection, onDeleteSection,
+  onRenameSection, onDeleteSection, onMoveTaskToProject,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -418,6 +453,7 @@ export function ProjectSidebar({
                     onConfirmSectionRename={() => { if (renamingSectionId && renameSectionValue.trim()) onRenameSection?.(renamingSectionId, renameSectionValue.trim()); setRenamingSectionId(null); }}
                     onCancelSectionRename={() => setRenamingSectionId(null)}
                     sectionRenameRef={sectionRenameRef}
+                    onDropTask={onMoveTaskToProject}
                   />
                 )
               ))}
