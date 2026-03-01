@@ -481,8 +481,9 @@ const Index = () => {
     // If section has tasks, ask for confirmation first (neurodivergent-safe: non-punitive language)
     if (hasTasks) {
       const confirmed = await confirm(
-        'Mover seção para lixeira?',
-        `"${section.title}" tem ${sectionTasks.length} tarefa${sectionTasks.length > 1 ? 's' : ''}. Você poderá desfazer nos próximos segundos.`
+        'Excluir esta seção?',
+        `"${section.title}" contém ${sectionTasks.length} tarefa${sectionTasks.length > 1 ? 's' : ''}. Ao excluir, ${sectionTasks.length > 1 ? 'elas serão removidas' : 'ela será removida'} junto. Você poderá desfazer nos próximos segundos.`,
+        'Excluir seção'
       );
       if (!confirmed) return;
     }
