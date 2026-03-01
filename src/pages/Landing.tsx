@@ -60,8 +60,11 @@ const ANIM_CSS = `
 .mf-s>.mf-bl:nth-child(1).mf-v{animation-delay:0s}
 .mf-s>.mf-bl:nth-child(2).mf-v{animation-delay:.12s}
 .mf-s>.mf-bl:nth-child(3).mf-v{animation-delay:.24s}
-.mf-img{opacity:0;transform:scale(0.95) translateY(20px)}
-.mf-img.mf-v{animation:mf-scaleIn .9s cubic-bezier(.22,1,.36,1) forwards}
+.mf-img{opacity:0;transform:perspective(1200px) rotateX(4deg) scale(0.92) translateY(40px);filter:blur(2px)}
+.mf-img.mf-v{animation:mf-imgReveal 1.1s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes mf-imgReveal{0%{opacity:0;transform:perspective(1200px) rotateX(4deg) scale(0.92) translateY(40px);filter:blur(2px)}60%{filter:blur(0)}100%{opacity:1;transform:perspective(1200px) rotateX(0) scale(1) translateY(0);filter:blur(0)}}
+.mf-img .mf-mockup-glow{opacity:0;transition:opacity .6s ease .4s}
+.mf-img.mf-v .mf-mockup-glow{opacity:1}
 .mf-bounce{animation:mf-bounce 2s ease-in-out infinite}
 .mf-faq{overflow:hidden;max-height:0;opacity:0}
 .mf-faq.mf-open{animation:mf-faqOpen .35s ease forwards}
