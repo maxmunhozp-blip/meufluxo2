@@ -187,6 +187,27 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
           <span className={`text-[13px] truncate transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
             {subtask.name}
           </span>
+          {!isRenaming && subtask.subtasks && subtask.subtasks.length > 0 && (() => {
+            const subs = subtask.subtasks;
+            const doneCount = subs.filter(s => s.status === 'done').length;
+            const total = subs.length;
+            const allDone = doneCount === total;
+            return (
+              <span
+                className="flex-shrink-0 tabular-nums"
+                style={{
+                  fontSize: 11,
+                  fontWeight: 400,
+                  color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
+                  opacity: 0.7,
+                  letterSpacing: '0.01em',
+                }}
+                title={`${doneCount} de ${total} subtarefas concluídas`}
+              >
+                {allDone ? '✓' : total - doneCount}
+              </span>
+            );
+          })()}
           {(subtask.scheduledDate || subtask.dueDate) && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
@@ -209,11 +230,6 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
             </TooltipProvider>
           )}
         </div>
-      )}
-      {!isRenaming && subtask.subtasks && subtask.subtasks.length > 0 && (
-        <span className="text-[12px] text-nd-text-secondary flex-shrink-0">
-          {subtask.subtasks.filter(s => s.status === 'done').length}/{subtask.subtasks.length}
-        </span>
       )}
 
       {contextMenu && (
