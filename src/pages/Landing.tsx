@@ -186,6 +186,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
    ═══════════════════════════════════════ */
 const Landing = () => {
   const [sc, setSc] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroProgress, setHeroProgress] = useState(0);
 
   useEffect(() => {
     if (!document.getElementById("mf-css")) {
@@ -194,8 +196,19 @@ const Landing = () => {
       s.textContent = ANIM_CSS;
       document.head.appendChild(s);
     }
-    const f = () => setSc(window.scrollY > 30);
+    const f = () => {
+      setSc(window.scrollY > 30);
+      // Scroll-driven progress for hero mockup (0 → 1 over first 800px)
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        const viewH = window.innerHeight;
+        // Progress: 0 when mockup enters view, 1 when it's scrolled past
+        const raw = 1 - (rect.top / viewH);
+        setHeroProgress(Math.max(0, Math.min(1, raw)));
+      }
+    };
     window.addEventListener("scroll", f, { passive: true });
+    f(); // initial calc
     return () => window.removeEventListener("scroll", f);
   }, []);
 
@@ -235,10 +248,28 @@ const Landing = () => {
           </div>
         </RevealGroup>
 
-        {/* Hero Mockup — real screenshot */}
-        <Reveal style={{ width: "100%", maxWidth: 1100, margin: "56px auto 0", position: "relative" }}>
-          <div style={{ position: "absolute", inset: -40, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%,rgba(79,109,245,0.12) 0%,transparent 60%)", filter: "blur(50px)", pointerEvents: "none" }} />
-          <img src={appMockup} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block", position: "relative", borderRadius: 4 }} />
+        {/* Hero Mockup — scroll-driven 3D perspective */}
+        <Reveal style={{ width: "100%", maxWidth: 1100, margin: "56px auto 0", position: "relative", perspective: 1200 }}>
+          <div style={{ position: "absolute", inset: -40, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%,rgba(79,109,245,0.12) 0%,transparent 60%)", filter: "blur(50px)", pointerEvents: "none", opacity: 0.4 + heroProgress * 0.6 }} />
+          <div
+            ref={heroRef}
+            style={{
+              position: "relative",
+              willChange: "transform",
+              transform: `
+                scale(${0.88 + heroProgress * 0.12})
+                rotateX(${(1 - heroProgress) * 8}deg)
+                translateY(${(1 - heroProgress) * 30}px)
+              `,
+              transformOrigin: "center bottom",
+              transition: "transform 0.05s linear",
+              borderRadius: 4,
+              overflow: "hidden",
+              boxShadow: `0 ${20 + heroProgress * 40}px ${40 + heroProgress * 60}px -${10 + heroProgress * 10}px rgba(0,0,0,${0.1 + heroProgress * 0.15})`,
+            }}
+          >
+            <img src={appMockup} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
+          </div>
         </Reveal>
 
         <div className="mf-bounce" style={{ position: "absolute", bottom: 32, color: C.mutedL, fontSize: 24 }}>↓</div>
