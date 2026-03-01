@@ -546,8 +546,17 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
     ...(onUploadImage ? [{ icon: ImagePlus, active: false, action: (e: React.MouseEvent) => { e.preventDefault(); fileInputRef.current?.click(); }, title: 'Anexo' }] : []),
   ];
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleBlur = useCallback((e: React.FocusEvent) => {
+    // Don't hide toolbar if focus moved to a toolbar button within the same container
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    if (relatedTarget && containerRef.current?.contains(relatedTarget)) return;
+    setIsFocused(false);
+  }, []);
+
   return (
-    <div className="relative group">
+    <div ref={containerRef} className="relative group">
       {isFocused && (
         <div className="flex items-center gap-0.5 mb-2 flex-wrap" style={{ background: 'var(--bg-elevated)', borderRadius: 8, padding: '4px 6px' }}>
           {toolbarButtons.map((btn, i) => {
@@ -570,7 +579,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
       {onUploadImage && <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />}
 
       <div ref={editorRef} contentEditable suppressContentEditableWarning onInput={handleInput}
-        onFocus={() => { setIsFocused(true); checkFormats(); extractUrls(); }} onBlur={() => setIsFocused(false)}
+        onFocus={() => { setIsFocused(true); checkFormats(); extractUrls(); }} onBlur={handleBlur}
         onKeyDown={handleKeyDown} onKeyUp={checkFormats} onMouseUp={checkFormats}
         onPaste={handlePaste} onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={handleEditorClick}
         className="w-full min-h-[36px] bg-transparent border-none focus:outline-none"
