@@ -1,322 +1,363 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
-import appMockup from '@/assets/app-mockup.png';
-import screenshotMeuDia from '@/assets/screenshot-meudia.png';
-import screenshotCliente from '@/assets/screenshot-cliente.png';
-import screenshotFoco from '@/assets/screenshot-foco.png';
-import screenshotTimeline from '@/assets/screenshot-timeline.png';
-import screenshotSemana from '@/assets/screenshot-semana.png';
-import {
-  Brain, ArrowRight, ChevronDown, Menu, X, Check,
-  CheckCircle, Eye, Clock, ListChecks, Users, Calendar,
-  Shield, Sparkles, Sun, Zap,
-} from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import appMockup from "@/assets/app-mockup.png";
+import mockup1 from "@/assets/fluxo-mockup1.png";
+import mockup3 from "@/assets/fluxo-mockup3.png";
+import mockup8 from "@/assets/fluxo-mockup8.png";
 
-/* ── Fonts ── */
-const fontLink = document.querySelector('link[data-mf-font]');
-if (!fontLink) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&display=swap';
-  link.setAttribute('data-mf-font', '1');
-  document.head.appendChild(link);
-}
-const serif = '"DM Serif Display", Georgia, serif';
-const sans = '"DM Sans", system-ui, sans-serif';
-
-/* ── Animations ── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number = 0) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
-  }),
+/* ── Design tokens — monochromatic, warm neutral ── */
+const C = {
+  bg: "#FAFAF9",
+  dark: "#0A0A0C",
+  accent: "#4F6DF5",
+  accentP: "#7C3AED",
+  accentSoft: "rgba(79,109,245,0.06)",
+  text: "#18181B",
+  muted: "#71717A",
+  mutedL: "#A1A1AA",
+  border: "rgba(0,0,0,0.06)",
+  white: "#fff",
+  mono: "#8888A0",
+  monoSoft: "#A0A0B8",
 };
+const pf = '"Playfair Display",Georgia,serif';
+const bd = '"DM Sans",system-ui,sans-serif';
+
+/* ── Animations — CSS only, IntersectionObserver driven ── */
+const ANIM_CSS = `
+@keyframes mf-fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mf-scaleIn{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes mf-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes mf-faqOpen{from{max-height:0;opacity:0}to{max-height:500px;opacity:1}}
+@keyframes mf-faqClose{from{max-height:500px;opacity:1}to{max-height:0;opacity:0}}
+@keyframes mf-glow{0%,100%{opacity:0.4}50%{opacity:0.7}}
+.mf-r{opacity:0;transform:translateY(32px)}
+.mf-r.mf-v{animation:mf-fadeUp .7s cubic-bezier(.22,1,.36,1) forwards}
+.mf-s>.mf-r:nth-child(1).mf-v{animation-delay:0s}
+.mf-s>.mf-r:nth-child(2).mf-v{animation-delay:.08s}
+.mf-s>.mf-r:nth-child(3).mf-v{animation-delay:.16s}
+.mf-s>.mf-r:nth-child(4).mf-v{animation-delay:.24s}
+.mf-s>.mf-r:nth-child(5).mf-v{animation-delay:.32s}
+.mf-s>.mf-r:nth-child(6).mf-v{animation-delay:.4s}
+.mf-img{opacity:0;transform:scale(0.95) translateY(20px)}
+.mf-img.mf-v{animation:mf-scaleIn .9s cubic-bezier(.22,1,.36,1) forwards}
+.mf-bounce{animation:mf-bounce 2s ease-in-out infinite}
+.mf-faq{overflow:hidden;max-height:0;opacity:0}
+.mf-faq.mf-open{animation:mf-faqOpen .35s ease forwards}
+.mf-faq.mf-close{animation:mf-faqClose .25s ease forwards}
+.mf-mockup-glow{animation:mf-glow 4s ease-in-out infinite}
+`;
+
+/* ── Reveal Components ── */
+function RevealGroup({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { el.querySelectorAll(".mf-r,.mf-img").forEach(c => c.classList.add("mf-v")); obs.unobserve(el); }
+    }, { threshold: 0.1, rootMargin: "-40px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return <div ref={ref} className={`mf-s ${className}`} style={style}>{children}</div>;
+}
+
+function Reveal({ children, style = {}, className = "" }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { el.classList.add("mf-v"); obs.unobserve(el); }
+    }, { threshold: 0.15, rootMargin: "-40px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return <div ref={ref} className={`mf-r ${className}`} style={style}>{children}</div>;
+}
+
+function RevealImg({ src, alt, style = {} }: { src: string; alt: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { el.classList.add("mf-v"); obs.unobserve(el); }
+    }, { threshold: 0.1, rootMargin: "-60px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className="mf-img" style={{ position: "relative", ...style }}>
+      <div className="mf-mockup-glow" style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%, rgba(79,109,245,0.15) 0%, transparent 60%)", filter: "blur(40px)", pointerEvents: "none" }} />
+      <img src={src} alt={alt} loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: 16, position: "relative" }} />
+    </div>
+  );
+}
 
 /* ── Data ── */
-const FEATURES = [
-  { icon: Brain, title: 'Projetado para seu cérebro', desc: 'Sem barras de progresso punitivas. Sem gamificação que gera culpa. Apenas um fluxo que respeita como você realmente trabalha.', accent: '#4F7BF7' },
-  { icon: Eye, title: 'Carga cognitiva reduzida', desc: 'Interface limpa com hierarquia visual clara. Cada pixel foi pensado para não competir pela sua atenção.', accent: '#8B5CF6' },
-  { icon: Clock, title: 'Contexto temporal gentil', desc: 'Datas atrasadas não são punições — são informações. Tons âmbar, não vermelho agressivo.', accent: '#F59E0B' },
-  { icon: ListChecks, title: 'Seções personalizáveis', desc: 'Organize cada cliente com seções como "Para Aprovar", "Design" e "Posts Aprovados".', accent: '#10B981' },
-  { icon: Users, title: 'Colaboração sem pressão', desc: 'Workspaces compartilhados onde cada membro vê o que precisa. Sem notificações invasivas.', accent: '#EC4899' },
-  { icon: Calendar, title: 'Meu Dia, Minha Semana', desc: 'Visualizações que se adaptam ao seu ritmo. Planeje por dia ou semana, sem a tirania do mês inteiro.', accent: '#06B6D4' },
+const STORIES = [
+  {
+    id: "cog",
+    photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&q=80",
+    name: "Ana, 28",
+    role: "Designer freelancer · TDAH",
+    quote: "Eu abria o Trello e já sentia uma onda de ansiedade. Tantas colunas, tantos cards. Meu cérebro simplesmente desligava.",
+    studyTitle: "Sobrecarga Cognitiva e TDAH",
+    studyBody: "Pessoas com TDAH já gastam mais energia cognitiva em tarefas comuns. Quando uma interface apresenta muitos elementos competindo por atenção, a fadiga decisional se intensifica — e o cérebro para de processar. Carga cognitiva adicional degrada performance e eficiência neural de forma desproporcional no TDAH.",
+    cite1: "Le Cunff et al., 2024 · Cognitive Load and Neurodiversity (Frontiers in Education)",
+    cite2: "Machida et al., 2023 · Brain Network Efficiency in ADHD (PMC10727773)",
+    label: "Carga Cognitiva Reduzida",
+    solution: "Interface com hierarquia visual mínima. Uma informação por vez. Espaçamento generoso. Zero barras de progresso, zero contadores, zero métricas competindo pela sua atenção.",
+    mockup: mockup1,
+  },
+  {
+    id: "pun",
+    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80",
+    name: "Lucas, 34",
+    role: "Gerente de projetos · TDAH + Ansiedade",
+    quote: "Toda vez que eu via a barra vermelha, 37% concluído, eu sentia que era um fracasso. A ferramenta que deveria me ajudar estava me julgando.",
+    studyTitle: "Recompensa, Punição e Ansiedade",
+    studyBody: "Sistemas de recompensa/punição ativam respostas de ansiedade em cérebros neurodivergentes. Barras de progresso, streaks e alertas vermelhos ativam exatamente esse circuito. Duolingo redesenhou suas notificações por esse motivo — substituindo culpa por encorajamento gentil.",
+    cite1: "Sonuga-Barke, 2005 · Reward/Punishment Sensitivity in ADHD",
+    cite2: "Aufait UX, 2025 · Duolingo replaced guilt-based reminders with gentle messages",
+    label: "Feedback Não-Punitivo",
+    solution: "Zero barras de progresso. Zero streaks. Tarefas atrasadas recebem tom âmbar discreto e são gentilmente movidas para o dia seguinte com Rollover Automático. A ferramenta te informa, nunca te julga.",
+    mockup: mockup3,
+  },
+  {
+    id: "dec",
+    photo: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=900&q=80",
+    name: "Mariana, 31",
+    role: "Empreendedora · TDAH",
+    quote: "Eu tinha 47 tarefas no Asana. Qual fazer primeiro? Meu cérebro travava. Passava 2 horas decidindo e não fazia nenhuma.",
+    studyTitle: "Paralisia por Decisão",
+    studyBody: "O 'Paradoxo da Escolha' é amplificado em TDAH. Muitas opções geram ansiedade sobre a escolha 'errada'. Design minimalista com apenas informações necessárias é essencial — está ok scrollar, nem tudo precisa caber numa tela.",
+    cite1: "Schwartz, 2004 · The Paradox of Choice",
+    cite2: "Wolf, 2023 · Software Accessibility for ADHD Users (UX Collective)",
+    label: "Modo Foco",
+    solution: "Uma tarefa de cada vez, em tela cheia. Sem sidebar, sem lista. Apenas a tarefa atual e dois botões — 'Feito' e 'Próxima'. Quando tudo é demais, menos é tudo.",
+    mockup: mockup8,
+  },
+  {
+    id: "sen",
+    photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=900&q=80",
+    name: "Pedro, 26",
+    role: "Desenvolvedor · TEA",
+    quote: "Interfaces com muitas cores e contrastes fortes me causam desconforto físico. Preciso de consistência visual pra conseguir trabalhar.",
+    studyTitle: "Sensibilidade Sensorial no TEA",
+    studyBody: "Anomalias no processamento sensorial afetam até 95% das pessoas no espectro autista. Paletas de cores neurodivergent-friendly usam tons suaves e mutados ao invés de cores brilhantes e saturadas, criando um ambiente mais confortável e menos estimulante.",
+    cite1: "Ben-Sasson et al., 2019 · Meta-análise sensorial no TEA (55 estudos)",
+    cite2: "Adchitects, 2024 · Neurodivergent-friendly color palettes minimize sensory overload",
+    label: "Consistência Sensorial",
+    solution: "Dark mode com pretos quentes (#0C0C0E). Transições suaves. Paleta consistente com contraste calculado. Sem animações abruptas, sem flashes, sem surpresas visuais.",
+    mockup: mockup1,
+  },
 ];
 
-const SCIENCE = [
-  { title: 'Redução de carga cognitiva', text: 'Interfaces com excesso de elementos visuais aumentam a fadiga decisional em pessoas com TDAH em até 3x (Sweller, 2011). MeuFluxo usa hierarquia visual mínima e espaçamento generoso.' },
-  { title: 'Feedback não-punitivo', text: 'Sistemas de recompensa/punição ativam respostas de ansiedade em cérebros neurodivergentes (Sonuga-Barke, 2005). Substituímos barras de progresso por contadores neutros e tons âmbar.' },
-  { title: 'Ancoragem em uma tarefa', text: 'A "paralisia por escolha" é amplificada em TDAH. Limitamos a visão a uma tarefa por vez no Modo Foco, reduzindo a sobrecarga de decisão (Barkley, 2015).' },
-  { title: 'Consistência sensorial', text: 'Variações abruptas de contraste e cor causam desconforto em pessoas no espectro autista (Grandin & Panek, 2013). Nosso dark mode usa pretos quentes e transições suaves.' },
+const FAQ_DATA = [
+  { q: 'O que significa "projetado para neurodivergentes"?', a: "Cada decisão de design foi baseada em pesquisas sobre TDAH, TEA e dificuldades executivas. Não é marketing — é metodologia." },
+  { q: "Preciso ter um diagnóstico?", a: "Não. Se ferramentas tradicionais te sobrecarregam, o MeuFluxo foi feito pra você. 1 em cada 5 pessoas é neurodivergente — a maioria sem diagnóstico." },
+  { q: "Diferença Free vs Pro?", a: "Free: 3 projetos, 20 tarefas. Pro: tudo ilimitado + Timeline, recorrentes, rollover automático, notas e uploads." },
+  { q: "Posso cancelar?", a: "Sim, sem compromisso. Downgrade quando quiser." },
 ];
 
-const FAQ = [
-  { q: 'O que significa ser "projetado para neurodivergentes"?', a: 'Cada decisão de design foi baseada em pesquisas sobre TDAH, TEA e dificuldades executivas. Removemos barras de progresso punitivas, usamos cores gentis, oferecemos Modo Foco para uma tarefa de cada vez, e minimizamos a carga cognitiva.' },
-  { q: 'Preciso ter um diagnóstico para usar?', a: 'Não. O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você.' },
-  { q: 'Qual a diferença entre Free e Pro?', a: 'O Free oferece até 3 projetos, 20 tarefas por projeto, subtarefas, modo foco e colaboração básica. O Pro desbloqueia tudo ilimitado, Timeline View, tarefas recorrentes, rollover automático, notas ilimitadas e upload de imagens.' },
-  { q: 'Posso usar com minha equipe?', a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas.' },
-  { q: 'O que é o "Rollover Automático"?', a: 'Tarefas atrasadas não desaparecem nem ficam vermelhas. Elas são gentilmente movidas para o dia seguinte com um indicador âmbar discreto. Sem culpa, sem punição.' },
-  { q: 'Meus dados estão seguros?', a: 'Sim. Usamos criptografia em trânsito e em repouso, autenticação segura e políticas de acesso que garantem que cada usuário só acessa seus próprios dados.' },
-  { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem compromisso. Downgrade para o Free a qualquer momento e manterá acesso aos seus dados.' },
-];
+/* ── FAQ ── */
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const toggle = () => {
+    if (open) { setClosing(true); setTimeout(() => { setOpen(false); setClosing(false); }, 250); }
+    else setOpen(true);
+  };
+  return (
+    <div style={{ borderBottom: `1px solid ${C.border}` }}>
+      <button onClick={toggle} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", background: "none", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 500, color: C.text, textAlign: "left", fontFamily: bd }}>
+        <span>{q}</span>
+        <span style={{ fontSize: 20, color: C.mutedL, transform: open && !closing ? "rotate(45deg)" : "none", transition: "transform 0.2s", flexShrink: 0, marginLeft: 16 }}>+</span>
+      </button>
+      {(open || closing) && <div className={`mf-faq ${closing ? "mf-close" : "mf-open"}`}><p style={{ paddingBottom: 20, fontSize: 14, lineHeight: 1.7, color: C.muted }}>{a}</p></div>}
+    </div>
+  );
+}
 
-export default function Landing() {
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 100]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+/* ═══════════════════════════════════════
+   MAIN LANDING
+   ═══════════════════════════════════════ */
+const Landing = () => {
+  const [sc, setSc] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/app', { replace: true });
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    if (!document.getElementById("mf-css")) {
+      const s = document.createElement("style");
+      s.id = "mf-css";
+      s.textContent = ANIM_CSS;
+      document.head.appendChild(s);
+    }
+    const f = () => setSc(window.scrollY > 30);
+    window.addEventListener("scroll", f, { passive: true });
+    return () => window.removeEventListener("scroll", f);
   }, []);
 
-  const scrollTo = (id: string) => { setMenuOpen(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
+  const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div style={{ fontFamily: sans, background: '#FAFBFC', color: '#1a1a2e', overflowX: 'hidden' }}>
+    <div style={{ fontFamily: bd, background: C.bg, color: C.text, overflowX: "hidden" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-      {/* ══════ NAV ══════ */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style={{ background: scrolled ? 'rgba(250,251,252,0.8)' : 'transparent', backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none', WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none', borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent' }}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span style={{ fontFamily: serif, fontSize: 22, color: '#1a1a2e', letterSpacing: '-0.02em' }}>MeuFluxo</span>
-          <div className="hidden md:flex items-center gap-8">
-            {[['Funcionalidades','features'],['A Ciência','science'],['Planos','pricing'],['FAQ','faq']].map(([l,id]) => (
-              <button key={id} onClick={() => scrollTo(id)} className="text-sm font-medium transition-colors duration-200" style={{ color: '#6B7280' }} onMouseOver={e=>e.currentTarget.style.color='#1a1a2e'} onMouseOut={e=>e.currentTarget.style.color='#6B7280'}>{l}</button>
+      {/* NAV */}
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc ? "rgba(250,250,249,0.85)" : "transparent", backdropFilter: sc ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontFamily: pf, fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>MeuFluxo</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+            {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
+              <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
-            <button onClick={() => navigate('/auth')} className="text-sm font-medium" style={{ color: '#1a1a2e' }}>Entrar</button>
-            <button onClick={() => navigate('/auth')} className="h-10 px-5 rounded-full text-sm font-semibold text-white transition-all duration-200" style={{ background: 'linear-gradient(135deg,#4F7BF7,#6C63FF)', boxShadow: '0 2px 12px rgba(79,123,247,0.3)' }}
-              onMouseOver={e=>{e.currentTarget.style.boxShadow='0 4px 20px rgba(79,123,247,0.4)';e.currentTarget.style.transform='translateY(-1px)';}} onMouseOut={e=>{e.currentTarget.style.boxShadow='0 2px 12px rgba(79,123,247,0.3)';e.currentTarget.style.transform='translateY(0)';}}>Começar grátis</button>
+            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none" }}>Começar grátis</a>
           </div>
-          <button onClick={()=>setMenuOpen(!menuOpen)} className="md:hidden p-2" style={{color:'#6B7280'}}>{menuOpen?<X className="w-5 h-5"/>:<Menu className="w-5 h-5"/>}</button>
         </div>
-        {menuOpen&&(<motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} className="md:hidden absolute top-16 inset-x-0 p-6 space-y-4" style={{background:'rgba(250,251,252,0.97)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(0,0,0,0.06)'}}>
-          {[['Funcionalidades','features'],['A Ciência','science'],['Planos','pricing'],['FAQ','faq']].map(([l,id])=>(<button key={id} onClick={()=>scrollTo(id)} className="block w-full text-left text-sm" style={{color:'#6B7280'}}>{l}</button>))}
-          <hr style={{borderColor:'rgba(0,0,0,0.06)'}}/>
-          <button onClick={()=>navigate('/auth')} className="block w-full text-left text-sm font-medium" style={{color:'#1a1a2e'}}>Entrar</button>
-          <button onClick={()=>navigate('/auth')} className="w-full h-11 rounded-full text-sm font-semibold text-white" style={{background:'linear-gradient(135deg,#4F7BF7,#6C63FF)'}}>Começar grátis</button>
-        </motion.div>)}
       </nav>
 
-      {/* ══════ HERO ══════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-12 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div style={{position:'absolute',top:'-20%',right:'-10%',width:'60vw',height:'60vw',borderRadius:'50%',background:'radial-gradient(circle,rgba(79,123,247,0.07) 0%,transparent 60%)'}}/>
-          <div style={{position:'absolute',bottom:'-10%',left:'-15%',width:'50vw',height:'50vw',borderRadius:'50%',background:'radial-gradient(circle,rgba(139,92,246,0.05) 0%,transparent 60%)'}}/>
-        </div>
-        <motion.div style={{y:heroY,opacity:heroOpacity}} className="relative text-center max-w-4xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-8" style={{background:'rgba(79,123,247,0.06)',border:'1px solid rgba(79,123,247,0.12)'}}>
-            <Brain className="w-4 h-4" style={{color:'#4F7BF7'}}/>
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{color:'#4F7BF7',letterSpacing:'0.1em'}}>Projetado para mentes neurodivergentes</span>
-          </motion.div>
-          <motion.h1 variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{fontFamily:serif,fontSize:'clamp(2.8rem,7vw,5rem)',color:'#1a1a2e',lineHeight:1.05,letterSpacing:'-0.02em'}}>
-            Produtividade que{' '}<span style={{background:'linear-gradient(135deg,#4F7BF7 0%,#8B5CF6 50%,#A78BFA 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>respeita</span><br/>como você pensa.
-          </motion.h1>
-          <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={2} className="mt-6 mb-10 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed" style={{color:'#6B7280'}}>O gerenciador de tarefas criado com base em pesquisas sobre TDAH, TEA e neurodiversidade. Menos culpa, mais tração. Uma tarefa de cada vez.</motion.p>
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={()=>navigate('/auth')} className="h-14 px-10 rounded-full font-semibold text-base text-white flex items-center gap-2.5 transition-all duration-200" style={{background:'linear-gradient(135deg,#4F7BF7,#6C63FF)',boxShadow:'0 8px 30px rgba(79,123,247,0.3)'}} onMouseOver={e=>{e.currentTarget.style.boxShadow='0 12px 40px rgba(79,123,247,0.4)';e.currentTarget.style.transform='translateY(-2px)';}} onMouseOut={e=>{e.currentTarget.style.boxShadow='0 8px 30px rgba(79,123,247,0.3)';e.currentTarget.style.transform='translateY(0)';}}>
-              Começar grátis <ArrowRight className="w-4 h-4"/>
-            </button>
-            <button onClick={()=>scrollTo('features')} className="h-14 px-10 rounded-full text-sm font-medium flex items-center gap-2 transition-all duration-200" style={{border:'1px solid rgba(0,0,0,0.1)',color:'#6B7280',background:'rgba(255,255,255,0.6)',backdropFilter:'blur(8px)'}} onMouseOver={e=>{e.currentTarget.style.borderColor='rgba(79,123,247,0.3)';e.currentTarget.style.color='#4F7BF7';}} onMouseOut={e=>{e.currentTarget.style.borderColor='rgba(0,0,0,0.1)';e.currentTarget.style.color='#6B7280';}}>
-              Conhecer mais <ChevronDown className="w-4 h-4"/>
-            </button>
-          </motion.div>
-        </motion.div>
-
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} style={{scale:heroScale}} className="relative mt-16 w-full max-w-6xl mx-auto px-4">
-          <div className="relative">
-            <div className="absolute -inset-8 rounded-3xl" style={{background:'radial-gradient(ellipse at center,rgba(79,123,247,0.12) 0%,transparent 70%)',filter:'blur(40px)'}}/>
-            <img src={appMockup} alt="MeuFluxo — Dashboard Meu Dia" className="relative w-full h-auto block rounded-xl" loading="eager"/>
+      {/* HERO */}
+      <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "120px 24px 60px", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "-30%", right: "-15%", width: "65vw", height: "65vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(79,109,245,0.06) 0%,transparent 55%)", pointerEvents: "none" }} />
+        <RevealGroup style={{ textAlign: "center", maxWidth: 900 }}>
+          <div className="mf-r" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 20px", borderRadius: 999, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.12)", marginBottom: 32 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.accent }}>Projetado para mentes neurodivergentes</span>
           </div>
-        </motion.div>
+          <h1 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(3.2rem,7.5vw,6rem)", fontWeight: 700, lineHeight: 1.02, letterSpacing: "-0.03em", marginBottom: 24 }}>
+            Produtividade que<br /><span style={{ background: `linear-gradient(135deg,${C.accent},${C.accentP},#A78BFA)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>respeita</span> como<br />você pensa.
+          </h1>
+          <p className="mf-r" style={{ fontSize: 18, lineHeight: 1.6, color: C.muted, maxWidth: 520, margin: "0 auto 40px" }}>Cada feature nasceu de um estudo científico.<br />Cada estudo nasceu de uma dor real.</p>
+          <div className="mf-r" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <a href="/auth" style={{ height: 56, padding: "0 36px", borderRadius: 999, fontSize: 15, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 8px 32px rgba(79,109,245,0.35)", display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>Começar grátis <span style={{ color: "rgba(255,255,255,0.6)" }}>→</span></a>
+            <button onClick={() => go("stories")} style={{ height: 56, padding: "0 36px", borderRadius: 999, fontSize: 15, fontWeight: 500, color: C.muted, background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(0,0,0,0.08)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>Ver a ciência <span style={{ color: C.mutedL }}>↓</span></button>
+          </div>
+        </RevealGroup>
+
+        {/* Hero Mockup — real screenshot */}
+        <Reveal style={{ width: "100%", maxWidth: 1100, margin: "56px auto 0", position: "relative" }}>
+          <div style={{ position: "absolute", inset: -40, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%,rgba(79,109,245,0.12) 0%,transparent 60%)", filter: "blur(50px)", pointerEvents: "none" }} />
+          <img src={appMockup} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block", position: "relative", borderRadius: 4 }} />
+        </Reveal>
+
+        <div className="mf-bounce" style={{ position: "absolute", bottom: 32, color: C.mutedL, fontSize: 24 }}>↓</div>
       </section>
 
-      {/* ══════ FEATURES ══════ */}
-      <section id="features" className="py-28 px-6" style={{background:'#fff'}}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true,margin:'-80px'}} className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{color:'#4F7BF7',letterSpacing:'0.12em'}}>Funcionalidades</p>
-            <h2 style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#1a1a2e',lineHeight:1.15}}>Cada detalhe, com propósito.</h2>
-            <p className="mt-4 max-w-lg mx-auto" style={{color:'#6B7280'}}>Cada decisão de design é baseada em pesquisas sobre neurodiversidade e redução de carga cognitiva.</p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map((f,i)=>{
-              const isLarge=i<2;
-              return(<motion.div key={f.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true,margin:'-40px'}} custom={i}
-                className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isLarge?'lg:row-span-2 p-8':'p-6'}`}
-                style={{background:'#fff',border:'1px solid rgba(0,0,0,0.06)'}}
-                onMouseOver={e=>{e.currentTarget.style.borderColor=f.accent+'33';e.currentTarget.style.boxShadow=`0 8px 30px ${f.accent}12`;e.currentTarget.style.transform='translateY(-3px)';}}
-                onMouseOut={e=>{e.currentTarget.style.borderColor='rgba(0,0,0,0.06)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='translateY(0)';}}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{background:f.accent+'12'}}><f.icon className="w-5 h-5" style={{color:f.accent}}/></div>
-                <h3 className={`font-bold mb-2 ${isLarge?'text-lg':'text-[15px]'}`} style={{color:'#1a1a2e'}}>{f.title}</h3>
-                <p className={`leading-relaxed ${isLarge?'text-sm':'text-[13px]'}`} style={{color:'#6B7280'}}>{f.desc}</p>
-                <div className="absolute top-0 right-0 w-24 h-24 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{background:`radial-gradient(circle at top right,${f.accent}08,transparent 70%)`}}/>
-              </motion.div>);
-            })}
-          </div>
-        </div>
+      {/* INTRO */}
+      <section style={{ padding: "80px 24px", background: C.white, textAlign: "center" }}>
+        <RevealGroup style={{ maxWidth: 700, margin: "0 auto" }}>
+          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>Ferramentas de produtividade são projetadas para cérebros neurotípicos. Se você tem TDAH ou TEA, elas não foram feitas pra você.</p>
+          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.6 }}>O MeuFluxo foi. E temos a pesquisa pra provar.</p>
+        </RevealGroup>
       </section>
 
-      {/* ══════ SHOWCASES ══════ */}
-      <section className="py-28 px-6" style={{background:'#FAFBFC'}}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true,margin:'-80px'}} className="text-center mb-20">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{color:'#4F7BF7',letterSpacing:'0.12em'}}>Como funciona</p>
-            <h2 style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#1a1a2e',lineHeight:1.15}}>Tudo que você precisa, nada que não precisa.</h2>
-          </motion.div>
-          <div className="space-y-32">
-            {[
-              {icon:Sun,badge:'Meu Dia',title:'Comece o dia com clareza.',desc:'Suas tarefas organizadas por Manhã, Tarde e Noite. Sem listas infinitas — apenas o que importa hoje.',bullets:['Tarefas agrupadas por período','Badge de cliente em cada tarefa','Modo Foco com um clique'],img:screenshotMeuDia,reverse:false},
-              {icon:ListChecks,badge:'Visão por Cliente',title:'Cada cliente, seu próprio espaço.',desc:'Organize entregas em seções personalizáveis. Arraste tarefas entre projetos com um gesto.',bullets:['Seções colapsáveis por tipo','Filtro temporal por mês','Drag & drop entre projetos'],img:screenshotCliente,reverse:true},
-              {icon:Eye,badge:'Modo Foco',title:'Uma tarefa de cada vez.',desc:'Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual. Sem distrações, sem ansiedade.',bullets:['Interface minimalista zen','Navegação por "Próxima"','Ideal para TDAH'],img:screenshotFoco,reverse:false},
-            ].map((item,i)=>(
-              <motion.div key={item.badge} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true,margin:'-80px'}}
-                className={`flex flex-col ${item.reverse?'lg:flex-row-reverse':'lg:flex-row'} items-center gap-12 lg:gap-20`}>
-                <div className="flex-1 max-w-md">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{background:'rgba(79,123,247,0.06)',border:'1px solid rgba(79,123,247,0.1)'}}>
-                    <item.icon className="w-3.5 h-3.5" style={{color:'#4F7BF7'}}/><span className="text-[11px] font-semibold uppercase tracking-widest" style={{color:'#4F7BF7'}}>{item.badge}</span>
+      {/* STORIES — real mockups */}
+      <div id="stories">
+        {STORIES.map((st, i) => (
+          <section key={st.id} style={{ background: i % 2 === 0 ? C.bg : C.white }}>
+            <div style={{ position: "relative", overflow: "hidden", minHeight: 460 }}>
+              <div style={{ position: "absolute", inset: 0, background: `url(${st.photo}) center/cover`, filter: "brightness(0.3)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.7))" }} />
+              <RevealGroup style={{ position: "relative", maxWidth: 680, margin: "0 auto", padding: "100px 32px", color: "#fff" }}>
+                <div className="mf-r" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: `url(${st.photo}) center/cover`, border: "2px solid rgba(255,255,255,0.3)", flexShrink: 0 }} />
+                  <div><p style={{ fontSize: 15, fontWeight: 600 }}>{st.name}</p><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{st.role}</p></div>
+                </div>
+                <blockquote className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.3rem,3vw,1.9rem)", lineHeight: 1.35, fontWeight: 500, fontStyle: "italic", margin: 0 }}>"{st.quote}"</blockquote>
+              </RevealGroup>
+            </div>
+            <div style={{ maxWidth: 1100, margin: "0 auto", padding: "72px 32px" }}>
+              <RevealGroup style={{ display: "flex", gap: 56, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 400px", minWidth: 300 }}>
+                  <div className="mf-r">
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.1)", marginBottom: 18 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.accent }}>O estudo</span>
+                    </div>
                   </div>
-                  <h3 style={{fontFamily:serif,fontSize:'clamp(1.5rem,3vw,2.2rem)',color:'#1a1a2e',lineHeight:1.15,marginBottom:16}}>{item.title}</h3>
-                  <p className="leading-relaxed mb-8" style={{color:'#6B7280',fontSize:15}}>{item.desc}</p>
-                  <div className="space-y-3">
-                    {item.bullets.map(b=>(<div key={b} className="flex items-center gap-3"><div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{background:'rgba(79,123,247,0.1)'}}><CheckCircle className="w-3 h-3" style={{color:'#4F7BF7'}}/></div><span className="text-sm" style={{color:'#4B5563'}}>{b}</span></div>))}
+                  <h3 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 700, lineHeight: 1.15, marginBottom: 14 }}>{st.studyTitle}</h3>
+                  <p className="mf-r" style={{ fontSize: 15, lineHeight: 1.7, color: C.muted, marginBottom: 14 }}>{st.studyBody}</p>
+                  <div className="mf-r" style={{ padding: 14, borderRadius: 10, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.08)" }}>
+                    <p style={{ fontSize: 11, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Referências</p>
+                    <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite1}</p>
+                    <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite2}</p>
+                  </div>
+                  <div className="mf-r" style={{ marginTop: 28 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.1)", marginBottom: 14 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10B981" }}>{st.label}</span>
+                    </div>
+                    <p style={{ fontSize: 15, lineHeight: 1.7, color: "#374151" }}>{st.solution}</p>
                   </div>
                 </div>
-                <div className="flex-1 max-w-2xl relative">
-                  <div className="absolute -inset-4 rounded-3xl" style={{background:'radial-gradient(ellipse,rgba(79,123,247,0.06) 0%,transparent 70%)',filter:'blur(30px)'}}/>
-                  <div className="relative rounded-2xl overflow-hidden" style={{boxShadow:'0 30px 60px -15px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04)'}}>
-                    <img src={item.img} alt={item.badge} className="w-full h-auto block" loading="lazy"/>
-                  </div>
+                <div className="mf-r" style={{ flex: "1 1 420px", minWidth: 300, position: "relative" }}>
+                  <RevealImg src={st.mockup} alt={`MeuFluxo — ${st.label}`} />
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </RevealGroup>
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {/* PRICING */}
+      <section id="pricing" style={{ padding: "120px 24px", background: C.dark, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: "radial-gradient(circle at 1px 1px,rgba(79,109,245,0.4) 1px,transparent 0)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative" }}>
+          <RevealGroup style={{ textAlign: "center", marginBottom: 56 }}>
+            <p className="mf-r" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.accent, marginBottom: 14 }}>Planos</p>
+            <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 700, lineHeight: 1.1, color: "#fff" }}>Simples e transparente.</h2>
+          </RevealGroup>
+          <RevealGroup style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="mf-r" style={{ padding: 28, borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Free</h3>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para começar sem pressão</p>
+              <p style={{ marginBottom: 22 }}><span style={{ fontFamily: pf, fontSize: 40, fontWeight: 700, color: "#fff" }}>R$0</span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/mês</span></p>
+              {["1 Workspace", "3 Projetos", "20 Tarefas/projeto", "Dark & Light mode"].map(f => (
+                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9, fontSize: 13, color: "rgba(255,255,255,0.5)" }}><span style={{ color: C.mono }}>✓</span>{f}</div>
+              ))}
+              <a href="/auth" style={{ display: "block", width: "100%", height: 42, marginTop: 16, borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "none", textAlign: "center", lineHeight: "42px" }}>Criar conta grátis</a>
+            </div>
+            <div className="mf-r" style={{ padding: 28, borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)", position: "relative" }}>
+              <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", padding: "4px 14px", borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#fff" }}>Recomendado</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Pro</h3>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para profissionais</p>
+              <p style={{ marginBottom: 22 }}><span style={{ fontFamily: pf, fontSize: 40, fontWeight: 700, color: "#fff" }}>R$29</span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/mês</span></p>
+              {["Tudo ilimitado", "Timeline View", "Recorrentes", "Rollover Auto", "Notas", "Uploads"].map(f => (
+                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9, fontSize: 13, color: "#fff", fontWeight: 500 }}><span style={{ color: C.accent }}>✓</span>{f}</div>
+              ))}
+              <a href="/auth" style={{ display: "block", width: "100%", height: 42, marginTop: 16, borderRadius: 999, border: "none", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", textDecoration: "none", textAlign: "center", lineHeight: "42px" }}>Começar com Pro</a>
+            </div>
+          </RevealGroup>
         </div>
       </section>
 
-      {/* ══════ MORE FEATURES ══════ */}
-      <section className="py-20 px-6" style={{background:'#fff',borderTop:'1px solid rgba(0,0,0,0.04)'}}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} className="text-center mb-12">
-            <h3 style={{fontFamily:serif,fontSize:'clamp(1.4rem,3vw,1.8rem)',color:'#1a1a2e'}}>E muito mais.</h3>
-            <p className="mt-2 text-sm" style={{color:'#9CA3AF'}}>Timeline, visão semanal, notas rápidas e templates de entrega.</p>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[{img:screenshotTimeline,alt:'Timeline View'},{img:screenshotSemana,alt:'Minha Semana'}].map((s,i)=>(
-              <motion.div key={s.alt} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} custom={i} className="relative group">
-                <div className="absolute -inset-2 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{background:'radial-gradient(ellipse,rgba(79,123,247,0.06) 0%,transparent 70%)',filter:'blur(20px)'}}/>
-                <div className="relative rounded-2xl overflow-hidden transition-transform duration-300 group-hover:-translate-y-1" style={{boxShadow:'0 15px 40px -10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)'}}>
-                  <img src={s.img} alt={s.alt} className="w-full h-auto block" loading="lazy"/>
-                </div>
-                <p className="mt-3 text-center text-xs font-medium" style={{color:'#9CA3AF'}}>{s.alt}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* FAQ */}
+      <section id="faq" style={{ padding: "100px 24px", background: C.white }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <Reveal style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2 style={{ fontFamily: pf, fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 700, lineHeight: 1.1 }}>Perguntas frequentes</h2>
+          </Reveal>
+          {FAQ_DATA.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
         </div>
       </section>
 
-      {/* ══════ SCIENCE ══════ */}
-      <section id="science" className="py-28 px-6 relative overflow-hidden" style={{background:'#0F0F1A'}}>
-        <div className="absolute inset-0 pointer-events-none" style={{opacity:0.15,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(79,123,247,0.3) 1px,transparent 0)',backgroundSize:'32px 32px'}}/>
-        <div className="max-w-4xl mx-auto relative">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} className="text-center mb-16">
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-6" style={{background:'rgba(79,123,247,0.1)',border:'1px solid rgba(79,123,247,0.2)'}}><Shield className="w-4 h-4" style={{color:'#4F7BF7'}}/><span className="text-xs font-semibold uppercase tracking-widest" style={{color:'#4F7BF7'}}>Baseado em pesquisa</span></div>
-            <h2 style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#fff',lineHeight:1.15}}>A ciência por trás do MeuFluxo</h2>
-            <p className="mt-4 max-w-2xl mx-auto" style={{color:'rgba(255,255,255,0.5)'}}>Design fundamentado em estudos sobre como cérebros neurodivergentes processam informação.</p>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-5">
-            {SCIENCE.map((s,i)=>(
-              <motion.div key={s.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} custom={i} className="p-6 rounded-2xl" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',backdropFilter:'blur(8px)'}}>
-                <div className="flex gap-4"><div className="flex-shrink-0 w-1 rounded-full" style={{background:'linear-gradient(180deg,#4F7BF7,#A78BFA)'}}/><div><h4 className="text-sm font-bold mb-2" style={{color:'#fff'}}>{s.title}</h4><p className="text-sm leading-relaxed" style={{color:'rgba(255,255,255,0.5)'}}>{s.text}</p></div></div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+      {/* CTA */}
+      <section style={{ padding: "120px 24px", background: C.dark, position: "relative", overflow: "hidden", textAlign: "center" }}>
+        <div style={{ position: "absolute", top: -60, left: "50%", transform: "translateX(-50%)", width: 500, height: 250, background: "radial-gradient(ellipse,rgba(79,109,245,0.2) 0%,transparent 60%)", filter: "blur(80px)", pointerEvents: "none" }} />
+        <RevealGroup style={{ maxWidth: 560, margin: "0 auto", position: "relative" }}>
+          <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(2rem,5vw,3.2rem)", fontWeight: 700, lineHeight: 1.08, color: "#fff", marginBottom: 16 }}>Seu cérebro merece<br />ferramentas melhores.</h2>
+          <p className="mf-r" style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", marginBottom: 36 }}>Cada feature nasceu de um estudo. Cada estudo nasceu de uma dor.<br />O MeuFluxo foi construído por quem vive isso.</p>
+          <div className="mf-r"><a href="/auth" style={{ height: 56, padding: "0 40px", borderRadius: 999, fontSize: 15, fontWeight: 700, color: C.dark, background: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 24px rgba(0,0,0,0.2)", display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>Começar grátis agora <span style={{ color: C.mutedL }}>→</span></a></div>
+        </RevealGroup>
       </section>
 
-      {/* ══════ PRICING ══════ */}
-      <section id="pricing" className="py-28 px-6" style={{background:'#FAFBFC'}}>
-        <div className="max-w-4xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{color:'#4F7BF7',letterSpacing:'0.12em'}}>Planos</p>
-            <h2 style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#1a1a2e',lineHeight:1.15}}>Simples e transparente.</h2>
-            <p className="mt-3" style={{color:'#6B7280'}}>Comece de graça, faça upgrade quando precisar.</p>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} custom={0} className="p-8 rounded-2xl" style={{border:'1px solid rgba(0,0,0,0.08)',background:'#fff'}}>
-              <h3 className="text-lg font-semibold mb-1" style={{color:'#1a1a2e'}}>Free</h3>
-              <p className="text-sm mb-5" style={{color:'#6B7280'}}>Para começar sem pressão</p>
-              <p className="mb-6"><span style={{fontFamily:serif,fontSize:40,color:'#1a1a2e'}}>R$0</span><span className="text-sm ml-1" style={{color:'#9CA3AF'}}>/mês</span></p>
-              <ul className="space-y-3 mb-8">{['1 Workspace','3 Projetos','20 Tarefas por projeto','2 Membros','Dark & Light mode'].map(f=>(<li key={f} className="flex items-center gap-2.5 text-sm" style={{color:'#6B7280'}}><Check className="w-4 h-4 flex-shrink-0" style={{color:'#4F7BF7'}}/>{f}</li>))}</ul>
-              <button onClick={()=>navigate('/auth')} className="w-full h-12 rounded-full text-sm font-medium transition-all duration-200" style={{border:'1px solid rgba(0,0,0,0.12)',color:'#1a1a2e'}} onMouseOver={e=>{e.currentTarget.style.borderColor='rgba(79,123,247,0.3)';e.currentTarget.style.color='#4F7BF7';}} onMouseOut={e=>{e.currentTarget.style.borderColor='rgba(0,0,0,0.12)';e.currentTarget.style.color='#1a1a2e';}}>Criar conta grátis</button>
-            </motion.div>
-            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} custom={1} className="relative p-8 rounded-2xl" style={{border:'2px solid #4F7BF7',background:'#fff',boxShadow:'0 8px 30px rgba(79,123,247,0.1)'}}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white" style={{background:'linear-gradient(135deg,#4F7BF7,#6C63FF)',letterSpacing:'0.1em'}}>Recomendado</div>
-              <h3 className="text-lg font-semibold mb-1 flex items-center gap-2" style={{color:'#1a1a2e'}}>Pro <Sparkles className="w-4 h-4" style={{color:'#4F7BF7'}}/></h3>
-              <p className="text-sm mb-5" style={{color:'#6B7280'}}>Para profissionais</p>
-              <p className="mb-6"><span style={{fontFamily:serif,fontSize:40,color:'#1a1a2e'}}>R$29</span><span className="text-sm ml-1" style={{color:'#9CA3AF'}}>/mês</span></p>
-              <ul className="space-y-3 mb-8">{['Tudo ilimitado','Timeline View','Tarefas Recorrentes','Rollover Automático','Notas ilimitadas','Upload de imagens'].map(f=>(<li key={f} className="flex items-center gap-2.5 text-sm" style={{color:'#1a1a2e'}}><CheckCircle className="w-4 h-4 flex-shrink-0" style={{color:'#4F7BF7'}}/>{f}</li>))}</ul>
-              <button onClick={()=>navigate('/auth')} className="w-full h-12 rounded-full text-sm font-semibold text-white transition-all duration-200" style={{background:'linear-gradient(135deg,#4F7BF7,#6C63FF)',boxShadow:'0 4px 16px rgba(79,123,247,0.3)'}} onMouseOver={e=>{e.currentTarget.style.boxShadow='0 6px 24px rgba(79,123,247,0.4)';e.currentTarget.style.transform='translateY(-1px)';}} onMouseOut={e=>{e.currentTarget.style.boxShadow='0 4px 16px rgba(79,123,247,0.3)';e.currentTarget.style.transform='translateY(0)';}}>Começar com Pro</button>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ FAQ ══════ */}
-      <section id="faq" className="py-28 px-6" style={{background:'#fff'}}>
-        <div className="max-w-3xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{color:'#4F7BF7',letterSpacing:'0.12em'}}>FAQ</p>
-            <h2 style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#1a1a2e',lineHeight:1.15}}>Perguntas frequentes</h2>
-          </motion.div>
-          <div className="space-y-3">
-            {FAQ.map((item,i)=>(
-              <motion.details key={i} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} custom={i*0.15} className="group rounded-2xl overflow-hidden" style={{border:'1px solid rgba(0,0,0,0.06)',background:'#fff'}}>
-                <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-sm font-medium list-none [&::-webkit-details-marker]:hidden" style={{color:'#1a1a2e'}}><span>{item.q}</span><ChevronDown className="w-4 h-4 flex-shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" style={{color:'#9CA3AF'}}/></summary>
-                <div className="px-6 pb-5 text-sm leading-relaxed" style={{color:'#6B7280'}}>{item.a}</div>
-              </motion.details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ CTA FINAL ══════ */}
-      <section className="py-32 px-6 relative overflow-hidden" style={{background:'linear-gradient(135deg,#0F0F1A 0%,#1a1a3e 100%)'}}>
-        <div className="absolute inset-0 pointer-events-none" style={{opacity:0.12,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.15) 1px,transparent 0)',backgroundSize:'24px 24px'}}/>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 pointer-events-none" style={{background:'radial-gradient(ellipse,rgba(79,123,247,0.2) 0%,transparent 70%)',filter:'blur(60px)'}}/>
-        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{once:true}} className="max-w-2xl mx-auto text-center relative">
-          <h2 className="mb-5" style={{fontFamily:serif,fontSize:'clamp(1.8rem,4vw,2.8rem)',color:'#fff',lineHeight:1.15}}>Seu cérebro merece ferramentas melhores.</h2>
-          <p className="mb-10 max-w-md mx-auto" style={{color:'rgba(255,255,255,0.5)',fontSize:16}}>Descubra uma forma de trabalhar que não luta contra a forma como você pensa.</p>
-          <button onClick={()=>navigate('/auth')} className="h-14 px-10 rounded-full font-semibold text-base flex items-center gap-2.5 mx-auto transition-all duration-200" style={{background:'#fff',color:'#1a1a2e',boxShadow:'0 4px 20px rgba(0,0,0,0.2)'}} onMouseOver={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 30px rgba(0,0,0,0.3)';}} onMouseOut={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.2)';}}>
-            Começar grátis agora <ArrowRight className="w-4 h-4"/>
-          </button>
-        </motion.div>
-      </section>
-
-      {/* ══════ FOOTER ══════ */}
-      <footer className="py-12 px-6" style={{background:'#0F0F1A',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <span style={{fontFamily:serif,fontSize:18,color:'#fff'}}>MeuFluxo</span>
-          <p className="text-xs" style={{color:'rgba(255,255,255,0.3)'}}>© {new Date().getFullYear()} MeuFluxo. Feito com cuidado para mentes que pensam diferente.</p>
-          <div className="flex items-center gap-6">
-            {[['Funcionalidades','features'],['Planos','pricing'],['FAQ','faq']].map(([l,id])=>(<button key={id} onClick={()=>scrollTo(id)} className="text-xs transition-colors duration-200" style={{color:'rgba(255,255,255,0.3)'}} onMouseOver={e=>e.currentTarget.style.color='rgba(255,255,255,0.7)'} onMouseOut={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}>{l}</button>))}
-            <button onClick={()=>navigate('/auth')} className="text-xs transition-colors duration-200" style={{color:'rgba(255,255,255,0.3)'}} onMouseOver={e=>e.currentTarget.style.color='rgba(255,255,255,0.7)'} onMouseOut={e=>e.currentTarget.style.color='rgba(255,255,255,0.3)'}>Entrar</button>
-          </div>
+      <footer style={{ padding: "36px 24px", background: C.dark, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontFamily: pf, fontSize: 18, fontWeight: 700, color: "#fff" }}>MeuFluxo</span>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>© 2026 MeuFluxo. Feito para mentes que pensam diferente.</p>
         </div>
       </footer>
     </div>
   );
-}
+};
+
+export default Landing;
