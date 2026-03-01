@@ -444,6 +444,29 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 </span>
               )}
 
+              {/* Subtask indicator — only when subtasks exist (never show "0") */}
+              {hasSubtasks && (() => {
+                const subs = task.subtasks!;
+                const doneCount = subs.filter(s => s.status === 'done').length;
+                const total = subs.length;
+                const allDone = doneCount === total;
+                return (
+                  <span
+                    className="flex-shrink-0 tabular-nums"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 400,
+                      color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
+                      opacity: 0.7,
+                      letterSpacing: '0.01em',
+                    }}
+                    title={`${doneCount} de ${total} subtarefas concluídas`}
+                  >
+                    {allDone ? '✓' : `${doneCount}/${total}`}
+                  </span>
+                );
+              })()}
+
               {/* Rollover badge */}
               {task.rolloverCount && task.rolloverCount > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive flex-shrink-0" title={`Adiada ${task.rolloverCount}x`}>
