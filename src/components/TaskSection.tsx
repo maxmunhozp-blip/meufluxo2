@@ -345,10 +345,7 @@ export function TaskSection({
               label: 'Excluir',
               danger: true,
               onClick: () => {
-                const count = tasks.length;
-                if (window.confirm(`Isso irá excluir ${count} tarefa(s). Continuar?`)) {
-                  onDeleteSection(section.id);
-                }
+                onDeleteSection(section.id);
               },
             },
           ]}

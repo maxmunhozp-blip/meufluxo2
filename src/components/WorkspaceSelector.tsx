@@ -60,7 +60,6 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Excluir este workspace e todos os seus dados?')) return;
     setMenuWsId(null); setOpen(false);
     await onDelete(id);
   };

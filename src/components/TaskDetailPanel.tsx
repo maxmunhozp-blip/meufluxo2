@@ -293,10 +293,8 @@ function ServiceTagPicker({
 
   const handleDelete = async (id: string, name: string) => {
     if (!onDeleteTag) return;
-    if (window.confirm(`Remover "${name}"?`)) {
-      await onDeleteTag(id);
-      if (value === id) onChange(undefined);
-    }
+    await onDeleteTag(id);
+    if (value === id) onChange(undefined);
   };
 
   return (
