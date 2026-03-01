@@ -35,6 +35,7 @@ interface TaskSectionProps {
   taskDropPosition?: 'top' | 'bottom' | null;
   allSections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
+  onMoveToMonth?: (taskId: string, year: number, month: number) => void;
   projectColor?: string;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
@@ -155,6 +156,7 @@ export function TaskSection({
   taskDropPosition,
   allSections,
   onMoveToSection,
+  onMoveToMonth,
   projectColor,
   onAddSubtask,
   onDeleteSubtask,
@@ -310,6 +312,7 @@ export function TaskSection({
                 onRenameSubtask={onRenameSubtask}
                 sections={allSections}
                 onMoveToSection={onMoveToSection}
+                onMoveToMonth={onMoveToMonth}
                 onAddSubtask={onAddSubtask}
                 onDeleteSubtask={onDeleteSubtask}
                 onConvertSubtaskToTask={onConvertSubtaskToTask}
