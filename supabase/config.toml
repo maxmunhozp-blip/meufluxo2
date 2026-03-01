@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.fetch-og]
 verify_jwt = false
+
+[functions.auto-service-tag]
+verify_jwt = false
