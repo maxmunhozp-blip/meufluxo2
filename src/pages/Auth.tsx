@@ -2,6 +2,27 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
+import screenshotMeuDia from '@/assets/screenshot-meudia.png';
+
+/*
+  Auth page — neurodivergent-friendly, Apple-quality design
+  
+  Research basis:
+  - W3C WCAG o6p01: Login that doesn't rely on memory → prominent Google SSO
+  - W3C WCAG o6p02: Simple, single-step login → minimal fields, clear hierarchy
+  - W3C WCAG o6p03: Less words → concise labels, no walls of text
+  - WCAG 3.3.8: Accessible authentication → SSO first, no cognitive tests
+  
+  Design principles:
+  - Split layout: product context left, clean form right
+  - SSO prominently placed (reduces memory load)
+  - Warm, non-clinical aesthetic (reduces anxiety)
+  - Large touch targets (48px+), generous spacing
+  - Single visible action at a time
+*/
+
+const pf = '"Playfair Display",Georgia,serif';
+const bd = '"DM Sans",system-ui,sans-serif';
 
 const Auth = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
@@ -93,34 +114,152 @@ const Auth = () => {
     }
   };
 
-  const inputClass = "w-full h-12 px-4 text-sm rounded-[10px] border transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-nd-text-muted";
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'hsl(var(--bg-app))' }}>
-      <div className="w-full max-w-[400px] space-y-6">
-        {/* Logo */}
-        <div className="text-center">
-          <h1 className="text-[28px] font-bold text-nd-text">MeuFluxo</h1>
-          <p className="mt-2 text-sm text-nd-text-secondary">
-            {mode === 'login' && 'Entre na sua conta'}
-            {mode === 'signup' && 'Crie sua conta gratuitamente'}
-            {mode === 'forgot' && 'Recupere sua senha'}
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: bd }}>
+      
+      {/* LEFT — Product context panel */}
+      <div style={{
+        flex: "1 1 50%",
+        background: "#0A0A0C",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "60px 48px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+        className="hidden lg:flex"
+      >
+        {/* Subtle gradient glow */}
+        <div style={{
+          position: "absolute",
+          top: "20%",
+          left: "30%",
+          width: "60%",
+          height: "60%",
+          background: "radial-gradient(ellipse, rgba(79,109,245,0.12) 0%, transparent 60%)",
+          filter: "blur(80px)",
+          pointerEvents: "none",
+        }} />
+        
+        {/* Brand */}
+        <div style={{ position: "relative", maxWidth: 480, width: "100%", textAlign: "left", marginBottom: 48 }}>
+          <a href="/" style={{ textDecoration: "none" }}>
+            <span style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#fff", letterSpacing: "-0.03em" }}>MeuFluxo</span>
+          </a>
+          <h2 style={{ fontFamily: pf, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 600, lineHeight: 1.15, color: "#fff", marginTop: 20, letterSpacing: "-0.02em" }}>
+            Produtividade que<br />
+            <span style={{ background: "linear-gradient(135deg, #4F6DF5, #7C3AED, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>respeita</span> seu cérebro.
+          </h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", marginTop: 14, lineHeight: 1.6 }}>
+            Projetado para mentes com TDAH e TEA.
           </p>
         </div>
 
-        {/* Card */}
-        <div
-          className="p-6 rounded-[14px] border border-nd-border space-y-5"
-          style={{ background: 'hsl(var(--bg-surface))' }}
-        >
-          {/* Google login */}
+        {/* App screenshot in browser frame */}
+        <div style={{ position: "relative", maxWidth: 520, width: "100%", borderRadius: 10, overflow: "hidden", boxShadow: "0 20px 60px -10px rgba(0,0,0,0.5)" }}>
+          {/* Mini browser chrome */}
+          <div style={{ background: "#1E1E22", padding: "8px 14px", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FEBC2E" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840" }} />
+            </div>
+            <div style={{ flex: 1, marginLeft: 10, padding: "4px 12px", borderRadius: 5, background: "rgba(255,255,255,0.06)" }}>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
+            </div>
+          </div>
+          <img src={screenshotMeuDia} alt="MeuFluxo app" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
+        </div>
+
+        {/* Social proof */}
+        <div style={{ position: "relative", maxWidth: 480, width: "100%", marginTop: 36, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex" }}>
+            {["🧠", "💡", "✨"].map((e, i) => (
+              <div key={i} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(79,109,245,0.15)", border: "2px solid #0A0A0C", marginLeft: i > 0 ? -8 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>{e}</div>
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.4 }}>
+            Baseado em pesquisas de<br />Le Cunff, Sonuga-Barke e Schwartz
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT — Auth form */}
+      <div style={{
+        flex: "1 1 50%",
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "48px 24px",
+        background: "#FAFAF9",
+        position: "relative",
+      }}>
+        {/* Back to landing */}
+        <a href="/" style={{
+          position: "absolute",
+          top: 24,
+          left: 28,
+          fontSize: 13,
+          color: "#71717A",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}>
+          <span style={{ fontSize: 16 }}>←</span> Voltar
+        </a>
+
+        {/* Mobile logo (hidden on desktop where left panel shows it) */}
+        <div className="lg:hidden" style={{ marginBottom: 32, textAlign: "center" }}>
+          <a href="/" style={{ textDecoration: "none" }}>
+            <span style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#18181B", letterSpacing: "-0.03em" }}>MeuFluxo</span>
+          </a>
+        </div>
+
+        <div style={{ width: "100%", maxWidth: 380 }}>
+          {/* Header */}
+          <div style={{ marginBottom: 32 }}>
+            <h1 style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#18181B", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+              {mode === 'login' && 'Bem-vindo de volta.'}
+              {mode === 'signup' && 'Crie sua conta.'}
+              {mode === 'forgot' && 'Recuperar senha.'}
+            </h1>
+            <p style={{ fontSize: 14, color: "#71717A", marginTop: 8, lineHeight: 1.5 }}>
+              {mode === 'login' && 'Continue de onde parou — sem pressa.'}
+              {mode === 'signup' && 'Leva menos de 30 segundos. Sem cartão de crédito.'}
+              {mode === 'forgot' && 'Enviaremos um link para redefinir sua senha.'}
+            </p>
+          </div>
+
+          {/* Google SSO — primary action (WCAG: reduce memory load) */}
           {mode !== 'forgot' && (
             <>
               <button
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
-                className="w-full h-12 flex items-center justify-center gap-3 rounded-[10px] border border-nd-border text-sm font-medium text-nd-text hover:bg-nd-hover transition-colors disabled:opacity-60"
-                style={{ background: 'hsl(var(--bg-elevated))' }}
+                style={{
+                  width: "100%",
+                  height: 52,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 12,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.1)",
+                  background: "#fff",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#18181B",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  fontFamily: bd,
+                  opacity: googleLoading ? 0.6 : 1,
+                }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -131,125 +270,168 @@ const Auth = () => {
                 {googleLoading ? 'Conectando...' : 'Continuar com Google'}
               </button>
 
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-nd-border" />
-                <span className="text-[11px] text-nd-text-muted uppercase tracking-wider">ou</span>
-                <div className="flex-1 h-px bg-nd-border" />
+              <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "24px 0" }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(0,0,0,0.08)" }} />
+                <span style={{ fontSize: 11, color: "#A1A1AA", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 500 }}>ou com email</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(0,0,0,0.08)" }} />
               </div>
             </>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {mode === 'signup' && (
               <div>
-                <label className="text-xs font-medium text-nd-text-secondary mb-1.5 block">Nome completo</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#71717A", marginBottom: 6, display: "block", letterSpacing: "0.02em" }}>Nome</label>
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className={inputClass}
-                  style={{ background: 'hsl(var(--bg-elevated))', borderColor: 'hsl(240 14% 20%)' }}
-                  placeholder="Seu nome"
+                  placeholder="Como quer ser chamado"
+                  style={inputStyle}
                 />
               </div>
             )}
 
             <div>
-              <label className="text-xs font-medium text-nd-text-secondary mb-1.5 block">Email</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#71717A", marginBottom: 6, display: "block", letterSpacing: "0.02em" }}>Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={inputClass}
-                style={{ background: 'hsl(var(--bg-elevated))', borderColor: 'hsl(240 14% 20%)' }}
                 placeholder="seu@email.com"
+                style={inputStyle}
               />
             </div>
 
             {mode !== 'forgot' && (
               <div>
-                <label className="text-xs font-medium text-nd-text-secondary mb-1.5 block">Senha</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#71717A", letterSpacing: "0.02em" }}>Senha</label>
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => { setMode('forgot'); setMessage(null); }}
+                      style={{ fontSize: 12, color: "#4F6DF5", background: "none", border: "none", cursor: "pointer", fontWeight: 500, fontFamily: bd }}
+                    >
+                      Esqueci
+                    </button>
+                  )}
+                </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass}
-                  style={{ background: 'hsl(var(--bg-elevated))', borderColor: 'hsl(240 14% 20%)' }}
                   placeholder="••••••••"
                   minLength={6}
+                  style={inputStyle}
                 />
               </div>
             )}
 
             {mode === 'signup' && (
               <div>
-                <label className="text-xs font-medium text-nd-text-secondary mb-1.5 block">Confirmar senha</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#71717A", marginBottom: 6, display: "block", letterSpacing: "0.02em" }}>Confirmar senha</label>
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={inputClass}
-                  style={{ background: 'hsl(var(--bg-elevated))', borderColor: 'hsl(240 14% 20%)' }}
                   placeholder="••••••••"
                   minLength={6}
+                  style={inputStyle}
                 />
               </div>
             )}
 
+            {/* Messages */}
             {message && (
-              <div className={`text-sm p-3 rounded-[10px] ${
-                message.type === 'error'
-                  ? 'text-nd-overdue' : 'text-nd-done'
-              }`} style={{ background: message.type === 'error' ? 'hsl(var(--status-overdue) / 0.12)' : 'hsl(var(--status-done) / 0.12)' }}>
+              <div style={{
+                fontSize: 13,
+                padding: "12px 16px",
+                borderRadius: 10,
+                lineHeight: 1.5,
+                background: message.type === 'error' ? "rgba(217,119,6,0.08)" : "rgba(16,185,129,0.08)",
+                color: message.type === 'error' ? "#D97706" : "#10B981",
+                border: `1px solid ${message.type === 'error' ? "rgba(217,119,6,0.15)" : "rgba(16,185,129,0.15)"}`,
+              }}>
                 {message.text}
               </div>
             )}
 
-            {mode === 'login' && (
-              <button
-                type="button"
-                onClick={() => { setMode('forgot'); setMessage(null); }}
-                className="text-xs text-primary hover:underline"
-              >
-                Esqueci minha senha
-              </button>
-            )}
-
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-[10px] bg-primary text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{
+                width: "100%",
+                height: 52,
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg, #4F6DF5, #7C3AED)",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                boxShadow: "0 4px 16px rgba(79,109,245,0.3)",
+                opacity: loading ? 0.6 : 1,
+                fontFamily: bd,
+                marginTop: 4,
+              }}
             >
-              {loading ? 'Carregando...' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar conta' : 'Enviar email de recuperação'}
+              {loading ? 'Carregando...' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar conta grátis' : 'Enviar link de recuperação'}
             </button>
           </form>
-        </div>
 
-        {/* Mode switch */}
-        <div className="text-center">
-          {mode === 'forgot' ? (
-            <button
-              onClick={() => { setMode('login'); setMessage(null); }}
-              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              ← Voltar para o login
-            </button>
-          ) : (
-            <button
-              onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(null); setConfirmPassword(''); }}
-              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              {mode === 'login' ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
-            </button>
-          )}
+          {/* Mode switch */}
+          <div style={{ textAlign: "center", marginTop: 28 }}>
+            {mode === 'forgot' ? (
+              <button
+                onClick={() => { setMode('login'); setMessage(null); }}
+                style={{ fontSize: 13, color: "#4F6DF5", background: "none", border: "none", cursor: "pointer", fontWeight: 500, fontFamily: bd }}
+              >
+                ← Voltar para o login
+              </button>
+            ) : (
+              <p style={{ fontSize: 13, color: "#71717A" }}>
+                {mode === 'login' ? 'Ainda não tem conta? ' : 'Já tem uma conta? '}
+                <button
+                  onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(null); setConfirmPassword(''); }}
+                  style={{ color: "#4F6DF5", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontFamily: bd, fontSize: 13 }}
+                >
+                  {mode === 'login' ? 'Criar conta grátis' : 'Entrar'}
+                </button>
+              </p>
+            )}
+          </div>
+
+          {/* Trust line */}
+          <p style={{ textAlign: "center", fontSize: 11, color: "#A1A1AA", marginTop: 32, lineHeight: 1.5 }}>
+            Seus dados são protegidos com criptografia.<br />Sem spam. Cancele quando quiser.
+          </p>
         </div>
       </div>
     </div>
   );
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 48,
+  padding: "0 16px",
+  fontSize: 14,
+  borderRadius: 10,
+  border: "1px solid rgba(0,0,0,0.1)",
+  background: "#fff",
+  color: "#18181B",
+  outline: "none",
+  transition: "border-color 0.15s, box-shadow 0.15s",
+  fontFamily: '"DM Sans",system-ui,sans-serif',
+  boxSizing: "border-box" as const,
 };
 
 export default Auth;
