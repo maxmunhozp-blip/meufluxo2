@@ -99,7 +99,21 @@ const Index = () => {
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [activeMonth, setActiveMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [activeMonth, setActiveMonth] = useState(() => {
+    try {
+      const stored = localStorage.getItem('meufluxo_active_month');
+      if (stored) {
+        const d = new Date(stored);
+        if (!isNaN(d.getTime())) return d;
+      }
+    } catch {}
+    return new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  });
+
+  // Persist active month
+  useEffect(() => {
+    localStorage.setItem('meufluxo_active_month', activeMonth.toISOString());
+  }, [activeMonth]);
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
   // Check super_admin role
@@ -925,6 +939,7 @@ const Index = () => {
   const sidebarProps = {
     projects,
     sections: sectionList,
+    activeMonthKey,
     activeProjectId,
     activeSectionId,
     onSelectProject: (id: string) => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(false); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
