@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import appMockup from '@/assets/app-mockup.png';
+import mockupMeuDia from '@/assets/mockup-meu-dia.jpg';
+import mockupProjeto from '@/assets/mockup-projeto.jpg';
+import mockupFoco from '@/assets/mockup-foco.jpg';
 import {
   Brain, ArrowRight, ChevronDown, Menu, X, Check,
   CheckCircle, Eye, Clock, ListChecks, Users, Calendar,
@@ -328,44 +331,95 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── HOW IT WORKS (visual showcase) ─── */}
+      {/* ─── FUNCIONALIDADES PRINCIPAIS (alternating layout) ─── */}
       <section className="py-24 px-6" style={{ borderTop: `1px solid ${C.borderLight}` }}>
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-16">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-20">
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
               Tudo que você precisa, nada que não precisa.
             </h2>
             <p className="max-w-lg mx-auto" style={{ color: C.textSub }}>
-              Conheça as funcionalidades que fazem do MeuFluxo a ferramenta mais gentil de produtividade.
+              Conheça as telas que fazem do MeuFluxo a ferramenta mais gentil de produtividade.
             </p>
           </motion.div>
 
-          <div className="space-y-12">
-            {[
-              { icon: Sun, badge: 'Meu Dia', title: 'Comece o dia com clareza.', desc: 'Suas tarefas organizadas por Manhã, Tarde e Noite. Sem listas infinitas — apenas o que importa hoje, no ritmo certo.', items: ['Tarefas agrupadas por período do dia', 'Badge de cliente em cada tarefa', 'Modo Foco com um clique'] },
-              { icon: ListChecks, badge: 'Visão por Cliente', title: 'Cada cliente, seu próprio espaço.', desc: 'Organize entregas em seções personalizáveis como "Para Aprovar", "Design" e "Posts Aprovados". Arraste tarefas entre projetos com um gesto.', items: ['Seções colapsáveis por tipo de entrega', 'Filtro temporal por mês', 'Drag & drop entre projetos'] },
-              { icon: Eye, badge: 'Modo Foco', title: 'Uma tarefa de cada vez.', desc: 'Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual em tela cheia. Sem distrações, sem ansiedade.', items: ['Interface minimalista zen', 'Navegação por "Próxima" tarefa', 'Ideal para TDAH e sobrecarga sensorial'] },
-            ].map((item, i) => (
-              <motion.div key={item.badge} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} custom={i}
-                className="p-8 rounded-xl" style={{ background: C.bgWhite, border: `1px solid ${C.border}` }}
-              >
+          {/* Bloco A — Meu Dia (text left, screenshot right) */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={0} className="mb-24">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
-                  <item.icon className="w-3.5 h-3.5" style={{ color: C.accent }} />
-                  <span className="text-xs font-medium" style={{ color: C.accent }}>{item.badge}</span>
+                  <Sun className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                  <span className="text-xs font-medium" style={{ color: C.accent }}>Meu Dia</span>
                 </div>
-                <h3 className="text-xl font-bold mb-2" style={{ color: C.text }}>{item.title}</h3>
-                <p className="mb-4 leading-relaxed" style={{ color: C.textSub }}>{item.desc}</p>
-                <ul className="space-y-2">
-                  {item.items.map(li => (
-                    <li key={li} className="flex items-center gap-2 text-sm" style={{ color: C.textSub }}>
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} />
-                      {li}
+                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Comece o dia com clareza.</h3>
+                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
+                  Visualize suas tarefas do dia organizadas por período — Manhã, Tarde e Noite. Sem sobrecarga de informação, apenas o que importa agora.
+                </p>
+                <ul className="space-y-2.5">
+                  {['Organização por períodos', 'Tags coloridas por cliente', 'Contagem de subtarefas'].map(li => (
+                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
                     </li>
                   ))}
                 </ul>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
+                <img src={mockupMeuDia} alt="Visão Meu Dia — tarefas organizadas por Manhã, Tarde e Noite" className="w-full h-auto block" loading="lazy" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bloco B — Visão por Cliente (screenshot left, text right) */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={1} className="mb-24">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
+                <img src={mockupProjeto} alt="Visão por Cliente — seções e tarefas organizadas por cliente" className="w-full h-auto block" loading="lazy" />
+              </div>
+              <div className="order-1 lg:order-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
+                  <ListChecks className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                  <span className="text-xs font-medium" style={{ color: C.accent }}>Visão por Cliente</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Organize entregas por cliente.</h3>
+                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
+                  Organize entregas em seções personalizáveis como "Para Aprovar", "Design" e "Posts Aprovados". Arraste tarefas entre projetos com um gesto.
+                </p>
+                <ul className="space-y-2.5">
+                  {['Seções colapsáveis por tipo de entrega', 'Filtro temporal por mês', 'Drag & drop entre projetos'].map(li => (
+                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bloco C — Modo Foco (text left, screenshot right) */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={2}>
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
+                  <Eye className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                  <span className="text-xs font-medium" style={{ color: C.accent }}>Modo Foco</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Uma tarefa de cada vez.</h3>
+                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
+                  Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual em tela cheia. Sem distrações, sem ansiedade. Avance quando estiver pronto.
+                </p>
+                <ul className="space-y-2.5">
+                  {['Interface minimalista zen', 'Navegação por "Próxima" tarefa', 'Ideal para TDAH e sobrecarga sensorial'].map(li => (
+                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
+                <img src={mockupFoco} alt="Modo Foco — uma tarefa por vez em tela cheia" className="w-full h-auto block" loading="lazy" />
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
