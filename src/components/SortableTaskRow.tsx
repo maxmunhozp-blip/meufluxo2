@@ -489,9 +489,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               label: 'Excluir tarefa',
               danger: true,
               onClick: () => {
-                if (window.confirm(`Excluir "${task.name || 'tarefa sem nome'}"?`)) {
-                  onDeleteTask?.(task.id);
-                }
+                onDeleteTask?.(task.id);
               },
             },
           ]}

@@ -707,7 +707,7 @@ export function ProjectSidebar({
 
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file && window.confirm('Isso irá substituir todos os dados atuais. Continuar?')) onImport(file);
+          if (file) onImport(file);
           e.target.value = '';
         }} />
       </div>
@@ -722,7 +722,7 @@ export function ProjectSidebar({
             { label: 'Membros', onClick: () => setProjectMembersModal(contextMenu.projectId) },
             { label: 'Duplicar', onClick: () => setDuplicateDialog(contextMenu.projectId) },
             { label: 'Mudar cor', onClick: () => setColorPicker({ projectId: contextMenu.projectId, x: contextMenu.x, y: contextMenu.y }) },
-            { label: 'Excluir', danger: true, onClick: () => { if (window.confirm('Excluir este cliente e todas as suas tarefas?')) onDeleteProject(contextMenu.projectId); } },
+            { label: 'Excluir', danger: true, onClick: () => { onDeleteProject(contextMenu.projectId); } },
           ]}
         />
       )}
@@ -748,11 +748,7 @@ export function ProjectSidebar({
               label: 'Excluir',
               danger: true,
               onClick: () => {
-                const section = allSections.find(s => s.id === sectionContextMenu.sectionId);
-                const name = section?.title || 'esta seção';
-                if (window.confirm(`Excluir seção "${name}" e todas suas tarefas?`)) {
-                  onDeleteSection?.(sectionContextMenu.sectionId);
-                }
+                onDeleteSection?.(sectionContextMenu.sectionId);
               },
             },
           ]}

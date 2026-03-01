@@ -96,7 +96,7 @@ export function ServiceTagsManager({ tags, onAdd, onRename, onChangeIcon, onDele
                   <Pencil className="w-3 h-3" />
                 </button>
                 <button
-                  onClick={() => { if (window.confirm(`Remover "${tag.name}"?`)) onDelete(tag.id); }}
+                  onClick={() => { onDelete(tag.id); }}
                   className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
                 >
                   <Trash2 className="w-3 h-3" />

@@ -109,9 +109,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       label: 'Excluir subtarefa',
       danger: true,
       onClick: () => {
-        if (window.confirm(`Excluir "${subtask.name}"?`)) {
-          onDeleteSubtask?.(parentTaskId, subtask.id);
-        }
+        onDeleteSubtask?.(parentTaskId, subtask.id);
       },
     },
   ];

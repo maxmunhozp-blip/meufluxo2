@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useConfirmAction } from './ConfirmAction';
 import { CalendarPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ export function GenerateMonthlyTasksButton({
   onTasksGenerated,
 }: GenerateMonthlyTasksButtonProps) {
   const [generating, setGenerating] = useState(false);
+  const [confirmDialog, confirm] = useConfirmAction();
 
   const handleGenerate = useCallback(async () => {
     if (!projectId || !workspaceId) {
@@ -56,7 +58,10 @@ export function GenerateMonthlyTasksButton({
 
       // Check if already generated
       if (existingInstances && existingInstances.length > 0) {
-        const confirmed = window.confirm(`${monthName} ${yearStr} já foi gerado. Gerar novamente? (As tarefas anteriores não serão removidas)`);
+        const confirmed = await confirm(
+          'Gerar novamente?',
+          `${monthName} ${yearStr} já foi gerado. As tarefas anteriores não serão removidas.`
+        );
         if (!confirmed) return;
         // Delete old instances
         await supabase
@@ -171,26 +176,29 @@ export function GenerateMonthlyTasksButton({
   }, [projectId, workspaceId, activeMonth, onTasksGenerated]);
 
   return (
-    <button
-      onClick={handleGenerate}
-      disabled={generating}
-      className="flex items-center gap-2"
-      style={{
-        padding: '8px 16px',
-        borderRadius: 8,
-        border: '1px solid var(--accent-blue)',
-        color: 'var(--accent-blue)',
-        background: 'transparent',
-        fontSize: 14,
-        fontWeight: 500,
-        opacity: generating ? 0.6 : 1,
-        transition: 'all 150ms ease-out',
-      }}
-      onMouseEnter={e => { if (!generating) e.currentTarget.style.background = 'var(--accent-subtle)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-    >
-      <CalendarPlus className="w-4 h-4" />
-      {generating ? 'Gerando...' : 'Gerar Mês'}
-    </button>
+    <>
+      {confirmDialog}
+      <button
+        onClick={handleGenerate}
+        disabled={generating}
+        className="flex items-center gap-2"
+        style={{
+          padding: '8px 16px',
+          borderRadius: 8,
+          border: '1px solid var(--accent-blue)',
+          color: 'var(--accent-blue)',
+          background: 'transparent',
+          fontSize: 14,
+          fontWeight: 500,
+          opacity: generating ? 0.6 : 1,
+          transition: 'all 150ms ease-out',
+        }}
+        onMouseEnter={e => { if (!generating) e.currentTarget.style.background = 'var(--accent-subtle)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        <CalendarPlus className="w-4 h-4" />
+        {generating ? 'Gerando...' : 'Gerar Mês'}
+      </button>
+    </>
   );
 }

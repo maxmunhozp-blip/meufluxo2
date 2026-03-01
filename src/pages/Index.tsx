@@ -701,8 +701,7 @@ const Index = () => {
 
       if ((e.key === 'Delete' || e.key === 'Backspace') && focusedTaskId) {
         e.preventDefault();
-        const task = taskList.find(t => t.id === focusedTaskId);
-        if (task && window.confirm(`Deletar "${task.name || 'tarefa sem nome'}"?`)) handleDeleteTask(focusedTaskId);
+        handleDeleteTask(focusedTaskId);
         return;
       }
 
