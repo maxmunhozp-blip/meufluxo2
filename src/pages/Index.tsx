@@ -65,7 +65,7 @@ const Index = () => {
     duplicateProject,
     uploadAttachment, deleteAttachment,
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
-    planLimits, showUpgradeModal, setShowUpgradeModal,
+    planLimits, showUpgradeModal, setShowUpgradeModal, autoTagTask,
   } = useSupabaseData();
 
   const { preference, cycleTheme } = useTheme();
@@ -383,9 +383,13 @@ const Index = () => {
         section: sectionId,
         projectId: activeProjectId,
         displayMonth: activeMonthKey,
-      });
+       });
       setFocusedTaskId(newId);
       setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
+
+      // AI auto-tag: fire-and-forget (non-blocking)
+      autoTagTask(newId, name, sectionId);
+
       pushUndo({
         label: 'Criar tarefa',
         undo: () => { deleteTaskFn(newId); },
@@ -400,7 +404,7 @@ const Index = () => {
     } finally {
       setCreatingSectionId(null);
     }
-  }, [activeProjectId, activeMonthKey, projects, createTask, deleteTaskFn, pushUndo]);
+  }, [activeProjectId, activeMonthKey, projects, createTask, deleteTaskFn, pushUndo, autoTagTask]);
 
   const createNewTask = useCallback(() => {
     let sectionId: string | undefined;
@@ -707,6 +711,9 @@ const Index = () => {
         return t;
       }));
       setFadingOutTaskId(null);
+
+      // AI auto-tag based on new section context
+      autoTagTask(taskId, taskName, targetSectionId);
 
       const message = task?.parentTaskId
         ? `Subtarefa convertida e movida para ${targetSection.title}`
@@ -1346,12 +1353,17 @@ const Index = () => {
                       const t = taskList.find(t => t.id === taskId);
                       if (!t) return;
                       const originalSection = t.section;
+                      const originalServiceTagId = t.serviceTagId;
                       const targetSectionObj = sectionList.find(s => s.id === sectionId);
                       updateTask({ ...t, section: sectionId });
+
+                      // AI auto-tag based on new section context
+                      autoTagTask(taskId, t.name, sectionId);
+
                       toast({
                         title: `Movida para ${targetSectionObj?.title || 'seção'}`,
                         duration: 5000,
-                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection })}>Desfazer</ToastAction>,
+                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection, serviceTagId: originalServiceTagId })}>Desfazer</ToastAction>,
                       });
                     }}
                     onMoveToMonth={async (taskId, year, month) => {

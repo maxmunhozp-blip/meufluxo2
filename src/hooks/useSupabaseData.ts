@@ -95,6 +95,7 @@ interface UseSupabaseDataReturn {
   };
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
+  autoTagTask: (taskId: string, taskName: string, sectionId: string) => Promise<void>;
 }
 
 function mapDbProject(row: any): Project {
@@ -1371,6 +1372,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     setTasksState(prev => prev.map(t => t.serviceTagId === id ? { ...t, serviceTagId: undefined } : t));
   }, []);
 
+  const autoTagTask = useAutoTagTask(serviceTagsState, sectionsState, setTasksState);
+
   return {
     projects: projectsState,
     sections: sectionsState,
@@ -1432,5 +1435,55 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     planLimits,
     showUpgradeModal,
     setShowUpgradeModal,
+    autoTagTask,
   };
+}
+
+/**
+ * Fire-and-forget: calls AI to suggest a service tag for a task based on context.
+ * Updates the task in DB and local state if a match is found.
+ * Gracefully fails silently — never blocks the user.
+ */
+function useAutoTagTask(
+  serviceTagsState: ServiceTag[],
+  sectionsState: Section[],
+  setTasksState: React.Dispatch<React.SetStateAction<Task[]>>,
+) {
+  return useCallback(async (taskId: string, taskName: string, sectionId: string) => {
+    try {
+      if (serviceTagsState.length === 0) return;
+
+      const section = sectionsState.find(s => s.id === sectionId);
+      const sectionName = section?.title || '';
+
+      const { data, error } = await supabase.functions.invoke('auto-service-tag', {
+        body: {
+          taskName,
+          sectionName,
+          serviceTags: serviceTagsState.map(t => ({ id: t.id, name: t.name })),
+        },
+      });
+
+      if (error || !data?.serviceTagId) return;
+
+      // Update DB
+      await supabase.from('tasks').update({ service_tag_id: data.serviceTagId }).eq('id', taskId);
+
+      // Update local state
+      setTasksState(prev => prev.map(t => {
+        if (t.id === taskId) return { ...t, serviceTagId: data.serviceTagId };
+        // Also check subtasks
+        if (t.subtasks?.some(s => s.id === taskId)) {
+          return {
+            ...t,
+            subtasks: t.subtasks.map(s => s.id === taskId ? { ...s, serviceTagId: data.serviceTagId } : s),
+          };
+        }
+        return t;
+      }));
+    } catch (e) {
+      // Silent fail — auto-tag is a convenience, not critical
+      console.warn('Auto-tag failed:', e);
+    }
+  }, [serviceTagsState, sectionsState, setTasksState]);
 }
