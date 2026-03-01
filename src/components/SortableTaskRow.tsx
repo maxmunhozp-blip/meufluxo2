@@ -32,6 +32,7 @@ interface SortableTaskRowProps {
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertSubtaskToTask?: (subtaskId: string) => void;
+  onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   isFadingOut?: boolean;
 }
 
@@ -209,7 +210,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, isFadingOut }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -254,6 +255,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   const [renameValue, setRenameValue] = useState(task.name);
   const renameRef = useRef<HTMLInputElement>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [nestDropHighlight, setNestDropHighlight] = useState(false);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     attributes,
@@ -308,15 +310,35 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             handleNativeDragStart(e);
           }}
           onDragEnd={handleNativeDragEnd}
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes('application/x-task-id')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            setNestDropHighlight(true);
+          }}
+          onDragLeave={(e) => {
+            if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+            setNestDropHighlight(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setNestDropHighlight(false);
+            const draggedId = e.dataTransfer.getData('application/x-task-id');
+            if (!draggedId || draggedId === task.id) return;
+            onNestAsSubtask?.(draggedId, task.id);
+          }}
           style={{
             minHeight: 40,
             opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
-            background: isSelected ? 'var(--bg-active)' : undefined,
+            background: nestDropHighlight ? 'var(--bg-active)' : isSelected ? 'var(--bg-active)' : undefined,
             borderRadius: 6,
             transition: 'all 150ms ease-out',
+            outline: nestDropHighlight ? '2px solid hsl(var(--primary) / 0.5)' : undefined,
           }}
-          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+          onMouseEnter={e => { if (!isSelected && !nestDropHighlight) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+          onMouseLeave={e => { if (!isSelected && !nestDropHighlight) e.currentTarget.style.background = 'transparent'; }}
           
           onClick={() => {
             if (isRenaming) return;

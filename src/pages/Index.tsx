@@ -1477,6 +1477,116 @@ const Index = () => {
                         }}>Desfazer</ToastAction>,
                       });
                     }}
+                    onNestAsSubtask={async (draggedTaskId, targetTaskId) => {
+                      // Prevent nesting a task into itself
+                      if (draggedTaskId === targetTaskId) return;
+                      // Find the dragged task/subtask
+                      let dragged: Task | Subtask | undefined = taskList.find(t => t.id === draggedTaskId);
+                      let draggedParentId: string | undefined;
+                      if (!dragged) {
+                        for (const parent of taskList) {
+                          const sub = (parent.subtasks || []).find(s => s.id === draggedTaskId);
+                          if (sub) {
+                            dragged = sub;
+                            draggedParentId = parent.id;
+                            break;
+                          }
+                        }
+                      }
+                      if (!dragged) return;
+
+                      // Prevent nesting target task into its own subtask
+                      const targetTask = taskList.find(t => t.id === targetTaskId);
+                      if (targetTask?.parentTaskId === draggedTaskId) return;
+
+                      const originalParentId = dragged.parentTaskId;
+                      const originalSection = dragged.section;
+
+                      // Update in DB: set parent_task_id, match section/project of target
+                      const target = taskList.find(t => t.id === targetTaskId);
+                      if (!target) return;
+
+                      try {
+                        await supabase.from('tasks').update({
+                          parent_task_id: targetTaskId,
+                          section_id: target.section,
+                          project_id: target.projectId,
+                        }).eq('id', draggedTaskId);
+
+                        setTasks(prev => {
+                          let updated = prev;
+                          // Remove from old parent's subtasks if it was a subtask
+                          if (originalParentId) {
+                            updated = updated.map(t =>
+                              t.id === originalParentId
+                                ? { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== draggedTaskId) }
+                                : t
+                            );
+                          }
+                          // Remove from top-level if it was a top-level task
+                          updated = updated.filter(t => t.id !== draggedTaskId);
+                          // Add as subtask of target
+                          const newSub: Subtask = {
+                            id: dragged!.id,
+                            name: dragged!.name,
+                            status: dragged!.status,
+                            priority: dragged!.priority,
+                            description: dragged!.description,
+                            dueDate: dragged!.dueDate,
+                            scheduledDate: dragged!.scheduledDate,
+                            section: target.section,
+                            projectId: target.projectId,
+                            parentTaskId: targetTaskId,
+                            subtasks: (dragged as Task).subtasks,
+                          };
+                          return updated.map(t =>
+                            t.id === targetTaskId
+                              ? { ...t, subtasks: [...(t.subtasks || []), newSub] }
+                              : t
+                          );
+                        });
+
+                        const targetName = target.name;
+                        sonnerToast.success(`Movida como subtarefa de "${targetName}"`, {
+                          duration: 5000,
+                          action: {
+                            label: 'Desfazer',
+                            onClick: async () => {
+                              await supabase.from('tasks').update({
+                                parent_task_id: originalParentId || null,
+                                section_id: originalSection,
+                                project_id: dragged!.projectId,
+                              }).eq('id', draggedTaskId);
+                              // Restore state by refetching
+                              setTasks(prev => {
+                                // Remove from target's subtasks
+                                let restored = prev.map(t =>
+                                  t.id === targetTaskId
+                                    ? { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== draggedTaskId) }
+                                    : t
+                                );
+                                if (originalParentId) {
+                                  // Add back as subtask of original parent
+                                  const sub: Subtask = { id: draggedTaskId, name: dragged!.name, status: dragged!.status, priority: dragged!.priority, description: dragged!.description, dueDate: dragged!.dueDate, scheduledDate: dragged!.scheduledDate, section: originalSection, projectId: dragged!.projectId, parentTaskId: originalParentId };
+                                  restored = restored.map(t =>
+                                    t.id === originalParentId
+                                      ? { ...t, subtasks: [...(t.subtasks || []), sub] }
+                                      : t
+                                  );
+                                } else {
+                                  // Add back as top-level task
+                                  restored = [...restored, { ...dragged!, parentTaskId: undefined } as Task];
+                                }
+                                return restored;
+                              });
+                            },
+                          },
+                        });
+                      } catch (err) {
+                        console.error('Failed to nest task', err);
+                        sonnerToast.error('Erro ao mover tarefa');
+                      }
+                    }}
                     onMoveSectionToMonth={async (sectionId, year, month) => {
                       const newMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
                       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
