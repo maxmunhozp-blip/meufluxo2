@@ -306,11 +306,16 @@ const Landing = () => {
         <div className="mf-bounce" style={{ position: "absolute", bottom: 32, color: C.mutedL, fontSize: 24 }}>↓</div>
       </section>
 
-      {/* INTRO — 2ª dobra: autoridade com termos-chave */}
-      <section style={{ padding: "80px 24px", background: C.white, textAlign: "center" }}>
-        <RevealGroup style={{ maxWidth: 700, margin: "0 auto" }}>
-          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>Ferramentas de produtividade são projetadas para cérebros neurotípicos. Se você tem TDAH ou TEA, elas não foram feitas pra você.</p>
-          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.6 }}>O MeuFluxo foi. E temos a pesquisa pra provar.</p>
+      {/* INTRO — 2ª dobra: acolhimento + autoridade */}
+      <section style={{ padding: "100px 24px", background: C.white, textAlign: "center" }}>
+        <RevealGroup style={{ maxWidth: 740, margin: "0 auto" }}>
+          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>
+            Ferramentas de produtividade <em style={{ fontStyle: "normal", color: C.accent }}>tradicionais</em> foram projetadas para cérebros neurotípicos.<br />Se você tem TDAH ou TEA, elas <strong style={{ fontWeight: 700 }}>não</strong> foram feitas pra você.
+          </p>
+          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 24, lineHeight: 1.7, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            Não é falta de disciplina. Não é preguiça. A ciência mostra que seu cérebro processa informação de forma diferente — e precisa de ferramentas que respeitem isso.
+          </p>
+          <p className="mf-r" style={{ fontSize: 15, color: C.text, marginTop: 20, fontWeight: 500, lineHeight: 1.6 }}>O MeuFluxo foi construído para como o <em style={{ fontStyle: "italic" }}>seu</em> cérebro funciona.<br /><span style={{ color: C.muted, fontWeight: 400, fontSize: 14 }}>E temos a pesquisa pra provar.</span></p>
         </RevealGroup>
       </section>
 
