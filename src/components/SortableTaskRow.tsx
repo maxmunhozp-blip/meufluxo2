@@ -410,12 +410,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 />
               ) : (
                 <>
-                  {task.scheduledDate && (
-                    <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
-                  )}
                   <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
                     {task.name}
                   </span>
+                  {task.scheduledDate && (
+                    <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+                  )}
                 </>
               )}
               {/* Subtask counter — right after title, show total only */}
