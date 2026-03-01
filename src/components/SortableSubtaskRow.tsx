@@ -200,7 +200,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
                     const [y, m, d] = subtask.scheduledDate!.split('-');
                     const date = new Date(Number(y), Number(m) - 1, Number(d));
                     const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-                    return `${d}/${m} ${days[date.getDay()]}`;
+                    return <>{d}/{m} <span style={{ color: '#D97706', fontWeight: 600 }}>{days[date.getDay()]}</span></>;
                   })()}
                 </TooltipContent>
               </Tooltip>
