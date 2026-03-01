@@ -568,15 +568,13 @@ export default function Landing() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="py-12 px-6" style={{ borderTop: `1px solid ${C.border}` }}>
+      <footer className="py-12 px-6" style={{ borderTop: `1px solid ${C.border}`, background: C.bgWhite }}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-sm font-semibold" style={{ color: C.text }}>MeuFluxo</span>
-          <p className="text-xs" style={{ color: C.textMuted }}>
-            © {new Date().getFullYear()} MeuFluxo. Feito com cuidado para mentes que pensam diferente.
-          </p>
+          <span className="text-sm font-bold" style={{ color: C.text }}>MeuFluxo</span>
           <div className="flex items-center gap-6">
             {[
               { label: 'Funcionalidades', id: 'features' },
+              { label: 'A Ciência', id: 'science' },
               { label: 'Planos', id: 'pricing' },
               { label: 'FAQ', id: 'faq' },
             ].map(n => (
@@ -584,8 +582,10 @@ export default function Landing() {
                 {n.label}
               </button>
             ))}
-            <button onClick={() => navigate('/auth')} className="text-xs transition-colors hover:opacity-80" style={{ color: C.textSub }}>Entrar</button>
           </div>
+          <p className="text-xs" style={{ color: C.textMuted }}>
+            © {new Date().getFullYear()} MeuFluxo. Feito com propósito.
+          </p>
         </div>
       </footer>
     </div>
