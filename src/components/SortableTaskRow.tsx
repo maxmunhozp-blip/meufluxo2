@@ -413,33 +413,32 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   <span className={`text-[14px] truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
                     {task.name}
                   </span>
+                  {hasSubtasks && (() => {
+                    const subs = task.subtasks!;
+                    const doneCount = subs.filter(s => s.status === 'done').length;
+                    const total = subs.length;
+                    const allDone = doneCount === total;
+                    return (
+                      <span
+                        className="flex-shrink-0 tabular-nums"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 400,
+                          color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
+                          opacity: 0.7,
+                          letterSpacing: '0.01em',
+                        }}
+                        title={`${doneCount} de ${total} subtarefas concluídas`}
+                      >
+                        {allDone ? '✓' : total}
+                      </span>
+                    );
+                  })()}
                   {task.scheduledDate && (
                     <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
                   )}
                 </div>
               )}
-              {/* Subtask counter — right after title, show total only */}
-              {hasSubtasks && (() => {
-                const subs = task.subtasks!;
-                const doneCount = subs.filter(s => s.status === 'done').length;
-                const total = subs.length;
-                const allDone = doneCount === total;
-                return (
-                  <span
-                    className="flex-shrink-0 tabular-nums"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 400,
-                      color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
-                      opacity: 0.7,
-                      letterSpacing: '0.01em',
-                    }}
-                    title={`${doneCount} de ${total} subtarefas concluídas`}
-                  >
-                    {allDone ? '✓' : total}
-                  </span>
-                );
-              })()}
               {task.recurrenceType && (
                 <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
               )}
