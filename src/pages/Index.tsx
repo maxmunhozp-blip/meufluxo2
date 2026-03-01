@@ -869,7 +869,7 @@ const Index = () => {
     if (pointerCollisions.length > 0) {
       const preferred = pointerCollisions.filter(c => {
         const data = c.data?.droppableContainer?.data?.current;
-        return data?.type === 'section-drop' || data?.type === 'task';
+        return data?.type === 'section-drop' || data?.type === 'task' || data?.type === 'section-end';
       });
       if (preferred.length > 0) return preferred;
       return pointerCollisions;
@@ -892,7 +892,7 @@ const Index = () => {
       setTaskDropPosition(null);
       return;
     }
-    if (over.data.current?.type === 'section-drop') {
+    if (over.data.current?.type === 'section-drop' || over.data.current?.type === 'section-end') {
       setDragOverSectionId(over.data.current.sectionId);
       setOverTaskDragId(null);
       setTaskDropPosition(null);
@@ -947,7 +947,7 @@ const Index = () => {
     if (activeData?.type === 'task') {
       const activeTask = activeData.task as Task;
       let targetSectionId = activeTask.section;
-      if (overData?.type === 'section-drop') targetSectionId = overData.sectionId;
+      if (overData?.type === 'section-drop' || overData?.type === 'section-end') targetSectionId = overData.sectionId;
       else if (overData?.type === 'task') targetSectionId = (overData.task as Task).section;
 
       setTasks(prev => {

@@ -10,6 +10,21 @@ import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
 import { ContextMenu } from './ContextMenu';
 
+// Invisible drop zone at the end of a section's task list
+function SectionEndDropZone({ sectionId }: { sectionId: string }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `section-end-${sectionId}`,
+    data: { type: 'section-end', sectionId },
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className="h-2 -mt-1 transition-colors"
+      style={{ background: isOver ? 'hsl(var(--primary) / 0.15)' : 'transparent' }}
+    />
+  );
+}
+
 interface TaskSectionProps {
   section: Section;
   tasks: Task[];
@@ -346,6 +361,7 @@ export function TaskSection({
               />
             ))}
           </SortableContext>
+          <SectionEndDropZone sectionId={section.id} />
           {tasks.length === 0 && (
             <div className="h-9 px-6 flex items-center justify-center">
               <span className="text-[13px] text-nd-text-muted">Nenhuma tarefa aqui ainda</span>
