@@ -3,6 +3,23 @@ import { X, Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Package } fro
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceTag } from '@/types/task';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TemplateTask {
   title: string;
@@ -19,6 +36,195 @@ interface TemplateSection {
   tasks_template: TemplateTask[];
 }
 
+/* ── Sortable Task Row ── */
+function SortableTemplateTask({
+  task,
+  sectionIndex,
+  taskIndex,
+  serviceTags,
+  onUpdate,
+  onDelete,
+}: {
+  task: TemplateTask;
+  sectionIndex: number;
+  taskIndex: number;
+  serviceTags: ServiceTag[];
+  onUpdate: (sIdx: number, tIdx: number, field: keyof TemplateTask, value: any) => void;
+  onDelete: (sIdx: number, tIdx: number) => void;
+}) {
+  const id = `task-${sectionIndex}-${taskIndex}`;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    paddingLeft: 8,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2 group">
+      <button {...attributes} {...listeners} className="w-5 h-5 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing touch-none">
+        <GripVertical className="w-3 h-3" style={{ color: 'var(--text-placeholder)' }} />
+      </button>
+      <input
+        value={task.title}
+        onChange={e => onUpdate(sectionIndex, taskIndex, 'title', e.target.value)}
+        placeholder="Título da tarefa"
+        className="flex-1 bg-transparent text-[13px] outline-none"
+        style={{ color: 'var(--text-primary)', height: 32 }}
+      />
+      <select
+        value={task.tipo_trabalho}
+        onChange={e => onUpdate(sectionIndex, taskIndex, 'tipo_trabalho', e.target.value)}
+        className="text-[12px] rounded px-2 py-1 outline-none max-w-[140px]"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+      >
+        <option value="">Tipo de trabalho</option>
+        {serviceTags.map(tag => (
+          <option key={tag.id} value={tag.id}>{tag.name}</option>
+        ))}
+      </select>
+      <button
+        onClick={() => onDelete(sectionIndex, taskIndex)}
+        className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100"
+        style={{ color: 'var(--text-secondary)', transition: 'opacity 150ms ease-out' }}
+      >
+        <Trash2 className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
+/* ── Sortable Section ── */
+function SortableTemplateSection({
+  section,
+  sIdx,
+  expanded,
+  serviceTags,
+  onToggle,
+  onUpdateSection,
+  onDeleteSection,
+  onUpdateTask,
+  onDeleteTask,
+  onAddTask,
+  onReorderTasks,
+}: {
+  section: TemplateSection;
+  sIdx: number;
+  expanded: boolean;
+  serviceTags: ServiceTag[];
+  onToggle: (i: number) => void;
+  onUpdateSection: (i: number, field: keyof TemplateSection, value: any) => void;
+  onDeleteSection: (i: number) => void;
+  onUpdateTask: (sIdx: number, tIdx: number, field: keyof TemplateTask, value: any) => void;
+  onDeleteTask: (sIdx: number, tIdx: number) => void;
+  onAddTask: (sIdx: number) => void;
+  onReorderTasks: (sIdx: number, oldIndex: number, newIndex: number) => void;
+}) {
+  const id = `section-${sIdx}`;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const taskSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const taskIds = section.tasks_template.map((_, i) => `task-${sIdx}-${i}`);
+
+  const handleTaskDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = taskIds.indexOf(active.id as string);
+    const newIndex = taskIds.indexOf(over.id as string);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      onReorderTasks(sIdx, oldIndex, newIndex);
+    }
+  };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+      className="rounded-lg overflow-hidden"
+    >
+      {/* Section Header */}
+      <div className="flex items-center gap-2 px-3 h-11" style={{ borderBottom: expanded ? '1px solid var(--border-subtle)' : 'none' }}>
+        <button {...attributes} {...listeners} className="w-5 h-5 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing touch-none">
+          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
+        </button>
+        <button onClick={() => onToggle(sIdx)} className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+          {expanded
+            ? <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+            : <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+          }
+        </button>
+        <input
+          value={section.name}
+          onChange={e => onUpdateSection(sIdx, 'name', e.target.value)}
+          placeholder="Nome da seção (ex: Redes Sociais)"
+          className="flex-1 bg-transparent text-[14px] font-medium outline-none"
+          style={{ color: 'var(--text-primary)' }}
+        />
+        <select
+          value={section.recurrence}
+          onChange={e => onUpdateSection(sIdx, 'recurrence', e.target.value)}
+          className="text-[12px] rounded px-2 py-1 outline-none"
+          style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+        >
+          <option value="monthly">Mensal</option>
+          <option value="biweekly">Quinzenal</option>
+          <option value="weekly">Semanal</option>
+        </select>
+        <span className="text-[12px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>
+          {section.tasks_template.length}
+        </span>
+        <button
+          onClick={() => onDeleteSection(sIdx)}
+          className="w-7 h-7 flex items-center justify-center rounded"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Section Tasks */}
+      {expanded && (
+        <div className="px-3 py-2" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <DndContext sensors={taskSensors} collisionDetection={closestCenter} onDragEnd={handleTaskDragEnd}>
+            <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+              {section.tasks_template.map((task, tIdx) => (
+                <SortableTemplateTask
+                  key={`task-${sIdx}-${tIdx}`}
+                  task={task}
+                  sectionIndex={sIdx}
+                  taskIndex={tIdx}
+                  serviceTags={serviceTags}
+                  onUpdate={onUpdateTask}
+                  onDelete={onDeleteTask}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+          <button
+            onClick={() => onAddTask(sIdx)}
+            className="flex items-center gap-1.5 text-[12px] px-2 py-1.5 rounded"
+            style={{ color: 'var(--accent-blue)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-blue-muted)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Plus className="w-3 h-3" />
+            Adicionar tarefa
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Modal ── */
 interface DeliveryTemplateModalProps {
   projectId: string;
   workspaceId: string;
@@ -39,7 +245,9 @@ export function DeliveryTemplateModal({
   const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({});
 
-  // Load existing templates
+  const sectionSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sectionIds = templates.map((_, i) => `section-${i}`);
+
   useEffect(() => {
     const load = async () => {
       const { data, error } = await supabase
@@ -98,11 +306,7 @@ export function DeliveryTemplateModal({
       if (i !== sectionIndex) return t;
       return {
         ...t,
-        tasks_template: [...t.tasks_template, {
-          title: '',
-          tipo_trabalho: '',
-          position: t.tasks_template.length,
-        }],
+        tasks_template: [...t.tasks_template, { title: '', tipo_trabalho: '', position: t.tasks_template.length }],
       };
     }));
   };
@@ -122,15 +326,37 @@ export function DeliveryTemplateModal({
   const deleteTask = (sectionIndex: number, taskIndex: number) => {
     setTemplates(prev => prev.map((t, i) => {
       if (i !== sectionIndex) return t;
-      return {
-        ...t,
-        tasks_template: t.tasks_template.filter((_, j) => j !== taskIndex),
-      };
+      return { ...t, tasks_template: t.tasks_template.filter((_, j) => j !== taskIndex) };
+    }));
+  };
+
+  const reorderTasks = (sectionIndex: number, oldIndex: number, newIndex: number) => {
+    setTemplates(prev => prev.map((t, i) => {
+      if (i !== sectionIndex) return t;
+      return { ...t, tasks_template: arrayMove(t.tasks_template, oldIndex, newIndex) };
     }));
   };
 
   const toggleSection = (index: number) => {
     setExpandedSections(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const handleSectionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sectionIds.indexOf(active.id as string);
+    const newIndex = sectionIds.indexOf(over.id as string);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      setTemplates(prev => arrayMove(prev, oldIndex, newIndex));
+      // Remap expanded state
+      setExpandedSections(prev => {
+        const keys = Object.keys(prev).map(Number);
+        const reordered = arrayMove(keys.map(k => prev[k]), oldIndex, newIndex);
+        const next: Record<number, boolean> = {};
+        reordered.forEach((v, i) => { next[i] = v; });
+        return next;
+      });
+    }
   };
 
   const handleSave = useCallback(async () => {
@@ -149,10 +375,7 @@ export function DeliveryTemplateModal({
           position: i,
           recurrence: t.recurrence,
           is_active: t.is_active,
-          tasks_template: t.tasks_template.map((task, j) => ({
-            ...task,
-            position: j,
-          })),
+          tasks_template: t.tasks_template.map((task, j) => ({ ...task, position: j })),
         }));
 
         const { error } = await supabase
@@ -176,8 +399,12 @@ export function DeliveryTemplateModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
       <div className="absolute inset-0" style={{ background: 'var(--overlay-bg)' }} onClick={onClose} />
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl overflow-hidden"
-        style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}
+        className="relative w-full max-w-2xl flex flex-col rounded-xl overflow-hidden"
+        style={{
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
+          maxHeight: 'min(90vh, 100dvh - 32px)',
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 h-14 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
@@ -193,112 +420,36 @@ export function DeliveryTemplateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4" style={{ gap: 16, display: 'flex', flexDirection: 'column' }}>
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain p-4"
+          style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 0 }}
+        >
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Carregando...</p>
             </div>
           ) : (
             <>
-              {templates.map((section, sIdx) => (
-                <div
-                  key={sIdx}
-                  className="rounded-lg overflow-hidden"
-                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-                >
-                  {/* Section Header */}
-                  <div className="flex items-center gap-2 px-3 h-11" style={{ borderBottom: expandedSections[sIdx] ? '1px solid var(--border-subtle)' : 'none' }}>
-                    <button
-                      onClick={() => toggleSection(sIdx)}
-                      className="w-5 h-5 flex items-center justify-center flex-shrink-0"
-                    >
-                      {expandedSections[sIdx]
-                        ? <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
-                        : <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
-                      }
-                    </button>
-                    <input
-                      value={section.name}
-                      onChange={e => updateSection(sIdx, 'name', e.target.value)}
-                      placeholder="Nome da seção (ex: Redes Sociais)"
-                      className="flex-1 bg-transparent text-[14px] font-medium outline-none"
-                      style={{ color: 'var(--text-primary)' }}
+              <DndContext sensors={sectionSensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+                <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
+                  {templates.map((section, sIdx) => (
+                    <SortableTemplateSection
+                      key={`section-${sIdx}`}
+                      section={section}
+                      sIdx={sIdx}
+                      expanded={!!expandedSections[sIdx]}
+                      serviceTags={serviceTags}
+                      onToggle={toggleSection}
+                      onUpdateSection={updateSection}
+                      onDeleteSection={deleteSection}
+                      onUpdateTask={updateTask}
+                      onDeleteTask={deleteTask}
+                      onAddTask={addTask}
+                      onReorderTasks={reorderTasks}
                     />
-                    <select
-                      value={section.recurrence}
-                      onChange={e => updateSection(sIdx, 'recurrence', e.target.value)}
-                      className="text-[12px] rounded px-2 py-1 outline-none"
-                      style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-                    >
-                      <option value="monthly">Mensal</option>
-                      <option value="biweekly">Quinzenal</option>
-                      <option value="weekly">Semanal</option>
-                    </select>
-                    <span className="text-[12px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>
-                      {section.tasks_template.length}
-                    </span>
-                    <button
-                      onClick={() => deleteSection(sIdx)}
-                      className="w-7 h-7 flex items-center justify-center rounded"
-                      style={{ color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--warning-muted))'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Section Tasks */}
-                  {expandedSections[sIdx] && (
-                    <div className="px-3 py-2" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {section.tasks_template.map((task, tIdx) => (
-                        <div
-                          key={tIdx}
-                          className="flex items-center gap-2 group"
-                          style={{ paddingLeft: 8 }}
-                        >
-                          <GripVertical className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100" style={{ color: 'var(--text-placeholder)', transition: 'opacity 150ms ease-out' }} />
-                          <input
-                            value={task.title}
-                            onChange={e => updateTask(sIdx, tIdx, 'title', e.target.value)}
-                            placeholder="Título da tarefa"
-                            className="flex-1 bg-transparent text-[13px] outline-none"
-                            style={{ color: 'var(--text-primary)', height: 32 }}
-                          />
-                          <select
-                            value={task.tipo_trabalho}
-                            onChange={e => updateTask(sIdx, tIdx, 'tipo_trabalho', e.target.value)}
-                            className="text-[12px] rounded px-2 py-1 outline-none max-w-[140px]"
-                            style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-                          >
-                            <option value="">Tipo de trabalho</option>
-                            {serviceTags.map(tag => (
-                              <option key={tag.id} value={tag.id}>{tag.name}</option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => deleteTask(sIdx, tIdx)}
-                            className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100"
-                            style={{ color: 'var(--text-secondary)', transition: 'opacity 150ms ease-out' }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        onClick={() => addTask(sIdx)}
-                        className="flex items-center gap-1.5 text-[12px] px-2 py-1.5 rounded"
-                        style={{ color: 'var(--accent-blue)' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-blue-muted)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <Plus className="w-3 h-3" />
-                        Adicionar tarefa
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  ))}
+                </SortableContext>
+              </DndContext>
 
               <button
                 onClick={addSection}
@@ -316,11 +467,7 @@ export function DeliveryTemplateModal({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-4 h-14 flex-shrink-0" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-[13px] rounded-lg"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <button onClick={onClose} className="px-4 py-2 text-[13px] rounded-lg" style={{ color: 'var(--text-secondary)' }}>
             Cancelar
           </button>
           <button
