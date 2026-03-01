@@ -302,12 +302,16 @@ const Index = () => {
     const prev = taskList.find(t => t.id === updated.id);
     updateTask(updated);
     if (prev) {
+      // If name changed, re-evaluate service tag via AI
+      if (prev.name !== updated.name) {
+        autoTagTask(updated.id, updated.name, updated.section);
+      }
       pushUndo({
         label: 'Edição de tarefa',
         undo: () => updateTask(prev),
       });
     }
-  }, [updateTask, taskList, pushUndo]);
+  }, [updateTask, taskList, pushUndo, autoTagTask]);
 
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
@@ -1339,7 +1343,10 @@ const Index = () => {
                     onReorderSubtasks={(taskId, subtaskIds) => { reorderSubtasks(taskId, subtaskIds); }}
                     onRenameTask={(taskId, name) => {
                       const t = taskList.find(t => t.id === taskId);
-                      if (t) updateTask({ ...t, name });
+                      if (t) {
+                        updateTask({ ...t, name });
+                        autoTagTask(taskId, name, t.section);
+                      }
                     }}
                     onRenameSubtask={(subtaskId, name) => {
                       updateSubtask(subtaskId, { name });
