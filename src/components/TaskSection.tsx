@@ -268,12 +268,15 @@ export function TaskSection({
               const done = tasks.filter(t => t.status === 'done').length;
               const total = tasks.length;
               const allDone = done === total;
+              const pending = total - done;
               return (
                 <span className="ml-2 flex items-center gap-1.5 flex-shrink-0">
                   {allDone ? (
                     <span style={{ fontSize: 12, color: 'hsl(var(--status-done))' }}>✓</span>
                   ) : (
-                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{done}/{total}</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-placeholder)', letterSpacing: '0.01em' }}>
+                      {pending} {pending === 1 ? 'tarefa' : 'tarefas'}
+                    </span>
                   )}
                 </span>
               );
