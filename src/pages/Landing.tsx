@@ -88,10 +88,6 @@ const FAQ_ITEMS = [
 
 const SCIENCE_ITEMS = [
   {
-    principle: 'Redução de carga cognitiva',
-    detail: 'Interfaces com excesso de elementos visuais aumentam a fadiga decisional em pessoas com TDAH em até 3x (Sweller, 2011). MeuFluxo usa hierarquia visual mínima e espaçamento generoso.',
-  },
-  {
     principle: 'Feedback não-punitivo',
     detail: 'Sistemas de recompensa/punição ativam respostas de ansiedade em cérebros neurodivergentes (Sonuga-Barke, 2005). Substituímos barras de progresso por contadores neutros e tons âmbar em vez de vermelho.',
   },
@@ -100,8 +96,8 @@ const SCIENCE_ITEMS = [
     detail: 'A "paralisia por escolha" é amplificada em TDAH. Limitamos a visão a uma tarefa por vez no Modo Foco, reduzindo a sobrecarga de decisão (Barkley, 2015).',
   },
   {
-    principle: 'Consistência sensorial',
-    detail: 'Variações abruptas de contraste e cor causam desconforto em pessoas no espectro autista (Grandin & Panek, 2013). Nosso dark mode usa pretos quentes e transições suaves de 150ms.',
+    principle: 'Hierarquia visual clara',
+    detail: 'Interfaces com muitos elementos competindo por atenção aumentam a carga cognitiva (Sweller, 1988). Cada tela do MeuFluxo tem um ponto focal primário.',
   },
 ];
 
@@ -423,30 +419,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── SCIENCE ─── */}
-      <section id="science" className="py-24 px-6" style={{ background: C.bgWhite, borderTop: `1px solid ${C.borderLight}` }}>
+      {/* ─── A CIÊNCIA ─── */}
+      <section id="science" className="py-24 px-6" style={{ background: '#F0F4FF', borderTop: `1px solid ${C.borderLight}` }}>
         <div className="max-w-4xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6" style={{ background: C.accentLight, border: `1px solid ${C.border}` }}>
-              <Shield className="w-4 h-4" style={{ color: C.accent }} />
-              <span className="text-xs font-medium" style={{ color: C.textSub }}>Baseado em pesquisa</span>
-            </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
-              A ciência por trás do MeuFluxo
+              Por que funciona.
             </h2>
             <p className="max-w-2xl mx-auto" style={{ color: C.textSub }}>
-              Nosso design é fundamentado em estudos sobre como cérebros neurodivergentes processam informação, tomam decisões e mantêm o foco.
+              Cada decisão de design no MeuFluxo é respaldada por pesquisa sobre como cérebros neurodivergentes processam informação.
             </p>
           </motion.div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {SCIENCE_ITEMS.map((item, i) => (
               <motion.div key={item.principle} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}
-                className="flex gap-4 p-6 rounded-xl" style={{ border: `1px solid ${C.border}`, background: C.bg }}
+                className="flex gap-0 rounded-xl overflow-hidden" style={{ background: C.bgWhite, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
               >
-                <div className="flex-shrink-0 w-1 rounded-full" style={{ background: C.accent }} />
-                <div>
-                  <h4 className="text-sm font-semibold mb-1" style={{ color: C.text }}>{item.principle}</h4>
+                <div className="flex-shrink-0 w-1.5" style={{ background: C.accent }} />
+                <div className="p-6">
+                  <h4 className="text-base font-semibold mb-1.5" style={{ color: C.text }}>{item.principle}</h4>
                   <p className="text-sm leading-relaxed" style={{ color: C.textSub }}>{item.detail}</p>
                 </div>
               </motion.div>
