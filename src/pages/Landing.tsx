@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import appMockup from '@/assets/app-mockup.png';
+import screenshotMeuDia from '@/assets/screenshot-meudia.png';
+import screenshotSemana from '@/assets/screenshot-semana.png';
+import screenshotCliente from '@/assets/screenshot-cliente.png';
+import screenshotFoco from '@/assets/screenshot-foco.png';
+import screenshotTimeline from '@/assets/screenshot-timeline.png';
 import {
   Brain, ArrowRight, ChevronDown, Menu, X, Check,
   CheckCircle, Eye, Clock, ListChecks, Users, Calendar,
