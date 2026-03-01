@@ -402,6 +402,7 @@ export type Database = {
       sections: {
         Row: {
           created_at: string
+          display_month: string
           id: string
           name: string
           position: number
@@ -410,6 +411,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_month?: string
           id?: string
           name: string
           position?: number
@@ -418,6 +420,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_month?: string
           id?: string
           name?: string
           position?: number

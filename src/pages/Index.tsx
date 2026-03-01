@@ -184,20 +184,22 @@ const Index = () => {
   }, [projects, activeProjectId]);
 
   const activeProject = projects.find(p => p.id === activeProjectId);
-  const projectSections = useMemo(
-    () => {
-      const all = sectionList.filter(s => s.projectId === activeProjectId);
-      if (activeSectionId) return all.filter(s => s.id === activeSectionId);
-      return all;
-    },
-    [activeProjectId, sectionList, activeSectionId]
-  );
 
   // Month key for filtering — uses display_month column
   const activeMonthKey = useMemo(() => {
     const d = new Date(activeMonth);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
   }, [activeMonth]);
+
+  const projectSections = useMemo(
+    () => {
+      const all = sectionList.filter(s => s.projectId === activeProjectId);
+      const monthFiltered = all.filter(s => !s.displayMonth || s.displayMonth === activeMonthKey);
+      if (activeSectionId) return monthFiltered.filter(s => s.id === activeSectionId);
+      return monthFiltered;
+    },
+    [activeProjectId, sectionList, activeSectionId, activeMonthKey]
+  );
 
   const allProjectTasks = useMemo(
     () => taskList.filter(t => t.projectId === activeProjectId),
@@ -430,12 +432,12 @@ const Index = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
-      const id = await createSectionFn(trimmed, activeProjectId);
+      const id = await createSectionFn(trimmed, activeProjectId, activeMonthKey);
       setExpandedSections(prev => ({ ...prev, [id]: true }));
     } catch (err) {
       console.error('Erro ao criar seção:', err);
     }
-  }, [activeProjectId, createSectionFn]);
+  }, [activeProjectId, activeMonthKey, createSectionFn]);
 
   const handleRenameSection = useCallback((id: string, title: string) => {
     renameSectionFn(id, title);

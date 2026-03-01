@@ -58,7 +58,7 @@ interface UseSupabaseDataReturn {
   renameProject: (id: string, name: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   changeProjectColor: (id: string, color: string) => Promise<void>;
-  createSection: (title: string, projectId: string) => Promise<string>;
+  createSection: (title: string, projectId: string, displayMonth?: string) => Promise<string>;
   renameSection: (id: string, title: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   deleteSectionFromDb: (id: string) => Promise<void>;
@@ -102,7 +102,7 @@ function mapDbProject(row: any): Project {
 }
 
 function mapDbSection(row: any): Section {
-  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id };
+  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id, displayMonth: row.display_month || undefined };
 }
 
 function mapDbTask(row: any): Task {
@@ -598,7 +598,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   }, []);
 
   // Section operations
-  const createSection = useCallback(async (title: string, projectId: string): Promise<string> => {
+  const createSection = useCallback(async (title: string, projectId: string, displayMonth?: string): Promise<string> => {
     if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const position = sectionsState.filter(s => s.projectId === projectId).length;
     const { data, error } = await supabase.from('sections').insert({ 
@@ -606,6 +606,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       project_id: projectId, 
       position,
       workspace_id: activeWorkspaceId,
+      ...(displayMonth ? { display_month: displayMonth } : {}),
     }).select().single();
     if (error) throw error;
     const section = mapDbSection(data);
