@@ -398,15 +398,21 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           setTasksState(prev => prev.map(t => {
             // Direct child
             if (t.id === row.parent_task_id) {
-              return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
+              const exists = (t.subtasks || []).some(s => s.id === sub.id);
+              if (exists) return t; // Already exists via optimistic update — don't reorder
+              return { ...t, subtasks: [...(t.subtasks || []), sub] };
             }
             // Level 2: child of a subtask
             return {
               ...t,
-              subtasks: (t.subtasks || []).map(s => s.id === row.parent_task_id
-                ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
-                : s
-              ),
+              subtasks: (t.subtasks || []).map(s => {
+                if (s.id === row.parent_task_id) {
+                  const exists = (s.subtasks || []).some(ss => ss.id === sub.id);
+                  if (exists) return s;
+                  return { ...s, subtasks: [...(s.subtasks || []), sub] };
+                }
+                return s;
+              }),
             };
           }));
           return;
