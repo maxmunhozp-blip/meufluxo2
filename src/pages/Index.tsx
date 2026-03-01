@@ -680,16 +680,34 @@ const Index = () => {
 
   // Move task to a specific section (from sidebar section-level drop)
   const handleMoveTaskToSection = useCallback(async (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => {
-    const task = taskList.find(t => t.id === taskId);
-    if (task?.section === targetSectionId) return;
+    // Search top-level first, then nested subtasks
+    let task: Task | undefined = taskList.find(t => t.id === taskId);
+    if (!task) {
+      for (const parent of taskList) {
+        const sub = (parent.subtasks || []).find(s => s.id === taskId);
+        if (sub) {
+          task = {
+            id: sub.id, name: sub.name, status: sub.status,
+            priority: sub.priority || 'low', description: sub.description,
+            dueDate: sub.dueDate, scheduledDate: sub.scheduledDate,
+            section: sub.section || parent.section, projectId: sub.projectId || parent.projectId,
+            parentTaskId: sub.parentTaskId || parent.id, members: sub.members,
+            subtasks: sub.subtasks,
+          };
+          break;
+        }
+      }
+    }
+    if (!task) return;
+    if (task.section === targetSectionId && !task.parentTaskId) return;
 
     const targetSection = sectionList.find(s => s.id === targetSectionId);
     if (!targetSection) return;
 
     const previousState = {
       project_id: sourceProjectId,
-      section_id: task?.section || null,
-      parent_task_id: task?.parentTaskId || null,
+      section_id: task.section || null,
+      parent_task_id: task.parentTaskId || null,
     };
 
     try {
@@ -708,12 +726,25 @@ const Index = () => {
       setFadingOutTaskId(taskId);
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      setTasks(prev => prev.map(t => {
-        if (t.id === taskId || t.parentTaskId === taskId) {
-          return { ...t, projectId: targetProjectId, section: targetSectionId, parentTaskId: t.id === taskId ? undefined : t.parentTaskId };
+      setTasks(prev => {
+        const isSubtask = task?.parentTaskId;
+        if (isSubtask) {
+          // Remove from parent's subtasks and add as independent task
+          const updated = prev.map(t => {
+            if (t.id === task.parentTaskId) {
+              return { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== taskId) };
+            }
+            return t;
+          });
+          return [...updated, { ...task!, projectId: targetProjectId, section: targetSectionId, parentTaskId: undefined }];
         }
-        return t;
-      }));
+        return prev.map(t => {
+          if (t.id === taskId || t.parentTaskId === taskId) {
+            return { ...t, projectId: targetProjectId, section: targetSectionId, parentTaskId: t.id === taskId ? undefined : t.parentTaskId };
+          }
+          return t;
+        });
+      });
       setFadingOutTaskId(null);
 
       // AI auto-tag based on new section context
@@ -733,11 +764,23 @@ const Index = () => {
               if (!task?.parentTaskId) {
                 await supabase.from('tasks').update({ project_id: sourceProjectId, section_id: previousState.section_id }).eq('parent_task_id', taskId);
               }
-              setTasks(prev => prev.map(t => {
-                if (t.id === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section, parentTaskId: previousState.parent_task_id || undefined };
-                if (t.parentTaskId === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section };
-                return t;
-              }));
+              setTasks(prev => {
+                if (previousState.parent_task_id) {
+                  const withoutTask = prev.filter(t => t.id !== taskId);
+                  return withoutTask.map(t => {
+                    if (t.id === previousState.parent_task_id) {
+                      const subtask = { ...task!, projectId: sourceProjectId, section: previousState.section_id || t.section, parentTaskId: previousState.parent_task_id || undefined };
+                      return { ...t, subtasks: [...(t.subtasks || []), subtask] };
+                    }
+                    return t;
+                  });
+                }
+                return prev.map(t => {
+                  if (t.id === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section, parentTaskId: previousState.parent_task_id || undefined };
+                  if (t.parentTaskId === taskId) return { ...t, projectId: sourceProjectId, section: previousState.section_id || t.section };
+                  return t;
+                });
+              });
               sonnerToast.success('Ação desfeita');
             } catch {
               sonnerToast.error('Erro ao desfazer');
