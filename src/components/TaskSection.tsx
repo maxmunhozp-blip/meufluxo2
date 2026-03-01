@@ -169,6 +169,7 @@ export function TaskSection({
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [nativeDragOver, setNativeDragOver] = useState(false);
   const renameRef = useRef<HTMLInputElement>(null);
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
 
@@ -214,7 +215,7 @@ export function TaskSection({
   };
 
   return (
-    <div ref={mergedRef} style={{ ...sectionStyle }} className={`group/section ${isDropTarget || isOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
+    <div ref={mergedRef} style={{ ...sectionStyle }} className={`group/section ${isDropTarget || isOver || nativeDragOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
       <div
         className="group w-full flex items-center gap-2 transition-colors relative"
         style={{
@@ -222,12 +223,31 @@ export function TaskSection({
           paddingLeft: 16,
           paddingRight: 16,
           borderRadius: 8,
-          background: 'var(--bg-elevated)',
+          background: nativeDragOver ? 'var(--bg-active)' : 'var(--bg-elevated)',
           marginBottom: 8,
           transition: 'all 150ms ease-out',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+        onMouseEnter={e => { if (!nativeDragOver) e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+        onMouseLeave={e => { if (!nativeDragOver) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+        onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes('application/x-task-id')) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+          setNativeDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          setNativeDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setNativeDragOver(false);
+          const taskId = e.dataTransfer.getData('application/x-task-id');
+          if (!taskId) return;
+          onMoveToSection?.(taskId, section.id);
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY });
