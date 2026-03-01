@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef, MouseEvent as ReactMouseEvent } from 'react';
+import { useConfirmAction } from '@/components/ConfirmAction';
 import { Subtask } from '@/types/task';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -56,7 +57,7 @@ const Index = () => {
     acceptWorkspaceInvite, generateInviteLink, addProjectMember, removeProjectMember, getProjectMembers,
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
-    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn,
+    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
     createTask, updateTask, deleteTask: deleteTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
@@ -68,6 +69,8 @@ const Index = () => {
   } = useSupabaseData();
 
   const { preference, cycleTheme } = useTheme();
+  const [confirmDialog, confirm] = useConfirmAction();
+  const deleteSectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [activeProjectId, setActiveProjectId] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -450,9 +453,69 @@ const Index = () => {
     renameSectionFn(id, title);
   }, [renameSectionFn]);
 
-  const handleDeleteSection = useCallback((id: string) => {
-    deleteSectionFn(id);
-  }, [deleteSectionFn]);
+  const handleDeleteSection = useCallback(async (id: string) => {
+    const section = sectionList.find(s => s.id === id);
+    if (!section) return;
+    
+    const sectionTasks = taskList.filter(t => t.section === id);
+    const hasTasks = sectionTasks.length > 0;
+
+    // If section has tasks, ask for confirmation first (neurodivergent-safe: non-punitive language)
+    if (hasTasks) {
+      const confirmed = await confirm(
+        'Mover seção para lixeira?',
+        `"${section.title}" tem ${sectionTasks.length} tarefa${sectionTasks.length > 1 ? 's' : ''}. Você poderá desfazer nos próximos segundos.`
+      );
+      if (!confirmed) return;
+    }
+
+    // Snapshot for undo
+    const snapshotSection = { ...section };
+    const snapshotTasks = sectionTasks.map(t => ({ ...t }));
+
+    // Optimistic UI removal
+    setSections(prev => prev.filter(s => s.id !== id));
+    setTasks(prev => prev.filter(t => t.section !== id));
+
+    // Delayed real deletion with undo window (8s)
+    let undone = false;
+
+    // Clear any previous timer
+    if (deleteSectionTimerRef.current) clearTimeout(deleteSectionTimerRef.current);
+
+    const taskCount = sectionTasks.length;
+    const description = taskCount > 0
+      ? `"${section.title}" e ${taskCount} tarefa${taskCount > 1 ? 's' : ''} removida${taskCount > 1 ? 's' : ''}`
+      : `Seção "${section.title}" removida`;
+
+    sonnerToast(description, {
+      duration: 8000,
+      action: {
+        label: 'Desfazer',
+        onClick: () => {
+          undone = true;
+          if (deleteSectionTimerRef.current) clearTimeout(deleteSectionTimerRef.current);
+          // Restore UI — insert back at original index
+          setSections(prev => {
+            const restored = [...prev];
+            // Find the right position based on neighboring sections in the same project
+            const projectSections = restored.filter(s => s.projectId === snapshotSection.projectId);
+            const insertIdx = projectSections.length; // append at end
+            restored.splice(restored.indexOf(projectSections[insertIdx - 1]) + 1 || restored.length, 0, snapshotSection);
+            return restored.includes(snapshotSection) ? restored : [...prev, snapshotSection];
+          });
+          setTasks(prev => [...prev, ...snapshotTasks]);
+          sonnerToast.dismiss();
+        },
+      },
+    });
+
+    deleteSectionTimerRef.current = setTimeout(async () => {
+      if (undone) return;
+      // Actually delete from database only (UI already updated)
+      await deleteSectionFromDb(id);
+    }, 8500);
+  }, [sectionList, taskList, confirm, deleteSectionFromDb, setSections, setTasks]);
 
   const handleDuplicateProject = useCallback(async (id: string, mode: 'sections' | 'tasks' | 'both') => {
     const newId = await duplicateProject(id, mode);
@@ -1442,6 +1505,7 @@ const Index = () => {
           onClose={() => setShowTemplateModal(false)}
         />
       )}
+      {confirmDialog}
     </div>
   );
 };
