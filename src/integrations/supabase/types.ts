@@ -553,6 +553,7 @@ export type Database = {
           created_by: string | null
           day_period: string | null
           description: string | null
+          display_month: string
           due_date: string | null
           id: string
           metrics: Json | null
@@ -579,6 +580,7 @@ export type Database = {
           created_by?: string | null
           day_period?: string | null
           description?: string | null
+          display_month?: string
           due_date?: string | null
           id?: string
           metrics?: Json | null
@@ -605,6 +607,7 @@ export type Database = {
           created_by?: string | null
           day_period?: string | null
           description?: string | null
+          display_month?: string
           due_date?: string | null
           id?: string
           metrics?: Json | null

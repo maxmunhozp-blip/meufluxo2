@@ -89,6 +89,7 @@ export interface Task {
   workspaceId?: string;
   serviceTagId?: string;
   createdAt?: string;
+  displayMonth?: string; // "YYYY-MM-01" — permanent month this task belongs to
 }
 
 export interface Section {
