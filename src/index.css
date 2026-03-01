@@ -111,6 +111,8 @@
     --selection-bg: rgba(59, 130, 246, 0.3);
     --accent-blue-muted: rgba(59, 130, 246, 0.15);
     --highlight-bg: rgba(251, 191, 36, 0.25);
+    --highlight-marker-bg: rgba(251, 191, 36, 0.45);
+    --highlight-marker-text: #FFFFFF;
     --scrollbar-thumb: rgba(255, 255, 255, 0.12);
     --scrollbar-track: transparent;
 
@@ -274,6 +276,8 @@
     --selection-bg: rgba(37, 99, 235, 0.15);
     --accent-blue-muted: rgba(37, 99, 235, 0.10);
     --highlight-bg: rgba(217, 119, 6, 0.15);
+    --highlight-marker-bg: rgba(236, 72, 153, 0.35);
+    --highlight-marker-text: #1A1207;
     --scrollbar-thumb: rgba(0, 0, 0, 0.12);
     --scrollbar-track: transparent;
 
@@ -604,4 +608,12 @@ aside ~ div {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Highlight marker — themed (dark: yellow/white, light: pink/black) */
+.highlight-marker {
+  background: var(--highlight-marker-bg);
+  color: var(--highlight-marker-text);
+  border-radius: 3px;
+  padding: 1px 3px;
 }

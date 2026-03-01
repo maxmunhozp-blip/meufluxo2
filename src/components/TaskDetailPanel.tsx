@@ -404,15 +404,23 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
   }, [value, isFocused]);
 
   const checkFormats = () => {
+    const sel = window.getSelection();
+    const isInHighlight = (() => {
+      if (!sel || sel.rangeCount === 0) return false;
+      let node: Node | null = sel.anchorNode;
+      while (node && node !== editorRef.current) {
+        if (node instanceof HTMLElement && node.classList.contains('highlight-marker')) return true;
+        node = node.parentNode;
+      }
+      const bg = document.queryCommandValue('backColor');
+      return bg !== '' && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && bg !== 'rgb(0, 0, 0)';
+    })();
     setFormats({
       bold: document.queryCommandState('bold'),
       italic: document.queryCommandState('italic'),
       underline: document.queryCommandState('underline'),
       strikethrough: document.queryCommandState('strikeThrough'),
-      highlight: (() => {
-        const bg = document.queryCommandValue('backColor');
-        return bg === 'rgb(255, 255, 0)' || bg === 'rgba(255, 255, 0, 0.35)' || bg === '#ffff00';
-      })(),
+      highlight: isInHighlight,
     });
   };
 
@@ -430,10 +438,40 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
   const handleInput = () => { if (!editorRef.current) return; onChange(editorRef.current.innerHTML); checkFormats(); extractUrls(); };
   const execCmd = (cmd: string, val?: string) => (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand(cmd, false, val); checkFormats(); };
 
+
   const toggleHighlight = (e: React.MouseEvent) => {
     e.preventDefault(); editorRef.current?.focus();
-    document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)');
-    checkFormats();
+    if (formats.highlight) {
+      // Remove highlight: find parent .highlight-marker and unwrap it
+      const sel = window.getSelection();
+      if (sel && sel.anchorNode) {
+        let node: Node | null = sel.anchorNode;
+        while (node && node !== editorRef.current) {
+          if (node instanceof HTMLElement && node.classList.contains('highlight-marker')) {
+            const parent = node.parentNode;
+            while (node.firstChild) parent?.insertBefore(node.firstChild, node);
+            parent?.removeChild(node);
+            handleInput();
+            break;
+          }
+          node = node.parentNode;
+        }
+      }
+      // Fallback: try execCommand
+      document.execCommand('backColor', false, 'transparent');
+    } else {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.className = 'highlight-marker';
+        try { range.surroundContents(span); } catch { /* partial selection */ }
+        sel.removeAllRanges();
+        sel.addRange(range);
+        handleInput();
+      }
+    }
+    setTimeout(checkFormats, 0);
   };
 
   const insertList = (ordered: boolean) => (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList'); handleInput(); };
@@ -442,7 +480,25 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
   const insertHeading = (e: React.MouseEvent) => { e.preventDefault(); editorRef.current?.focus(); document.execCommand('formatBlock', false, 'h3'); handleInput(); };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') { e.preventDefault(); document.execCommand('backColor', false, formats.highlight ? 'transparent' : 'rgba(255, 255, 0, 0.35)'); checkFormats(); return; }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
+      e.preventDefault();
+      if (formats.highlight) {
+        document.execCommand('backColor', false, 'transparent');
+      } else {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          const span = document.createElement('span');
+          span.className = 'highlight-marker';
+          range.surroundContents(span);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          handleInput();
+        }
+      }
+      setTimeout(checkFormats, 0);
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'X') { e.preventDefault(); document.execCommand('strikeThrough'); checkFormats(); return; }
     setTimeout(checkFormats, 0);
   };
