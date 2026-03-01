@@ -196,7 +196,12 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-[11px] px-2 py-1">
-                  Agendada: {subtask.scheduledDate.split('-').reverse().join('/')}
+                  {(() => {
+                    const [y, m, d] = subtask.scheduledDate!.split('-');
+                    const date = new Date(Number(y), Number(m) - 1, Number(d));
+                    const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+                    return `${d}/${m} ${days[date.getDay()]}`;
+                  })()}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

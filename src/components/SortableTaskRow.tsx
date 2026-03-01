@@ -444,7 +444,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-[11px] px-2 py-1">
-                          Agendada: {task.scheduledDate.split('-').reverse().join('/')}
+                          {(() => {
+                            const [y, m, d] = task.scheduledDate!.split('-');
+                            const date = new Date(Number(y), Number(m) - 1, Number(d));
+                            const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+                            return `${d}/${m} ${days[date.getDay()]}`;
+                          })()}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
