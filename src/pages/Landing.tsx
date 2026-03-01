@@ -57,20 +57,16 @@ const FEATURES = [
 
 const FAQ_ITEMS = [
   {
-    q: 'O que significa ser "projetado para neurodivergentes"?',
-    a: 'Cada decisão de design foi baseada em pesquisas sobre TDAH, TEA e dificuldades executivas. Removemos barras de progresso punitivas, usamos cores gentis (âmbar ao invés de vermelho para atrasos), oferecemos Modo Foco para uma tarefa de cada vez, e minimizamos a carga cognitiva com interfaces limpas.',
+    q: 'Para quem é o MeuFluxo?',
+    a: 'O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais de produtividade. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você — especialmente se você é neurodivergente.',
   },
   {
-    q: 'Preciso ter um diagnóstico para usar o MeuFluxo?',
-    a: 'Não. O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você.',
+    q: 'Preciso ter TDAH para usar?',
+    a: 'Não. O MeuFluxo é projetado com base em pesquisas sobre TDAH, TEA e neurodiversidade, mas qualquer pessoa pode se beneficiar de uma interface mais limpa, gentil e sem sobrecarga. Com ou sem diagnóstico.',
   },
   {
-    q: 'Qual a diferença entre o plano Free e o Pro?',
-    a: 'O plano Free oferece até 3 projetos, 20 tarefas por projeto, subtarefas, modo foco e colaboração básica. O Pro desbloqueia tudo ilimitado, Timeline View, tarefas recorrentes, rollover automático, notas ilimitadas e upload de imagens.',
-  },
-  {
-    q: 'Posso usar o MeuFluxo com minha equipe?',
-    a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas.',
+    q: 'Posso usar com minha equipe?',
+    a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas que geram ansiedade.',
   },
   {
     q: 'O que é o "Rollover Automático"?',
@@ -79,10 +75,6 @@ const FAQ_ITEMS = [
   {
     q: 'Meus dados estão seguros?',
     a: 'Sim. Usamos criptografia em trânsito e em repouso, autenticação segura e políticas de acesso por linha que garantem que cada usuário só acessa seus próprios dados.',
-  },
-  {
-    q: 'Posso cancelar o plano Pro a qualquer momento?',
-    a: 'Sim, sem compromisso. Você pode fazer downgrade para o plano Free a qualquer momento e manterá acesso aos seus dados.',
   },
 ];
 
@@ -452,7 +444,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
-              Simples e transparente.
+              Simples e justo.
             </h2>
             <p style={{ color: C.textSub }}>Comece de graça, faça upgrade quando precisar.</p>
           </motion.div>
@@ -555,20 +547,20 @@ export default function Landing() {
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-24 px-6" style={{ background: C.bg, borderTop: `1px solid ${C.borderLight}` }}>
+      <section className="py-24 px-6" style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6B8FF8 50%, #3B64D9 100%)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
             Seu cérebro merece ferramentas melhores.
           </h2>
-          <p className="mb-8 max-w-md mx-auto" style={{ color: C.textSub }}>
-            Descubra uma forma de trabalhar que não luta contra a forma como você pensa.
+          <p className="mb-8 max-w-md mx-auto" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            Junte-se a profissionais que descobriram uma forma de trabalhar que não luta contra a forma como pensam.
           </p>
           <button
             onClick={() => navigate('/auth')}
-            className="h-12 px-8 rounded-lg font-semibold text-base text-white flex items-center gap-2 mx-auto transition-all"
-            style={{ background: C.accent, boxShadow: '0 4px 14px rgba(79,123,247,0.25)' }}
-            onMouseOver={e => (e.currentTarget.style.background = C.accentDark)}
-            onMouseOut={e => (e.currentTarget.style.background = C.accent)}
+            className="h-12 px-8 rounded-lg font-semibold text-base flex items-center gap-2 mx-auto transition-all"
+            style={{ background: '#FFFFFF', color: C.accent, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
+            onMouseOver={e => (e.currentTarget.style.background = '#F0F4FF')}
+            onMouseOut={e => (e.currentTarget.style.background = '#FFFFFF')}
           >
             Começar grátis agora <ArrowRight className="w-4 h-4" />
           </button>
