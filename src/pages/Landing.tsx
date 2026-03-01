@@ -306,20 +306,24 @@ const Landing = () => {
         <div className="mf-bounce" style={{ position: "absolute", bottom: 32, color: C.mutedL, fontSize: 24 }}>↓</div>
       </section>
 
-      {/* INTRO */}
-      <section style={{ padding: "100px 24px", background: C.white, textAlign: "center" }}>
-        <RevealGroup style={{ maxWidth: 720, margin: "0 auto" }}>
-          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>
-            Ferramentas de produtividade foram desenhadas para um tipo de cérebro — o que foca naturalmente, prioriza sem esforço e não se paralisa diante de listas.
-          </p>
-          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.7 }}>
-            Se isso não descreve você — se você tem TDAH, TEA, ou simplesmente se sente sobrecarregado por apps como Trello, Asana e Notion — o MeuFluxo foi construído para como o <em>seu</em> cérebro realmente funciona.
-          </p>
-          <p className="mf-r" style={{ fontSize: 13, color: C.mutedL, marginTop: 14 }}>E temos a pesquisa científica pra provar.</p>
+      {/* INTRO — 2ª dobra: autoridade com termos-chave */}
+      <section style={{ padding: "80px 24px", background: C.white, textAlign: "center" }}>
+        <RevealGroup style={{ maxWidth: 700, margin: "0 auto" }}>
+          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>Ferramentas de produtividade são projetadas para cérebros neurotípicos. Se você tem TDAH ou TEA, elas não foram feitas pra você.</p>
+          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.6 }}>O MeuFluxo foi. E temos a pesquisa pra provar.</p>
         </RevealGroup>
       </section>
 
-      {/* STORIES — real mockups */}
+      {/* PONTE — contexto empático antes das stories */}
+      <section style={{ padding: "60px 24px 80px", background: C.bg, textAlign: "center" }}>
+        <RevealGroup style={{ maxWidth: 720, margin: "0 auto" }}>
+          <p className="mf-r" style={{ fontFamily: bd, fontSize: "clamp(1rem,2vw,1.15rem)", lineHeight: 1.7, color: C.muted }}>
+            Ferramentas tradicionais foram desenhadas para um tipo de cérebro — o que foca naturalmente, prioriza sem esforço e não se paralisa diante de listas. Se isso não descreve você, o MeuFluxo foi construído para como o <em style={{ fontStyle: "italic", color: C.text }}>seu</em> cérebro realmente funciona.
+          </p>
+        </RevealGroup>
+      </section>
+
+      {/* STORIES — real screenshots */}
       <div id="stories">
         {STORIES.map((st, i) => (
           <section key={st.id} style={{ background: i % 2 === 0 ? C.bg : C.white }}>
