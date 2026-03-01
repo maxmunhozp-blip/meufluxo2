@@ -206,9 +206,17 @@ const Index = () => {
   );
 
   // Filter by month: show task if ANY of its dates fall within the active month
+  // For tasks without dueDate/scheduledDate, use createdAt as fallback
   const isInMonth = useCallback((t: Task) => {
     const dates = [t.dueDate, t.scheduledDate].filter(Boolean) as string[];
-    if (dates.length === 0) return true; // Tasks without dates always visible
+    if (dates.length === 0) {
+      // No explicit dates — use createdAt month as fallback
+      if (t.createdAt) {
+        const created = t.createdAt.slice(0, 10); // "YYYY-MM-DD"
+        return created >= monthStart && created <= monthEnd;
+      }
+      return true; // No createdAt either — always visible
+    }
     return dates.some(d => d >= monthStart && d <= monthEnd);
   }, [monthStart, monthEnd]);
 

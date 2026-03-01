@@ -123,6 +123,7 @@ function mapDbTask(row: any): Task {
     scheduledDate: row.scheduled_date || undefined,
     workspaceId: row.workspace_id,
     serviceTagId: row.service_tag_id || undefined,
+    createdAt: row.created_at || undefined,
   };
 }
 

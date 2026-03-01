@@ -88,6 +88,7 @@ export interface Task {
   scheduledDate?: string;
   workspaceId?: string;
   serviceTagId?: string;
+  createdAt?: string;
 }
 
 export interface Section {
