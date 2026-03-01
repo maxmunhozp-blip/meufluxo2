@@ -275,7 +275,7 @@ export function TaskSection({
                     <span style={{ fontSize: 12, color: 'hsl(var(--status-done))' }}>✓</span>
                   ) : (
                     <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-placeholder)', letterSpacing: '0.01em' }}>
-                      {pending} {pending === 1 ? 'tarefa' : 'tarefas'}
+                      {pending}
                     </span>
                   )}
                 </span>
