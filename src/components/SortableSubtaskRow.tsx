@@ -183,12 +183,12 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         />
       ) : (
         <>
-          {subtask.scheduledDate && (
-            <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
-          )}
           <span className={`text-[13px] truncate flex-1 transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
             {subtask.name}
           </span>
+          {subtask.scheduledDate && (
+            <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+          )}
         </>
       )}
       {!isRenaming && subtask.subtasks && subtask.subtasks.length > 0 && (
