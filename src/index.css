@@ -120,8 +120,8 @@
     --status-done: 160 64% 52%;
     --status-progress: 217 91% 60%;
     --status-pending: 240 2% 40%;
-    --status-overdue: 0 84% 60%;
-    --priority-high: 0 84% 60%;
+    --status-overdue: 32 95% 52%;
+    --priority-high: 32 95% 52%;
     --priority-medium: 48 96% 56%;
 
     /* Shadows — black pure (high opacity) for dark */
@@ -285,8 +285,8 @@
     --status-done: 160 84% 30%;
     --status-progress: 224 76% 48%;
     --status-pending: 24 10% 55%;
-    --status-overdue: 0 84% 50%;
-    --priority-high: 0 84% 50%;
+    --status-overdue: 32 90% 44%;
+    --priority-high: 32 90% 44%;
     --priority-medium: 40 70% 40%;
 
     /* Shadows — warm brown (low opacity) for light */
@@ -427,8 +427,8 @@
     --status-done: 160 84% 30%;
     --status-progress: 224 76% 48%;
     --status-pending: 24 10% 55%;
-    --status-overdue: 0 84% 50%;
-    --priority-high: 0 84% 50%;
+    --status-overdue: 32 90% 44%;
+    --priority-high: 32 90% 44%;
     --priority-medium: 40 70% 40%;
 
     --shadow-sm: 0 1px 2px rgba(120, 100, 80, 0.08);
