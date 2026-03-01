@@ -97,6 +97,7 @@ export interface Section {
   title: string;
   projectId: string;
   workspaceId?: string;
+  displayMonth?: string;
 }
 
 export interface Project {
