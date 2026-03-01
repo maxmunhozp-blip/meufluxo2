@@ -119,18 +119,18 @@ const Auth = () => {
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: bd }}>
       
       {/* LEFT — Product context panel */}
-      <div style={{
-        flex: "1 1 50%",
-        background: "#0A0A0C",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "60px 48px",
-        position: "relative",
-        overflow: "hidden",
-      }}
+      <div
         className="hidden lg:flex"
+        style={{
+          flex: "1 1 50%",
+          background: "#0A0A0C",
+          flexDirection: "column" as const,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "60px 48px",
+          position: "relative",
+          overflow: "hidden",
+        }}
       >
         {/* Subtle gradient glow */}
         <div style={{
@@ -195,9 +195,10 @@ const Auth = () => {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: "48px 24px",
+        padding: "80px 24px 48px",
         background: "#FAFAF9",
         position: "relative",
+        overflowY: "auto",
       }}>
         {/* Back to landing */}
         <a href="/" style={{
