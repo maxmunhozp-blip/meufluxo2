@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical, MessageSquare, Play, Repeat, Plus, CalendarDays } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
@@ -435,9 +436,18 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                     );
                   })()}
                   {task.scheduledDate && (
-                    <span title={`Agendada: ${task.scheduledDate.split('-').reverse().join('/')}`} className="flex-shrink-0">
-                      <CalendarDays className="w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
-                    </span>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex-shrink-0 cursor-default">
+                            <CalendarDays className="w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-[11px] px-2 py-1">
+                          Agendada: {task.scheduledDate.split('-').reverse().join('/')}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
               )}
