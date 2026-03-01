@@ -456,6 +456,30 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ─── MORE FEATURES GALLERY ─── */}
+      <section className="py-20 px-6" style={{ background: '#FAFBFC', borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+            <h3 className="text-xl md:text-2xl font-bold" style={{ fontFamily: serif, color: '#1a1a2e' }}>
+              E muito mais.
+            </h3>
+            <p className="mt-2 text-sm" style={{ color: '#9CA3AF' }}>Timeline, visão semanal, notas rápidas e templates de entrega.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0}
+              className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 15px 40px -10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)' }}
+            >
+              <img src={screenshotTimeline} alt="Visão Timeline com tarefas distribuídas por dia da semana" className="w-full h-auto block" loading="lazy" />
+            </motion.div>
+            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}
+              className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 15px 40px -10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04)' }}
+            >
+              <img src={screenshotSemana} alt="Visão Minha Semana com tarefas por dia" className="w-full h-auto block" loading="lazy" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── SCIENCE ─── */}
       <section id="science" className="py-28 px-6 relative overflow-hidden" style={{ background: '#F5F3FF' }}>
         {/* Background texture */}
