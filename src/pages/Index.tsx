@@ -193,14 +193,10 @@ const Index = () => {
     [activeProjectId, sectionList, activeSectionId]
   );
 
-  // Month boundaries for filtering
-  const monthStart = useMemo(() => {
+  // Month key for filtering — uses display_month column
+  const activeMonthKey = useMemo(() => {
     const d = new Date(activeMonth);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-  }, [activeMonth]);
-  const monthEnd = useMemo(() => {
-    const d = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, [activeMonth]);
 
   const allProjectTasks = useMemo(
@@ -208,14 +204,11 @@ const Index = () => {
     [taskList, activeProjectId]
   );
 
-  // Filter by month: show task if ANY of its dates fall within the active month
-  // For tasks without dueDate/scheduledDate, use createdAt as fallback
+  // Filter by display_month: the permanent month a task belongs to
   const isInMonth = useCallback((t: Task) => {
-    const dates = [t.dueDate, t.scheduledDate].filter(Boolean) as string[];
-    // Tasks without any date are always visible — the user placed them here intentionally
-    if (dates.length === 0) return true;
-    return dates.some(d => d >= monthStart && d <= monthEnd);
-  }, [monthStart, monthEnd]);
+    if (!t.displayMonth) return true; // legacy tasks without display_month
+    return t.displayMonth === activeMonthKey;
+  }, [activeMonthKey]);
 
   const monthFilteredTasks = useMemo(
     () => allProjectTasks.filter(isInMonth),
@@ -359,6 +352,7 @@ const Index = () => {
         status: 'pending',
         section: sectionId,
         projectId: activeProjectId,
+        displayMonth: activeMonthKey,
       });
       setFocusedTaskId(newId);
       setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
@@ -376,7 +370,7 @@ const Index = () => {
     } finally {
       setCreatingSectionId(null);
     }
-  }, [activeProjectId, projects, createTask, deleteTaskFn, pushUndo]);
+  }, [activeProjectId, activeMonthKey, projects, createTask, deleteTaskFn, pushUndo]);
 
   const createNewTask = useCallback(() => {
     let sectionId: string | undefined;
@@ -1331,14 +1325,14 @@ const Index = () => {
                     onMoveToMonth={(taskId, year, month) => {
                       const t = taskList.find(t => t.id === taskId);
                       if (!t) return;
-                      const originalScheduledDate = t.scheduledDate;
-                      const newDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+                      const originalDisplayMonth = t.displayMonth;
+                      const newMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
                       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-                      updateTask({ ...t, scheduledDate: newDate });
+                      updateTask({ ...t, displayMonth: newMonth });
                       toast({
                         title: `Movida para ${monthNames[month]} ${year}`,
                         duration: 5000,
-                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, scheduledDate: originalScheduledDate })}>Desfazer</ToastAction>,
+                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, displayMonth: originalDisplayMonth })}>Desfazer</ToastAction>,
                       });
                     }}
                     onAddSubtask={addSubtask}

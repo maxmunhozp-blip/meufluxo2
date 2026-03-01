@@ -125,6 +125,7 @@ function mapDbTask(row: any): Task {
     workspaceId: row.workspace_id,
     serviceTagId: row.service_tag_id || undefined,
     createdAt: row.created_at || undefined,
+    displayMonth: row.display_month || undefined,
   };
 }
 
@@ -646,6 +647,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       priority: taskData.priority || 'low',
       description: taskData.description || null,
       due_date: taskData.dueDate || null,
+      display_month: taskData.displayMonth || null,
       position,
       created_by: session?.user?.id || null,
       workspace_id: activeWorkspaceId,
@@ -671,6 +673,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null,
       parent_task_id: task.parentTaskId || null,
+      display_month: task.displayMonth || null,
     }).eq('id', task.id);
 
     if (task.parentTaskId) {
@@ -773,6 +776,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       priority: task.priority || 'low',
       description: task.description || null,
       due_date: task.dueDate || null,
+      display_month: task.displayMonth || null,
       position: tasksState.filter(t => t.section === task.section).length,
       created_by: session?.user?.id || null,
       workspace_id: activeWorkspaceId,
