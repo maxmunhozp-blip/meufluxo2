@@ -958,7 +958,10 @@ const Index = () => {
         let newIdx = filteredSection.length;
         if (overTaskId) {
           const idx = filteredSection.findIndex(t => t.id === overTaskId);
-          if (idx !== -1) newIdx = idx;
+          if (idx !== -1) {
+            // If dropping below the target task, insert after it
+            newIdx = taskDropPosition === 'bottom' ? idx + 1 : idx;
+          }
         }
         const movedTask = { ...activeTask, section: targetSectionId };
         filteredSection.splice(newIdx, 0, movedTask);
