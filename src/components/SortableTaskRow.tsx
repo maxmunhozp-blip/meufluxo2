@@ -332,10 +332,11 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           style={{
             minHeight: 40,
             opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
-            background: nestDropHighlight ? 'var(--bg-active)' : isSelected ? 'var(--bg-active)' : undefined,
+            background: nestDropHighlight ? 'hsl(var(--primary) / 0.08)' : isSelected ? 'var(--bg-active)' : undefined,
             borderRadius: 6,
             transition: 'all 150ms ease-out',
-            outline: nestDropHighlight ? '2px solid hsl(var(--primary) / 0.5)' : undefined,
+            outline: nestDropHighlight ? '2px dashed hsl(var(--primary) / 0.6)' : undefined,
+            outlineOffset: nestDropHighlight ? '-2px' : undefined,
           }}
           onMouseEnter={e => { if (!isSelected && !nestDropHighlight) e.currentTarget.style.background = 'var(--bg-hover)'; }}
           onMouseLeave={e => { if (!isSelected && !nestDropHighlight) e.currentTarget.style.background = 'transparent'; }}
@@ -352,6 +353,15 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           }}
           onContextMenu={handleContextMenu}
         >
+          {/* Nest indicator badge */}
+          {nestDropHighlight && (
+            <div
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-none flex items-center gap-1 px-2 py-0.5 rounded-full"
+              style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))', fontSize: 11, fontWeight: 500 }}
+            >
+              ↳ subtarefa
+            </div>
+          )}
           {/* Drag handle — @dnd-kit for reorder + cross-section within project */}
           <div
             data-dndkit-grip
