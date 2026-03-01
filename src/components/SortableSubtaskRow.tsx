@@ -187,7 +187,9 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
             {subtask.name}
           </span>
           {subtask.scheduledDate && (
-            <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+            <span title={`Agendada: ${subtask.scheduledDate.split('-').reverse().join('/')}`} className="flex-shrink-0">
+              <CalendarDays className="w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+            </span>
           )}
         </div>
       )}
