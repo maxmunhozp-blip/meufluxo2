@@ -399,8 +399,8 @@ const Landing = () => {
         </RevealGroup>
       </section>
 
-      {/* PONTE — contexto empático antes das stories */}
-      <section className="py-10 sm:py-[60px] px-4 sm:px-6 pb-14 sm:pb-20" style={{ background: C.bg, textAlign: "center" }}>
+      {/* PONTE — contexto empático antes das stories (hidden on mobile to reduce redundancy) */}
+      <section className="hidden sm:block py-10 sm:py-[60px] px-4 sm:px-6 pb-14 sm:pb-20" style={{ background: C.bg, textAlign: "center" }}>
         <RevealGroup style={{ maxWidth: 720, margin: "0 auto" }}>
           <p className="mf-bl text-sm sm:text-base" style={{ fontFamily: bd, lineHeight: 1.7, color: C.muted }}>
             Ferramentas tradicionais foram desenhadas para um tipo de cérebro — o que foca naturalmente, prioriza sem esforço e não se paralisa diante de listas. Se isso não descreve você, o MeuFluxo foi construído para como o <em style={{ fontStyle: "italic", color: C.text }}>seu</em> cérebro realmente funciona.
@@ -472,7 +472,7 @@ const Landing = () => {
               ))}
               <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>Criar conta grátis</a>
             </div>
-            <div className="mf-sr p-5 sm:p-7 relative mt-4 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
+            <div className="mf-sr p-5 sm:p-7 relative mt-6 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1" style={{ borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#fff", whiteSpace: "nowrap" }}>Recomendado</div>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Pro</h3>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para profissionais</p>
@@ -509,7 +509,7 @@ const Landing = () => {
       <footer style={{ padding: "36px 24px", background: C.dark, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
         <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3" style={{ maxWidth: 1200, margin: "0 auto" }}>
           <span style={{ fontFamily: pf, fontSize: 18, fontWeight: 700, color: "#fff" }}>MeuFluxo</span>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>© 2026 MeuFluxo. Feito para mentes que pensam diferente.</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>© 2026 MeuFluxo. Feito para mentes que pensam diferente.</p>
         </div>
       </footer>
     </div>
