@@ -167,29 +167,47 @@ export function MyDayView({
   const { todayTasks, rolloverMap } = useMemo(() => {
     const todayStart = startOfDay(new Date());
     const scheduled: Task[] = [];
+    const scheduledIds = new Set<string>();
+
+    const promoteSubtask = (sub: any, parent: Task): Task => ({
+      ...sub,
+      id: sub.id,
+      name: sub.name,
+      projectId: sub.projectId || parent.projectId,
+      section: sub.section || parent.section,
+      status: sub.status,
+      parentTaskId: sub.parentTaskId,
+      dayPeriod: sub.dayPeriod || parent.dayPeriod || 'morning',
+    });
+
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       let isScheduled = false;
       if (t.scheduledDate === todayStr) isScheduled = true;
       else if (t.dueDate === todayStr && !t.scheduledDate) isScheduled = true;
-      if (isScheduled) scheduled.push(t);
+      if (isScheduled) { scheduled.push(t); scheduledIds.add(t.id); }
+
+      // Check subtasks scheduled for today
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach(sub => {
           if (sub.scheduledDate === todayStr && sub.status !== 'done') {
-            const promotedTask: Task = { ...sub, id: sub.id, name: sub.name, projectId: sub.projectId || parent.projectId, section: sub.section || parent.section, status: sub.status, parentTaskId: sub.parentTaskId };
-            scheduled.push(promotedTask);
+            const promoted = promoteSubtask(sub, parent);
+            scheduled.push(promoted);
+            scheduledIds.add(sub.id);
           }
           if (sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
         });
       };
       if (t.subtasks) findScheduledSubtasks(t.subtasks, t);
     });
+
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
     if (isPro) {
+      // Check top-level tasks for overdue
       tasks.forEach(t => {
         if (t.parentTaskId || t.status === 'done') return;
-        if (scheduled.some(s => s.id === t.id)) return;
+        if (scheduledIds.has(t.id)) return;
         if (t.scheduledDate && t.scheduledDate < todayStr) {
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
           if (days > 0) { rMap.set(t.id, days); overdue.push(t); }
@@ -202,6 +220,23 @@ export function MyDayView({
             rMap.set(t.id, days); overdue.push(t);
           }
         }
+
+        // Check subtasks for overdue
+        const findOverdueSubtasks = (subs: any[], parent: Task) => {
+          subs.forEach(sub => {
+            if (sub.status === 'done' || scheduledIds.has(sub.id)) return;
+            if (sub.scheduledDate && sub.scheduledDate < todayStr) {
+              const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
+              if (days > 0) {
+                const promoted = promoteSubtask(sub, parent);
+                rMap.set(sub.id, days);
+                overdue.push(promoted);
+              }
+            }
+            if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
+          });
+        };
+        if (t.subtasks) findOverdueSubtasks(t.subtasks, t);
       });
     }
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
