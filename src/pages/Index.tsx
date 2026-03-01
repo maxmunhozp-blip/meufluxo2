@@ -352,6 +352,12 @@ const Index = () => {
           dayPeriod: task.dayPeriod,
           serviceTagId: task.serviceTagId,
         });
+        // Navigate to the project where the task was restored
+        setActiveProjectId(task.projectId);
+        setIsMyDayView(false);
+        setIsMyTasksView(false);
+        setIsMyWeekView(false);
+        setIsNotesView(false);
       };
       pushUndo({
         label: 'Excluir tarefa',
