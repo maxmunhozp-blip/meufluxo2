@@ -412,8 +412,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
         if (node instanceof HTMLElement && node.classList.contains('highlight-marker')) return true;
         node = node.parentNode;
       }
-      const bg = document.queryCommandValue('backColor');
-      return bg !== '' && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && bg !== 'rgb(0, 0, 0)';
+      return false;
     })();
     setFormats({
       bold: document.queryCommandState('bold'),
