@@ -426,7 +426,26 @@ export function ProjectSidebar({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const dayCount = useMemo(() => tasks.filter(t => t.status !== 'done' && t.dueDate === todayStr).length, [tasks, todayStr]);
+  const dayCount = useMemo(() => {
+    let count = 0;
+    const countSubtasks = (subs: any[]) => {
+      subs.forEach(sub => {
+        if (sub.status !== 'done' && sub.scheduledDate === todayStr) count++;
+        if (sub.subtasks) countSubtasks(sub.subtasks);
+      });
+    };
+    tasks.forEach(t => {
+      if (t.parentTaskId) return;
+      if (t.status !== 'done') {
+        if (t.scheduledDate === todayStr) count++;
+        else if (t.dueDate === todayStr && !t.scheduledDate) count++;
+        else if (t.scheduledDate && t.scheduledDate < todayStr) count++;
+        else if (!t.scheduledDate && t.dueDate && t.dueDate < todayStr) count++;
+      }
+      if (t.subtasks) countSubtasks(t.subtasks);
+    });
+    return count;
+  }, [tasks, todayStr]);
   const weekCount = useMemo(() => {
     const end = new Date(); end.setDate(end.getDate() + 7);
     const endStr = end.toISOString().slice(0, 10);
