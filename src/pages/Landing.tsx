@@ -232,8 +232,7 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "120px 24px 60px", overflow: "hidden" }}>
+      <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "120px 24px 100px", overflow: "visible" }}>
         <div style={{ position: "absolute", top: "-30%", right: "-15%", width: "65vw", height: "65vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(79,109,245,0.06) 0%,transparent 55%)", pointerEvents: "none" }} />
         <RevealGroup style={{ textAlign: "center", maxWidth: 900 }}>
           <div className="mf-r" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 20px", borderRadius: 999, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.12)", marginBottom: 32 }}>
@@ -308,10 +307,15 @@ const Landing = () => {
       </section>
 
       {/* INTRO */}
-      <section style={{ padding: "80px 24px", background: C.white, textAlign: "center" }}>
-        <RevealGroup style={{ maxWidth: 700, margin: "0 auto" }}>
-          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>Ferramentas de produtividade são projetadas para cérebros neurotípicos. Se você tem TDAH ou TEA, elas não foram feitas pra você.</p>
-          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.6 }}>O MeuFluxo foi. E temos a pesquisa pra provar.</p>
+      <section style={{ padding: "100px 24px", background: C.white, textAlign: "center" }}>
+        <RevealGroup style={{ maxWidth: 720, margin: "0 auto" }}>
+          <p className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.4rem,3vw,2rem)", lineHeight: 1.4, fontWeight: 500 }}>
+            Ferramentas de produtividade foram desenhadas para um tipo de cérebro — o que foca naturalmente, prioriza sem esforço e não se paralisa diante de listas.
+          </p>
+          <p className="mf-r" style={{ fontSize: 16, color: C.muted, marginTop: 20, lineHeight: 1.7 }}>
+            Se isso não descreve você — se você tem TDAH, TEA, ou simplesmente se sente sobrecarregado por apps como Trello, Asana e Notion — o MeuFluxo foi construído para como o <em>seu</em> cérebro realmente funciona.
+          </p>
+          <p className="mf-r" style={{ fontSize: 13, color: C.mutedL, marginTop: 14 }}>E temos a pesquisa científica pra provar.</p>
         </RevealGroup>
       </section>
 
