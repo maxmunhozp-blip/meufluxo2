@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import appMockup from "@/assets/app-mockup.png";
-import mockup1 from "@/assets/fluxo-mockup1.png";
-import mockup3 from "@/assets/fluxo-mockup3.png";
-import mockup8 from "@/assets/fluxo-mockup8.png";
+import screenshotMeuDia from "@/assets/screenshot-meudia.png";
+import screenshotFoco from "@/assets/screenshot-foco.png";
+import screenshotCliente from "@/assets/screenshot-cliente.png";
+import screenshotSemana from "@/assets/screenshot-semana.png";
+import screenshotTimeline from "@/assets/screenshot-timeline.png";
 
 /* ── Design tokens — monochromatic, warm neutral ── */
 const C = {
@@ -109,7 +110,7 @@ const STORIES = [
     cite2: "Machida et al., 2023 · Brain Network Efficiency in ADHD (PMC10727773)",
     label: "Carga Cognitiva Reduzida",
     solution: "Interface com hierarquia visual mínima. Uma informação por vez. Espaçamento generoso. Zero barras de progresso, zero contadores, zero métricas competindo pela sua atenção.",
-    mockup: mockup1,
+    mockup: screenshotMeuDia,
   },
   {
     id: "pun",
@@ -123,7 +124,7 @@ const STORIES = [
     cite2: "Aufait UX, 2025 · Duolingo replaced guilt-based reminders with gentle messages",
     label: "Feedback Não-Punitivo",
     solution: "Zero barras de progresso. Zero streaks. Tarefas atrasadas recebem tom âmbar discreto e são gentilmente movidas para o dia seguinte com Rollover Automático. A ferramenta te informa, nunca te julga.",
-    mockup: mockup3,
+    mockup: screenshotTimeline,
   },
   {
     id: "dec",
@@ -137,7 +138,7 @@ const STORIES = [
     cite2: "Wolf, 2023 · Software Accessibility for ADHD Users (UX Collective)",
     label: "Modo Foco",
     solution: "Uma tarefa de cada vez, em tela cheia. Sem sidebar, sem lista. Apenas a tarefa atual e dois botões — 'Feito' e 'Próxima'. Quando tudo é demais, menos é tudo.",
-    mockup: mockup8,
+    mockup: screenshotFoco,
   },
   {
     id: "sen",
@@ -151,7 +152,7 @@ const STORIES = [
     cite2: "Adchitects, 2024 · Neurodivergent-friendly color palettes minimize sensory overload",
     label: "Consistência Sensorial",
     solution: "Dark mode com pretos quentes (#0C0C0E). Transições suaves. Paleta consistente com contraste calculado. Sem animações abruptas, sem flashes, sem surpresas visuais.",
-    mockup: mockup1,
+    mockup: screenshotCliente,
   },
 ];
 
@@ -248,7 +249,7 @@ const Landing = () => {
           </div>
         </RevealGroup>
 
-        {/* Hero Mockup — scroll-driven 3D perspective */}
+        {/* Hero — Browser Chrome Frame + scroll-driven 3D */}
         <Reveal style={{ width: "100%", maxWidth: 1100, margin: "56px auto 0", position: "relative", perspective: 1200 }}>
           <div style={{ position: "absolute", inset: -40, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%,rgba(79,109,245,0.12) 0%,transparent 60%)", filter: "blur(50px)", pointerEvents: "none", opacity: 0.4 + heroProgress * 0.6 }} />
           <div
@@ -263,9 +264,43 @@ const Landing = () => {
               `,
               transformOrigin: "center bottom",
               transition: "transform 0.05s linear",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: `0 ${20 + heroProgress * 40}px ${40 + heroProgress * 60}px -${10 + heroProgress * 10}px rgba(0,0,0,${0.15 + heroProgress * 0.2})`,
             }}
           >
-            <img src={appMockup} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
+            {/* Browser chrome bar */}
+            <div style={{
+              background: "#1E1E22",
+              padding: "10px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              {/* Traffic lights */}
+              <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F57" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FEBC2E" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#28C840" }} />
+              </div>
+              {/* URL bar */}
+              <div style={{
+                flex: 1,
+                marginLeft: 12,
+                padding: "5px 14px",
+                borderRadius: 6,
+                background: "rgba(255,255,255,0.06)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "SF Mono, Monaco, monospace", letterSpacing: "0.02em" }}>app.meufluxo.com</span>
+              </div>
+            </div>
+            {/* Screenshot */}
+            <img src={screenshotMeuDia} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
           </div>
         </Reveal>
 
