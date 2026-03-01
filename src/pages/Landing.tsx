@@ -92,7 +92,19 @@ function RevealImg({ src, alt, style = {} }: { src: string; alt: string; style?:
   return (
     <div ref={ref} className="mf-img" style={{ position: "relative", ...style }}>
       <div className="mf-mockup-glow" style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%, rgba(79,109,245,0.15) 0%, transparent 60%)", filter: "blur(40px)", pointerEvents: "none" }} />
-      <img src={src} alt={alt} loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: 16, position: "relative" }} />
+      <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", boxShadow: "0 16px 48px -8px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ background: "#1E1E22", padding: "8px 14px", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", gap: 5 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FEBC2E" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840" }} />
+          </div>
+          <div style={{ flex: 1, marginLeft: 10, padding: "4px 12px", borderRadius: 5, background: "rgba(255,255,255,0.06)" }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
+          </div>
+        </div>
+        <img src={src} alt={alt} loading="lazy" style={{ width: "100%", height: "auto", display: "block" }} />
+      </div>
     </div>
   );
 }
