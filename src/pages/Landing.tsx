@@ -3,22 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import appMockup from '@/assets/app-mockup.png';
-import mockupMeuDia from '@/assets/mockup-meu-dia.jpg';
-import mockupProjeto from '@/assets/mockup-projeto.jpg';
-import mockupFoco from '@/assets/mockup-foco.jpg';
 import {
   Brain, ArrowRight, ChevronDown, Menu, X, Check,
   CheckCircle, Eye, Clock, ListChecks, Users, Calendar,
-  Shield, Sparkles, Sun,
+  Shield, Sparkles, Sun, Zap,
 } from 'lucide-react';
 
-/* ── Animation preset ── */
+/* ── Animation presets ── */
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 32 },
   visible: (i: number = 0) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    transition: { delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
   }),
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1, scale: 1,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  },
 };
 
 /* ── Data ── */
@@ -55,18 +60,46 @@ const FEATURES = [
   },
 ];
 
+const SHOWCASES = [
+  {
+    icon: Sun,
+    badge: 'Meu Dia',
+    title: 'Comece o dia com clareza.',
+    desc: 'Suas tarefas organizadas por Manhã, Tarde e Noite. Sem listas infinitas — apenas o que importa hoje, no ritmo certo.',
+    items: ['Tarefas agrupadas por período do dia', 'Badge de cliente em cada tarefa', 'Modo Foco com um clique'],
+  },
+  {
+    icon: ListChecks,
+    badge: 'Visão por Cliente',
+    title: 'Cada cliente, seu próprio espaço.',
+    desc: 'Organize entregas em seções personalizáveis como "Para Aprovar", "Design" e "Posts Aprovados". Arraste tarefas entre projetos com um gesto.',
+    items: ['Seções colapsáveis por tipo de entrega', 'Filtro temporal por mês', 'Drag & drop entre projetos'],
+  },
+  {
+    icon: Eye,
+    badge: 'Modo Foco',
+    title: 'Uma tarefa de cada vez.',
+    desc: 'Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual em tela cheia. Sem distrações, sem ansiedade.',
+    items: ['Interface minimalista zen', 'Navegação por "Próxima" tarefa', 'Ideal para TDAH e sobrecarga sensorial'],
+  },
+];
+
 const FAQ_ITEMS = [
   {
-    q: 'Para quem é o MeuFluxo?',
-    a: 'O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais de produtividade. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você — especialmente se você é neurodivergente.',
+    q: 'O que significa ser "projetado para neurodivergentes"?',
+    a: 'Cada decisão de design foi baseada em pesquisas sobre TDAH, TEA e dificuldades executivas. Removemos barras de progresso punitivas, usamos cores gentis (âmbar ao invés de vermelho para atrasos), oferecemos Modo Foco para uma tarefa de cada vez, e minimizamos a carga cognitiva com interfaces limpas.',
   },
   {
-    q: 'Preciso ter TDAH para usar?',
-    a: 'Não. O MeuFluxo é projetado com base em pesquisas sobre TDAH, TEA e neurodiversidade, mas qualquer pessoa pode se beneficiar de uma interface mais limpa, gentil e sem sobrecarga. Com ou sem diagnóstico.',
+    q: 'Preciso ter um diagnóstico para usar o MeuFluxo?',
+    a: 'Não. O MeuFluxo é para qualquer pessoa que se sente sobrecarregada com ferramentas tradicionais. Se você já abandonou um Trello, Notion ou Asana por excesso de complexidade, o MeuFluxo foi feito para você.',
   },
   {
-    q: 'Posso usar com minha equipe?',
-    a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas que geram ansiedade.',
+    q: 'Qual a diferença entre o plano Free e o Pro?',
+    a: 'O plano Free oferece até 3 projetos, 20 tarefas por projeto, subtarefas, modo foco e colaboração básica. O Pro desbloqueia tudo ilimitado, Timeline View, tarefas recorrentes, rollover automático, notas ilimitadas e upload de imagens.',
+  },
+  {
+    q: 'Posso usar o MeuFluxo com minha equipe?',
+    a: 'Sim! Cada workspace permite convidar membros. Você pode atribuir tarefas, compartilhar projetos e colaborar — tudo sem notificações invasivas.',
   },
   {
     q: 'O que é o "Rollover Automático"?',
@@ -76,9 +109,17 @@ const FAQ_ITEMS = [
     q: 'Meus dados estão seguros?',
     a: 'Sim. Usamos criptografia em trânsito e em repouso, autenticação segura e políticas de acesso por linha que garantem que cada usuário só acessa seus próprios dados.',
   },
+  {
+    q: 'Posso cancelar o plano Pro a qualquer momento?',
+    a: 'Sim, sem compromisso. Você pode fazer downgrade para o plano Free a qualquer momento e manterá acesso aos seus dados.',
+  },
 ];
 
 const SCIENCE_ITEMS = [
+  {
+    principle: 'Redução de carga cognitiva',
+    detail: 'Interfaces com excesso de elementos visuais aumentam a fadiga decisional em pessoas com TDAH em até 3x (Sweller, 2011). MeuFluxo usa hierarquia visual mínima e espaçamento generoso.',
+  },
   {
     principle: 'Feedback não-punitivo',
     detail: 'Sistemas de recompensa/punição ativam respostas de ansiedade em cérebros neurodivergentes (Sonuga-Barke, 2005). Substituímos barras de progresso por contadores neutros e tons âmbar em vez de vermelho.',
@@ -88,24 +129,23 @@ const SCIENCE_ITEMS = [
     detail: 'A "paralisia por escolha" é amplificada em TDAH. Limitamos a visão a uma tarefa por vez no Modo Foco, reduzindo a sobrecarga de decisão (Barkley, 2015).',
   },
   {
-    principle: 'Hierarquia visual clara',
-    detail: 'Interfaces com muitos elementos competindo por atenção aumentam a carga cognitiva (Sweller, 1988). Cada tela do MeuFluxo tem um ponto focal primário.',
+    principle: 'Consistência sensorial',
+    detail: 'Variações abruptas de contraste e cor causam desconforto em pessoas no espectro autista (Grandin & Panek, 2013). Nosso dark mode usa pretos quentes e transições suaves de 150ms.',
   },
 ];
 
-/* ── Landing colors (forced light, independent of app theme) ── */
-const C = {
-  bg: '#FAFAFA',
-  bgWhite: '#FFFFFF',
-  accent: '#4F7BF7',
-  accentDark: '#3B64D9',
-  accentLight: '#EEF2FF',
-  text: '#111827',
-  textSub: '#6B7280',
-  textMuted: '#9CA3AF',
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-};
+/* ── Google Fonts injection ── */
+const fontLink = document.querySelector('link[data-meufluxo-font]');
+if (!fontLink) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&display=swap';
+  link.setAttribute('data-meufluxo-font', 'true');
+  document.head.appendChild(link);
+}
+
+const serif = '"DM Serif Display", Georgia, serif';
+const sans = '"DM Sans", system-ui, -apple-system, sans-serif';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -130,21 +170,21 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: C.bg, color: C.text, overflowY: 'auto' }}>
+    <div style={{ fontFamily: sans, background: '#FAFBFC', color: '#1a1a2e', overflowX: 'hidden' }}>
 
       {/* ─── NAV ─── */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(250,250,250,0.85)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          borderBottom: scrolled ? `1px solid ${C.border}` : '1px solid transparent',
+          background: scrolled ? 'rgba(250,251,252,0.8)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent',
         }}
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight" style={{ color: C.text }}>MeuFluxo</span>
+          <span style={{ fontFamily: serif, fontSize: 22, color: '#1a1a2e', letterSpacing: '-0.02em' }}>MeuFluxo</span>
 
-          {/* Desktop */}
           <div className="hidden md:flex items-center gap-8">
             {[
               { label: 'Funcionalidades', id: 'features' },
@@ -152,48 +192,49 @@ export default function Landing() {
               { label: 'Planos', id: 'pricing' },
               { label: 'FAQ', id: 'faq' },
             ].map(n => (
-              <button key={n.id} onClick={() => scrollTo(n.id)} className="text-sm transition-colors hover:opacity-80" style={{ color: C.textSub }}>
+              <button key={n.id} onClick={() => scrollTo(n.id)} className="text-sm transition-colors duration-200" style={{ color: '#6B7280', fontFamily: sans, fontWeight: 500 }}
+                onMouseOver={e => (e.currentTarget.style.color = '#1a1a2e')}
+                onMouseOut={e => (e.currentTarget.style.color = '#6B7280')}
+              >
                 {n.label}
               </button>
             ))}
-            <button onClick={() => navigate('/auth')} className="text-sm font-medium transition-colors hover:opacity-80" style={{ color: C.text }}>
+            <button onClick={() => navigate('/auth')} className="text-sm font-medium transition-colors duration-200" style={{ color: '#1a1a2e' }}>
               Entrar
             </button>
             <button
               onClick={() => navigate('/auth')}
-              className="h-10 px-5 rounded-lg text-sm font-semibold text-white transition-colors"
-              style={{ background: C.accent }}
-              onMouseOver={e => (e.currentTarget.style.background = C.accentDark)}
-              onMouseOut={e => (e.currentTarget.style.background = C.accent)}
+              className="h-10 px-5 rounded-full text-sm font-semibold text-white transition-all duration-200"
+              style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 100%)', boxShadow: '0 2px 12px rgba(79,123,247,0.3)' }}
+              onMouseOver={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(79,123,247,0.4)', e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseOut={e => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(79,123,247,0.3)', e.currentTarget.style.transform = 'translateY(0)')}
             >
               Começar grátis
             </button>
           </div>
 
-          {/* Mobile toggle */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2" style={{ color: C.textSub }}>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2" style={{ color: '#6B7280' }}>
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Mobile menu */}
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden absolute top-16 left-0 right-0 p-6 space-y-4"
-            style={{ background: 'rgba(250,250,250,0.97)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${C.border}` }}
+            style={{ background: 'rgba(250,251,252,0.97)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}
           >
-            <button onClick={() => scrollTo('features')} className="block w-full text-left text-sm" style={{ color: C.textSub }}>Funcionalidades</button>
-            <button onClick={() => scrollTo('science')} className="block w-full text-left text-sm" style={{ color: C.textSub }}>A Ciência</button>
-            <button onClick={() => scrollTo('pricing')} className="block w-full text-left text-sm" style={{ color: C.textSub }}>Planos</button>
-            <button onClick={() => scrollTo('faq')} className="block w-full text-left text-sm" style={{ color: C.textSub }}>FAQ</button>
-            <hr style={{ borderColor: C.border }} />
-            <button onClick={() => navigate('/auth')} className="block w-full text-left text-sm font-medium" style={{ color: C.text }}>Entrar</button>
+            <button onClick={() => scrollTo('features')} className="block w-full text-left text-sm" style={{ color: '#6B7280' }}>Funcionalidades</button>
+            <button onClick={() => scrollTo('science')} className="block w-full text-left text-sm" style={{ color: '#6B7280' }}>A Ciência</button>
+            <button onClick={() => scrollTo('pricing')} className="block w-full text-left text-sm" style={{ color: '#6B7280' }}>Planos</button>
+            <button onClick={() => scrollTo('faq')} className="block w-full text-left text-sm" style={{ color: '#6B7280' }}>FAQ</button>
+            <hr style={{ borderColor: 'rgba(0,0,0,0.06)' }} />
+            <button onClick={() => navigate('/auth')} className="block w-full text-left text-sm font-medium" style={{ color: '#1a1a2e' }}>Entrar</button>
             <button
               onClick={() => navigate('/auth')}
-              className="w-full h-11 rounded-lg text-sm font-semibold text-white"
-              style={{ background: C.accent }}
+              className="w-full h-11 rounded-full text-sm font-semibold text-white"
+              style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 100%)' }}
             >
               Começar grátis
             </button>
@@ -202,78 +243,94 @@ export default function Landing() {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section className="relative pt-32 pb-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Badge */}
+      <section className="relative pt-32 md:pt-40 pb-8 px-6 overflow-hidden">
+        {/* Background gradient orbs */}
+        <div style={{
+          position: 'absolute', top: -120, right: -200, width: 600, height: 600,
+          background: 'radial-gradient(circle, rgba(79,123,247,0.08) 0%, transparent 70%)',
+          borderRadius: '50%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', top: 200, left: -300, width: 500, height: 500,
+          background: 'radial-gradient(circle, rgba(108,99,255,0.06) 0%, transparent 70%)',
+          borderRadius: '50%', pointerEvents: 'none',
+        }} />
+
+        <div className="max-w-4xl mx-auto text-center relative">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
-            style={{ background: C.accentLight, border: `1px solid ${C.border}` }}
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-10"
+            style={{ background: 'rgba(79,123,247,0.08)', border: '1px solid rgba(79,123,247,0.15)' }}
           >
-            <Brain className="w-4 h-4" style={{ color: C.accent }} />
-            <span className="text-xs font-medium" style={{ color: C.textSub }}>Projetado para mentes neurodivergentes</span>
+            <Brain className="w-4 h-4" style={{ color: '#4F7BF7' }} />
+            <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: '#4F7BF7', letterSpacing: '0.08em' }}>
+              Projetado para mentes neurodivergentes
+            </span>
           </motion.div>
 
-          {/* Title */}
           <motion.h1 variants={fadeUp} initial="hidden" animate="visible" custom={1}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight mb-6"
-            style={{ color: C.text }}
+            className="leading-[1.08] tracking-tight mb-6"
+            style={{ fontFamily: serif, fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', color: '#1a1a2e' }}
           >
             Produtividade que{' '}
-            <span style={{ color: C.accent }}>respeita</span>
+            <span style={{
+              background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 50%, #A78BFA 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              respeita
+            </span>
             <br />como você pensa.
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={2}
-            className="text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed"
-            style={{ color: C.textSub }}
+            className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            style={{ color: '#6B7280', fontWeight: 400 }}
           >
             O gerenciador de tarefas criado com base em pesquisas sobre TDAH, TEA e neurodiversidade.
             Menos culpa, mais tração. Uma tarefa de cada vez.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <button
               onClick={() => navigate('/auth')}
-              className="h-12 px-8 rounded-lg font-semibold text-base text-white flex items-center gap-2 transition-all"
-              style={{ background: C.accent, boxShadow: '0 4px 14px rgba(79,123,247,0.25)' }}
-              onMouseOver={e => (e.currentTarget.style.background = C.accentDark)}
-              onMouseOut={e => (e.currentTarget.style.background = C.accent)}
+              className="h-13 px-8 py-3.5 rounded-full font-semibold text-base text-white flex items-center gap-2.5 transition-all duration-200"
+              style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 100%)', boxShadow: '0 4px 20px rgba(79,123,247,0.3)' }}
+              onMouseOver={e => (e.currentTarget.style.boxShadow = '0 8px 30px rgba(79,123,247,0.4)', e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseOut={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(79,123,247,0.3)', e.currentTarget.style.transform = 'translateY(0)')}
             >
               Começar grátis <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => scrollTo('features')}
-              className="h-12 px-8 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-              style={{ border: `1px solid ${C.border}`, color: C.textSub }}
+              className="h-13 px-8 py-3.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all duration-200"
+              style={{ border: '1px solid rgba(0,0,0,0.12)', color: '#6B7280', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)' }}
+              onMouseOver={e => (e.currentTarget.style.borderColor = 'rgba(79,123,247,0.3)', e.currentTarget.style.color = '#4F7BF7')}
+              onMouseOut={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)', e.currentTarget.style.color = '#6B7280')}
             >
               Conhecer mais <ChevronDown className="w-4 h-4" />
             </button>
           </motion.div>
 
-          {/* App screenshot in browser mockup */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}
-            className="mt-16 max-w-5xl mx-auto"
+          {/* App screenshot */}
+          <motion.div variants={scaleIn} initial="hidden" animate="visible"
+            className="mt-20 max-w-5xl mx-auto"
           >
-            {/* Browser chrome */}
-            <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 25px 60px -12px rgba(0,0,0,0.15)', border: `1px solid ${C.border}` }}>
-              {/* Title bar */}
-              <div className="flex items-center gap-2 px-4 py-3" style={{ background: '#F9FAFB', borderBottom: `1px solid ${C.border}` }}>
+            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 40px 80px -20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ background: '#1E1E2E', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#EF4444' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#F59E0B' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#22C55E' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
                 </div>
                 <div className="flex-1 mx-8">
-                  <div className="max-w-md mx-auto h-7 rounded-md flex items-center justify-center text-xs" style={{ background: '#F3F4F6', color: C.textMuted }}>
+                  <div className="max-w-sm mx-auto h-7 rounded-md flex items-center justify-center text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
                     meufluxo.app
                   </div>
                 </div>
               </div>
-              {/* Screenshot */}
               <img
                 src={appMockup}
                 alt="MeuFluxo — Dashboard de gerenciamento de tarefas com visão Meu Dia"
@@ -286,152 +343,138 @@ export default function Landing() {
       </section>
 
       {/* ─── FEATURES ─── */}
-      <section id="features" className="py-24 px-6" style={{ background: C.bgWhite }}>
+      <section id="features" className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-20">
+            <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#4F7BF7', letterSpacing: '0.12em' }}>
+              Funcionalidades
+            </p>
+            <h2 className="mb-5" style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#1a1a2e', lineHeight: 1.15 }}>
               Cada detalhe, com propósito.
             </h2>
-            <p className="max-w-lg mx-auto" style={{ color: C.textSub }}>
+            <p className="max-w-lg mx-auto text-base" style={{ color: '#6B7280' }}>
               Cada decisão de design é baseada em pesquisas sobre neurodiversidade e redução de carga cognitiva.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {FEATURES.map((f, i) => (
               <motion.div
                 key={f.title}
                 variants={fadeUp} initial="hidden" whileInView="visible"
                 viewport={{ once: true, margin: '-50px' }} custom={i}
-                className="p-6 rounded-xl transition-all duration-200"
-                style={{ border: `1px solid ${C.border}`, background: C.bgWhite }}
-                onMouseOver={e => (e.currentTarget.style.borderColor = C.accent, e.currentTarget.style.boxShadow = '0 4px 20px rgba(79,123,247,0.08)')}
-                onMouseOut={e => (e.currentTarget.style.borderColor = C.border, e.currentTarget.style.boxShadow = 'none')}
+                className="group p-7 rounded-2xl transition-all duration-300 cursor-default"
+                style={{ border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
+                onMouseOver={e => {
+                  e.currentTarget.style.borderColor = 'rgba(79,123,247,0.2)';
+                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(79,123,247,0.08)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ background: C.accentLight }}>
-                  <f.icon className="w-5 h-5" style={{ color: C.accent }} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg, rgba(79,123,247,0.1) 0%, rgba(108,99,255,0.1) 100%)' }}>
+                  <f.icon className="w-5 h-5" style={{ color: '#4F7BF7' }} />
                 </div>
-                <h3 className="text-base font-semibold mb-2" style={{ color: C.text }}>{f.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: C.textSub }}>{f.description}</p>
+                <h3 className="text-[15px] font-semibold mb-2" style={{ color: '#1a1a2e' }}>{f.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#6B7280' }}>{f.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── FUNCIONALIDADES PRINCIPAIS (alternating layout) ─── */}
-      <section className="py-24 px-6" style={{ borderTop: `1px solid ${C.borderLight}` }}>
-        <div className="max-w-6xl mx-auto">
+      {/* ─── SHOWCASES ─── */}
+      <section className="py-28 px-6" style={{ background: '#FFFFFF' }}>
+        <div className="max-w-5xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
+            <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#4F7BF7', letterSpacing: '0.12em' }}>
+              Como funciona
+            </p>
+            <h2 className="mb-5" style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#1a1a2e', lineHeight: 1.15 }}>
               Tudo que você precisa, nada que não precisa.
             </h2>
-            <p className="max-w-lg mx-auto" style={{ color: C.textSub }}>
-              Conheça as telas que fazem do MeuFluxo a ferramenta mais gentil de produtividade.
+            <p className="max-w-lg mx-auto text-base" style={{ color: '#6B7280' }}>
+              Funcionalidades pensadas para quem precisa de foco, não de mais opções.
             </p>
           </motion.div>
 
-          {/* Bloco A — Meu Dia (text left, screenshot right) */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={0} className="mb-24">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
-                  <Sun className="w-3.5 h-3.5" style={{ color: C.accent }} />
-                  <span className="text-xs font-medium" style={{ color: C.accent }}>Meu Dia</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Comece o dia com clareza.</h3>
-                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
-                  Visualize suas tarefas do dia organizadas por período — Manhã, Tarde e Noite. Sem sobrecarga de informação, apenas o que importa agora.
-                </p>
-                <ul className="space-y-2.5">
-                  {['Organização por períodos', 'Tags coloridas por cliente', 'Contagem de subtarefas'].map(li => (
-                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
-                <img src={mockupMeuDia} alt="Visão Meu Dia — tarefas organizadas por Manhã, Tarde e Noite" className="w-full h-auto block" loading="lazy" />
-              </div>
-            </div>
-          </motion.div>
+          <div className="space-y-6">
+            {SHOWCASES.map((item, i) => (
+              <motion.div key={item.badge} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} custom={i}
+                className="relative p-8 md:p-10 rounded-2xl overflow-hidden transition-all duration-300"
+                style={{ background: '#FAFBFC', border: '1px solid rgba(0,0,0,0.06)' }}
+                onMouseOver={e => (e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.04)')}
+                onMouseOut={e => (e.currentTarget.style.boxShadow = 'none')}
+              >
+                {/* Subtle gradient accent */}
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+                  background: 'linear-gradient(90deg, #4F7BF7, #6C63FF, #A78BFA)',
+                  opacity: 0.6,
+                }} />
 
-          {/* Bloco B — Visão por Cliente (screenshot left, text right) */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={1} className="mb-24">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
-                <img src={mockupProjeto} alt="Visão por Cliente — seções e tarefas organizadas por cliente" className="w-full h-auto block" loading="lazy" />
-              </div>
-              <div className="order-1 lg:order-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
-                  <ListChecks className="w-3.5 h-3.5" style={{ color: C.accent }} />
-                  <span className="text-xs font-medium" style={{ color: C.accent }}>Visão por Cliente</span>
+                <div className="flex items-center gap-2.5 mb-5">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(79,123,247,0.1) 0%, rgba(108,99,255,0.1) 100%)' }}>
+                    <item.icon className="w-4 h-4" style={{ color: '#4F7BF7' }} />
+                  </div>
+                  <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#4F7BF7', letterSpacing: '0.08em' }}>{item.badge}</span>
                 </div>
-                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Organize entregas por cliente.</h3>
-                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
-                  Organize entregas em seções personalizáveis como "Para Aprovar", "Design" e "Posts Aprovados". Arraste tarefas entre projetos com um gesto.
-                </p>
-                <ul className="space-y-2.5">
-                  {['Seções colapsáveis por tipo de entrega', 'Filtro temporal por mês', 'Drag & drop entre projetos'].map(li => (
-                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </motion.div>
 
-          {/* Bloco C — Modo Foco (text left, screenshot right) */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp} custom={2}>
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: C.accentLight }}>
-                  <Eye className="w-3.5 h-3.5" style={{ color: C.accent }} />
-                  <span className="text-xs font-medium" style={{ color: C.accent }}>Modo Foco</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-3" style={{ color: C.text }}>Uma tarefa de cada vez.</h3>
-                <p className="leading-relaxed mb-5" style={{ color: C.textSub }}>
-                  Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual em tela cheia. Sem distrações, sem ansiedade. Avance quando estiver pronto.
-                </p>
-                <ul className="space-y-2.5">
-                  {['Interface minimalista zen', 'Navegação por "Próxima" tarefa', 'Ideal para TDAH e sobrecarga sensorial'].map(li => (
-                    <li key={li} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {li}
-                    </li>
+                <h3 className="text-xl md:text-2xl font-bold mb-3" style={{ fontFamily: serif, color: '#1a1a2e' }}>{item.title}</h3>
+                <p className="mb-6 leading-relaxed max-w-2xl" style={{ color: '#6B7280' }}>{item.desc}</p>
+
+                <div className="flex flex-wrap gap-4">
+                  {item.items.map(li => (
+                    <span key={li} className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-full" style={{ background: 'rgba(79,123,247,0.06)', color: '#4F7BF7', fontWeight: 500 }}>
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      {li}
+                    </span>
                   ))}
-                </ul>
-              </div>
-              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 20px 50px -12px rgba(0,0,0,0.12)', border: `1px solid ${C.border}` }}>
-                <img src={mockupFoco} alt="Modo Foco — uma tarefa por vez em tela cheia" className="w-full h-auto block" loading="lazy" />
-              </div>
-            </div>
-          </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ─── A CIÊNCIA ─── */}
-      <section id="science" className="py-24 px-6" style={{ background: '#F0F4FF', borderTop: `1px solid ${C.borderLight}` }}>
-        <div className="max-w-4xl mx-auto">
+      {/* ─── SCIENCE ─── */}
+      <section id="science" className="py-28 px-6 relative overflow-hidden" style={{ background: '#F5F3FF' }}>
+        {/* Background texture */}
+        <div style={{
+          position: 'absolute', inset: 0, opacity: 0.3, pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(79,123,247,0.08) 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+        }} />
+
+        <div className="max-w-4xl mx-auto relative">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
-              Por que funciona.
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-6" style={{ background: 'rgba(79,123,247,0.08)', border: '1px solid rgba(79,123,247,0.15)' }}>
+              <Shield className="w-4 h-4" style={{ color: '#4F7BF7' }} />
+              <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: '#4F7BF7', letterSpacing: '0.08em' }}>Baseado em pesquisa</span>
+            </div>
+            <h2 className="mb-5" style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#1a1a2e', lineHeight: 1.15 }}>
+              A ciência por trás do MeuFluxo
             </h2>
-            <p className="max-w-2xl mx-auto" style={{ color: C.textSub }}>
-              Cada decisão de design no MeuFluxo é respaldada por pesquisa sobre como cérebros neurodivergentes processam informação.
+            <p className="max-w-2xl mx-auto text-base" style={{ color: '#6B7280' }}>
+              Nosso design é fundamentado em estudos sobre como cérebros neurodivergentes processam informação, tomam decisões e mantêm o foco.
             </p>
           </motion.div>
 
-          <div className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-5">
             {SCIENCE_ITEMS.map((item, i) => (
               <motion.div key={item.principle} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}
-                className="flex gap-0 rounded-xl overflow-hidden" style={{ background: C.bgWhite, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+                className="p-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(79,123,247,0.1)' }}
               >
-                <div className="flex-shrink-0 w-1.5" style={{ background: C.accent }} />
-                <div className="p-6">
-                  <h4 className="text-base font-semibold mb-1.5" style={{ color: C.text }}>{item.principle}</h4>
-                  <p className="text-sm leading-relaxed" style={{ color: C.textSub }}>{item.detail}</p>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-1 rounded-full" style={{ background: 'linear-gradient(180deg, #4F7BF7, #A78BFA)' }} />
+                  <div>
+                    <h4 className="text-sm font-bold mb-2" style={{ color: '#1a1a2e' }}>{item.principle}</h4>
+                    <p className="text-sm leading-relaxed" style={{ color: '#6B7280' }}>{item.detail}</p>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -440,36 +483,43 @@ export default function Landing() {
       </section>
 
       {/* ─── PRICING ─── */}
-      <section id="pricing" className="py-24 px-6" style={{ borderTop: `1px solid ${C.borderLight}` }}>
+      <section id="pricing" className="py-28 px-6" style={{ background: '#FFFFFF' }}>
         <div className="max-w-4xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: C.text }}>
-              Simples e justo.
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
+            <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#4F7BF7', letterSpacing: '0.12em' }}>
+              Planos
+            </p>
+            <h2 className="mb-5" style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#1a1a2e', lineHeight: 1.15 }}>
+              Simples e transparente.
             </h2>
-            <p style={{ color: C.textSub }}>Comece de graça, faça upgrade quando precisar.</p>
+            <p style={{ color: '#6B7280' }}>Comece de graça, faça upgrade quando precisar.</p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             {/* Free */}
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0}
-              className="p-8 rounded-xl" style={{ border: `1px solid ${C.border}`, background: C.bgWhite }}
+              className="p-8 rounded-2xl transition-all duration-300"
+              style={{ border: '1px solid rgba(0,0,0,0.08)', background: '#FFFFFF' }}
             >
-              <h3 className="text-lg font-semibold mb-1" style={{ color: C.text }}>Free</h3>
-              <p className="text-sm mb-4" style={{ color: C.textSub }}>Para começar sem pressão</p>
-              <p className="text-4xl font-bold mb-6" style={{ color: C.text }}>
-                R$0 <span className="text-sm font-normal" style={{ color: C.textMuted }}>/mês</span>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: '#1a1a2e' }}>Free</h3>
+              <p className="text-sm mb-5" style={{ color: '#6B7280' }}>Para começar sem pressão</p>
+              <p className="mb-6" style={{ color: '#1a1a2e' }}>
+                <span style={{ fontFamily: serif, fontSize: 40, fontWeight: 400 }}>R$0</span>
+                <span className="text-sm ml-1" style={{ color: '#9CA3AF' }}>/mês</span>
               </p>
               <ul className="space-y-3 mb-8">
                 {['1 Workspace', '3 Projetos', '20 Tarefas por projeto', '2 Membros', 'Dark & Light mode'].map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: C.textSub }}>
-                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {f}
+                  <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: '#6B7280' }}>
+                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: '#4F7BF7' }} /> {f}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => navigate('/auth')}
-                className="w-full h-11 rounded-lg text-sm font-medium transition-colors"
-                style={{ border: `1px solid ${C.border}`, color: C.text }}
+                className="w-full h-11 rounded-full text-sm font-medium transition-all duration-200"
+                style={{ border: '1px solid rgba(0,0,0,0.12)', color: '#1a1a2e' }}
+                onMouseOver={e => (e.currentTarget.style.borderColor = 'rgba(79,123,247,0.3)', e.currentTarget.style.color = '#4F7BF7')}
+                onMouseOut={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)', e.currentTarget.style.color = '#1a1a2e')}
               >
                 Criar conta grátis
               </button>
@@ -477,34 +527,36 @@ export default function Landing() {
 
             {/* Pro */}
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}
-              className="relative p-8 rounded-xl" style={{ border: `2px solid ${C.accent}`, background: C.bgWhite }}
+              className="relative p-8 rounded-2xl transition-all duration-300"
+              style={{ border: '2px solid #4F7BF7', background: '#FFFFFF', boxShadow: '0 8px 30px rgba(79,123,247,0.1)' }}
             >
               <div
-                className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
-                style={{ background: C.accent }}
+                className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white"
+                style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 100%)', letterSpacing: '0.1em' }}
               >
                 Recomendado
               </div>
-              <h3 className="text-lg font-semibold mb-1 flex items-center gap-2" style={{ color: C.text }}>
-                Pro <Sparkles className="w-4 h-4" style={{ color: C.accent }} />
+              <h3 className="text-lg font-semibold mb-1 flex items-center gap-2" style={{ color: '#1a1a2e' }}>
+                Pro <Sparkles className="w-4 h-4" style={{ color: '#4F7BF7' }} />
               </h3>
-              <p className="text-sm mb-4" style={{ color: C.textSub }}>Para profissionais</p>
-              <p className="text-4xl font-bold mb-6" style={{ color: C.text }}>
-                R$29 <span className="text-sm font-normal" style={{ color: C.textMuted }}>/mês</span>
+              <p className="text-sm mb-5" style={{ color: '#6B7280' }}>Para profissionais</p>
+              <p className="mb-6" style={{ color: '#1a1a2e' }}>
+                <span style={{ fontFamily: serif, fontSize: 40, fontWeight: 400 }}>R$29</span>
+                <span className="text-sm ml-1" style={{ color: '#9CA3AF' }}>/mês</span>
               </p>
               <ul className="space-y-3 mb-8">
                 {['Tudo ilimitado', 'Timeline View', 'Tarefas Recorrentes', 'Rollover Automático', 'Notas ilimitadas', 'Upload de imagens'].map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: C.text }}>
-                    <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: C.accent }} /> {f}
+                  <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: '#1a1a2e' }}>
+                    <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#4F7BF7' }} /> {f}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => navigate('/auth')}
-                className="w-full h-11 rounded-lg text-sm font-semibold text-white transition-colors"
-                style={{ background: C.accent }}
-                onMouseOver={e => (e.currentTarget.style.background = C.accentDark)}
-                onMouseOut={e => (e.currentTarget.style.background = C.accent)}
+                className="w-full h-11 rounded-full text-sm font-semibold text-white transition-all duration-200"
+                style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6C63FF 100%)', boxShadow: '0 2px 12px rgba(79,123,247,0.3)' }}
+                onMouseOver={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(79,123,247,0.4)', e.currentTarget.style.transform = 'translateY(-1px)')}
+                onMouseOut={e => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(79,123,247,0.3)', e.currentTarget.style.transform = 'translateY(0)')}
               >
                 Começar com Pro
               </button>
@@ -514,10 +566,13 @@ export default function Landing() {
       </section>
 
       {/* ─── FAQ ─── */}
-      <section id="faq" className="py-24 px-6" style={{ background: C.bgWhite, borderTop: `1px solid ${C.borderLight}` }}>
+      <section id="faq" className="py-28 px-6" style={{ background: '#FAFBFC' }}>
         <div className="max-w-3xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+            <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#4F7BF7', letterSpacing: '0.12em' }}>
+              FAQ
+            </p>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#1a1a2e', lineHeight: 1.15 }}>
               Perguntas frequentes
             </h2>
           </motion.div>
@@ -526,18 +581,18 @@ export default function Landing() {
             {FAQ_ITEMS.map((item, i) => (
               <motion.details
                 key={i}
-                variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i * 0.3}
+                variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i * 0.2}
                 className="group rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${C.border}`, background: C.bgWhite }}
+                style={{ border: '1px solid rgba(0,0,0,0.06)', background: '#FFFFFF' }}
               >
                 <summary
                   className="flex items-center justify-between cursor-pointer px-6 py-5 text-sm font-medium transition-colors list-none [&::-webkit-details-marker]:hidden"
-                  style={{ color: C.text }}
+                  style={{ color: '#1a1a2e' }}
                 >
                   <span>{item.q}</span>
-                  <ChevronDown className="w-4 h-4 flex-shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" style={{ color: C.textMuted }} />
+                  <ChevronDown className="w-4 h-4 flex-shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" style={{ color: '#9CA3AF' }} />
                 </summary>
-                <div className="px-6 pb-5 text-sm leading-relaxed" style={{ color: C.textSub }}>
+                <div className="px-6 pb-5 text-sm leading-relaxed" style={{ color: '#6B7280' }}>
                   {item.a}
                 </div>
               </motion.details>
@@ -547,20 +602,27 @@ export default function Landing() {
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-24 px-6" style={{ background: 'linear-gradient(135deg, #4F7BF7 0%, #6B8FF8 50%, #3B64D9 100%)' }}>
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+      <section className="py-28 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #2d2b55 100%)' }}>
+        {/* Dot grid overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, opacity: 0.15, pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }} />
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-2xl mx-auto text-center relative">
+          <h2 className="mb-5" style={{ fontFamily: serif, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#FFFFFF', lineHeight: 1.15 }}>
             Seu cérebro merece ferramentas melhores.
           </h2>
-          <p className="mb-8 max-w-md mx-auto" style={{ color: 'rgba(255,255,255,0.85)' }}>
-            Junte-se a profissionais que descobriram uma forma de trabalhar que não luta contra a forma como pensam.
+          <p className="mb-10 max-w-md mx-auto text-base" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Descubra uma forma de trabalhar que não luta contra a forma como você pensa.
           </p>
           <button
             onClick={() => navigate('/auth')}
-            className="h-12 px-8 rounded-lg font-semibold text-base flex items-center gap-2 mx-auto transition-all"
-            style={{ background: '#FFFFFF', color: C.accent, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
-            onMouseOver={e => (e.currentTarget.style.background = '#F0F4FF')}
-            onMouseOut={e => (e.currentTarget.style.background = '#FFFFFF')}
+            className="h-13 px-8 py-3.5 rounded-full font-semibold text-base flex items-center gap-2.5 mx-auto transition-all duration-200"
+            style={{ background: '#FFFFFF', color: '#1a1a2e', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
+            onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)', e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.3)')}
+            onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)', e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)')}
           >
             Começar grátis agora <ArrowRight className="w-4 h-4" />
           </button>
@@ -568,24 +630,32 @@ export default function Landing() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="py-12 px-6" style={{ borderTop: `1px solid ${C.border}`, background: C.bgWhite }}>
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-sm font-bold" style={{ color: C.text }}>MeuFluxo</span>
+      <footer className="py-12 px-6" style={{ background: '#1a1a2e', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <span style={{ fontFamily: serif, fontSize: 18, color: '#FFFFFF' }}>MeuFluxo</span>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            © {new Date().getFullYear()} MeuFluxo. Feito com cuidado para mentes que pensam diferente.
+          </p>
           <div className="flex items-center gap-6">
             {[
               { label: 'Funcionalidades', id: 'features' },
-              { label: 'A Ciência', id: 'science' },
               { label: 'Planos', id: 'pricing' },
               { label: 'FAQ', id: 'faq' },
             ].map(n => (
-              <button key={n.id} onClick={() => scrollTo(n.id)} className="text-xs transition-colors hover:opacity-80" style={{ color: C.textSub }}>
+              <button key={n.id} onClick={() => scrollTo(n.id)} className="text-xs transition-colors duration-200" style={{ color: 'rgba(255,255,255,0.4)' }}
+                onMouseOver={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
+                onMouseOut={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+              >
                 {n.label}
               </button>
             ))}
+            <button onClick={() => navigate('/auth')} className="text-xs transition-colors duration-200" style={{ color: 'rgba(255,255,255,0.4)' }}
+              onMouseOver={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
+              onMouseOut={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+            >
+              Entrar
+            </button>
           </div>
-          <p className="text-xs" style={{ color: C.textMuted }}>
-            © {new Date().getFullYear()} MeuFluxo. Feito com propósito.
-          </p>
         </div>
       </footer>
     </div>
