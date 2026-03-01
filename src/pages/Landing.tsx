@@ -332,26 +332,12 @@ export default function Landing() {
           <motion.div variants={scaleIn} initial="hidden" animate="visible"
             className="mt-20 max-w-5xl mx-auto"
           >
-            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 40px 80px -20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)' }}>
-              <div className="flex items-center gap-2 px-4 py-3" style={{ background: '#1E1E2E', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
-                </div>
-                <div className="flex-1 mx-8">
-                  <div className="max-w-sm mx-auto h-7 rounded-md flex items-center justify-center text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
-                    meufluxo.app
-                  </div>
-                </div>
-              </div>
-              <img
-                src={appMockup}
-                alt="MeuFluxo — Dashboard de gerenciamento de tarefas com visão Meu Dia"
-                className="w-full h-auto block"
-                loading="eager"
-              />
-            </div>
+            <img
+              src={appMockup}
+              alt="MeuFluxo — Dashboard de gerenciamento de tarefas com visão Meu Dia"
+              className="w-full h-auto block max-w-5xl mx-auto"
+              loading="eager"
+            />
           </motion.div>
         </div>
       </section>
