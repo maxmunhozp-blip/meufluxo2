@@ -665,7 +665,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   }, [tasksState, session, activeWorkspaceId]);
 
   const updateTask = useCallback(async (task: Task) => {
-    await supabase.from('tasks').update({
+    const updates: Record<string, any> = {
       title: task.name,
       status: task.status,
       priority: task.priority || 'low',
@@ -679,8 +679,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null,
       parent_task_id: task.parentTaskId || null,
-      display_month: task.displayMonth || null,
-    }).eq('id', task.id);
+    };
+    // Only include display_month if defined (column is NOT NULL)
+    if (task.displayMonth) updates.display_month = task.displayMonth;
+    await supabase.from('tasks').update(updates).eq('id', task.id);
 
     if (task.parentTaskId) {
       // Update subtask inside parent's subtasks array
