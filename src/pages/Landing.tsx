@@ -27,8 +27,8 @@ const FEATURES = [
   },
   {
     icon: Eye,
-    title: 'Modo Foco imersivo',
-    description: 'Uma tarefa de cada vez, em tela cheia. Sem distrações periféricas, sem ansiedade. Avance quando estiver pronto.',
+    title: 'Carga cognitiva reduzida',
+    description: 'Interface limpa com hierarquia visual clara. Cada pixel foi pensado para não competir pela sua atenção.',
   },
   {
     icon: Clock,
