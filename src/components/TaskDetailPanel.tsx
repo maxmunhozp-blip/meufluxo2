@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -441,31 +441,34 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
 
   const toggleHighlight = (e: React.MouseEvent) => {
     e.preventDefault(); editorRef.current?.focus();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
     if (formats.highlight) {
       // Remove highlight: find parent .highlight-marker and unwrap it
-      const sel = window.getSelection();
-      if (sel && sel.anchorNode) {
-        let node: Node | null = sel.anchorNode;
-        while (node && node !== editorRef.current) {
-          if (node instanceof HTMLElement && node.classList.contains('highlight-marker')) {
-            const parent = node.parentNode;
-            while (node.firstChild) parent?.insertBefore(node.firstChild, node);
-            parent?.removeChild(node);
-            handleInput();
-            break;
-          }
-          node = node.parentNode;
+      let node: Node | null = sel.anchorNode;
+      while (node && node !== editorRef.current) {
+        if (node instanceof HTMLElement && node.classList.contains('highlight-marker')) {
+          const parent = node.parentNode;
+          while (node.firstChild) parent?.insertBefore(node.firstChild, node);
+          parent?.removeChild(node);
+          handleInput();
+          break;
         }
+        node = node.parentNode;
       }
-      // Fallback: try execCommand
-      document.execCommand('backColor', false, 'transparent');
     } else {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      if (!sel.isCollapsed) {
+        // Wrap selection in highlight span using insertHTML for better compatibility
         const range = sel.getRangeAt(0);
+        const content = range.extractContents();
         const span = document.createElement('span');
         span.className = 'highlight-marker';
-        try { range.surroundContents(span); } catch { /* partial selection */ }
+        span.appendChild(content);
+        range.insertNode(span);
+        // Move cursor after the span
+        range.setStartAfter(span);
+        range.collapse(true);
         sel.removeAllRanges();
         sel.addRange(range);
         handleInput();
@@ -539,17 +542,8 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
 
   const toolbarButtons = [
     { icon: Bold, active: formats.bold, action: execCmd('bold'), title: 'Negrito (Ctrl+B)' },
-    { icon: Italic, active: formats.italic, action: execCmd('italic'), title: 'Itálico (Ctrl+I)' },
-    { icon: Underline, active: formats.underline, action: execCmd('underline'), title: 'Sublinhado (Ctrl+U)' },
-    { icon: Strikethrough, active: formats.strikethrough, action: execCmd('strikeThrough'), title: 'Riscado (Ctrl+Shift+X)' },
     { icon: Highlighter, active: formats.highlight, action: toggleHighlight, title: 'Destaque (Ctrl+Shift+H)' },
-    null,
-    { icon: List, active: false, action: insertList(false), title: 'Lista' },
-    { icon: ListOrdered, active: false, action: insertList(true), title: 'Lista numerada' },
-    { icon: CheckSquare, active: false, action: insertCheckbox, title: 'Checkbox' },
-    { icon: Minus, active: false, action: insertHR, title: 'Separador' },
-    { icon: Heading2, active: false, action: insertHeading, title: 'Heading' },
-    ...(onUploadImage ? [{ icon: ImagePlus, active: false, action: (e: React.MouseEvent) => { e.preventDefault(); fileInputRef.current?.click(); }, title: 'Imagem' }] : []),
+    ...(onUploadImage ? [{ icon: ImagePlus, active: false, action: (e: React.MouseEvent) => { e.preventDefault(); fileInputRef.current?.click(); }, title: 'Anexo' }] : []),
   ];
 
   return (
