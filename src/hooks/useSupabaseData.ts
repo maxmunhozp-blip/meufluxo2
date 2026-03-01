@@ -61,6 +61,7 @@ interface UseSupabaseDataReturn {
   createSection: (title: string, projectId: string) => Promise<string>;
   renameSection: (id: string, title: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
+  deleteSectionFromDb: (id: string) => Promise<void>;
   createTask: (task: Partial<Task> & { name: string; section: string; projectId: string }) => Promise<string>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -621,6 +622,12 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     await supabase.from('sections').delete().eq('id', id);
     setSectionsState(prev => prev.filter(s => s.id !== id));
     setTasksState(prev => prev.filter(t => t.section !== id));
+  }, []);
+
+  // DB-only delete (no state update) — used when UI is already updated optimistically
+  const deleteSectionFromDb = useCallback(async (id: string) => {
+    await supabase.from('tasks').delete().eq('section_id', id);
+    await supabase.from('sections').delete().eq('id', id);
   }, []);
 
   // Task operations
@@ -1390,6 +1397,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     createSection,
     renameSection,
     deleteSection,
+    deleteSectionFromDb,
     createTask,
     updateTask,
     deleteTask: deleteTaskFn,
