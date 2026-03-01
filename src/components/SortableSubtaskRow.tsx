@@ -118,9 +118,24 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     <div
       ref={setNodeRef}
       draggable
-      onDragStart={handleNativeDragStart}
-      onDragEnd={handleNativeDragEnd}
-      onClick={() => {
+      onPointerDown={(e) => {
+        // Stop propagation so DndContext's PointerSensor doesn't capture this
+        // unless the user clicked the grip icon (which handles reordering)
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-dndkit-grip-sub]')) {
+          e.stopPropagation();
+        }
+      }}
+      onDragStart={(e) => {
+        e.stopPropagation();
+        handleNativeDragStart(e);
+      }}
+      onDragEnd={(e) => {
+        e.stopPropagation();
+        handleNativeDragEnd(e);
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
         if (isRenaming) return;
         if (clickTimer.current) clearTimeout(clickTimer.current);
         clickTimer.current = setTimeout(() => { onSelect?.(subtask); clickTimer.current = null; }, 250);
@@ -138,6 +153,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div
+        data-dndkit-grip-sub
         {...attributes}
         {...listeners}
         className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/sub:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
