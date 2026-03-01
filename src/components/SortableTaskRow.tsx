@@ -396,6 +396,28 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   {task.name}
                 </span>
               )}
+              {/* Subtask counter — right after title, show total only */}
+              {hasSubtasks && (() => {
+                const subs = task.subtasks!;
+                const doneCount = subs.filter(s => s.status === 'done').length;
+                const total = subs.length;
+                const allDone = doneCount === total;
+                return (
+                  <span
+                    className="flex-shrink-0 tabular-nums"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 400,
+                      color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
+                      opacity: 0.7,
+                      letterSpacing: '0.01em',
+                    }}
+                    title={`${doneCount} de ${total} subtarefas concluídas`}
+                  >
+                    {allDone ? '✓' : total}
+                  </span>
+                );
+              })()}
               {task.recurrenceType && (
                 <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
               )}
@@ -444,28 +466,6 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 </span>
               )}
 
-              {/* Subtask indicator — only when subtasks exist (never show "0") */}
-              {hasSubtasks && (() => {
-                const subs = task.subtasks!;
-                const doneCount = subs.filter(s => s.status === 'done').length;
-                const total = subs.length;
-                const allDone = doneCount === total;
-                return (
-                  <span
-                    className="flex-shrink-0 tabular-nums"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 400,
-                      color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
-                      opacity: 0.7,
-                      letterSpacing: '0.01em',
-                    }}
-                    title={`${doneCount} de ${total} subtarefas concluídas`}
-                  >
-                    {allDone ? '✓' : `${doneCount}/${total}`}
-                  </span>
-                );
-              })()}
 
               {/* Rollover badge */}
               {task.rolloverCount != null && task.rolloverCount > 0 && (
