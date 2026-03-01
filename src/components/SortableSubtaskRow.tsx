@@ -187,7 +187,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
           <span className={`text-[13px] truncate transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
             {subtask.name}
           </span>
-          {subtask.scheduledDate && (
+          {(subtask.scheduledDate || subtask.dueDate) && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -197,10 +197,12 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-[11px] px-2 py-1">
                   {(() => {
-                    const [y, m, d] = subtask.scheduledDate!.split('-');
+                    const dateStr = subtask.scheduledDate || subtask.dueDate!;
+                    const [y, m, d] = dateStr.split('-');
                     const date = new Date(Number(y), Number(m) - 1, Number(d));
                     const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-                    return <>{d}/{m} <span style={{ color: '#D97706', fontWeight: 600 }}>{days[date.getDay()]}</span></>;
+                    const label = subtask.scheduledDate ? 'Fazer em' : 'Entregar até';
+                    return <>{label}: {d}/{m} <span style={{ color: '#D97706', fontWeight: 600 }}>{days[date.getDay()]}</span></>;
                   })()}
                 </TooltipContent>
               </Tooltip>
