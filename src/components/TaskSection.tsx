@@ -269,7 +269,7 @@ export function TaskSection({
             <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
-            {!isExpanded && tasks.length > 0 && (() => {
+            {tasks.length > 0 && (() => {
               const done = tasks.filter(t => t.status === 'done').length;
               const total = tasks.length;
               const allDone = done === total;

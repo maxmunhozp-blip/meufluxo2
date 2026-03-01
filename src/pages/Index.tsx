@@ -337,34 +337,30 @@ const Index = () => {
       setFocusedTaskId(next);
     }
     if (task) {
+      const restoreTask = async () => {
+        await createTask({
+          name: task.name,
+          status: task.status,
+          section: task.section,
+          projectId: task.projectId,
+          priority: task.priority,
+          description: task.description,
+          dueDate: task.dueDate,
+          displayMonth: task.displayMonth,
+          scheduledDate: task.scheduledDate,
+          assignee: task.assignee,
+          dayPeriod: task.dayPeriod,
+          serviceTagId: task.serviceTagId,
+        });
+      };
       pushUndo({
         label: 'Excluir tarefa',
-        undo: async () => {
-          await createTask({
-            name: task.name,
-            status: task.status,
-            section: task.section,
-            projectId: task.projectId,
-            priority: task.priority,
-            description: task.description,
-            dueDate: task.dueDate,
-          });
-        },
+        undo: restoreTask,
       });
       toast({
         title: 'Tarefa excluída',
         duration: 5000,
-        action: <ToastAction altText="Desfazer" onClick={() => {
-          createTask({
-            name: task.name,
-            status: task.status,
-            section: task.section,
-            projectId: task.projectId,
-            priority: task.priority,
-            description: task.description,
-            dueDate: task.dueDate,
-          });
-        }}>Desfazer</ToastAction>,
+        action: <ToastAction altText="Desfazer" onClick={restoreTask}>Desfazer</ToastAction>,
       });
     }
   }, [deleteTaskFn, selectedTaskId, focusedTaskId, visibleTaskIds, taskList, createTask, pushUndo]);
