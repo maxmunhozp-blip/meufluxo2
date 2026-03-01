@@ -1393,6 +1393,10 @@ const Index = () => {
                     }}
                     onRenameSubtask={(subtaskId, name) => {
                       updateSubtask(subtaskId, { name });
+                      for (const t of taskList) {
+                        const sub = (t.subtasks || []).find(s => s.id === subtaskId);
+                        if (sub) { autoTagTask(subtaskId, name, sub.section); break; }
+                      }
                     }}
                     activeTaskId={activeTaskDragId}
                     overTaskId={overTaskDragId}
@@ -1452,7 +1456,18 @@ const Index = () => {
                         }}>Desfazer</ToastAction>,
                       });
                     }}
-                    onAddSubtask={addSubtask}
+                    onAddSubtask={async (parentTaskId, name) => {
+                      await addSubtask(parentTaskId, name);
+                      // Find the parent task to get section for auto-tag
+                      const parent = taskList.find(t => t.id === parentTaskId)
+                        || taskList.flatMap(t => t.subtasks || []).find(s => s.id === parentTaskId);
+                      if (parent) {
+                        // Find the newly created subtask
+                        // We need to get it from DB since state may not have updated yet
+                        const { data: newSub } = await supabase.from('tasks').select('id, section_id').eq('parent_task_id', parentTaskId).order('created_at', { ascending: false }).limit(1).single();
+                        if (newSub) autoTagTask(newSub.id, name, newSub.section_id);
+                      }
+                    }}
                     onDeleteSubtask={(parentTaskId, subtaskId) => {
                       deleteSubtask(parentTaskId, subtaskId);
                     }}
@@ -1725,8 +1740,20 @@ const Index = () => {
                 onRemoveMember={removeTaskMember}
                 onAddComment={addComment}
                 onDeleteComment={deleteComment}
-                onAddSubtask={addSubtask}
-                onUpdateSubtask={updateSubtask}
+                onAddSubtask={async (parentTaskId, name) => {
+                  await addSubtask(parentTaskId, name);
+                  const { data: newSub } = await supabase.from('tasks').select('id, section_id').eq('parent_task_id', parentTaskId).order('created_at', { ascending: false }).limit(1).single();
+                  if (newSub) autoTagTask(newSub.id, name, newSub.section_id);
+                }}
+                onUpdateSubtask={async (subtaskId, updates) => {
+                  await updateSubtask(subtaskId, updates);
+                  if (updates.name) {
+                    for (const t of taskList) {
+                      const sub = (t.subtasks || []).find(s => s.id === subtaskId);
+                      if (sub) { autoTagTask(subtaskId, updates.name, sub.section); break; }
+                    }
+                  }
+                }}
                 onDeleteSubtask={deleteSubtask}
                 onReorderSubtasks={reorderSubtasks}
                 onNavigateToParent={selectedTask.parentTaskId ? () => setSelectedTaskId(selectedTask.parentTaskId!) : undefined}
