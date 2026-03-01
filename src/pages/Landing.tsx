@@ -234,14 +234,14 @@ const Landing = () => {
 
       {/* NAV */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc ? "rgba(250,250,249,0.85)" : "transparent", backdropFilter: sc ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontFamily: pf, fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>MeuFluxo</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
-              <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
+              <button key={id} onClick={() => go(id)} className="hidden sm:inline-block" style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
-            <a href="/auth" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
-            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none" }}>Começar grátis</a>
+            <a href="/auth" className="hidden sm:inline-block" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
+            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar grátis</a>
           </div>
         </div>
       </nav>
@@ -396,7 +396,7 @@ const Landing = () => {
             <p className="mf-r" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.accent, marginBottom: 14 }}>Planos</p>
             <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 700, lineHeight: 1.1, color: "#fff" }}>Simples e transparente.</h2>
           </RevealGroup>
-          <RevealGroup style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <RevealGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="mf-r" style={{ padding: 28, borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Free</h3>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para começar sem pressão</p>
