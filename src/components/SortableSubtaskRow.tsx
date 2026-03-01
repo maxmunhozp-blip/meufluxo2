@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical } from 'lucide-react';
 import { Subtask, TaskStatus, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -21,17 +20,18 @@ interface SortableSubtaskRowProps {
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertToTask?: (subtaskId: string) => void;
   onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
+  onNativeDragOver?: (e: React.DragEvent, subtaskId: string) => void;
+  onNativeDrop?: (e: React.DragEvent, subtaskId: string) => void;
+  onNativeDragLeave?: (e: React.DragEvent) => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave }: SortableSubtaskRowProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(subtask.name);
   const renameRef = useRef<HTMLInputElement>(null);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-
-  // Keep useSortable for compatibility with SubtaskDndWrapper's SortableContext
-  const { setNodeRef } = useSortable({ id: subtask.id, data: { type: 'subtask', subtask, parentTaskId } });
+  const rowRef = useRef<HTMLDivElement>(null);
 
   const handleNativeDragStart = (e: React.DragEvent) => {
     e.stopPropagation();
@@ -113,11 +113,10 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
 
   return (
     <div
-      ref={setNodeRef}
+      ref={rowRef}
       draggable
       onPointerDown={(e) => {
-        // Always stop propagation so @dnd-kit DndContext doesn't capture pointer events.
-        // Native HTML5 drag handles all subtask movement (reorder + cross-section).
+        // Stop propagation so parent @dnd-kit DndContext doesn't capture pointer events.
         e.stopPropagation();
       }}
       onDragStart={(e) => {
@@ -127,6 +126,20 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       onDragEnd={(e) => {
         e.stopPropagation();
         handleNativeDragEnd(e);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onNativeDragOver?.(e, subtask.id);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onNativeDrop?.(e, subtask.id);
+      }}
+      onDragLeave={(e) => {
+        e.stopPropagation();
+        onNativeDragLeave?.(e);
       }}
       onClick={(e) => {
         e.stopPropagation();
