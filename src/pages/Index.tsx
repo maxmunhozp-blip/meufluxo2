@@ -302,8 +302,8 @@ const Index = () => {
     const prev = taskList.find(t => t.id === updated.id);
     updateTask(updated);
     if (prev) {
-      // If name changed, re-evaluate service tag via AI
-      if (prev.name !== updated.name) {
+      // If name or section changed, re-evaluate service tag via AI
+      if (prev.name !== updated.name || prev.section !== updated.section) {
         autoTagTask(updated.id, updated.name, updated.section);
       }
       pushUndo({
