@@ -1328,6 +1328,19 @@ const Index = () => {
                         action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection })}>Desfazer</ToastAction>,
                       });
                     }}
+                    onMoveToMonth={(taskId, year, month) => {
+                      const t = taskList.find(t => t.id === taskId);
+                      if (!t) return;
+                      const originalScheduledDate = t.scheduledDate;
+                      const newDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+                      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                      updateTask({ ...t, scheduledDate: newDate });
+                      toast({
+                        title: `Movida para ${monthNames[month]} ${year}`,
+                        duration: 5000,
+                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, scheduledDate: originalScheduledDate })}>Desfazer</ToastAction>,
+                      });
+                    }}
                     onAddSubtask={addSubtask}
                     onDeleteSubtask={(parentTaskId, subtaskId) => {
                       deleteSubtask(parentTaskId, subtaskId);

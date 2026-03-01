@@ -6,6 +6,7 @@ import { GripVertical, MessageSquare, Play, Repeat, Plus } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
+import { MonthYearPicker } from './MonthYearPicker';
 import { SortableSubtaskRow } from './SortableSubtaskRow';
 import { DropIndicatorLine } from './DropIndicatorLine';
 
@@ -28,6 +29,7 @@ interface SortableTaskRowProps {
   onRenameSubtask?: (subtaskId: string, name: string) => void;
   sections?: Section[];
   onMoveToSection?: (taskId: string, sectionId: string) => void;
+  onMoveToMonth?: (taskId: string, year: number, month: number) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertSubtaskToTask?: (subtaskId: string) => void;
@@ -222,7 +224,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, isFadingOut }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, isFadingOut }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -495,6 +497,15 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 label: s.title,
                 onClick: () => onMoveToSection?.(task.id, s.id),
               })),
+            }] : []),
+            ...(onMoveToMonth ? [{
+              label: 'Mover para mês',
+              customContent: (
+                <MonthYearPicker onSelect={(year, month) => {
+                  onMoveToMonth(task.id, year, month);
+                  setContextMenu(null);
+                }} />
+              ),
             }] : []),
             {
               label: 'Excluir tarefa',
