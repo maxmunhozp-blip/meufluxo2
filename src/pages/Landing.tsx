@@ -72,6 +72,9 @@ const SHOWCASES = [
     title: 'Comece o dia com clareza.',
     desc: 'Suas tarefas organizadas por Manhã, Tarde e Noite. Sem listas infinitas — apenas o que importa hoje, no ritmo certo.',
     items: ['Tarefas agrupadas por período do dia', 'Badge de cliente em cada tarefa', 'Modo Foco com um clique'],
+    image: screenshotMeuDia,
+    imageAlt: 'Tela Meu Dia mostrando tarefas organizadas por período com painel de detalhes',
+    reverse: false,
   },
   {
     icon: ListChecks,
@@ -79,6 +82,9 @@ const SHOWCASES = [
     title: 'Cada cliente, seu próprio espaço.',
     desc: 'Organize entregas em seções personalizáveis como "Para Aprovar", "Design" e "Posts Aprovados". Arraste tarefas entre projetos com um gesto.',
     items: ['Seções colapsáveis por tipo de entrega', 'Filtro temporal por mês', 'Drag & drop entre projetos'],
+    image: screenshotCliente,
+    imageAlt: 'Tela de visão por cliente com seções personalizáveis de entregas',
+    reverse: true,
   },
   {
     icon: Eye,
@@ -86,6 +92,9 @@ const SHOWCASES = [
     title: 'Uma tarefa de cada vez.',
     desc: 'Quando o mundo é demais, ative o Modo Foco. Veja apenas a tarefa atual em tela cheia. Sem distrações, sem ansiedade.',
     items: ['Interface minimalista zen', 'Navegação por "Próxima" tarefa', 'Ideal para TDAH e sobrecarga sensorial'],
+    image: screenshotFoco,
+    imageAlt: 'Modo Foco mostrando uma única tarefa com botões Feito e Próxima',
+    reverse: false,
   },
 ];
 
