@@ -1357,12 +1357,21 @@ const Index = () => {
                     allSections={projectSections}
                     projectColor={activeProject?.color}
                     onMoveToSection={(taskId, sectionId) => {
-                      const t = taskList.find(t => t.id === taskId);
+                      // Search top-level first, then nested subtasks
+                      let t: Task | Subtask | undefined = taskList.find(t => t.id === taskId);
+                      if (!t) {
+                        for (const parent of taskList) {
+                          const found = (parent.subtasks || []).find(s => s.id === taskId);
+                          if (found) { t = found; break; }
+                        }
+                      }
                       if (!t) return;
                       const originalSection = t.section;
-                      const originalServiceTagId = t.serviceTagId;
+                      const originalParentId = t.parentTaskId;
+                      const originalServiceTagId = (t as Task).serviceTagId;
                       const targetSectionObj = sectionList.find(s => s.id === sectionId);
-                      updateTask({ ...t, section: sectionId });
+                      // When moving a subtask to a section, promote it to independent task
+                      updateTask({ ...t, section: sectionId, parentTaskId: undefined } as Task);
 
                       // AI auto-tag based on new section context
                       autoTagTask(taskId, t.name, sectionId);
@@ -1370,7 +1379,7 @@ const Index = () => {
                       toast({
                         title: `Movida para ${targetSectionObj?.title || 'seção'}`,
                         duration: 5000,
-                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection, serviceTagId: originalServiceTagId })}>Desfazer</ToastAction>,
+                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t!, section: originalSection, parentTaskId: originalParentId, serviceTagId: originalServiceTagId } as Task)}>Desfazer</ToastAction>,
                       });
                     }}
                     onMoveToMonth={async (taskId, year, month) => {
