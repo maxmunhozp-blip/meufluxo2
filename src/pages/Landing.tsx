@@ -263,9 +263,6 @@ const Landing = () => {
               `,
               transformOrigin: "center bottom",
               transition: "transform 0.05s linear",
-              borderRadius: 4,
-              overflow: "hidden",
-              boxShadow: `0 ${20 + heroProgress * 40}px ${40 + heroProgress * 60}px -${10 + heroProgress * 10}px rgba(0,0,0,${0.1 + heroProgress * 0.15})`,
             }}
           >
             <img src={appMockup} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
