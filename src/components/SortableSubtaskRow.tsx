@@ -182,14 +182,14 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
           className="flex-1 h-6 px-1 text-[13px] text-nd-text bg-nd-input rounded border border-primary focus:outline-none min-w-0"
         />
       ) : (
-        <>
-          <span className={`text-[13px] truncate flex-1 transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <span className={`text-[13px] truncate transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
             {subtask.name}
           </span>
           {subtask.scheduledDate && (
             <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
           )}
-        </>
+        </div>
       )}
       {!isRenaming && subtask.subtasks && subtask.subtasks.length > 0 && (
         <span className="text-[12px] text-nd-text-secondary flex-shrink-0">
