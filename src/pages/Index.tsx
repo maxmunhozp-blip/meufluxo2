@@ -99,21 +99,33 @@ const Index = () => {
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [activeMonth, setActiveMonth] = useState(() => {
+  // Per-project active month map
+  const [projectMonths, setProjectMonths] = useState<Record<string, string>>(() => {
     try {
-      const stored = localStorage.getItem('meufluxo_active_month');
-      if (stored) {
-        const d = new Date(stored);
-        if (!isNaN(d.getTime())) return d;
-      }
-    } catch {}
-    return new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const raw = localStorage.getItem('meufluxo_project_months');
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
   });
 
-  // Persist active month
-  useEffect(() => {
-    localStorage.setItem('meufluxo_active_month', activeMonth.toISOString());
-  }, [activeMonth]);
+  const defaultMonth = useMemo(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1), []);
+
+  const activeMonth = useMemo(() => {
+    const stored = projectMonths[activeProjectId];
+    if (stored) {
+      const d = new Date(stored);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return defaultMonth;
+  }, [activeProjectId, projectMonths, defaultMonth]);
+
+  const setActiveMonth = useCallback((month: Date) => {
+    setProjectMonths(prev => {
+      const next = { ...prev, [activeProjectId]: month.toISOString() };
+      localStorage.setItem('meufluxo_project_months', JSON.stringify(next));
+      return next;
+    });
+  }, [activeProjectId]);
+
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
   // Check super_admin role
@@ -939,7 +951,7 @@ const Index = () => {
   const sidebarProps = {
     projects,
     sections: sectionList,
-    activeMonthKey,
+    projectMonths,
     activeProjectId,
     activeSectionId,
     onSelectProject: (id: string) => { setActiveSectionId(null); setIsTimelineActive(false); setIsNotesView(false); setIsMyTasksView(false); setIsMyWeekView(false); setIsMyDayView(false); handleSelectProject(id); },
