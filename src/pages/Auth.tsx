@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
+import { motion, AnimatePresence } from 'framer-motion';
 import screenshotMeuDia from '@/assets/screenshot-meudia.png';
 
 /*
@@ -220,7 +221,15 @@ const Auth = () => {
           </a>
         </div>
 
-        <div style={{ width: "100%", maxWidth: 380 }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={mode}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            style={{ width: "100%", maxWidth: 380 }}
+          >
           {/* Header */}
           <div style={{ marginBottom: 32 }}>
             <h1 style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#18181B", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
@@ -413,7 +422,8 @@ const Auth = () => {
           <p style={{ textAlign: "center", fontSize: 11, color: "#A1A1AA", marginTop: 32, lineHeight: 1.5 }}>
             Seus dados são protegidos com criptografia.<br />Sem spam. Cancele quando quiser.
           </p>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
