@@ -1324,17 +1324,31 @@ const Index = () => {
                         action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, section: originalSection })}>Desfazer</ToastAction>,
                       });
                     }}
-                    onMoveToMonth={(taskId, year, month) => {
+                    onMoveToMonth={async (taskId, year, month) => {
                       const t = taskList.find(t => t.id === taskId);
                       if (!t) return;
                       const originalDisplayMonth = t.displayMonth;
                       const newMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
                       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                       updateTask({ ...t, displayMonth: newMonth });
+                      // Also update the section's display_month so it stays visible in the new month
+                      const sectionId = t.section;
+                      if (sectionId) {
+                        try {
+                          await supabase.from('sections').update({ display_month: newMonth }).eq('id', sectionId);
+                          setSections(prev => prev.map(s => s.id === sectionId ? { ...s, displayMonth: newMonth } : s));
+                        } catch (e) { console.error('Failed to update section month', e); }
+                      }
                       toast({
                         title: `Movida para ${monthNames[month]} ${year}`,
                         duration: 5000,
-                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, displayMonth: originalDisplayMonth })}>Desfazer</ToastAction>,
+                        action: <ToastAction altText="Desfazer" onClick={async () => {
+                          updateTask({ ...t, displayMonth: originalDisplayMonth });
+                          if (sectionId) {
+                            await supabase.from('sections').update({ display_month: originalDisplayMonth }).eq('id', sectionId);
+                            setSections(prev => prev.map(s => s.id === sectionId ? { ...s, displayMonth: originalDisplayMonth } : s));
+                          }
+                        }}>Desfazer</ToastAction>,
                       });
                     }}
                     onAddSubtask={addSubtask}
