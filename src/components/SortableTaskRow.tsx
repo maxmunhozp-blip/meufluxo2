@@ -298,7 +298,23 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   };
 
   return (
-    <div ref={setNodeRef} data-task-id={task.id} className="relative" style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}>
+    <div
+      ref={setNodeRef}
+      data-task-id={task.id}
+      className="relative"
+      style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}
+      draggable
+      onDragStart={(e) => {
+        // Only allow native drag if NOT initiated from grip icon (@dnd-kit handles grip drags)
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-dndkit-grip]')) {
+          e.preventDefault();
+          return;
+        }
+        handleNativeDragStart(e);
+      }}
+      onDragEnd={handleNativeDragEnd}
+    >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>
         <div
@@ -327,16 +343,11 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           }}
           onContextMenu={handleContextMenu}
         >
-          {/* Drag handle — @dnd-kit reorder + native cross-client drag */}
+          {/* Drag handle — @dnd-kit for reorder + cross-section within project */}
           <div
+            data-dndkit-grip
             {...attributes}
             {...listeners}
-            draggable
-            onDragStart={(e) => {
-              e.stopPropagation();
-              handleNativeDragStart(e);
-            }}
-            onDragEnd={handleNativeDragEnd}
             className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
             title="Arrastar para reordenar ou mover"
           >
