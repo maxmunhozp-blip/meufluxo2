@@ -421,7 +421,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                     const allDone = doneCount === total;
                     return (
                       <span
-                        className="flex-shrink-0 tabular-nums ml-[72px]"
+                        className="flex-shrink-0 tabular-nums ml-auto"
                         style={{
                           fontSize: 11,
                           fontWeight: 400,
