@@ -30,11 +30,8 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-  } = useSortable({ id: subtask.id, data: { type: 'subtask', subtask, parentTaskId } });
+  // Keep useSortable for compatibility with SubtaskDndWrapper's SortableContext
+  const { setNodeRef } = useSortable({ id: subtask.id, data: { type: 'subtask', subtask, parentTaskId } });
 
   const handleNativeDragStart = (e: React.DragEvent) => {
     e.stopPropagation();
@@ -119,12 +116,9 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       ref={setNodeRef}
       draggable
       onPointerDown={(e) => {
-        // Stop propagation so DndContext's PointerSensor doesn't capture this
-        // unless the user clicked the grip icon (which handles reordering)
-        const target = e.target as HTMLElement;
-        if (!target.closest('[data-dndkit-grip-sub]')) {
-          e.stopPropagation();
-        }
+        // Always stop propagation so @dnd-kit DndContext doesn't capture pointer events.
+        // Native HTML5 drag handles all subtask movement (reorder + cross-section).
+        e.stopPropagation();
       }}
       onDragStart={(e) => {
         e.stopPropagation();
@@ -153,9 +147,6 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div
-        data-dndkit-grip-sub
-        {...attributes}
-        {...listeners}
         className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/sub:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
       >
         <GripVertical className="w-3.5 h-3.5 text-nd-text-muted" />
