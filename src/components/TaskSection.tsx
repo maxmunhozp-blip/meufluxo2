@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GripVertical, Play, Plus } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
+import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
 import { ContextMenu } from './ContextMenu';
@@ -41,6 +42,7 @@ interface TaskSectionProps {
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertSubtaskToTask?: (subtaskId: string) => void;
   fadingOutTaskId?: string | null;
+  onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
 }
 
 // Footer input with Tab-indent support
@@ -162,6 +164,7 @@ export function TaskSection({
   onDeleteSubtask,
   onConvertSubtaskToTask,
   fadingOutTaskId,
+  onMoveSectionToMonth,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -347,6 +350,15 @@ export function TaskSection({
           onClose={() => setContextMenu(null)}
           items={[
             { label: 'Renomear', onClick: startRename },
+            ...(onMoveSectionToMonth ? [{
+              label: 'Mover para mês',
+              customContent: (
+                <MonthYearPicker onSelect={(year, month) => {
+                  onMoveSectionToMonth(section.id, year, month);
+                  setContextMenu(null);
+                }} />
+              ),
+            }] : []),
             {
               label: 'Excluir',
               danger: true,
