@@ -431,7 +431,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                         }}
                         title={`${doneCount} de ${total} subtarefas concluídas`}
                       >
-                        {allDone ? '✓' : total}
+                        {allDone ? '✓' : total - doneCount}
                       </span>
                     );
                   })()}
