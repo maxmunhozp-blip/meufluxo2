@@ -441,9 +441,9 @@ const Landing = () => {
       </section>
 
       <footer style={{ padding: "36px 24px", background: C.dark, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3" style={{ maxWidth: 1200, margin: "0 auto" }}>
           <span style={{ fontFamily: pf, fontSize: 18, fontWeight: 700, color: "#fff" }}>MeuFluxo</span>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>© 2026 MeuFluxo. Feito para mentes que pensam diferente.</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>© 2026 MeuFluxo. Feito para mentes que pensam diferente.</p>
         </div>
       </footer>
     </div>
