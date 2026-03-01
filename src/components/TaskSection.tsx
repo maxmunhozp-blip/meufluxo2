@@ -43,6 +43,7 @@ interface TaskSectionProps {
   onConvertSubtaskToTask?: (subtaskId: string) => void;
   fadingOutTaskId?: string | null;
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
+  onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
 }
 
 // Footer input with Tab-indent support
@@ -165,6 +166,7 @@ export function TaskSection({
   onConvertSubtaskToTask,
   fadingOutTaskId,
   onMoveSectionToMonth,
+  onNestAsSubtask,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -339,6 +341,7 @@ export function TaskSection({
                 onAddSubtask={onAddSubtask}
                 onDeleteSubtask={onDeleteSubtask}
                 onConvertSubtaskToTask={onConvertSubtaskToTask}
+                onNestAsSubtask={onNestAsSubtask}
                 isFadingOut={fadingOutTaskId === task.id}
               />
             ))}
