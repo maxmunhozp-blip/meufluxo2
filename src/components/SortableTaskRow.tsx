@@ -303,17 +303,6 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       data-task-id={task.id}
       className="relative"
       style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}
-      draggable
-      onDragStart={(e) => {
-        // Only allow native drag if NOT initiated from grip icon (@dnd-kit handles grip drags)
-        const target = e.target as HTMLElement;
-        if (target.closest('[data-dndkit-grip]')) {
-          e.preventDefault();
-          return;
-        }
-        handleNativeDragStart(e);
-      }}
-      onDragEnd={handleNativeDragEnd}
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>
@@ -321,6 +310,17 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           className={`flex-1 min-w-0 group cursor-pointer transition-all duration-150 relative ${
             isDragSource ? 'opacity-40' : ''
           }`}
+          draggable
+          onDragStart={(e) => {
+            // Prevent native drag when initiated from the grip icon (@dnd-kit handles that)
+            const target = e.target as HTMLElement;
+            if (target.closest('[data-dndkit-grip]')) {
+              e.preventDefault();
+              return;
+            }
+            handleNativeDragStart(e);
+          }}
+          onDragEnd={handleNativeDragEnd}
           style={{
             minHeight: 40,
             opacity: isDragSource ? 0.4 : isDone ? 0.6 : undefined,
