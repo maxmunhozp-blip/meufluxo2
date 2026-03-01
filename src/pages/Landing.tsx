@@ -4,6 +4,7 @@ import screenshotFoco from "@/assets/screenshot-foco.png";
 import screenshotCliente from "@/assets/screenshot-cliente.png";
 import screenshotSemana from "@/assets/screenshot-semana.png";
 import screenshotTimeline from "@/assets/screenshot-timeline.png";
+import avatarAna from "@/assets/avatar-ana.jpg";
 
 /* ── Design tokens — monochromatic, warm neutral ── */
 const C = {
@@ -100,7 +101,7 @@ function RevealImg({ src, alt, style = {} }: { src: string; alt: string; style?:
 const STORIES = [
   {
     id: "cog",
-    photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&q=80",
+    photo: avatarAna,
     name: "Ana, 28",
     role: "Designer freelancer · TDAH",
     quote: "Eu abria o Trello e já sentia uma onda de ansiedade. Tantas colunas, tantos cards. Meu cérebro simplesmente desligava.",
