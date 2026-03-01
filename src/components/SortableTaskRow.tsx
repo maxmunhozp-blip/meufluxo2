@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { GripVertical, MessageSquare, Play, Repeat, Plus } from 'lucide-react';
+import { GripVertical, MessageSquare, Play, Repeat, Plus, CalendarDays } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
@@ -409,9 +409,14 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   className="flex-1 h-6 px-1 text-[14px] text-foreground bg-input rounded border border-primary focus:outline-none min-w-0"
                 />
               ) : (
-                <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
-                  {task.name}
-                </span>
+                <>
+                  {task.scheduledDate && (
+                    <CalendarDays className="flex-shrink-0 w-3 h-3" style={{ color: 'var(--text-placeholder)', opacity: 0.6 }} />
+                  )}
+                  <span className={`text-[14px] truncate flex-1 min-w-0 transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
+                    {task.name}
+                  </span>
+                </>
               )}
               {/* Subtask counter — right after title, show total only */}
               {hasSubtasks && (() => {

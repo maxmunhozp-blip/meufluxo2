@@ -289,9 +289,16 @@ export function MyDayView({
         <div className="flex items-start justify-between">
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{getGreeting()}, {firstName}</h1>
-            <p style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)', marginTop: 4 }}>
-              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-            </p>
+            <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
+              <p style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}>
+                {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              </p>
+              {todayTasks.length > 0 && (
+                <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--accent-blue)', background: 'var(--accent-subtle)', borderRadius: 10, padding: '1px 7px' }}>
+                  {todayTasks.filter(t => t.status !== 'done').length}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {serviceTags.length > 0 && (
