@@ -227,6 +227,7 @@ const Landing = () => {
             {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
               <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
+            <a href="/auth" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
             <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none" }}>Começar grátis</a>
           </div>
         </div>
