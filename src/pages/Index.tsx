@@ -1365,8 +1365,20 @@ const Index = () => {
                     selectedTaskId={selectedTaskId || undefined}
                     focusedTaskId={focusedTaskId || undefined}
                     onStatusChange={handleStatusChange}
-                    onSubtaskStatusChange={(_taskId, subtaskId, status) => {
-                      updateSubtask(subtaskId, { status });
+                    onSubtaskStatusChange={(taskId, subtaskId, status) => {
+                      updateSubtask(subtaskId, { status }).then(() => {
+                        // Move completed subtasks to the end
+                        const parentTask = taskList.find(t => t.id === taskId);
+                        if (parentTask?.subtasks) {
+                          const updated = parentTask.subtasks.map(s =>
+                            s.id === subtaskId ? { ...s, status } : s
+                          );
+                          const pending = updated.filter(s => s.status !== 'done');
+                          const done = updated.filter(s => s.status === 'done');
+                          const reordered = [...pending, ...done];
+                          reorderSubtasks(taskId, reordered.map(s => s.id));
+                        }
+                      });
                     }}
                     isExpanded={isSectionExpanded(section.id)}
                     onToggleExpand={() => toggleSection(section.id)}
