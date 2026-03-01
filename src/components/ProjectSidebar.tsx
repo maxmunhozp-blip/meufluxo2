@@ -284,6 +284,7 @@ function SortableProjectItem({
 interface ProjectSidebarProps {
   projects: Project[];
   sections?: Section[];
+  activeMonthKey?: string;
   activeProjectId: string;
   activeSectionId?: string | null;
   onSelectProject: (id: string) => void;
@@ -334,7 +335,7 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({
-  projects, sections: allSections = [], activeProjectId, activeSectionId, onSelectProject, onSelectSection,
+  projects, sections: allSections = [], activeMonthKey, activeProjectId, activeSectionId, onSelectProject, onSelectSection,
   onCreateProject, onRenameProject, onDeleteProject,
   onChangeColor, onReorderProjects, onDuplicateProject, onExport, onImport, onLogout,
   isMyDayView, onToggleMyDay, isMyTasksView, onToggleMyTasks, isMyWeekView, onToggleMyWeek,
@@ -554,7 +555,7 @@ export function ProjectSidebar({
                     project={project}
                     isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView}
                     isExpanded={!!expandedProjects[project.id]}
-                    sections={allSections.filter(s => s.projectId === project.id)}
+                    sections={allSections.filter(s => s.projectId === project.id && (!s.displayMonth || !activeMonthKey || s.displayMonth === activeMonthKey))}
                     tasks={tasks}
                     activeSectionId={activeSectionId}
                     onSelect={() => onSelectProject(project.id)}
