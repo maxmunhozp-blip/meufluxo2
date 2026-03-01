@@ -1405,16 +1405,23 @@ const Index = () => {
                       deleteSubtask(parentTaskId, subtaskId);
                     }}
                     onConvertSubtaskToTask={(subtaskId) => {
-                      const sub = taskList.find(t => t.id === subtaskId);
+                      // Search top-level first, then nested subtasks
+                      let sub: Task | Subtask | undefined = taskList.find(t => t.id === subtaskId);
+                      if (!sub) {
+                        for (const t of taskList) {
+                          const found = (t.subtasks || []).find(s => s.id === subtaskId);
+                          if (found) { sub = found; break; }
+                        }
+                      }
                       if (!sub) return;
                       const originalParentId = sub.parentTaskId;
                       const originalSection = sub.section;
-                      updateTask({ ...sub, parentTaskId: undefined, section: sub.section });
+                      updateTask({ ...sub, parentTaskId: undefined, section: sub.section } as Task);
                       toast({
                         title: 'Convertida em tarefa independente',
                         duration: 5000,
                         action: <ToastAction altText="Desfazer" onClick={() => {
-                          if (originalParentId) updateTask({ ...sub, parentTaskId: originalParentId, section: originalSection });
+                          if (originalParentId) updateTask({ ...sub!, parentTaskId: originalParentId, section: originalSection } as Task);
                         }}>Desfazer</ToastAction>,
                       });
                     }}
