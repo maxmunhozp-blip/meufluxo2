@@ -284,7 +284,7 @@ function SortableProjectItem({
 interface ProjectSidebarProps {
   projects: Project[];
   sections?: Section[];
-  activeMonthKey?: string;
+  projectMonths?: Record<string, string>;
   activeProjectId: string;
   activeSectionId?: string | null;
   onSelectProject: (id: string) => void;
@@ -335,7 +335,7 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({
-  projects, sections: allSections = [], activeMonthKey, activeProjectId, activeSectionId, onSelectProject, onSelectSection,
+  projects, sections: allSections = [], projectMonths = {}, activeProjectId, activeSectionId, onSelectProject, onSelectSection,
   onCreateProject, onRenameProject, onDeleteProject,
   onChangeColor, onReorderProjects, onDuplicateProject, onExport, onImport, onLogout,
   isMyDayView, onToggleMyDay, isMyTasksView, onToggleMyTasks, isMyWeekView, onToggleMyWeek,
@@ -555,7 +555,20 @@ export function ProjectSidebar({
                     project={project}
                     isActive={activeProjectId === project.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView}
                     isExpanded={!!expandedProjects[project.id]}
-                    sections={allSections.filter(s => s.projectId === project.id && (!s.displayMonth || !activeMonthKey || s.displayMonth === activeMonthKey))}
+                    sections={allSections.filter(s => {
+                      if (s.projectId !== project.id) return false;
+                      if (!s.displayMonth) return true;
+                      const storedIso = projectMonths[project.id];
+                      if (!storedIso) {
+                        // Default to current month
+                        const now = new Date();
+                        const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                        return s.displayMonth === key;
+                      }
+                      const d = new Date(storedIso);
+                      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+                      return s.displayMonth === key;
+                    })}
                     tasks={tasks}
                     activeSectionId={activeSectionId}
                     onSelect={() => onSelectProject(project.id)}
