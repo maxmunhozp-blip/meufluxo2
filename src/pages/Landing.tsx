@@ -403,7 +403,7 @@ export default function Landing() {
 
       {/* ─── SHOWCASES ─── */}
       <section className="py-28 px-6" style={{ background: '#FFFFFF' }}>
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={fadeUp} className="text-center mb-20">
             <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#4F7BF7', letterSpacing: '0.12em' }}>
               Como funciona
@@ -415,39 +415,40 @@ export default function Landing() {
               Funcionalidades pensadas para quem precisa de foco, não de mais opções.
             </p>
           </motion.div>
-
-          <div className="space-y-6">
+          <div className="space-y-24">
             {SHOWCASES.map((item, i) => (
-              <motion.div key={item.badge} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} custom={i}
-                className="relative p-8 md:p-10 rounded-2xl overflow-hidden transition-all duration-300"
-                style={{ background: '#FAFBFC', border: '1px solid rgba(0,0,0,0.06)' }}
-                onMouseOver={e => (e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.04)')}
-                onMouseOut={e => (e.currentTarget.style.boxShadow = 'none')}
+              <motion.div key={item.badge} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} custom={i}
+                className={`flex flex-col ${item.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-16`}
               >
-                {/* Subtle gradient accent */}
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-                  background: 'linear-gradient(90deg, #4F7BF7, #6C63FF, #A78BFA)',
-                  opacity: 0.6,
-                }} />
-
-                <div className="flex items-center gap-2.5 mb-5">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(79,123,247,0.1) 0%, rgba(108,99,255,0.1) 100%)' }}>
-                    <item.icon className="w-4 h-4" style={{ color: '#4F7BF7' }} />
+                {/* Text side */}
+                <div className="flex-1 max-w-md">
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(79,123,247,0.1) 0%, rgba(108,99,255,0.1) 100%)' }}>
+                      <item.icon className="w-4 h-4" style={{ color: '#4F7BF7' }} />
+                    </div>
+                    <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#4F7BF7', letterSpacing: '0.08em' }}>{item.badge}</span>
                   </div>
-                  <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#4F7BF7', letterSpacing: '0.08em' }}>{item.badge}</span>
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4" style={{ fontFamily: serif, color: '#1a1a2e', lineHeight: 1.2 }}>{item.title}</h3>
+                  <p className="mb-6 leading-relaxed" style={{ color: '#6B7280' }}>{item.desc}</p>
+                  <div className="space-y-3">
+                    {item.items.map(li => (
+                      <div key={li} className="flex items-center gap-2.5 text-sm" style={{ color: '#4B5563' }}>
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#4F7BF7' }} />
+                        {li}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-
-                <h3 className="text-xl md:text-2xl font-bold mb-3" style={{ fontFamily: serif, color: '#1a1a2e' }}>{item.title}</h3>
-                <p className="mb-6 leading-relaxed max-w-2xl" style={{ color: '#6B7280' }}>{item.desc}</p>
-
-                <div className="flex flex-wrap gap-4">
-                  {item.items.map(li => (
-                    <span key={li} className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-full" style={{ background: 'rgba(79,123,247,0.06)', color: '#4F7BF7', fontWeight: 500 }}>
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      {li}
-                    </span>
-                  ))}
+                {/* Screenshot side */}
+                <div className="flex-1 max-w-2xl">
+                  <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 25px 60px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+                    <img
+                      src={item.image}
+                      alt={item.imageAlt}
+                      className="w-full h-auto block"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
               </motion.div>
             ))}
