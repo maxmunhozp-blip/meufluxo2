@@ -226,7 +226,7 @@ function SortableSubtaskRow({ subtask, onStatusChange, onNameChange, onDelete, o
         />
       ) : (
         <span className={`flex-1 text-[13px] truncate ${
-          subtask.status === 'done' ? 'line-through opacity-50' : ''
+          subtask.status === 'done' ? 'opacity-50' : ''
         }`} style={{ color: subtask.status === 'done' ? 'var(--text-tertiary)' : 'var(--text-primary)', transition: 'color 200ms ease-out, opacity 200ms ease-out' }}>
           {subtask.name}
         </span>
