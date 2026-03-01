@@ -1768,6 +1768,19 @@ const Index = () => {
                       if (sub) { autoTagTask(subtaskId, updates.name, sub.section); break; }
                     }
                   }
+                  if (updates.status !== undefined) {
+                    // Find parent and reorder: pending first, done last
+                    for (const t of taskList) {
+                      const hasSub = (t.subtasks || []).some(s => s.id === subtaskId);
+                      if (hasSub && t.subtasks) {
+                        const updated = t.subtasks.map(s => s.id === subtaskId ? { ...s, ...updates } : s);
+                        const pending = updated.filter(s => s.status !== 'done');
+                        const done = updated.filter(s => s.status === 'done');
+                        reorderSubtasks(t.id, [...pending, ...done].map(s => s.id));
+                        break;
+                      }
+                    }
+                  }
                 }}
                 onDeleteSubtask={deleteSubtask}
                 onReorderSubtasks={reorderSubtasks}
