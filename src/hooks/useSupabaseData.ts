@@ -1372,7 +1372,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     setTasksState(prev => prev.map(t => t.serviceTagId === id ? { ...t, serviceTagId: undefined } : t));
   }, []);
 
-  const autoTagTask = useAutoTagTask(serviceTagsState, sectionsState, setTasksState);
+  const autoTagTask = useAutoTagTask(serviceTagsState, sectionsState, tasksState, setTasksState);
 
   return {
     projects: projectsState,
@@ -1447,11 +1447,17 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 function useAutoTagTask(
   serviceTagsState: ServiceTag[],
   sectionsState: Section[],
+  tasksState: Task[],
   setTasksState: React.Dispatch<React.SetStateAction<Task[]>>,
 ) {
   return useCallback(async (taskId: string, taskName: string, sectionId: string) => {
     try {
       if (serviceTagsState.length === 0) return;
+
+      // Respect manual choice: only auto-tag if no tag is set ("nenhum")
+      const existing = tasksState.find(t => t.id === taskId)
+        || tasksState.flatMap(t => t.subtasks || []).find(s => s.id === taskId);
+      if (existing?.serviceTagId) return;
 
       const section = sectionsState.find(s => s.id === sectionId);
       const sectionName = section?.title || '';
@@ -1485,5 +1491,5 @@ function useAutoTagTask(
       // Silent fail — auto-tag is a convenience, not critical
       console.warn('Auto-tag failed:', e);
     }
-  }, [serviceTagsState, sectionsState, setTasksState]);
+  }, [serviceTagsState, sectionsState, tasksState, setTasksState]);
 }
