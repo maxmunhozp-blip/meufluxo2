@@ -410,7 +410,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   className="flex-1 h-6 px-1 text-[14px] text-foreground bg-input rounded border border-primary focus:outline-none min-w-0"
                 />
               ) : (
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0 max-w-[65%]">
                   <span className={`text-[14px] truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
                     {task.name}
                   </span>
