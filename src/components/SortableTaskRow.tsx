@@ -1,7 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { GripVertical, MessageSquare, Play, Repeat, Plus } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -9,6 +7,7 @@ import { ContextMenu } from './ContextMenu';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableSubtaskRow } from './SortableSubtaskRow';
 import { DropIndicatorLine } from './DropIndicatorLine';
+import { arrayMove } from '@dnd-kit/sortable';
 
 interface SortableTaskRowProps {
   task: Task;
@@ -58,22 +57,6 @@ function isOverdue(dateStr?: string, status?: TaskStatus): boolean {
   return date < today;
 }
 
-// Overlay component for dragged subtask (lightweight ghost)
-function SubtaskDragOverlay({ subtask }: { subtask: Subtask }) {
-  const subDone = subtask.status === 'done';
-  return (
-    <div
-      className="h-9 border border-primary/30 rounded-md pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 shadow-lg"
-      style={{ background: 'hsl(var(--bg-surface))', opacity: 0.95 }}
-    >
-      <StatusCheckbox status={subtask.status} onChange={() => {}} />
-      <span className={`text-[13px] truncate flex-1 transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
-        {subtask.name}
-      </span>
-    </div>
-  );
-}
-
 function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection }: {
   subtasks: Subtask[];
   taskId: string;
@@ -89,77 +72,79 @@ function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId,
   onConvertToTask?: (subtaskId: string) => void;
   onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
 }) {
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const subtaskIds = subtasks.map(s => s.id);
-  const [activeSubtaskId, setActiveSubtaskId] = useState<string | null>(null);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | null>(null);
+  const dragSourceIdRef = useRef<string | null>(null);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveSubtaskId(event.active.id as string);
-  };
+  const handleDragOver = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
+    // Only handle reorder if dragging a subtask from the same parent
+    const draggedId = e.dataTransfer.types.includes('application/x-task-id') ? true : false;
+    if (!draggedId) return;
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const pos = e.clientY < midY ? 'top' : 'bottom';
+    setOverSubtaskId(targetSubtaskId);
+    setDropPosition(pos);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
+    const draggedId = e.dataTransfer.getData('application/x-task-id');
+    if (!draggedId || !subtaskIds.includes(draggedId) || !subtaskIds.includes(targetSubtaskId)) {
+      // Not a reorder within this parent — let it bubble for sidebar handling
       setOverSubtaskId(null);
       setDropPosition(null);
       return;
     }
-    const activeIdx = subtaskIds.indexOf(active.id as string);
-    const overIdx = subtaskIds.indexOf(over.id as string);
-    setOverSubtaskId(over.id as string);
-    setDropPosition(activeIdx < overIdx ? 'bottom' : 'top');
-  };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveSubtaskId(null);
+    e.preventDefault();
+    e.stopPropagation();
     setOverSubtaskId(null);
     setDropPosition(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIdx = subtaskIds.indexOf(active.id as string);
-    const newIdx = subtaskIds.indexOf(over.id as string);
+
+    if (draggedId === targetSubtaskId) return;
+
+    const oldIdx = subtaskIds.indexOf(draggedId);
+    const newIdx = subtaskIds.indexOf(targetSubtaskId);
     if (oldIdx === -1 || newIdx === -1) return;
     const reordered = arrayMove(subtaskIds, oldIdx, newIdx);
     onReorderSubtasks?.(taskId, reordered);
-  };
+  }, [subtaskIds, taskId, onReorderSubtasks]);
 
-  const activeSubtask = activeSubtaskId ? subtasks.find(s => s.id === activeSubtaskId) : null;
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear if leaving the subtask list entirely
+    const related = e.relatedTarget as HTMLElement | null;
+    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
+      setOverSubtaskId(null);
+      setDropPosition(null);
+    }
+  }, []);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={subtaskIds} strategy={verticalListSortingStrategy}>
-        {subtasks.map((sub) => (
-          <SortableSubtaskRow
-            key={sub.id}
-            subtask={sub}
-            parentTaskId={taskId}
-            parentProjectId={parentProjectId}
-            parentSectionId={parentSectionId}
-            isSelected={selectedSubtaskId === sub.id}
-            isDragging={activeSubtaskId === sub.id}
-            dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
-            onSelect={onSelectSubtask}
-            onStatusChange={onSubtaskStatusChange}
-            onRename={onRenameSubtask}
-            sections={sections}
-            onDeleteSubtask={onDeleteSubtask}
-            onConvertToTask={onConvertToTask}
-            onMoveSubtaskToSection={onMoveSubtaskToSection}
-          />
-        ))}
-      </SortableContext>
-      <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
-        {activeSubtask ? <SubtaskDragOverlay subtask={activeSubtask} /> : null}
-      </DragOverlay>
-    </DndContext>
+    <div>
+      {subtasks.map((sub) => (
+        <SortableSubtaskRow
+          key={sub.id}
+          subtask={sub}
+          parentTaskId={taskId}
+          parentProjectId={parentProjectId}
+          parentSectionId={parentSectionId}
+          isSelected={selectedSubtaskId === sub.id}
+          dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
+          onSelect={onSelectSubtask}
+          onStatusChange={onSubtaskStatusChange}
+          onRename={onRenameSubtask}
+          sections={sections}
+          onDeleteSubtask={onDeleteSubtask}
+          onConvertToTask={onConvertToTask}
+          onMoveSubtaskToSection={onMoveSubtaskToSection}
+          onNativeDragOver={handleDragOver}
+          onNativeDrop={handleDrop}
+          onNativeDragLeave={handleDragLeave}
+        />
+      ))}
+    </div>
   );
 }
 
