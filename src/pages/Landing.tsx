@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Menu, X } from "lucide-react";
 import screenshotMeuDia from "@/assets/screenshot-meudia.png";
 import screenshotFoco from "@/assets/screenshot-foco.png";
 import screenshotCliente from "@/assets/screenshot-cliente.png";
@@ -200,6 +201,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
    ═══════════════════════════════════════ */
 const Landing = () => {
   const [sc, setSc] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const [heroProgress, setHeroProgress] = useState(0);
 
@@ -233,17 +235,34 @@ const Landing = () => {
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
       {/* NAV */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc ? "rgba(250,250,249,0.85)" : "transparent", backdropFilter: sc ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc || mobileMenu ? "rgba(250,250,249,0.95)" : "transparent", backdropFilter: sc || mobileMenu ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontFamily: pf, fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>MeuFluxo</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* Desktop nav */}
+          <div className="hidden sm:flex" style={{ alignItems: "center", gap: 16 }}>
             {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
-              <button key={id} onClick={() => go(id)} className="hidden sm:inline-block" style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
+              <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
-            <a href="/auth" className="hidden sm:inline-block" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
+            <a href="/auth" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
             <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar grátis</a>
           </div>
+          {/* Mobile hamburger */}
+          <div className="flex sm:hidden" style={{ alignItems: "center", gap: 12 }}>
+            <a href="/auth" style={{ height: 36, padding: "0 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar</a>
+            <button onClick={() => setMobileMenu(!mobileMenu)} style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", color: C.text, borderRadius: 10 }} aria-label="Menu">
+              {mobileMenu ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
+        {/* Mobile menu overlay */}
+        {mobileMenu && (
+          <div className="sm:hidden" style={{ padding: "8px 20px 24px", display: "flex", flexDirection: "column", gap: 4, borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+            {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
+              <button key={id} onClick={() => { go(id); setMobileMenu(false); }} style={{ fontSize: 15, fontWeight: 500, color: C.text, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: "14px 8px", borderRadius: 10 }}>{l}</button>
+            ))}
+            <a href="/auth" style={{ fontSize: 15, fontWeight: 500, color: C.text, textDecoration: "none", padding: "14px 8px", borderRadius: 10 }}>Login</a>
+          </div>
+        )}
       </nav>
 
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "120px 24px 100px", overflow: "visible" }}>
