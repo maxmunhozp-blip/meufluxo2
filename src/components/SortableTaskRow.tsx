@@ -174,7 +174,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
     return (
       <button
         onClick={open}
-        className="h-7 w-full pl-6 md:pl-8 pr-4 flex items-center gap-1.5 transition-colors group/add"
+        className="subtask-add-btn h-7 w-full pl-6 md:pl-8 pr-4 flex items-center gap-1.5 transition-colors group/add"
         style={{ color: 'var(--text-placeholder)' }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
         onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
@@ -197,7 +197,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
         }}
         onBlur={() => { if (!value.trim()) setIsActive(false); }}
         placeholder="Nome da subtarefa..."
-        className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
+        className="subtask-inline-input w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
           background: 'var(--bg-input)',
           borderColor: 'var(--border-input)',
@@ -527,6 +527,24 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           position={contextMenu}
           onClose={() => setContextMenu(null)}
           items={[
+            {
+              label: 'Adicionar subtarefa',
+              onClick: () => {
+                setExpanded(true);
+                setTimeout(() => {
+                  const row = document.querySelector(`[data-task-id="${task.id}"]`);
+                  // Try to find existing input first, otherwise click the add button
+                  const input = row?.querySelector<HTMLInputElement>('.subtask-inline-input');
+                  if (input) {
+                    input.focus();
+                  } else {
+                    // Click the "Adicionar subtarefa..." button to activate the input
+                    const btn = row?.querySelector<HTMLButtonElement>('.subtask-add-btn');
+                    btn?.click();
+                  }
+                }, 100);
+              },
+            },
             {
               label: 'Duplicar tarefa',
               onClick: () => onDuplicateTask?.(task.id),
