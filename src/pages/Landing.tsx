@@ -29,18 +29,37 @@ const bd = '"DM Sans",system-ui,sans-serif';
 const ANIM_CSS = `
 @keyframes mf-fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
 @keyframes mf-scaleIn{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes mf-slideLeft{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:translateX(0)}}
+@keyframes mf-slideRight{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:translateX(0)}}
+@keyframes mf-blurIn{from{opacity:0;filter:blur(12px);transform:translateY(16px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+@keyframes mf-rotateIn{from{opacity:0;transform:rotate(-2deg) scale(0.96) translateY(24px)}to{opacity:1;transform:rotate(0) scale(1) translateY(0)}}
 @keyframes mf-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
 @keyframes mf-faqOpen{from{max-height:0;opacity:0}to{max-height:500px;opacity:1}}
 @keyframes mf-faqClose{from{max-height:500px;opacity:1}to{max-height:0;opacity:0}}
 @keyframes mf-glow{0%,100%{opacity:0.4}50%{opacity:0.7}}
 .mf-r{opacity:0;transform:translateY(32px)}
 .mf-r.mf-v{animation:mf-fadeUp .7s cubic-bezier(.22,1,.36,1) forwards}
+.mf-sl{opacity:0;transform:translateX(-48px)}
+.mf-sl.mf-v{animation:mf-slideLeft .8s cubic-bezier(.22,1,.36,1) forwards}
+.mf-sr{opacity:0;transform:translateX(48px)}
+.mf-sr.mf-v{animation:mf-slideRight .8s cubic-bezier(.22,1,.36,1) forwards}
+.mf-bl{opacity:0;filter:blur(12px);transform:translateY(16px)}
+.mf-bl.mf-v{animation:mf-blurIn .9s cubic-bezier(.22,1,.36,1) forwards}
+.mf-rot{opacity:0;transform:rotate(-2deg) scale(0.96) translateY(24px)}
+.mf-rot.mf-v{animation:mf-rotateIn .8s cubic-bezier(.22,1,.36,1) forwards}
 .mf-s>.mf-r:nth-child(1).mf-v{animation-delay:0s}
 .mf-s>.mf-r:nth-child(2).mf-v{animation-delay:.08s}
 .mf-s>.mf-r:nth-child(3).mf-v{animation-delay:.16s}
 .mf-s>.mf-r:nth-child(4).mf-v{animation-delay:.24s}
 .mf-s>.mf-r:nth-child(5).mf-v{animation-delay:.32s}
 .mf-s>.mf-r:nth-child(6).mf-v{animation-delay:.4s}
+.mf-s>.mf-sl:nth-child(1).mf-v{animation-delay:0s}
+.mf-s>.mf-sl:nth-child(2).mf-v{animation-delay:.1s}
+.mf-s>.mf-sr:nth-child(1).mf-v{animation-delay:0s}
+.mf-s>.mf-sr:nth-child(2).mf-v{animation-delay:.1s}
+.mf-s>.mf-bl:nth-child(1).mf-v{animation-delay:0s}
+.mf-s>.mf-bl:nth-child(2).mf-v{animation-delay:.12s}
+.mf-s>.mf-bl:nth-child(3).mf-v{animation-delay:.24s}
 .mf-img{opacity:0;transform:scale(0.95) translateY(20px)}
 .mf-img.mf-v{animation:mf-scaleIn .9s cubic-bezier(.22,1,.36,1) forwards}
 .mf-bounce{animation:mf-bounce 2s ease-in-out infinite}
@@ -57,7 +76,7 @@ function RevealGroup({ children, className = "", style = {} }: { children: React
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { el.querySelectorAll(".mf-r,.mf-img").forEach(c => c.classList.add("mf-v")); obs.unobserve(el); }
+      if (e.isIntersecting) { el.querySelectorAll(".mf-r,.mf-sl,.mf-sr,.mf-bl,.mf-rot,.mf-img").forEach(c => c.classList.add("mf-v")); obs.unobserve(el); }
     }, { threshold: 0.1, rootMargin: "-40px" });
     obs.observe(el);
     return () => obs.disconnect();
@@ -380,7 +399,7 @@ const Landing = () => {
       {/* PONTE — contexto empático antes das stories */}
       <section className="py-10 sm:py-[60px] px-4 sm:px-6 pb-14 sm:pb-20" style={{ background: C.bg, textAlign: "center" }}>
         <RevealGroup style={{ maxWidth: 720, margin: "0 auto" }}>
-          <p className="mf-r text-sm sm:text-base" style={{ fontFamily: bd, lineHeight: 1.7, color: C.muted }}>
+          <p className="mf-bl text-sm sm:text-base" style={{ fontFamily: bd, lineHeight: 1.7, color: C.muted }}>
             Ferramentas tradicionais foram desenhadas para um tipo de cérebro — o que foca naturalmente, prioriza sem esforço e não se paralisa diante de listas. Se isso não descreve você, o MeuFluxo foi construído para como o <em style={{ fontStyle: "italic", color: C.text }}>seu</em> cérebro realmente funciona.
           </p>
         </RevealGroup>
@@ -394,36 +413,36 @@ const Landing = () => {
               <div style={{ position: "absolute", inset: 0, background: `url(${st.photo}) center/cover`, filter: "brightness(0.3)" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.7))" }} />
               <RevealGroup className="relative max-w-[680px] mx-auto px-5 sm:px-8 py-16 sm:py-[100px]" style={{ color: "#fff" }}>
-                <div className="mf-r flex items-center gap-3 mb-5">
+                <div className="mf-bl flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex-shrink-0" style={{ background: `url(${st.photo}) center/cover`, border: "2px solid rgba(255,255,255,0.3)" }} />
                   <div><p className="text-sm sm:text-[15px] font-semibold">{st.name}</p><p className="text-[11px] sm:text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{st.role}</p></div>
                 </div>
-                <blockquote className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.1rem,3vw,1.9rem)", lineHeight: 1.35, fontWeight: 500, fontStyle: "italic", margin: 0 }}>"{st.quote}"</blockquote>
+                <blockquote className="mf-bl" style={{ fontFamily: pf, fontSize: "clamp(1.1rem,3vw,1.9rem)", lineHeight: 1.35, fontWeight: 500, fontStyle: "italic", margin: 0 }}>"{st.quote}"</blockquote>
               </RevealGroup>
             </div>
             <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-12 sm:py-[72px]">
               <RevealGroup className="flex flex-col lg:flex-row gap-8 sm:gap-14 items-center">
-                <div className="w-full lg:flex-1 lg:min-w-[300px]">
-                  <div className="mf-r">
+                <div className={`w-full lg:flex-1 lg:min-w-[300px] ${i % 2 === 0 ? '' : 'lg:order-2'}`}>
+                  <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'}>
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.1)", marginBottom: 18 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.accent }}>O estudo</span>
                     </div>
                   </div>
-                  <h3 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.3rem,3vw,2rem)", fontWeight: 700, lineHeight: 1.15, marginBottom: 14 }}>{st.studyTitle}</h3>
-                  <p className="mf-r text-[14px] sm:text-[15px]" style={{ lineHeight: 1.7, color: C.muted, marginBottom: 14 }}>{st.studyBody}</p>
-                  <div className="mf-r" style={{ padding: 14, borderRadius: 10, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.08)" }}>
+                  <h3 className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ fontFamily: pf, fontSize: "clamp(1.3rem,3vw,2rem)", fontWeight: 700, lineHeight: 1.15, marginBottom: 14 }}>{st.studyTitle}</h3>
+                  <p className={`${i % 2 === 0 ? 'mf-sl' : 'mf-sr'} text-[14px] sm:text-[15px]`} style={{ lineHeight: 1.7, color: C.muted, marginBottom: 14 }}>{st.studyBody}</p>
+                  <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ padding: 14, borderRadius: 10, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.08)" }}>
                     <p style={{ fontSize: 11, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Referências</p>
                     <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite1}</p>
                     <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite2}</p>
                   </div>
-                  <div className="mf-r" style={{ marginTop: 28 }}>
+                  <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ marginTop: 28 }}>
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.1)", marginBottom: 14 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10B981" }}>{st.label}</span>
                     </div>
                     <p className="text-[14px] sm:text-[15px]" style={{ lineHeight: 1.7, color: "#374151" }}>{st.solution}</p>
                   </div>
                 </div>
-                <div className="mf-r w-full lg:flex-1 lg:min-w-[300px]" style={{ position: "relative" }}>
+                <div className={`${i % 2 === 0 ? 'mf-rot' : 'mf-rot'} w-full lg:flex-1 lg:min-w-[300px] ${i % 2 === 0 ? '' : 'lg:order-1'}`} style={{ position: "relative" }}>
                   <RevealImg src={st.mockup} alt={`MeuFluxo — ${st.label}`} />
                 </div>
               </RevealGroup>
@@ -441,7 +460,7 @@ const Landing = () => {
             <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.8rem,4vw,3rem)", fontWeight: 700, lineHeight: 1.1, color: "#fff" }}>Simples e transparente.</h2>
           </RevealGroup>
           <RevealGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="mf-r p-5 sm:p-7" style={{ borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="mf-sl p-5 sm:p-7" style={{ borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Free</h3>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para começar sem pressão</p>
               <p style={{ marginBottom: 22 }}><span className="text-3xl sm:text-[40px]" style={{ fontFamily: pf, fontWeight: 700, color: "#fff" }}>R$0</span><span className="text-xs sm:text-[13px]" style={{ color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/mês</span></p>
@@ -450,7 +469,7 @@ const Landing = () => {
               ))}
               <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>Criar conta grátis</a>
             </div>
-            <div className="mf-r p-5 sm:p-7 relative mt-4 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
+            <div className="mf-sr p-5 sm:p-7 relative mt-4 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1" style={{ borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#fff", whiteSpace: "nowrap" }}>Recomendado</div>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Pro</h3>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para profissionais</p>
