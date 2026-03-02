@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, Play, BarChart3, Repeat, ChevronDown, List, 
 import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
 import { WeekTimelineView } from './WeekTimelineView';
 import { ProBadge } from '@/components/ProBadge';
+import { DropIndicatorLine } from '@/components/DropIndicatorLine';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 interface MyWeekViewProps {
@@ -46,6 +47,7 @@ function WeekTaskCard({
   isRolledOverOrigin,
   sectionName,
   parentTaskName,
+  dropIndicator,
 }: {
   task: Task;
   projectColor: string;
@@ -56,17 +58,11 @@ function WeekTaskCard({
   isRolledOverOrigin?: boolean;
   sectionName?: string;
   parentTaskName?: string;
+  dropIndicator?: 'top' | 'bottom' | null;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: task.id, data: { type: 'week-task', task } });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.3 : 1,
-    zIndex: isDragging ? 50 : undefined,
-  };
 
   const isDone = task.status === 'done';
 
@@ -84,6 +80,7 @@ function WeekTaskCard({
         transition: transition || 'transform 150ms ease',
         opacity: isDragging ? 0.3 : 1,
         zIndex: isDragging ? 50 : undefined,
+        position: 'relative',
       }}
       layout
       layoutId={`week-card-${task.id}`}
@@ -96,6 +93,8 @@ function WeekTaskCard({
       {...attributes}
       {...listeners}
     >
+      {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
+      {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
       <motion.div
         className={`rounded-md px-2.5 py-2 flex flex-col gap-0.5 ${isSelected ? 'ring-1' : ''}`}
         style={{
@@ -149,6 +148,8 @@ function DayColumn({
   onSelectTask,
   selectedTaskId,
   truncateText,
+  overItemId,
+  dropLinePosition,
 }: {
   dayDate: Date;
   tasks: Task[];
@@ -160,6 +161,8 @@ function DayColumn({
   onSelectTask: (t: Task) => void;
   selectedTaskId?: string;
   truncateText?: boolean;
+  overItemId?: string | null;
+  dropLinePosition?: 'top' | 'bottom' | null;
 }) {
   const dateStr = format(dayDate, 'yyyy-MM-dd');
   const { setNodeRef, isOver } = useDroppable({
@@ -227,6 +230,7 @@ function DayColumn({
                     isRolledOverOrigin={isRolledOverOrigin}
                     sectionName={sections.find(s => s.id === task.section)?.title}
                     parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                    dropIndicator={overItemId === task.id ? dropLinePosition : null}
                   />
                 );
               })}
@@ -696,6 +700,8 @@ export function MyWeekView({
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragSubtask, setActiveDragSubtask] = useState<{ subtask: Subtask; projectColor: string } | null>(null);
+  const [overItemId, setOverItemId] = useState<string | null>(null);
+  const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [mobileOverlay, setMobileOverlay] = useState(false);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -863,11 +869,30 @@ export function MyWeekView({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
+    const { active, over } = event;
     if (over?.data.current?.type === 'day-drop') {
       setDragOverDay(over.data.current.date);
+      setOverItemId(null);
+      setDropLinePosition(null);
+    } else if (over?.data.current?.type === 'week-task' && active.data.current?.type === 'week-task') {
+      // Show drop indicator between cards in same day
+      const activeIndex = active.data.current?.sortable?.index ?? -1;
+      const overIndex = over.data.current?.sortable?.index ?? -1;
+      setOverItemId(over.id as string);
+      setDropLinePosition(activeIndex > overIndex ? 'top' : 'bottom');
+      // Also highlight the day column
+      const targetDate = (over.data.current.task as Task).scheduledDate || (over.data.current.task as Task).dueDate;
+      setDragOverDay(targetDate || null);
+    } else if (over?.data.current?.type === 'week-task') {
+      // Source task dragged over a week-task — show indicator
+      setOverItemId(over.id as string);
+      setDropLinePosition('bottom');
+      const targetDate = (over.data.current.task as Task).scheduledDate || (over.data.current.task as Task).dueDate;
+      setDragOverDay(targetDate || null);
     } else {
       setDragOverDay(null);
+      setOverItemId(null);
+      setDropLinePosition(null);
     }
   };
 
@@ -875,6 +900,8 @@ export function MyWeekView({
     setDragOverDay(null);
     setActiveDragId(null);
     setActiveDragSubtask(null);
+    setOverItemId(null);
+    setDropLinePosition(null);
     const { active, over } = event;
     if (!over) return;
 
@@ -1083,6 +1110,8 @@ export function MyWeekView({
                       onSelectTask={onSelectTask}
                       selectedTaskId={selectedTaskId}
                       truncateText={effectiveView === 'week'}
+                      overItemId={overItemId}
+                      dropLinePosition={dropLinePosition}
                     />
                   );
                 })}
