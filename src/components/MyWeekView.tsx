@@ -95,10 +95,10 @@ function WeekTaskCard({
         onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
       >
         {/* Line 1: Context — ● Project · Section */}
-        <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+        <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-secondary)', opacity: 0.55, fontWeight: 400, lineHeight: 1.3 }}>
           <span
             className="flex-shrink-0 rounded-full"
-            style={{ width: 6, height: 6, background: projectColor, opacity: 0.7 }}
+            style={{ width: 6, height: 6, background: projectColor, opacity: 0.85 }}
           />
           {projectName && <span>{projectName}</span>}
           {projectName && contextSuffix && <span>·</span>}
