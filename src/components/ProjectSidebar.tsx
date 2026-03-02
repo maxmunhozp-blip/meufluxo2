@@ -543,8 +543,8 @@ export function ProjectSidebar({
   if (collapsed) {
     return (
       <aside
-        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]"
-        style={{ width: 48, minWidth: 48, maxWidth: 48, transition: 'width 200ms ease-out' }}
+        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden"
+        style={{ width: 48, minWidth: 48, maxWidth: 48, transition: 'width 200ms ease-out', background: 'hsl(var(--sidebar-background))' }}
       >
         <div className="flex flex-col items-center gap-1 pt-3 px-1">
           {/* Expand button */}
@@ -616,8 +616,8 @@ export function ProjectSidebar({
 
   return (
     <aside
-      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]"
-      style={{ width: 260, minWidth: 260, maxWidth: 260, transition: 'width 200ms ease-out' }}
+      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden"
+      style={{ width: 260, minWidth: 260, maxWidth: 260, transition: 'width 200ms ease-out', background: 'hsl(var(--sidebar-background))' }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
