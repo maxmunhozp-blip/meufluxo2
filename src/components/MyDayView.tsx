@@ -650,11 +650,7 @@ export function MyDayView({
     Object.keys(map).forEach(key => {
       const period = key as DayPeriod;
       const pending = map[period].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const done = map[period].filter(t => t.status === 'done').sort((a, b) => {
-        const aTime = a.completedAt || '';
-        const bTime = b.completedAt || '';
-        return aTime.localeCompare(bTime);
-      });
+      const done = map[period].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       map[period] = [...pending, ...done];
     });
     return map;
@@ -709,7 +705,8 @@ export function MyDayView({
   const handleDragEnd = (event: DragEndEvent) => {
     const droppedId = activeDragId;
     setActiveDragId(null); setOverItemId(null); setDropLinePosition(null);
-    const { active, over } = event; if (!over) { return; }
+    const { active, over } = event;
+    if (!over) { return; }
     if (droppedId) { setJustDroppedId(droppedId); setTimeout(() => setJustDroppedId(null), 450); }
     const activeData = active.data.current; const overData = over.data.current;
 
@@ -730,7 +727,6 @@ export function MyDayView({
       const targetDisplayPeriod = getDisplayPeriod(targetTask.id);
 
       if (draggedDisplayPeriod === targetDisplayPeriod) {
-        // Same display period → reorder positions
         const periodTasks = [...(tasksByPeriod[draggedDisplayPeriod] || [])];
         const oldIdx = periodTasks.findIndex(t => t.id === draggedTask.id);
         const newIdx = periodTasks.findIndex(t => t.id === targetTask.id);
@@ -744,7 +740,6 @@ export function MyDayView({
           }
         }
       } else {
-        // Different display period → move to target period (update DB dayPeriod)
         onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod });
         completedDisplayPeriodRef.current.delete(draggedTask.id);
       }
