@@ -203,17 +203,19 @@ function DayTaskCard({
 
 /* ── Period section ── */
 function PeriodSection({
-  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap, overItemId, dropLinePosition, justDroppedId,
+  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap, overItemId, dropLinePosition, justDroppedId, isDragActive,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
   overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null;
+  isDragActive?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
   const PeriodIcon = period.icon;
   const headerOpacity = periodState === 'past' ? 0.4 : periodState === 'current' ? 1 : 0.7;
   const headerColor = periodState === 'current' ? 'var(--text-secondary)' : 'var(--text-tertiary)';
+  const isEmpty = tasks.length === 0;
 
   return (
     <div
@@ -228,7 +230,7 @@ function PeriodSection({
       }}
     >
       {/* Period header */}
-      <div className="flex items-center gap-1.5 mb-1.5" style={{ opacity: headerOpacity, height: 24, paddingLeft: isOver ? 0 : 0 }}>
+      <div className="flex items-center gap-1.5 mb-1.5" style={{ opacity: headerOpacity, height: 24 }}>
         <PeriodIcon className="flex-shrink-0" style={{ width: 14, height: 14, color: periodState === 'current' ? 'var(--accent-blue)' : headerColor }} />
         <span style={{
           fontSize: 12, fontWeight: 500, letterSpacing: 0.5,
@@ -237,7 +239,7 @@ function PeriodSection({
           {period.label}
         </span>
         {periodState === 'current' && (
-          <span style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, marginLeft: 4 }}>· agora</span>
+          <span style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, marginLeft: 2 }}>· agora</span>
         )}
       </div>
 
@@ -274,23 +276,23 @@ function PeriodSection({
             </SortableContext>
           </div>
         </LayoutGroup>
-      ) : (
-        /* Empty period — subtle drop hint */
+      ) : isDragActive ? (
+        /* Empty period — only visible during drag */
         <div
-          className="flex items-center justify-center"
+          className="flex items-center justify-center transition-all duration-150"
           style={{
-            height: 32,
+            height: 36,
             borderRadius: 8,
-            border: '1px dashed var(--border-subtle)',
-            opacity: isOver ? 1 : 0.4,
-            transition: 'all 150ms ease-out',
+            border: isOver ? '1px solid var(--accent-blue)' : '1px dashed var(--border-subtle)',
+            background: isOver ? 'var(--accent-subtle)' : 'transparent',
+            opacity: isOver ? 1 : 0.5,
           }}
         >
-          <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
-            {isOver ? 'Soltar aqui' : 'Arraste tarefas para cá'}
+          <span style={{ fontSize: 11, color: isOver ? 'var(--accent-blue)' : 'var(--text-placeholder)', fontWeight: 400 }}>
+            {isOver ? 'Soltar aqui' : 'Mover para ' + period.label}
           </span>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -563,7 +565,7 @@ export function MyDayView({
                 return (
                   <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
                     selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap}
-                    overItemId={overItemId} dropLinePosition={dropLinePosition} justDroppedId={justDroppedId} />
+                    overItemId={overItemId} dropLinePosition={dropLinePosition} justDroppedId={justDroppedId} isDragActive={!!activeDragId} />
                 );
               })}
               {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
