@@ -40,10 +40,10 @@ export function StatusCheckbox({ status, onChange, size = 20, quickComplete = fa
         )}
         {status === 'done' && (
           <>
-            <circle cx="10" cy="10" r="9" fill="rgba(255,255,255,0.08)" />
+            <circle cx="10" cy="10" r="9" fill="rgba(255,255,255,0.2)" />
             <path
               d="M6 10.5L8.5 13L14 7"
-              stroke="rgba(255,255,255,0.25)"
+              stroke="rgba(255,255,255,0.4)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
