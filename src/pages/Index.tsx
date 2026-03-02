@@ -1748,9 +1748,6 @@ const Index = () => {
                         console.error('Erro ao criar seção:', err);
                       }
                     }}
-                    onChangeSectionType={(sectionId, sectionType) => {
-                      updateSectionType(sectionId, sectionType);
-                    }}
                   />
                 );
               })}

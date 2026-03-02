@@ -4,12 +4,11 @@ import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GripVertical, Play, Plus } from 'lucide-react';
-import { Task, Section, TaskStatus, Subtask, SectionType } from '@/types/task';
+import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
 import { ContextMenu } from './ContextMenu';
-import { SectionTypeIcon, SectionTypeChips } from './SectionTypeChips';
 import { EntradaSuggestionChip } from './EntradaSuggestionChip';
 
 // Invisible drop zone at the end of a section's task list
@@ -63,7 +62,6 @@ interface TaskSectionProps {
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   onScheduleToday?: (taskId: string) => void;
   onCreateSectionFromEntrada?: (sectionName: string) => void;
-  onChangeSectionType?: (sectionId: string, sectionType: SectionType) => void;
 }
 
 // Footer input with Tab-indent support
@@ -190,7 +188,6 @@ export function TaskSection({
   onNestAsSubtask,
   onScheduleToday,
   onCreateSectionFromEntrada,
-  onChangeSectionType,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -313,7 +310,6 @@ export function TaskSection({
                   style={{ color: 'var(--text-tertiary)' }}
                 />
               </span>
-              {section.sectionType && <SectionTypeIcon sectionType={section.sectionType} />}
             <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
@@ -409,18 +405,6 @@ export function TaskSection({
           onClose={() => setContextMenu(null)}
           items={[
             { label: 'Renomear', onClick: startRename },
-            ...(onChangeSectionType ? [{
-              label: 'Tipo da seção',
-              customContent: (
-                <SectionTypeChips
-                  value={section.sectionType ?? null}
-                  onChange={(type) => {
-                    onChangeSectionType(section.id, type);
-                    setContextMenu(null);
-                  }}
-                />
-              ),
-            }] : []),
             ...(onMoveSectionToMonth ? [{
               label: 'Mover para mês',
               customContent: (
