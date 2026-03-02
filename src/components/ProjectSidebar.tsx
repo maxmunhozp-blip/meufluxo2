@@ -558,7 +558,7 @@ export function ProjectSidebar({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
-          <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" count={weekCount} />
+          <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
