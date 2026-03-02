@@ -110,15 +110,15 @@ function DayTaskCard({
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
         {/* Drag handle */}
         <div
-          className="flex-shrink-0 flex items-center justify-center w-5 h-full cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+          className="flex-shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-40 transition-opacity duration-150"
+          style={{ width: 24, height: '100%', marginRight: 6 }}
           {...attributes} {...listeners}
         >
-          <GripVertical style={{ width: 12, height: 12, color: 'var(--text-placeholder)' }} />
+          <GripVertical style={{ width: 14, height: 14, color: 'var(--text-secondary)' }} />
         </div>
-        <div className="w-0.5 flex-shrink-0 flex items-center justify-center">
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ marginRight: 8 }}>
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }} />
         </div>
-        <div className="w-2 flex-shrink-0" />
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
           <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
         </div>
