@@ -431,9 +431,11 @@ export function useSupabaseData(): UseSupabaseDataReturn {
             const updateSub = (s: Subtask): Subtask => s.id === row.id ? {
               ...s, name: row.title, status: row.status as TaskStatus,
               priority: row.priority as Priority | undefined,
+              position: row.position ?? s.position,
               description: row.description || undefined,
               dueDate: row.due_date || undefined,
               scheduledDate: row.scheduled_date || undefined,
+              dayPeriod: row.day_period || s.dayPeriod,
             } : { ...s, subtasks: (s.subtasks || []).map(updateSub) };
             return { ...t, subtasks: (t.subtasks || []).map(updateSub) };
           }));
@@ -444,6 +446,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           name: row.title,
           status: row.status,
           priority: row.priority,
+          position: row.position ?? t.position,
           description: row.description || undefined,
           dueDate: row.due_date || undefined,
           scheduledDate: row.scheduled_date || undefined,
