@@ -49,6 +49,7 @@ function WeekTaskCard({
   sectionName,
   parentTaskName,
   dropIndicator,
+  justDropped,
 }: {
   task: Task;
   projectColor: string;
@@ -60,6 +61,7 @@ function WeekTaskCard({
   sectionName?: string;
   parentTaskName?: string;
   dropIndicator?: 'top' | 'bottom' | null;
+  justDropped?: boolean;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -82,6 +84,7 @@ function WeekTaskCard({
         opacity: isDragging ? 0.3 : 1,
         zIndex: isDragging ? 50 : undefined,
         position: 'relative',
+        animation: justDropped ? 'drop-pulse 400ms cubic-bezier(0.22,1,0.36,1)' : undefined,
       }}
       layout
       layoutId={`week-card-${task.id}`}
@@ -151,6 +154,7 @@ function DayColumn({
   truncateText,
   overItemId,
   dropLinePosition,
+  justDroppedId,
 }: {
   dayDate: Date;
   tasks: Task[];
@@ -164,6 +168,7 @@ function DayColumn({
   truncateText?: boolean;
   overItemId?: string | null;
   dropLinePosition?: 'top' | 'bottom' | null;
+  justDroppedId?: string | null;
 }) {
   const dateStr = format(dayDate, 'yyyy-MM-dd');
   const { setNodeRef, isOver } = useDroppable({
@@ -232,6 +237,7 @@ function DayColumn({
                     sectionName={sections.find(s => s.id === task.section)?.title}
                     parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
                     dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                    justDropped={justDroppedId === task.id}
                   />
                 );
               })}
@@ -705,6 +711,7 @@ export function MyWeekView({
   const [overItemId, setOverItemId] = useState<string | null>(null);
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [mobileOverlay, setMobileOverlay] = useState(false);
+  const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     try {
@@ -910,6 +917,7 @@ export function MyWeekView({
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    const droppedId = activeDragId;
     setDragOverDay(null);
     setActiveDragId(null);
     setActiveDragSubtask(null);
@@ -917,6 +925,7 @@ export function MyWeekView({
     setDropLinePosition(null);
     const { active, over } = event;
     if (!over) return;
+    if (droppedId) { setJustDroppedId(droppedId); setTimeout(() => setJustDroppedId(null), 450); }
 
     const activeData = active.data.current;
     const overData = over.data.current;
@@ -1127,6 +1136,7 @@ export function MyWeekView({
                       truncateText={effectiveView === 'week'}
                       overItemId={overItemId}
                       dropLinePosition={dropLinePosition}
+                      justDroppedId={justDroppedId}
                     />
                   );
                 })}
