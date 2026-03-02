@@ -262,42 +262,32 @@ function CollapsedPeriodSummary({
       </button>
 
       {/* Expanded content — full interactive DayTaskCards with drag & drop */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className="mt-1 space-y-0.5">
-              <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-                {tasks.map(task => {
-                  const project = projects.find(p => p.id === task.projectId);
-                  return (
-                    <DayTaskCard
-                      key={task.id}
-                      task={task}
-                      projectColor={project?.color || 'var(--accent-blue)'}
-                      isSelected={selectedTaskId === task.id}
-                      onSelect={() => onSelectTask(task)}
-                      onStatusChange={onStatusChange}
-                      onUpdateTask={onUpdateTask}
-                      projectName={project?.name}
-                      rolloverDays={rolloverMap.get(task.id)}
-                      sectionName={sections.find(s => s.id === task.section)?.title}
-                      parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
-                      dropIndicator={overItemId === task.id ? dropLinePosition : null}
-                      justDropped={justDroppedId === task.id}
-                    />
-                  );
-                })}
-              </SortableContext>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isExpanded && (
+        <div className="mt-1 space-y-0.5">
+          <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+            {tasks.map(task => {
+              const project = projects.find(p => p.id === task.projectId);
+              return (
+                <DayTaskCard
+                  key={task.id}
+                  task={task}
+                  projectColor={project?.color || 'var(--accent-blue)'}
+                  isSelected={selectedTaskId === task.id}
+                  onSelect={() => onSelectTask(task)}
+                  onStatusChange={onStatusChange}
+                  onUpdateTask={onUpdateTask}
+                  projectName={project?.name}
+                  rolloverDays={rolloverMap.get(task.id)}
+                  sectionName={sections.find(s => s.id === task.section)?.title}
+                  parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                  dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                  justDropped={justDroppedId === task.id}
+                />
+              );
+            })}
+          </SortableContext>
+        </div>
+      )}
     </div>
   );
 }
