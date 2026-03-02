@@ -5,7 +5,7 @@ import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   DragEndEvent, DragStartEvent, DragOverlay, useDroppable,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
@@ -297,7 +297,9 @@ export function MyDayView({
       map[period].sort((a, b) => {
         const aRoll = rolloverMap.get(a.id) || 0; const bRoll = rolloverMap.get(b.id) || 0;
         if (aRoll > 0 && bRoll === 0) return -1; if (aRoll === 0 && bRoll > 0) return 1;
-        if (aRoll > 0 && bRoll > 0) return bRoll - aRoll; return 0;
+        if (aRoll > 0 && bRoll > 0) return bRoll - aRoll;
+        // Sort by position for persistent ordering
+        return (a.position ?? 0) - (b.position ?? 0);
       });
     });
     return map;
@@ -315,7 +317,24 @@ export function MyDayView({
     }
     if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
       const draggedTask = activeData.task as Task; const targetTask = overData.task as Task;
-      if (draggedTask.dayPeriod !== targetTask.dayPeriod) onUpdateTask({ ...draggedTask, dayPeriod: targetTask.dayPeriod });
+      const draggedPeriod = rolloverMap.has(draggedTask.id) ? 'morning' : (draggedTask.dayPeriod || 'morning');
+      const targetPeriod = rolloverMap.has(targetTask.id) ? 'morning' : (targetTask.dayPeriod || 'morning');
+
+      if (draggedPeriod === targetPeriod) {
+        // Same period → reorder with position persistence
+        const periodTasks = [...(tasksByPeriod[draggedPeriod as DayPeriod] || [])];
+        const oldIdx = periodTasks.findIndex(t => t.id === draggedTask.id);
+        const newIdx = periodTasks.findIndex(t => t.id === targetTask.id);
+        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+          const reordered = arrayMove(periodTasks, oldIdx, newIdx);
+          reordered.forEach((t, i) => {
+            onUpdateTask({ ...t, position: i });
+          });
+        }
+      } else {
+        // Different period → move to target period
+        onUpdateTask({ ...draggedTask, dayPeriod: targetPeriod as DayPeriod });
+      }
     }
   };
 
