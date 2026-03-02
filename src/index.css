@@ -336,53 +336,7 @@
   }
 }
 
-/* ---- LANDING PAGE TOKENS (theme-independent) ---- */
-:root {
-  --landing-bg: #FAFAF9;
-  --landing-bg-white: #FFFFFF;
-  --landing-dark: #0A0A0C;
-  --landing-accent: #4F6DF5;
-  --landing-accent-purple: #7C3AED;
-  --landing-accent-soft: rgba(79, 109, 245, 0.06);
-  --landing-accent-soft-border: rgba(79, 109, 245, 0.12);
-  --landing-accent-glow: rgba(79, 109, 245, 0.15);
-  --landing-accent-shadow: rgba(79, 109, 245, 0.3);
-  --landing-text: #18181B;
-  --landing-muted: #71717A;
-  --landing-muted-light: #A1A1AA;
-  --landing-border: rgba(0, 0, 0, 0.06);
-  --landing-mono: #8888A0;
-  --landing-green: #10B981;
-  --landing-green-soft: rgba(16, 185, 129, 0.06);
-  --landing-green-border: rgba(16, 185, 129, 0.1);
-  --landing-solution-text: #374151;
-  --landing-chrome-bg: #1E1E22;
-  --landing-chrome-border: rgba(255, 255, 255, 0.06);
-  --landing-chrome-text: rgba(255, 255, 255, 0.3);
-  --landing-chrome-input: rgba(255, 255, 255, 0.06);
-  --landing-nav-bg: rgba(250, 250, 249, 0.95);
-  --landing-nav-border: rgba(0, 0, 0, 0.05);
-  --landing-dark-card: rgba(255, 255, 255, 0.04);
-  --landing-dark-card-border: rgba(255, 255, 255, 0.06);
-  --landing-dark-text: #FFFFFF;
-  --landing-dark-text-muted: rgba(255, 255, 255, 0.4);
-  --landing-dark-text-dim: rgba(255, 255, 255, 0.5);
-  --landing-dark-text-subtle: rgba(255, 255, 255, 0.35);
-  --landing-dark-text-faint: rgba(255, 255, 255, 0.3);
-  --landing-dark-btn-border: rgba(255, 255, 255, 0.1);
-  --landing-dark-btn-text: rgba(255, 255, 255, 0.7);
-  --landing-dark-dots: rgba(79, 109, 245, 0.4);
-  --landing-dark-footer-border: rgba(255, 255, 255, 0.04);
-  --landing-photo-overlay: rgba(255, 255, 255, 0.3);
-  --landing-photo-role: rgba(255, 255, 255, 0.5);
-  --landing-hero-gradient-start: rgba(0, 0, 0, 0.1);
-  --landing-hero-gradient-end: rgba(0, 0, 0, 0.7);
-  --landing-traffic-red: #FF5F57;
-  --landing-traffic-yellow: #FEBC2E;
-  --landing-traffic-green: #28C840;
-}
-
-
+/* ---- SYSTEM PREFERENCE FALLBACK ---- */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --background: 36 28% 94%;

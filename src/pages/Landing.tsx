@@ -7,20 +7,20 @@ import screenshotSemana from "@/assets/screenshot-semana.png";
 import screenshotTimeline from "@/assets/screenshot-timeline.png";
 import avatarAna from "@/assets/avatar-ana.jpg";
 
-/* ── Design tokens — using CSS variables from index.css ── */
+/* ── Design tokens — monochromatic, warm neutral ── */
 const C = {
-  bg: "var(--landing-bg)",
-  dark: "var(--landing-dark)",
-  accent: "var(--landing-accent)",
-  accentP: "var(--landing-accent-purple)",
-  accentSoft: "var(--landing-accent-soft)",
-  text: "var(--landing-text)",
-  muted: "var(--landing-muted)",
-  mutedL: "var(--landing-muted-light)",
-  border: "var(--landing-border)",
-  white: "var(--landing-bg-white)",
-  mono: "var(--landing-mono)",
-  monoSoft: "var(--landing-mono)",
+  bg: "#FAFAF9",
+  dark: "#0A0A0C",
+  accent: "#4F6DF5",
+  accentP: "#7C3AED",
+  accentSoft: "rgba(79,109,245,0.06)",
+  text: "#18181B",
+  muted: "#71717A",
+  mutedL: "#A1A1AA",
+  border: "rgba(0,0,0,0.06)",
+  white: "#fff",
+  mono: "#8888A0",
+  monoSoft: "#A0A0B8",
 };
 const pf = '"Playfair Display",Georgia,serif';
 const bd = '"DM Sans",system-ui,sans-serif';
@@ -114,28 +114,28 @@ function RevealImg({ src, alt, style = {} }: { src: string; alt: string; style?:
   }, []);
   return (
     <div ref={ref} className="mf-img" style={{ position: "relative", ...style }}>
-      <div className="mf-mockup-glow" style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%, var(--landing-accent-glow) 0%, transparent 60%)", filter: "blur(40px)", pointerEvents: "none" }} />
-      <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", boxShadow: "0 16px 48px -8px rgba(0,0,0,0.4)", border: "1px solid var(--landing-chrome-border)" }}>
+      <div className="mf-mockup-glow" style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 50% 80%, rgba(79,109,245,0.15) 0%, transparent 60%)", filter: "blur(40px)", pointerEvents: "none" }} />
+      <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", boxShadow: "0 16px 48px -8px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}>
         {/* Desktop chrome */}
-        <div className="hidden sm:flex" style={{ background: "var(--landing-chrome-bg)", padding: "8px 14px", alignItems: "center", gap: 6, borderBottom: "1px solid var(--landing-chrome-border)" }}>
+        <div className="hidden sm:flex" style={{ background: "#1E1E22", padding: "8px 14px", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--landing-traffic-red)" }} />
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--landing-traffic-yellow)" }} />
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--landing-traffic-green)" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FEBC2E" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840" }} />
           </div>
-          <div style={{ flex: 1, marginLeft: 10, padding: "4px 12px", borderRadius: 5, background: "var(--landing-chrome-input)" }}>
-            <span style={{ fontSize: 10, color: "var(--landing-chrome-text)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
+          <div style={{ flex: 1, marginLeft: 10, padding: "4px 12px", borderRadius: 5, background: "rgba(255,255,255,0.06)" }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
           </div>
         </div>
         {/* Mobile chrome */}
-        <div className="flex sm:hidden" style={{ background: "var(--landing-chrome-bg)", padding: "5px 10px", alignItems: "center", gap: 4, borderBottom: "1px solid var(--landing-chrome-border)" }}>
+        <div className="flex sm:hidden" style={{ background: "#1E1E22", padding: "5px 10px", alignItems: "center", gap: 4, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", gap: 4 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--landing-traffic-red)" }} />
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--landing-traffic-yellow)" }} />
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--landing-traffic-green)" }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#FF5F57" }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#FEBC2E" }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#28C840" }} />
           </div>
-          <div style={{ flex: 1, marginLeft: 6, padding: "3px 8px", borderRadius: 4, background: "var(--landing-chrome-input)" }}>
-            <span style={{ fontSize: 8, color: "var(--landing-chrome-text)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
+          <div style={{ flex: 1, marginLeft: 6, padding: "3px 8px", borderRadius: 4, background: "rgba(255,255,255,0.06)" }}>
+            <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
           </div>
         </div>
         <img src={src} alt={alt} loading="lazy" style={{ width: "100%", height: "auto", display: "block" }} />
@@ -269,7 +269,7 @@ const Landing = () => {
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
       {/* NAV */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc || mobileMenu ? "var(--landing-nav-bg)" : "transparent", backdropFilter: sc || mobileMenu ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid var(--landing-nav-border)" : "1px solid transparent" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc || mobileMenu ? "rgba(250,250,249,0.95)" : "transparent", backdropFilter: sc || mobileMenu ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontFamily: pf, fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>MeuFluxo</span>
           {/* Desktop nav */}
@@ -278,11 +278,11 @@ const Landing = () => {
               <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
             <a href="/auth" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
-            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "var(--landing-dark-text)", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px var(--landing-accent-shadow)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar grátis</a>
+            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar grátis</a>
           </div>
           {/* Mobile hamburger */}
           <div className="flex sm:hidden" style={{ alignItems: "center", gap: 12 }}>
-            <a href="/auth" style={{ height: 36, padding: "0 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, color: "var(--landing-dark-text)", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar</a>
+            <a href="/auth" style={{ height: 36, padding: "0 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar</a>
             <button onClick={() => setMobileMenu(!mobileMenu)} style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", color: C.text, borderRadius: 10 }} aria-label="Menu">
               {mobileMenu ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -290,7 +290,7 @@ const Landing = () => {
         </div>
         {/* Mobile menu overlay */}
         {mobileMenu && (
-          <div className="sm:hidden" style={{ padding: "8px 20px 24px", display: "flex", flexDirection: "column", gap: 4, borderTop: "1px solid var(--landing-nav-border)" }}>
+          <div className="sm:hidden" style={{ padding: "8px 20px 24px", display: "flex", flexDirection: "column", gap: 4, borderTop: "1px solid rgba(0,0,0,0.05)" }}>
             {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
               <button key={id} onClick={() => { go(id); setMobileMenu(false); }} style={{ fontSize: 15, fontWeight: 500, color: C.text, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: "14px 8px", borderRadius: 10 }}>{l}</button>
             ))}
@@ -300,9 +300,9 @@ const Landing = () => {
       </nav>
 
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "visible" }} className="px-4 sm:px-6 pt-24 pb-16 sm:pt-[120px] sm:pb-[100px]">
-        <div style={{ position: "absolute", top: "-30%", right: "-15%", width: "65vw", height: "65vw", borderRadius: "50%", background: "radial-gradient(circle,var(--landing-accent-soft) 0%,transparent 55%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "-30%", right: "-15%", width: "65vw", height: "65vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(79,109,245,0.06) 0%,transparent 55%)", pointerEvents: "none" }} />
         <RevealGroup style={{ textAlign: "center", maxWidth: 900 }}>
-          <div className="mf-r" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 20px", borderRadius: 999, background: C.accentSoft, border: "1px solid var(--landing-accent-soft-border)", marginBottom: 32 }}>
+          <div className="mf-r" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "8px 20px", borderRadius: 999, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.12)", marginBottom: 32 }}>
             <span className="text-[10px] sm:text-[11px]" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.accent }}>Projetado para mentes neurodivergentes</span>
           </div>
           <h1 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(2.2rem,7.5vw,6rem)", fontWeight: 700, lineHeight: 1.02, letterSpacing: "-0.03em", marginBottom: 24 }}>
@@ -310,8 +310,8 @@ const Landing = () => {
           </h1>
           <p className="mf-r text-[15px] sm:text-[18px]" style={{ lineHeight: 1.6, color: C.muted, maxWidth: 520, margin: "0 auto 40px" }}>Cada feature nasceu de um estudo científico.<br />Cada estudo nasceu de uma dor real.</p>
           <div className="mf-r flex gap-3 sm:gap-[14px] justify-center flex-wrap">
-            <a href="/auth" className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 600, color: "var(--landing-dark-text)", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 8px 32px var(--landing-accent-shadow)", display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>Começar grátis <span style={{ color: "rgba(255,255,255,0.6)" }}>→</span></a>
-            <button onClick={() => go("stories")} className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 500, color: C.muted, background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: "1px solid var(--landing-border)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>Ver a ciência <span style={{ color: C.mutedL }}>↓</span></button>
+            <a href="/auth" className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 8px 32px rgba(79,109,245,0.35)", display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>Começar grátis <span style={{ color: "rgba(255,255,255,0.6)" }}>→</span></a>
+            <button onClick={() => go("stories")} className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 500, color: C.muted, background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(0,0,0,0.08)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>Ver a ciência <span style={{ color: C.mutedL }}>↓</span></button>
           </div>
         </RevealGroup>
 
@@ -337,46 +337,46 @@ const Landing = () => {
           >
             {/* Browser chrome bar — hidden on very small screens */}
             <div className="hidden sm:flex" style={{
-              background: "var(--landing-chrome-bg)",
+              background: "#1E1E22",
               padding: "10px 16px",
               alignItems: "center",
               gap: 8,
-              borderBottom: "1px solid var(--landing-chrome-border)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}>
               <div style={{ display: "flex", gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--landing-traffic-red)" }} />
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--landing-traffic-yellow)" }} />
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--landing-traffic-green)" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F57" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FEBC2E" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#28C840" }} />
               </div>
               <div style={{
                 flex: 1,
                 marginLeft: 12,
                 padding: "5px 14px",
                 borderRadius: 6,
-                background: "var(--landing-chrome-input)",
+                background: "rgba(255,255,255,0.06)",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--landing-chrome-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span style={{ fontSize: 11, color: "var(--landing-dark-text-subtle)", fontFamily: "SF Mono, Monaco, monospace", letterSpacing: "0.02em" }}>app.meufluxo.com</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "SF Mono, Monaco, monospace", letterSpacing: "0.02em" }}>app.meufluxo.com</span>
               </div>
             </div>
             {/* Compact mobile chrome bar */}
             <div className="flex sm:hidden" style={{
-              background: "var(--landing-chrome-bg)",
+              background: "#1E1E22",
               padding: "6px 12px",
               alignItems: "center",
               gap: 5,
-              borderBottom: "1px solid var(--landing-chrome-border)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}>
               <div style={{ display: "flex", gap: 4 }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--landing-traffic-red)" }} />
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--landing-traffic-yellow)" }} />
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--landing-traffic-green)" }} />
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF5F57" }} />
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#FEBC2E" }} />
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#28C840" }} />
               </div>
-              <div style={{ flex: 1, marginLeft: 6, padding: "3px 10px", borderRadius: 5, background: "var(--landing-chrome-input)" }}>
-                <span style={{ fontSize: 9, color: "var(--landing-chrome-text)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
+              <div style={{ flex: 1, marginLeft: 6, padding: "3px 10px", borderRadius: 5, background: "rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "SF Mono, Monaco, monospace" }}>app.meufluxo.com</span>
               </div>
             </div>
             <img src={screenshotMeuDia} alt="MeuFluxo — visão Meu Dia com sidebar e detalhes de tarefa" loading="eager" style={{ width: "100%", height: "auto", display: "block" }} />
@@ -414,11 +414,11 @@ const Landing = () => {
           <section key={st.id} style={{ background: i % 2 === 0 ? C.bg : C.white }}>
             <div style={{ position: "relative", overflow: "hidden" }} className="min-h-[320px] sm:min-h-[460px]">
               <div style={{ position: "absolute", inset: 0, background: `url(${st.photo}) center/cover`, filter: "brightness(0.3)" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,var(--landing-hero-gradient-start),var(--landing-hero-gradient-end))" }} />
-              <RevealGroup className="relative max-w-[680px] mx-auto px-5 sm:px-8 py-16 sm:py-[100px]" style={{ color: "var(--landing-dark-text)" }}>
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.7))" }} />
+              <RevealGroup className="relative max-w-[680px] mx-auto px-5 sm:px-8 py-16 sm:py-[100px]" style={{ color: "#fff" }}>
                 <div className="mf-bl flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex-shrink-0" style={{ background: `url(${st.photo}) center/cover`, border: "2px solid var(--landing-photo-overlay)" }} />
-                  <div><p className="text-sm sm:text-[15px] font-semibold">{st.name}</p><p className="text-[11px] sm:text-xs" style={{ color: "var(--landing-photo-role)" }}>{st.role}</p></div>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex-shrink-0" style={{ background: `url(${st.photo}) center/cover`, border: "2px solid rgba(255,255,255,0.3)" }} />
+                  <div><p className="text-sm sm:text-[15px] font-semibold">{st.name}</p><p className="text-[11px] sm:text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{st.role}</p></div>
                 </div>
                 <blockquote className="mf-bl" style={{ fontFamily: pf, fontSize: "clamp(1.1rem,3vw,1.9rem)", lineHeight: 1.35, fontWeight: 500, fontStyle: "italic", margin: 0 }}>"{st.quote}"</blockquote>
               </RevealGroup>
@@ -433,16 +433,16 @@ const Landing = () => {
                   </div>
                   <h3 className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ fontFamily: pf, fontSize: "clamp(1.3rem,3vw,2rem)", fontWeight: 700, lineHeight: 1.15, marginBottom: 14 }}>{st.studyTitle}</h3>
                   <p className={`${i % 2 === 0 ? 'mf-sl' : 'mf-sr'} text-[14px] sm:text-[15px]`} style={{ lineHeight: 1.7, color: C.muted, marginBottom: 14 }}>{st.studyBody}</p>
-                    <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ padding: 14, borderRadius: 10, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.08)" }}>
+                  <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ padding: 14, borderRadius: 10, background: C.accentSoft, border: "1px solid rgba(79,109,245,0.08)" }}>
                     <p style={{ fontSize: 11, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Referências</p>
                     <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite1}</p>
                     <p style={{ fontSize: 11, lineHeight: 1.5, color: C.muted }}>{st.cite2}</p>
                   </div>
                   <div className={i % 2 === 0 ? 'mf-sl' : 'mf-sr'} style={{ marginTop: 28 }}>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: "var(--landing-green-soft)", border: "1px solid var(--landing-green-border)", marginBottom: 14 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--landing-green)" }}>{st.label}</span>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 999, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.1)", marginBottom: 14 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10B981" }}>{st.label}</span>
                     </div>
-                    <p className="text-[14px] sm:text-[15px]" style={{ lineHeight: 1.7, color: "var(--landing-solution-text)" }}>{st.solution}</p>
+                    <p className="text-[14px] sm:text-[15px]" style={{ lineHeight: 1.7, color: "#374151" }}>{st.solution}</p>
                   </div>
                 </div>
                 <div className={`${i % 2 === 0 ? 'mf-rot' : 'mf-rot'} w-full lg:flex-1 lg:min-w-[300px] ${i % 2 === 0 ? '' : 'lg:order-1'}`} style={{ position: "relative" }}>
@@ -456,31 +456,31 @@ const Landing = () => {
 
       {/* PRICING */}
       <section id="pricing" className="py-16 sm:py-[120px] px-4 sm:px-6" style={{ background: C.dark, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: "radial-gradient(circle at 1px 1px,var(--landing-dark-dots) 1px,transparent 0)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: "radial-gradient(circle at 1px 1px,rgba(79,109,245,0.4) 1px,transparent 0)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
         <div style={{ maxWidth: 780, margin: "0 auto", position: "relative" }}>
           <RevealGroup style={{ textAlign: "center", marginBottom: 56 }}>
             <p className="mf-r" style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.accent, marginBottom: 14 }}>Planos</p>
-            <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.8rem,4vw,3rem)", fontWeight: 700, lineHeight: 1.1, color: "var(--landing-dark-text)" }}>Simples e transparente.</h2>
+            <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.8rem,4vw,3rem)", fontWeight: 700, lineHeight: 1.1, color: "#fff" }}>Simples e transparente.</h2>
           </RevealGroup>
           <RevealGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="mf-sl p-5 sm:p-7" style={{ borderRadius: 20, background: "var(--landing-dark-card)", border: "1px solid var(--landing-dark-card-border)" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--landing-dark-text)", marginBottom: 4 }}>Free</h3>
-              <p className="text-xs" style={{ color: "var(--landing-dark-text-muted)", marginBottom: 18 }}>Para começar sem pressão</p>
-              <p style={{ marginBottom: 22 }}><span className="text-3xl sm:text-[40px]" style={{ fontFamily: pf, fontWeight: 700, color: "var(--landing-dark-text)" }}>R$0</span><span className="text-xs sm:text-[13px]" style={{ color: "var(--landing-dark-text-faint)", marginLeft: 4 }}>/mês</span></p>
+            <div className="mf-sl p-5 sm:p-7" style={{ borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Free</h3>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para começar sem pressão</p>
+              <p style={{ marginBottom: 22 }}><span className="text-3xl sm:text-[40px]" style={{ fontFamily: pf, fontWeight: 700, color: "#fff" }}>R$0</span><span className="text-xs sm:text-[13px]" style={{ color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/mês</span></p>
               {["1 Workspace", "3 Projetos", "20 Tarefas/projeto", "Dark & Light mode"].map(f => (
-                <div key={f} className="flex items-center gap-2 mb-2 text-[13px]" style={{ color: "var(--landing-dark-text-dim)" }}><span style={{ color: C.mono }}>✓</span>{f}</div>
+                <div key={f} className="flex items-center gap-2 mb-2 text-[13px]" style={{ color: "rgba(255,255,255,0.5)" }}><span style={{ color: C.mono }}>✓</span>{f}</div>
               ))}
-              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid var(--landing-dark-btn-border)", background: "transparent", color: "var(--landing-dark-btn-text)", textDecoration: "none" }}>Criar conta grátis</a>
+              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>Criar conta grátis</a>
             </div>
-            <div className="mf-sr p-5 sm:p-7 relative mt-6 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid var(--landing-accent-shadow)" }}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1" style={{ borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--landing-dark-text)", whiteSpace: "nowrap" }}>Recomendado</div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--landing-dark-text)", marginBottom: 4 }}>Pro</h3>
-              <p className="text-xs" style={{ color: "var(--landing-dark-text-muted)", marginBottom: 18 }}>Para profissionais</p>
-              <p style={{ marginBottom: 22 }}><span className="text-3xl sm:text-[40px]" style={{ fontFamily: pf, fontWeight: 700, color: "var(--landing-dark-text)" }}>R$29</span><span className="text-xs sm:text-[13px]" style={{ color: "var(--landing-dark-text-faint)", marginLeft: 4 }}>/mês</span></p>
+            <div className="mf-sr p-5 sm:p-7 relative mt-6 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1" style={{ borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#fff", whiteSpace: "nowrap" }}>Recomendado</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Pro</h3>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 18 }}>Para profissionais</p>
+              <p style={{ marginBottom: 22 }}><span className="text-3xl sm:text-[40px]" style={{ fontFamily: pf, fontWeight: 700, color: "#fff" }}>R$29</span><span className="text-xs sm:text-[13px]" style={{ color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/mês</span></p>
               {["Tudo ilimitado", "Timeline View", "Recorrentes", "Rollover Auto", "Notas", "Uploads"].map(f => (
-                <div key={f} className="flex items-center gap-2 mb-2 text-[13px] font-medium" style={{ color: "var(--landing-dark-text)" }}><span style={{ color: C.accent }}>✓</span>{f}</div>
+                <div key={f} className="flex items-center gap-2 mb-2 text-[13px] font-medium" style={{ color: "#fff" }}><span style={{ color: C.accent }}>✓</span>{f}</div>
               ))}
-              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "none", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, color: "var(--landing-dark-text)", boxShadow: "0 4px 16px var(--landing-accent-shadow)", textDecoration: "none" }}>Começar com Pro</a>
+              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "none", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, color: "#fff", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", textDecoration: "none" }}>Começar com Pro</a>
             </div>
           </RevealGroup>
         </div>
