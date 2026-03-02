@@ -9,12 +9,13 @@ import {
   DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay,
   useDroppable,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronLeft, ChevronRight, Play, BarChart3, Repeat, ChevronDown, List, X } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
 import { WeekTimelineView } from './WeekTimelineView';
 import { ProBadge } from '@/components/ProBadge';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 interface MyWeekViewProps {
   tasks: Task[];
@@ -76,15 +77,26 @@ function WeekTaskCard({
   const contextSuffix = contextParts.join(' · ');
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
-      style={style}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition || 'transform 150ms ease',
+        opacity: isDragging ? 0.3 : 1,
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      layout
+      layoutId={`week-card-${task.id}`}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: isDragging ? 0.3 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
+      transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
       className="group cursor-pointer"
       onClick={onSelect}
       {...attributes}
       {...listeners}
     >
-      <div
+      <motion.div
         className={`rounded-md px-2.5 py-2 flex flex-col gap-0.5 ${isSelected ? 'ring-1' : ''}`}
         style={{
           background: 'var(--bg-elevated)',
@@ -92,22 +104,15 @@ function WeekTaskCard({
           boxShadow: isSelected
             ? '0 0 0 1px var(--border-interactive), 0 1px 3px rgba(0,0,0,0.08)'
             : '0 1px 2px rgba(0,0,0,0.06)',
-          transition: 'all 150ms ease-out',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background = 'var(--bg-overlay)';
-          e.currentTarget.style.transform = 'translateY(-1px)';
-          e.currentTarget.style.boxShadow = isSelected
-            ? '0 0 0 1px var(--border-interactive), 0 2px 8px rgba(0,0,0,0.12)'
-            : '0 2px 8px rgba(0,0,0,0.1)';
+        whileHover={{
+          y: -1,
+          boxShadow: isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 4px 12px rgba(0,0,0,0.12)'
+            : '0 4px 12px rgba(0,0,0,0.1)',
+          transition: { duration: 0.15 },
         }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = 'var(--bg-elevated)';
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = isSelected
-            ? '0 0 0 1px var(--border-interactive), 0 1px 3px rgba(0,0,0,0.08)'
-            : '0 1px 2px rgba(0,0,0,0.06)';
-        }}
+        whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
       >
         {/* Line 1: Context — ● Project · Section */}
         <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
@@ -127,8 +132,8 @@ function WeekTaskCard({
         >
           {task.name}
         </span>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -203,27 +208,43 @@ function DayColumn({
       {/* Tasks */}
       <div className="flex-1 p-1.5 space-y-1 overflow-y-auto min-h-[80px]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map(task => {
-            const project = projects.find(p => p.id === task.projectId);
-            // Check if this task is shown on a past day but was rolled over to today
-            const taskDate = task.scheduledDate || task.dueDate;
-            const isRolledOverOrigin = !isCurrentDay && task.status !== 'done' && !!taskDate && taskDate === dateStr && isBefore(dayDate, startOfDay(new Date()));
-            return (
-              <WeekTaskCard
-                key={task.id}
-                task={task}
-                projectColor={project?.color || 'var(--accent-blue)'}
-                projectName={project?.name}
-                isSelected={selectedTaskId === task.id}
-                onSelect={() => onSelectTask(task)}
-                truncate={truncateText}
-                isRolledOverOrigin={isRolledOverOrigin}
-                sectionName={sections.find(s => s.id === task.section)?.title}
-                parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
-              />
-            );
-          })}
+          <LayoutGroup id={`day-${dateStr}`}>
+            <AnimatePresence mode="popLayout">
+              {tasks.map(task => {
+                const project = projects.find(p => p.id === task.projectId);
+                // Check if this task is shown on a past day but was rolled over to today
+                const taskDate = task.scheduledDate || task.dueDate;
+                const isRolledOverOrigin = !isCurrentDay && task.status !== 'done' && !!taskDate && taskDate === dateStr && isBefore(dayDate, startOfDay(new Date()));
+                return (
+                  <WeekTaskCard
+                    key={task.id}
+                    task={task}
+                    projectColor={project?.color || 'var(--accent-blue)'}
+                    projectName={project?.name}
+                    isSelected={selectedTaskId === task.id}
+                    onSelect={() => onSelectTask(task)}
+                    truncate={truncateText}
+                    isRolledOverOrigin={isRolledOverOrigin}
+                    sectionName={sections.find(s => s.id === task.section)?.title}
+                    parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                  />
+                );
+              })}
+            </AnimatePresence>
+          </LayoutGroup>
         </SortableContext>
+
+        {/* Drop zone hint when empty and dragging */}
+        {tasks.length === 0 && highlight && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center justify-center h-16 rounded-md border border-dashed"
+            style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)', fontSize: 11 }}
+          >
+            Solte aqui
+          </motion.div>
+        )}
       </div>
     </div>
   );
@@ -804,6 +825,11 @@ export function MyWeekView({
       map[todayKey] = [...rollover, ...map[todayKey]];
     }
 
+    // Sort each day by position for persistent ordering
+    Object.keys(map).forEach(key => {
+      map[key].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    });
+
     return map;
   }, [tasks, visibleDates]);
 
@@ -873,11 +899,29 @@ export function MyWeekView({
       }
       return;
     }
-    // Dropping a week-task on another week-task — move to that task's day
+    // Dropping a week-task on another week-task — same day = reorder, different day = move
     if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
       const draggedTask = activeData.task as Task;
       const targetTask = overData.task as Task;
+      const draggedDate = draggedTask.scheduledDate || draggedTask.dueDate;
       const targetDate = targetTask.scheduledDate || targetTask.dueDate;
+
+      // Same day → reorder with position persistence
+      if (draggedDate && targetDate && draggedDate === targetDate) {
+        const dayTasks = [...(tasksByDay[targetDate] || [])];
+        const oldIdx = dayTasks.findIndex(t => t.id === draggedTask.id);
+        const newIdx = dayTasks.findIndex(t => t.id === targetTask.id);
+        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+          const reordered = arrayMove(dayTasks, oldIdx, newIdx);
+          // Batch persist positions
+          reordered.forEach((t, i) => {
+            onUpdateTask({ ...t, position: i });
+          });
+        }
+        return;
+      }
+
+      // Different day → move to target day
       if (targetDate && draggedTask.scheduledDate !== targetDate) {
         onUpdateTask({ ...draggedTask, scheduledDate: targetDate });
       }
@@ -1064,17 +1108,18 @@ export function MyWeekView({
             </div>
           </div>
 
-          <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+          <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' }}>
             {activeDragTask ? (() => {
               const dragProject = projects.find(p => p.id === activeDragTask.projectId);
               const dragSection = sections.find(s => s.id === activeDragTask.section);
               return (
-                <div
+                <motion.div
+                  initial={{ scale: 1, rotate: 0 }}
+                  animate={{ scale: 1.04, rotate: 0.5 }}
                   className="flex flex-col gap-0.5 px-2.5 py-2 rounded-md"
                   style={{
                     background: 'var(--bg-elevated)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
-                    transform: 'scale(1.02)',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1)',
                     maxWidth: 260,
                   }}
                 >
@@ -1085,20 +1130,21 @@ export function MyWeekView({
                     {dragProject && dragSection && <span>·</span>}
                     {dragSection && <span className="truncate">{dragSection.title}</span>}
                   </span>
-                </div>
+                </motion.div>
               );
             })() : activeDragSubtask ? (
-              <div
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{ scale: 1.04, rotate: 0.5 }}
                 className="h-[30px] flex items-center gap-1.5 px-2 rounded-md"
                 style={{
                   background: 'var(--bg-elevated)',
                   borderLeft: `2px solid ${activeDragSubtask.projectColor}`,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
-                  transform: 'scale(1.02)',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1)',
                 }}
               >
                 <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragSubtask.subtask.name}</span>
-              </div>
+              </motion.div>
             ) : null}
           </DragOverlay>
         </DndContext>
