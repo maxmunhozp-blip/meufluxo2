@@ -127,7 +127,7 @@ function DayTaskCard({
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }} />
         </div>
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-          <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
+          <StatusCheckbox status={task.status} onChange={handleStatus} size={20} quickComplete />
         </div>
         <div className="w-3 flex-shrink-0" />
         <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
