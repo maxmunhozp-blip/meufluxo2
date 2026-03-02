@@ -521,11 +521,14 @@ function TempoVivoLayout({
       {/* Past periods — collapsed with summary */}
       {pastPeriods.length > 0 && (
         <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-          {pastPeriods.map(period => (
+          {pastPeriods.map(period => {
+            // Only show done tasks in collapsed past — pending ones are promoted to active
+            const pastTasks = tasksByPeriod[period.key].filter(t => t.status === 'done');
+            return (
             <CollapsedPeriodSummary
               key={period.key}
               period={period}
-              tasks={tasksByPeriod[period.key]}
+              tasks={pastTasks}
               isExpanded={expandedPast.has(period.key)}
               onToggle={() => togglePastExpanded(period.key)}
               projects={projects} sections={sections} allTasks={allTasks}
@@ -535,7 +538,8 @@ function TempoVivoLayout({
               dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
               isDragActive={!!activeDragId}
             />
-          ))}
+            );
+          })}
         </div>
       )}
 
