@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Sunrise, Sun, Moon } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Project, DayPeriod } from '@/types/task';
-import { format } from 'date-fns';
+
 
 const PERIODS: { key: DayPeriod; label: string; icon: typeof Sunrise }[] = [
   { key: 'morning', label: 'Manhã', icon: Sunrise },
@@ -52,16 +52,8 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
-  const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
-
-  const todayTasks = useMemo(() => {
-    return tasks.filter(t => {
-      if (t.parentTaskId) return false;
-      if (t.scheduledDate === todayStr) return true;
-      if (t.dueDate === todayStr && !t.scheduledDate) return true;
-      return false;
-    });
-  }, [tasks, todayStr]);
+  // Tasks are already filtered by MyDayView — use them directly
+  const todayTasks = useMemo(() => tasks, [tasks]);
 
   const getTasksByPeriod = useCallback((period: DayPeriod) => {
     return todayTasks.filter(t => (t.dayPeriod || 'morning') === period && t.status !== 'done' && !skippedIds.has(t.id));
