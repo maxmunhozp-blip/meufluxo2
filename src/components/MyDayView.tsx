@@ -78,10 +78,9 @@ function DayTaskCard({
     cursor: 'grab',
   };
 
-  const handleStatus = (s: TaskStatus) => {
-    const targetStatus: TaskStatus = task.status === 'done' ? 'pending' : 'done';
-    if (targetStatus === 'done') { setCompleting(true); setTimeout(() => { onStatusChange(task.id, targetStatus); setCompleting(false); }, 400); }
-    else { onStatusChange(task.id, targetStatus); }
+  const handleStatus = (newStatus: TaskStatus) => {
+    if (newStatus === 'done') { setCompleting(true); setTimeout(() => { onStatusChange(task.id, newStatus); setCompleting(false); }, 400); }
+    else { onStatusChange(task.id, newStatus); }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
