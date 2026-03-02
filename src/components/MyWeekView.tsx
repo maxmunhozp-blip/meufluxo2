@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   addDays, addMonths, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
   startOfWeek, startOfMonth,
@@ -93,6 +93,7 @@ function WeekTaskCard({
       exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
       transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
       className="group cursor-pointer"
+      data-sortable-id={task.id}
       onClick={onSelect}
       {...attributes}
       {...listeners}
@@ -711,6 +712,7 @@ export function MyWeekView({
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [mobileOverlay, setMobileOverlay] = useState(false);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
+  const pointerYRef = useRef(0);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     try {
@@ -897,6 +899,17 @@ export function MyWeekView({
       const overTask = over.data.current.task as Task;
       const effectiveOverDate = getEffectiveDate(overTask);
       
+      // Determine top/bottom based on pointer Y vs element midpoint
+      const getDropSide = (): 'top' | 'bottom' => {
+        const el = document.querySelector(`[data-sortable-id="${over.id}"]`) as HTMLElement | null;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          return pointerYRef.current < midY ? 'top' : 'bottom';
+        }
+        return 'bottom';
+      };
+
       if (active.data.current?.type === 'week-task') {
         const activeTask = active.data.current.task as Task;
         const effectiveActiveDate = getEffectiveDate(activeTask);
@@ -906,14 +919,14 @@ export function MyWeekView({
         
         setOverItemId(over.id as string);
         if (effectiveActiveDate !== effectiveOverDate || activeIdx === -1) {
-          // Coming from another day or not found — show bottom indicator
-          setDropLinePosition('bottom');
+          // Cross-day: use pointer position to determine top/bottom
+          setDropLinePosition(getDropSide());
         } else {
           setDropLinePosition(activeIdx < overIdx ? 'bottom' : 'top');
         }
       } else {
         setOverItemId(over.id as string);
-        setDropLinePosition('bottom');
+        setDropLinePosition(getDropSide());
       }
       setDragOverDay(effectiveOverDate || null);
     } else {
@@ -925,6 +938,7 @@ export function MyWeekView({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const droppedId = activeDragId;
+    const lastDropLine = dropLinePosition; // capture before clearing
     setDragOverDay(null);
     setActiveDragId(null);
     setActiveDragSubtask(null);
@@ -994,11 +1008,13 @@ export function MyWeekView({
       }
 
       // Different day → move to target day at the specific position
-      if (effectiveTargetDate && draggedTask.scheduledDate !== effectiveTargetDate) {
+      if (effectiveTargetDate) {
         const targetDayTasks = tasksByDay[effectiveTargetDate] || [];
         const targetIdx = targetDayTasks.findIndex(t => t.id === targetTask.id);
-        // Insert after the target task (dropLinePosition was 'bottom')
-        const insertPosition = targetIdx !== -1 ? targetIdx + 1 : targetDayTasks.length;
+        // Use lastDropLine to determine insert before or after the target
+        const insertPosition = targetIdx !== -1
+          ? (lastDropLine === 'top' ? targetIdx : targetIdx + 1)
+          : targetDayTasks.length;
         
         // Shift positions of existing tasks to make room
         const updates: { id: string; position: number }[] = [];
@@ -1008,7 +1024,11 @@ export function MyWeekView({
         });
         updates.push({ id: draggedTask.id, position: insertPosition });
         
-        onUpdateTask({ ...draggedTask, scheduledDate: effectiveTargetDate, position: insertPosition });
+        if (draggedTask.parentTaskId) {
+          onScheduleSubtask?.(draggedTask.id, effectiveTargetDate);
+        } else {
+          onUpdateTask({ ...draggedTask, scheduledDate: effectiveTargetDate, position: insertPosition });
+        }
         if (onBatchUpdatePositions && updates.length > 1) {
           onBatchUpdatePositions(updates);
         }
@@ -1141,7 +1161,7 @@ export function MyWeekView({
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden" onPointerMove={(e) => { pointerYRef.current = e.clientY; }}>
         {/* Master List sidebar — shared across all views */}
         <DndContext
           sensors={sensors}
