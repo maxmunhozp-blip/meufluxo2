@@ -387,6 +387,45 @@ const Index = () => {
     }
   }, [deleteTaskFn, restoreTaskFn, selectedTaskId, focusedTaskId, visibleTaskIds, taskList, pushUndo]);
 
+  const handleDeleteSubtask = useCallback(async (parentTaskId: string, subtaskId: string) => {
+    // Find subtask snapshot before deleting
+    let subtaskSnapshot: any = null;
+    for (const t of taskList) {
+      if (t.id === parentTaskId) {
+        subtaskSnapshot = (t.subtasks || []).find(s => s.id === subtaskId);
+        break;
+      }
+    }
+    deleteSubtask(parentTaskId, subtaskId);
+    if (subtaskSnapshot) {
+      const snapshot = { ...subtaskSnapshot };
+      const doRestore = async () => {
+        await restoreTaskFn({
+          id: snapshot.id,
+          name: snapshot.name,
+          status: snapshot.status,
+          priority: snapshot.priority,
+          section: snapshot.section,
+          projectId: snapshot.projectId,
+          parentTaskId: snapshot.parentTaskId || parentTaskId,
+          dayPeriod: snapshot.dayPeriod,
+          description: snapshot.description,
+          dueDate: snapshot.dueDate,
+          scheduledDate: snapshot.scheduledDate,
+          assignee: snapshot.assignee,
+          members: snapshot.members,
+          serviceTagId: snapshot.serviceTagId,
+        } as Task);
+      };
+      pushUndo({ label: 'Excluir subtarefa', undo: doRestore });
+      toast({
+        title: 'Subtarefa excluída',
+        duration: 5000,
+        action: <ToastAction altText="Desfazer" onClick={doRestore}>Desfazer</ToastAction>,
+      });
+    }
+  }, [taskList, deleteSubtask, restoreTaskFn, pushUndo]);
+
   const createTaskInSection = useCallback(async (sectionId: string, taskName?: string) => {
     const project = projects.find(p => p.id === activeProjectId);
     const shortName = project ? project.name.replace(/^\d+\s*/, '') : '';
@@ -1496,7 +1535,7 @@ const Index = () => {
                       }
                     }}
                     onDeleteSubtask={(parentTaskId, subtaskId) => {
-                      deleteSubtask(parentTaskId, subtaskId);
+                      handleDeleteSubtask(parentTaskId, subtaskId);
                     }}
                     onConvertSubtaskToTask={(subtaskId) => {
                       // Search top-level first, then nested subtasks
@@ -1794,7 +1833,7 @@ const Index = () => {
                     }
                   }
                 }}
-                onDeleteSubtask={deleteSubtask}
+                onDeleteSubtask={handleDeleteSubtask}
                 onReorderSubtasks={reorderSubtasks}
                 onNavigateToParent={selectedTask.parentTaskId ? () => setSelectedTaskId(selectedTask.parentTaskId!) : undefined}
                 onSelectSubtask={(sub) => setSelectedTaskId(sub.id)}
