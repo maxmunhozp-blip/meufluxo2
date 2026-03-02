@@ -118,7 +118,7 @@
 
     /* Status HSL */
     --status-done: 160 64% 52%;
-    --status-progress: 217 91% 60%;
+    --status-progress: 240 3% 50%;
     --status-pending: 240 2% 40%;
     --status-overdue: 32 95% 52%;
     --priority-high: 32 95% 52%;
@@ -283,7 +283,7 @@
 
     /* Status HSL */
     --status-done: 160 84% 30%;
-    --status-progress: 224 76% 48%;
+    --status-progress: 240 4% 55%;
     --status-pending: 24 10% 55%;
     --status-overdue: 32 90% 44%;
     --priority-high: 32 90% 44%;
@@ -425,7 +425,7 @@
     --scrollbar-track: transparent;
 
     --status-done: 160 84% 30%;
-    --status-progress: 224 76% 48%;
+    --status-progress: 240 4% 55%;
     --status-pending: 24 10% 55%;
     --status-overdue: 32 90% 44%;
     --priority-high: 32 90% 44%;
