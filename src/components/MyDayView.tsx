@@ -204,21 +204,112 @@ function DayTaskCard({
   );
 }
 
+/* ── Collapsed Past Period Summary ── */
+function CollapsedPeriodSummary({
+  period, tasks, isExpanded, onToggle,
+}: {
+  period: typeof PERIODS[number]; tasks: Task[]; isExpanded: boolean; onToggle: () => void;
+}) {
+  const PeriodIcon = period.icon;
+  const doneCount = tasks.filter(t => t.status === 'done').length;
+  const pendingCount = tasks.filter(t => t.status !== 'done').length;
+
+  if (tasks.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: isExpanded ? 16 : 12 }}>
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-1.5 w-full text-left transition-colors group"
+        style={{ height: 28, opacity: 0.5 }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}
+      >
+        <PeriodIcon className="flex-shrink-0" style={{ width: 13, height: 13, color: 'var(--text-tertiary)' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.3 }}>
+          {period.label}
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
+          ·
+        </span>
+        {doneCount > 0 && (
+          <span style={{ fontSize: 11, color: 'var(--success)', fontWeight: 400 }}>
+            {doneCount}✓
+          </span>
+        )}
+        {pendingCount > 0 && (
+          <span style={{ fontSize: 11, color: 'var(--warning)', fontWeight: 400 }}>
+            {pendingCount}→
+          </span>
+        )}
+        <ChevronDown
+          className="flex-shrink-0 transition-transform duration-200"
+          style={{
+            width: 12, height: 12, color: 'var(--text-placeholder)',
+            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        />
+      </button>
+
+      {/* Expanded content */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="mt-1 space-y-0.5" style={{ opacity: 0.4 }}>
+              {tasks.map(task => (
+                <div key={task.id} className="flex items-center h-[36px] gap-2 px-1">
+                  {task.status === 'done' ? (
+                    <Check style={{ width: 13, height: 13, color: 'var(--success)' }} />
+                  ) : (
+                    <span className="w-[13px] h-[13px] rounded-full border" style={{ borderColor: 'var(--text-placeholder)' }} />
+                  )}
+                  <span className="text-[13px] truncate" style={{
+                    color: 'var(--text-secondary)',
+                  }}>
+                    {task.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /* ── Period section ── */
 function PeriodSection({
   period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap, overItemId, dropLinePosition, justDroppedId, isDragActive,
+  promotedTasks,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
   overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null;
   isDragActive?: boolean;
+  promotedTasks?: { task: Task; fromPeriod: DayPeriod }[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
   const PeriodIcon = period.icon;
-  const headerOpacity = periodState === 'past' ? 0.4 : periodState === 'current' ? 1 : 0.7;
+  const headerOpacity = periodState === 'current' ? 1 : 0.7;
   const headerColor = periodState === 'current' ? 'var(--text-secondary)' : 'var(--text-tertiary)';
-  const isEmpty = tasks.length === 0;
+  const isEmpty = tasks.length === 0 && (!promotedTasks || promotedTasks.length === 0);
+
+  // Combine own tasks + promoted tasks for rendering
+  const allDisplayTasks = useMemo(() => {
+    const own = tasks.map(t => ({ task: t, promoted: false, fromPeriod: undefined as DayPeriod | undefined }));
+    const promoted = (promotedTasks || []).map(p => ({ task: p.task, promoted: true, fromPeriod: p.fromPeriod }));
+    return [...own, ...promoted];
+  }, [tasks, promotedTasks]);
+
+  const allTaskIds = useMemo(() => allDisplayTasks.map(dt => dt.task.id), [allDisplayTasks]);
 
   return (
     <div
@@ -247,31 +338,50 @@ function PeriodSection({
       </div>
 
       {/* Tasks */}
-      {tasks.length > 0 ? (
+      {allDisplayTasks.length > 0 ? (
         <LayoutGroup id={`period-${period.key}`}>
           <div className="space-y-0.5">
-            <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={allTaskIds} strategy={verticalListSortingStrategy}>
               <AnimatePresence initial={false}>
-                {tasks.map(task => {
+                {allDisplayTasks.map(({ task, promoted, fromPeriod }) => {
                   const project = projects.find(p => p.id === task.projectId);
                   const isDone = task.status === 'done';
-                  const taskOpacity = periodState === 'past' && isDone ? 0.3 : 1;
+                  const fromLabel = promoted && fromPeriod ? PERIODS.find(p => p.key === fromPeriod)?.label : null;
                   return (
                     <motion.div
                       key={task.id}
                       layout
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                       initial={false}
-                      animate={{ opacity: taskOpacity, scale: 1 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                      style={{ opacity: taskOpacity }}
                     >
-                      <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                        onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
-                        projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
-                        sectionName={sections.find(s => s.id === task.section)?.title}
-                        parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
-                        dropIndicator={overItemId === task.id ? dropLinePosition : null} justDropped={justDroppedId === task.id} />
+                      <div className="flex items-center">
+                        <div className="flex-1 min-w-0">
+                          <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
+                            onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
+                            projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
+                            sectionName={sections.find(s => s.id === task.section)?.title}
+                            parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                            dropIndicator={overItemId === task.id ? dropLinePosition : null} justDropped={justDroppedId === task.id} />
+                        </div>
+                        {/* Promoted badge */}
+                        {promoted && fromLabel && (
+                          <span
+                            className="flex-shrink-0 ml-1 whitespace-nowrap"
+                            style={{
+                              fontSize: 10,
+                              color: 'var(--warning)',
+                              fontWeight: 400,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              background: 'var(--warning-bg)',
+                            }}
+                          >
+                            ← {fromLabel}
+                          </span>
+                        )}
+                      </div>
                     </motion.div>
                   );
                 })}
@@ -299,8 +409,129 @@ function PeriodSection({
     </div>
   );
 }
+/* ── Tempo Vivo Layout ── */
+function TempoVivoLayout({
+  tasks, tasksByPeriod, allTasks, projects, sections, currentPeriod, viewingToday,
+  selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, rolloverMap,
+  overItemId, dropLinePosition, justDroppedId, activeDragId, onNavigateToWeek, allDone, allEmpty,
+}: {
+  tasks: Task[]; tasksByPeriod: Record<DayPeriod, Task[]>; allTasks: Task[]; projects: Project[]; sections: Section[];
+  currentPeriod: DayPeriod; viewingToday: boolean;
+  selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
+  rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null;
+  justDroppedId?: string | null; activeDragId?: string | null; onNavigateToWeek: () => void; allDone: boolean; allEmpty: boolean;
+}) {
+  const [expandedPast, setExpandedPast] = useState<Set<DayPeriod>>(new Set());
+  const currentPeriodOrder = getPeriodOrder(currentPeriod);
 
-/* ── Main MyDayView ── */
+  const togglePastExpanded = useCallback((period: DayPeriod) => {
+    setExpandedPast(prev => {
+      const next = new Set(prev);
+      if (next.has(period)) next.delete(period); else next.add(period);
+      return next;
+    });
+  }, []);
+
+  // Compute period ordering: Active → Future → Past
+  const { activePeriods, futurePeriods, pastPeriods } = useMemo(() => {
+    if (!viewingToday) {
+      // When not viewing today, all periods are "neutral" — show in normal order
+      return { activePeriods: PERIODS, futurePeriods: [] as typeof PERIODS, pastPeriods: [] as typeof PERIODS };
+    }
+    const active: typeof PERIODS = [];
+    const future: typeof PERIODS = [];
+    const past: typeof PERIODS = [];
+    PERIODS.forEach(p => {
+      const order = getPeriodOrder(p.key);
+      if (order === currentPeriodOrder) active.push(p);
+      else if (order > currentPeriodOrder) future.push(p);
+      else past.push(p);
+    });
+    return { activePeriods: active, futurePeriods: future, pastPeriods: past };
+  }, [viewingToday, currentPeriodOrder]);
+
+  // Compute promoted tasks: pending tasks from past periods → shown in active period
+  const promotedToActive = useMemo(() => {
+    if (!viewingToday) return [];
+    const promoted: { task: Task; fromPeriod: DayPeriod }[] = [];
+    pastPeriods.forEach(p => {
+      tasksByPeriod[p.key].forEach(t => {
+        if (t.status !== 'done') {
+          promoted.push({ task: t, fromPeriod: p.key });
+        }
+      });
+    });
+    return promoted;
+  }, [viewingToday, pastPeriods, tasksByPeriod]);
+
+  // Active period's own tasks (exclude done if promoted pending exist, to reduce noise)
+  const activeOwnTasks = useMemo(() => {
+    if (!viewingToday || activePeriods.length === 0) return {};
+    const result: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
+    activePeriods.forEach(p => { result[p.key] = tasksByPeriod[p.key]; });
+    return result;
+  }, [viewingToday, activePeriods, tasksByPeriod]);
+
+  return (
+    <div className="max-w-[640px] mx-auto">
+      {/* Active period(s) — with promoted tasks */}
+      {activePeriods.map(period => (
+        <PeriodSection
+          key={period.key} period={period}
+          tasks={viewingToday ? tasksByPeriod[period.key] : tasksByPeriod[period.key]}
+          allTasks={allTasks} projects={projects} sections={sections}
+          periodState={viewingToday ? 'current' : 'future'}
+          selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+          onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+          rolloverMap={rolloverMap} overItemId={overItemId}
+          dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+          isDragActive={!!activeDragId}
+          promotedTasks={viewingToday ? promotedToActive : undefined}
+        />
+      ))}
+
+      {/* Future periods — normal rendering */}
+      {futurePeriods.map(period => (
+        <PeriodSection
+          key={period.key} period={period} tasks={tasksByPeriod[period.key]}
+          allTasks={allTasks} projects={projects} sections={sections}
+          periodState="future"
+          selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+          onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+          rolloverMap={rolloverMap} overItemId={overItemId}
+          dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+          isDragActive={!!activeDragId}
+        />
+      ))}
+
+      {/* Past periods — collapsed with summary */}
+      {pastPeriods.length > 0 && (
+        <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+          {pastPeriods.map(period => (
+            <CollapsedPeriodSummary
+              key={period.key}
+              period={period}
+              tasks={tasksByPeriod[period.key]}
+              isExpanded={expandedPast.has(period.key)}
+              onToggle={() => togglePastExpanded(period.key)}
+            />
+          ))}
+        </div>
+      )}
+
+      {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
+      {allDone && (
+        <div className="flex items-center justify-center pt-4">
+          <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--success)', opacity: 0.6 }}>
+            {viewingToday ? 'Tudo feito por hoje ✓' : 'Tudo feito nesse dia ✓'}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export function MyDayView({
   tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
 }: MyDayViewProps) {
@@ -674,28 +905,27 @@ export function MyDayView({
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-            <div className="max-w-[640px] mx-auto">
-              {PERIODS.map(period => {
-                const periodTasks = tasksByPeriod[period.key];
-                const periodOrder = getPeriodOrder(period.key);
-                const periodState: 'past' | 'current' | 'future' = viewingToday
-                  ? (periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future')
-                  : 'future'; // When not viewing today, show all periods as neutral/future
-                return (
-                  <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
-                    selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap}
-                    overItemId={overItemId} dropLinePosition={dropLinePosition} justDroppedId={justDroppedId} isDragActive={!!activeDragId} />
-                );
-              })}
-              {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
-              {allDone && (
-                <div className="flex items-center justify-center pt-4">
-                  <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--success)', opacity: 0.6 }}>
-                    {viewingToday ? 'Tudo feito por hoje ✓' : 'Tudo feito nesse dia ✓'}
-                  </span>
-                </div>
-              )}
-            </div>
+          <TempoVivoLayout
+            tasks={todayTasks}
+            tasksByPeriod={tasksByPeriod}
+            allTasks={tasks}
+            projects={projects}
+            sections={sections}
+            currentPeriod={currentPeriod}
+            viewingToday={viewingToday}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={onSelectTask}
+            onStatusChange={onStatusChange}
+            onUpdateTask={onUpdateTask}
+            rolloverMap={rolloverMap}
+            overItemId={overItemId}
+            dropLinePosition={dropLinePosition}
+            justDroppedId={justDroppedId}
+            activeDragId={activeDragId}
+            onNavigateToWeek={onNavigateToWeek}
+            allDone={allDone}
+            allEmpty={allEmpty}
+          />
             <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
               {activeDragTask ? (() => {
                 const dragProject = projects.find(p => p.id === activeDragTask.projectId);
