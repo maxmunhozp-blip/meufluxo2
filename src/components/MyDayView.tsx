@@ -652,7 +652,10 @@ export function MyDayView({
     todayTasks.forEach(t => { const p = (t.dayPeriod || 'morning') as DayPeriod; map[p].push(t); });
     Object.keys(map).forEach(key => {
       const period = key as DayPeriod;
-      map[period].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      // Sort: pending/in_progress first (by position), then done (by position)
+      const pending = map[period].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const done = map[period].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      map[period] = [...pending, ...done];
     });
     return map;
   }, [todayTasks, rolloverMap]);

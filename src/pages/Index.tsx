@@ -287,31 +287,21 @@ const Index = () => {
     return null;
   }, [selectedTaskId, taskList]);
 
-  // Store original positions/dayPeriods before moving completed tasks to the end
-  const originalPositionsRef = useRef<Map<string, number>>(new Map());
-  const originalDayPeriodsRef = useRef<Map<string, string>>(new Map());
-  // Running counter to guarantee unique end positions when completing multiple tasks quickly
-  const completionCounterRef = useRef(0);
+  // For subtask reorder on complete/uncomplete in project view
+  const subtaskOriginalPositionsRef = useRef<Map<string, number>>(new Map());
 
   const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
-    // Find task — could be top-level or a nested subtask (promoted in MyDay)
-    let prev = taskList.find(t => t.id === taskId);
+    // Find if it's a subtask
     let isSubtask = false;
     let parentTaskId: string | undefined;
+    const prev = taskList.find(t => t.id === taskId);
+    const prevStatus = prev?.status || 'pending';
 
     if (!prev) {
-      // Search in subtasks
       for (const t of taskList) {
         if (t.subtasks) {
           const sub = t.subtasks.find(s => s.id === taskId);
           if (sub) {
-            prev = {
-              id: sub.id, name: sub.name, status: sub.status, priority: sub.priority || 'low',
-              section: sub.section, projectId: sub.projectId || t.projectId,
-              parentTaskId: sub.parentTaskId || t.id, dayPeriod: sub.dayPeriod as any,
-              position: (sub as any).position ?? 0, scheduledDate: sub.scheduledDate,
-              dueDate: sub.dueDate, description: sub.description,
-            } as Task;
             isSubtask = true;
             parentTaskId = t.id;
             break;
@@ -320,100 +310,12 @@ const Index = () => {
       }
     }
 
-    const prevStatus = prev?.status || 'pending';
-
-    // Move completed tasks to the end of their section/period
-    if (newStatus === 'done' && prev) {
-      // Save original position before moving
-      originalPositionsRef.current.set(taskId, prev.position ?? 0);
-
-      const today = new Date().toISOString().slice(0, 10);
-      const isMyDayTask = prev.dayPeriod && (
-        prev.scheduledDate === today ||
-        (prev.dueDate === today && !prev.scheduledDate) ||
-        (prev.scheduledDate && prev.scheduledDate < today && prev.status !== 'done') ||
-        (!prev.scheduledDate && prev.dueDate && prev.dueDate < today && prev.status !== 'done')
-      );
-
-      // TEMPO VIVO: If this is a promoted task (pending from a past period shown in the
-      // active period), update its dayPeriod to the ACTIVE period so it stays where the
-      // user sees it. Save original for restoration on uncompletion.
-      if (isMyDayTask) {
-        const h = new Date().getHours();
-        const currentPeriod = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
-        const periodOrder = (p: string) => p === 'morning' ? 0 : p === 'afternoon' ? 1 : 2;
-        const taskPeriodOrder = periodOrder(prev.dayPeriod || 'morning');
-        const currentPeriodOrder = periodOrder(currentPeriod);
-        if (taskPeriodOrder < currentPeriodOrder) {
-          // Task is promoted from a past period — lock it to the active visual period
-          originalDayPeriodsRef.current.set(taskId, prev.dayPeriod!);
-          prev = { ...prev, dayPeriod: currentPeriod as any };
-        }
-      }
-
-      let allSiblings: { id: string; position: number }[];
-      if (isMyDayTask) {
-        allSiblings = taskList
-          .filter(t => {
-            const matchesPeriod = (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning');
-            const isToday = t.scheduledDate === today || (t.dueDate === today && !t.scheduledDate) ||
-              (t.scheduledDate && t.scheduledDate < today) || (!t.scheduledDate && t.dueDate && t.dueDate < today);
-            return isToday && matchesPeriod && !t.parentTaskId;
-          })
-          .map(t => ({ id: t.id, position: t.position ?? 0 }));
-        for (const t of taskList) {
-          if (t.subtasks) {
-            for (const sub of t.subtasks) {
-              const subMatchesPeriod = ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning');
-              const subIsToday = sub.scheduledDate === today || (sub.dueDate === today && !sub.scheduledDate);
-              if (subIsToday && subMatchesPeriod) {
-                allSiblings.push({ id: sub.id, position: (sub as any).position ?? 0 });
-              }
-            }
-          }
-        }
-      } else {
-        allSiblings = taskList
-          .filter(t => t.section === prev!.section && !t.parentTaskId)
-          .map(t => ({ id: t.id, position: t.position ?? 0 }));
-      }
-
-      completionCounterRef.current += 1;
-      const maxPos = allSiblings.reduce((max, t) => Math.max(max, t.position), 0);
-      const endPosition = Math.max(maxPos + 1, allSiblings.length + 1000) + completionCounterRef.current;
-
-      // Single atomic update: status + position (+ dayPeriod if promoted) in one DB call
-      if (isSubtask && parentTaskId) {
-        updateSubtask(taskId, { status: newStatus });
-        batchUpdatePositions([{ id: taskId, position: endPosition }]);
-      } else {
-        updateTask({ ...prev, status: newStatus, position: endPosition });
-      }
-    } else if (prevStatus === 'done' && newStatus !== 'done') {
-      // Restore original position AND dayPeriod when uncompleting
-      const originalPos = originalPositionsRef.current.get(taskId);
-      const originalPeriod = originalDayPeriodsRef.current.get(taskId);
-      const restoredTask = { ...prev!, status: newStatus } as Task;
-
-      if (originalPos !== undefined) restoredTask.position = originalPos;
-      if (originalPeriod) restoredTask.dayPeriod = originalPeriod as any;
-
-      if (isSubtask && parentTaskId) {
-        updateSubtask(taskId, { status: newStatus });
-        if (originalPos !== undefined) batchUpdatePositions([{ id: taskId, position: originalPos }]);
-      } else {
-        updateTask(restoredTask);
-      }
-
-      originalPositionsRef.current.delete(taskId);
-      originalDayPeriodsRef.current.delete(taskId);
+    // ONLY flip the status. No position changes. No dayPeriod changes.
+    // Visual ordering (pending first, done last) is handled in the render layer.
+    if (isSubtask && parentTaskId) {
+      updateSubtask(taskId, { status: newStatus });
     } else {
-      // Normal status change (not completion/uncompletion)
-      if (isSubtask && parentTaskId) {
-        updateSubtask(taskId, { status: newStatus });
-      } else {
-        updateTaskStatus(taskId, newStatus);
-      }
+      updateTaskStatus(taskId, newStatus);
     }
 
     pushUndo({
@@ -426,7 +328,7 @@ const Index = () => {
         }
       },
     });
-  }, [updateTaskStatus, updateSubtask, updateTask, taskList, pushUndo, batchUpdatePositions]);
+  }, [updateTaskStatus, updateSubtask, taskList, pushUndo]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);
@@ -1519,7 +1421,7 @@ const Index = () => {
                       // Save original order index before moving to end
                       if (status === 'done' && parentTask?.subtasks) {
                         const idx = parentTask.subtasks.findIndex(s => s.id === subtaskId);
-                        if (idx !== -1) originalPositionsRef.current.set(subtaskId, idx);
+                        if (idx !== -1) subtaskOriginalPositionsRef.current.set(subtaskId, idx);
                       }
 
                       updateSubtask(subtaskId, { status }).then(() => {
@@ -1535,7 +1437,7 @@ const Index = () => {
                             reorderSubtasks(taskId, reordered.map(s => s.id));
                           } else if (prevStatus === 'done') {
                             // Restore original position
-                            const originalIdx = originalPositionsRef.current.get(subtaskId);
+                            const originalIdx = subtaskOriginalPositionsRef.current.get(subtaskId);
                             if (originalIdx !== undefined) {
                               const current = parentTask.subtasks
                                 .map(s => s.id === subtaskId ? { ...s, status } : s)
@@ -1544,7 +1446,7 @@ const Index = () => {
                               const clampedIdx = Math.min(originalIdx, restored.length);
                               restored.splice(clampedIdx, 0, { ...prevSubtask!, status });
                               reorderSubtasks(taskId, restored.map(s => s.id));
-                              originalPositionsRef.current.delete(subtaskId);
+                              subtaskOriginalPositionsRef.current.delete(subtaskId);
                             } else {
                               // No saved position — move to top of pending
                               const updated = parentTask.subtasks.map(s =>
