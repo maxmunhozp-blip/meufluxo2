@@ -302,6 +302,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           serviceTagId: row.service_tag_id || undefined,
           dayPeriod: row.day_period || 'morning',
           members: membersByTask[row.id] || [],
+          position: row.position ?? 0,
         };
         if (!subtasksByParent[row.parent_task_id]) subtasksByParent[row.parent_task_id] = [];
         subtasksByParent[row.parent_task_id].push(sub);
