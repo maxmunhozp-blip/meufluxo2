@@ -94,13 +94,13 @@ function DayTaskCard({
       <div className="w-3 flex-shrink-0" />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
         {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
-        {projectName && (sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+        {projectName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
+        <span className={`min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
+          style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
+        {(sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
         {sectionName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400 }}>{sectionName}</span>}
         {sectionName && parentTaskName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
         {parentTaskName && <span className="flex-shrink-0 text-[11px] truncate max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic' }}>{parentTaskName}</span>}
-        {(projectName || sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-        <span className={`min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
-          style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
       </div>
       {rolloverDays && rolloverDays > 0 && (
         <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"

@@ -873,6 +873,26 @@ export function MyWeekView({
       }
       return;
     }
+    // Dropping a week-task on another week-task — move to that task's day
+    if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
+      const draggedTask = activeData.task as Task;
+      const targetTask = overData.task as Task;
+      const targetDate = targetTask.scheduledDate || targetTask.dueDate;
+      if (targetDate && draggedTask.scheduledDate !== targetDate) {
+        onUpdateTask({ ...draggedTask, scheduledDate: targetDate });
+      }
+      return;
+    }
+    // Dropping a source-task on a week-task — schedule to that task's day
+    if (activeData?.type === 'source-task' && overData?.type === 'week-task') {
+      const task = activeData.task as Task;
+      const targetTask = overData.task as Task;
+      const targetDate = targetTask.scheduledDate || targetTask.dueDate;
+      if (targetDate) {
+        onUpdateTask({ ...task, scheduledDate: targetDate });
+      }
+      return;
+    }
     if (activeData?.type === 'week-task' && overData?.type === 'master-list-drop') {
       const task = activeData.task as Task;
       if (task.parentTaskId) {
