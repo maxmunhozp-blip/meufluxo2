@@ -289,6 +289,7 @@ const Index = () => {
 
   // Store original positions before moving completed tasks to the end
   const originalPositionsRef = useRef<Map<string, number>>(new Map());
+  const originalDayPeriodsRef = useRef<Map<string, string>>(new Map());
   // Running counter to guarantee unique end positions when completing multiple tasks quickly
   const completionCounterRef = useRef(0);
 
@@ -330,22 +331,24 @@ const Index = () => {
 
     // Move completed tasks to the end of their section/period
     if (newStatus === 'done' && prev) {
-      // Save original position before moving
+      // Save original position and dayPeriod before moving
       originalPositionsRef.current.set(taskId, prev.position ?? 0);
 
       const today = new Date().toISOString().slice(0, 10);
       const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
 
       // If completing a promoted task (from a past period), update day_period to current
+      let originalDayPeriod: string | undefined;
       if (isMyDayTask) {
         const h = new Date().getHours();
         const currentPeriod = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
         const taskPeriodOrder = prev.dayPeriod === 'morning' ? 0 : prev.dayPeriod === 'afternoon' ? 1 : 2;
         const currentPeriodOrder = currentPeriod === 'morning' ? 0 : currentPeriod === 'afternoon' ? 1 : 2;
         if (taskPeriodOrder < currentPeriodOrder) {
+          originalDayPeriod = prev.dayPeriod;
+          originalDayPeriodsRef.current.set(taskId, originalDayPeriod!);
           // Task was promoted from a past period — move it to the current period
           updateTask({ ...prev, dayPeriod: currentPeriod as any });
-          // Update prev reference for sibling calculation below
           prev = { ...prev, dayPeriod: currentPeriod as any };
         }
       }
@@ -380,9 +383,18 @@ const Index = () => {
     // Restore original position when uncompleting a task
     if (prevStatus === 'done' && newStatus !== 'done') {
       const originalPos = originalPositionsRef.current.get(taskId);
+      const originalPeriod = originalDayPeriodsRef.current.get(taskId);
       if (originalPos !== undefined) {
         batchUpdatePositions([{ id: taskId, position: originalPos }]);
         originalPositionsRef.current.delete(taskId);
+      }
+      // Restore original dayPeriod if it was changed during promotion-completion
+      if (originalPeriod) {
+        const task = taskList.find(t => t.id === taskId);
+        if (task) {
+          updateTask({ ...task, status: newStatus, dayPeriod: originalPeriod as any });
+        }
+        originalDayPeriodsRef.current.delete(taskId);
       }
     }
 
