@@ -480,28 +480,22 @@ function TempoVivoLayout({
         />
       ))}
 
-      {/* Past periods — collapsed with summary */}
+      {/* Past periods — same PeriodSection for full drag & drop support */}
       {pastPeriods.length > 0 && (
         <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-          {pastPeriods.map(period => {
-            // Past periods only contain tasks not promoted away — show them all
-            const pastTasks = tasksByPeriod[period.key];
-            return (
-            <CollapsedPeriodSummary
-              key={period.key}
-              period={period}
-              tasks={pastTasks}
-              isExpanded={expandedPast.has(period.key)}
-              onToggle={() => togglePastExpanded(period.key)}
-              projects={projects} sections={sections} allTasks={allTasks}
+          {pastPeriods.map(period => (
+            <PeriodSection
+              key={period.key} period={period}
+              tasks={tasksByPeriod[period.key]}
+              allTasks={allTasks} projects={projects} sections={sections}
+              periodState="past"
               selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
               onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
               rolloverMap={rolloverMap} overItemId={overItemId}
               dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
               isDragActive={!!activeDragId}
             />
-            );
-          })}
+          ))}
         </div>
       )}
 
