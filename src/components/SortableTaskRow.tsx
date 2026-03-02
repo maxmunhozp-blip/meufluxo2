@@ -1,14 +1,14 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { GripVertical, MessageSquare, Play, Repeat, Plus, CalendarDays, ListPlus, Copy, FolderInput, CalendarArrowDown, CalendarCheck, Trash2 } from 'lucide-react';
+import { GripVertical, MessageSquare, Play, Repeat, CalendarDays, ListPlus, Copy, FolderInput, CalendarArrowDown, CalendarCheck, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
 import { ContextMenu } from './ContextMenu';
 import { MonthYearPicker } from './MonthYearPicker';
-import { SortableSubtaskRow } from './SortableSubtaskRow';
 import { DropIndicatorLine } from './DropIndicatorLine';
-import { arrayMove } from '@dnd-kit/sortable';
+import { SubtaskDndWrapper } from './SubtaskDndWrapper';
+import { InlineSubtaskInput } from './InlineSubtaskInput';
 
 interface SortableTaskRowProps {
   task: Task;
@@ -60,157 +60,7 @@ function isOverdue(dateStr?: string, status?: TaskStatus): boolean {
   return date < today;
 }
 
-function SubtaskDndWrapper({ subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId, onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection }: {
-  subtasks: Subtask[];
-  taskId: string;
-  parentProjectId: string;
-  parentSectionId: string;
-  selectedSubtaskId?: string;
-  onSelectSubtask?: (subtask: Subtask) => void;
-  onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
-  onReorderSubtasks?: (taskId: string, subtaskIds: string[]) => void;
-  onRenameSubtask?: (subtaskId: string, name: string) => void;
-  sections?: Section[];
-  onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
-  onConvertToTask?: (subtaskId: string) => void;
-  onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
-}) {
-  const subtaskIds = subtasks.map(s => s.id);
-  const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | null>(null);
-  const dragSourceIdRef = useRef<string | null>(null);
 
-  const handleDragOver = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
-    // Only handle reorder if dragging a subtask from the same parent
-    const draggedId = e.dataTransfer.types.includes('application/x-task-id') ? true : false;
-    if (!draggedId) return;
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const midY = rect.top + rect.height / 2;
-    const pos = e.clientY < midY ? 'top' : 'bottom';
-    setOverSubtaskId(targetSubtaskId);
-    setDropPosition(pos);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
-    const draggedId = e.dataTransfer.getData('application/x-task-id');
-    if (!draggedId || !subtaskIds.includes(draggedId) || !subtaskIds.includes(targetSubtaskId)) {
-      // Not a reorder within this parent — let it bubble for sidebar handling
-      setOverSubtaskId(null);
-      setDropPosition(null);
-      return;
-    }
-
-    e.preventDefault();
-    e.stopPropagation();
-    setOverSubtaskId(null);
-    setDropPosition(null);
-
-    if (draggedId === targetSubtaskId) return;
-
-    const oldIdx = subtaskIds.indexOf(draggedId);
-    const newIdx = subtaskIds.indexOf(targetSubtaskId);
-    if (oldIdx === -1 || newIdx === -1) return;
-    const reordered = arrayMove(subtaskIds, oldIdx, newIdx);
-    onReorderSubtasks?.(taskId, reordered);
-  }, [subtaskIds, taskId, onReorderSubtasks]);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    // Only clear if leaving the subtask list entirely
-    const related = e.relatedTarget as HTMLElement | null;
-    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
-      setOverSubtaskId(null);
-      setDropPosition(null);
-    }
-  }, []);
-
-  return (
-    <div>
-      {subtasks.map((sub) => (
-        <SortableSubtaskRow
-          key={sub.id}
-          subtask={sub}
-          parentTaskId={taskId}
-          parentProjectId={parentProjectId}
-          parentSectionId={parentSectionId}
-          isSelected={selectedSubtaskId === sub.id}
-          dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
-          onSelect={onSelectSubtask}
-          onStatusChange={onSubtaskStatusChange}
-          onRename={onRenameSubtask}
-          sections={sections}
-          onDeleteSubtask={onDeleteSubtask}
-          onConvertToTask={onConvertToTask}
-          onMoveSubtaskToSection={onMoveSubtaskToSection}
-          onNativeDragOver={handleDragOver}
-          onNativeDrop={handleDrop}
-          onNativeDragLeave={handleDragLeave}
-        />
-      ))}
-    </div>
-  );
-}
-
-
-// Inline subtask creation input
-function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSubtask?: (parentTaskId: string, name: string) => Promise<void> }) {
-  const [isActive, setIsActive] = useState(false);
-  const [value, setValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const open = () => {
-    setIsActive(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const submit = async () => {
-    const trimmed = value.trim();
-    if (!trimmed || !onAddSubtask) return;
-    setValue('');
-    await onAddSubtask(taskId, trimmed);
-    // keep open for batch creation, re-focus
-    setTimeout(() => inputRef.current?.focus(), 50);
-  };
-
-  if (!isActive) {
-    return (
-      <button
-        onClick={open}
-        className="subtask-add-btn h-7 w-full pl-6 md:pl-8 pr-4 flex items-center gap-1.5 transition-colors group/add"
-        style={{ color: 'var(--text-placeholder)' }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
-      >
-        <Plus className="w-3 h-3" />
-        <span className="text-[12px]">Adicionar subtarefa...</span>
-      </button>
-    );
-  }
-
-  return (
-    <div className="pl-6 md:pl-8 pr-4 py-1">
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { e.preventDefault(); submit(); }
-          if (e.key === 'Escape') { setIsActive(false); setValue(''); }
-        }}
-        onBlur={() => { if (!value.trim()) setIsActive(false); }}
-        placeholder="Nome da subtarefa..."
-        className="subtask-inline-input w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
-        style={{
-          background: 'var(--bg-input)',
-          borderColor: 'var(--border-input)',
-          color: 'var(--text-primary)',
-        }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; }}
-      />
-    </div>
-  );
-}
 
 export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
