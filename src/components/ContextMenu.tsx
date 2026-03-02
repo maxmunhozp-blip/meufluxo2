@@ -5,6 +5,7 @@ export interface ContextMenuItem {
   label: string;
   onClick?: () => void;
   danger?: boolean;
+  icon?: React.ReactNode;
   children?: ContextMenuItem[];
   customContent?: React.ReactNode;
 }
@@ -97,7 +98,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
             <button
               onMouseEnter={() => setOpenSub(i)}
               onMouseLeave={() => setOpenSub(null)}
-              className="w-full flex items-center justify-between select-none"
+              className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 36,
                 padding: '8px 12px',
@@ -109,8 +110,9 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
               }}
               onMouseDown={e => e.currentTarget.style.background = 'var(--bg-overlay)'}
             >
-              {item.label}
-              <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+              {item.icon && <span className="flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>{item.icon}</span>}
+              <span className="flex-1 text-left">{item.label}</span>
+              <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
               {openSub === i && (
                 <div
                   className="absolute left-full top-0 ml-1"
@@ -152,7 +154,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
           ) : (
             <button
               onClick={() => { item.onClick?.(); onClose(); }}
-              className="w-full text-left select-none"
+              className="w-full flex items-center gap-2 select-none"
               style={{
                 height: 36,
                 padding: '8px 12px',
@@ -165,7 +167,8 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
               onMouseEnter={e => { e.currentTarget.style.background = item.danger ? 'var(--error-bg)' : 'var(--bg-overlay)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {item.label}
+              {item.icon && <span className="flex-shrink-0" style={{ color: item.danger ? 'var(--error)' : 'var(--text-tertiary)' }}>{item.icon}</span>}
+              <span>{item.label}</span>
             </button>
           )}
         </div>

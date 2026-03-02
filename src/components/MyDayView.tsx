@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays } from 'date-fns';
+import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -8,7 +8,7 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical, Check, Clock, CalendarDays, CalendarPlus, XCircle } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -108,13 +108,20 @@ function DayTaskCard({
       >
         {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
-        {/* Drag handle */}
+        {/* Drag handle — 6 dots */}
         <div
           className="flex-shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-40 transition-opacity duration-150"
-          style={{ width: 24, height: '100%', marginRight: 6 }}
+          style={{ width: 20, height: '100%', marginRight: 8 }}
           {...attributes} {...listeners}
         >
-          <GripVertical style={{ width: 14, height: 14, color: 'var(--text-secondary)' }} />
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+            <circle cx="2" cy="2" r="1.2" fill="var(--text-secondary)" />
+            <circle cx="6" cy="2" r="1.2" fill="var(--text-secondary)" />
+            <circle cx="2" cy="7" r="1.2" fill="var(--text-secondary)" />
+            <circle cx="6" cy="7" r="1.2" fill="var(--text-secondary)" />
+            <circle cx="2" cy="12" r="1.2" fill="var(--text-secondary)" />
+            <circle cx="6" cy="12" r="1.2" fill="var(--text-secondary)" />
+          </svg>
         </div>
         <div className="flex-shrink-0 flex items-center justify-center" style={{ marginRight: 8 }}>
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }} />
@@ -144,29 +151,52 @@ function DayTaskCard({
         )}
         {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: 'var(--text-tertiary)' }} />}
       </div>
-      {contextMenu && (
-        <ContextMenu
-          position={contextMenu}
-          onClose={() => setContextMenu(null)}
-          items={[
-            {
-              label: isDone ? 'Marcar como pendente' : 'Marcar como feito',
-              onClick: () => onStatusChange(task.id, isDone ? 'pending' : 'done'),
-            },
-            {
-              label: 'Mover para período',
-              children: periodOptions.map(p => ({
-                label: p.label,
-                onClick: () => onUpdateTask({ ...task, dayPeriod: p.key }),
-              })),
-            },
-            {
-              label: 'Desagendar',
-              onClick: () => onUpdateTask({ ...task, scheduledDate: undefined }),
-            },
-          ]}
-        />
-      )}
+      {contextMenu && (() => {
+        const tomorrow = addDays(new Date(), 1);
+        const dayAfter = addDays(new Date(), 2);
+        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+        const dayAfterStr = format(dayAfter, 'yyyy-MM-dd');
+        const tomorrowLabel = `Agendar para Amanhã (${dayNames[tomorrow.getDay()]})`;
+        const dayAfterLabel = `Agendar para ${dayNames[dayAfter.getDay()]}-feira`;
+
+        return (
+          <ContextMenu
+            position={contextMenu}
+            onClose={() => setContextMenu(null)}
+            items={[
+              {
+                label: isDone ? 'Marcar como pendente' : 'Marcar como feito',
+                icon: <Check style={{ width: 14, height: 14 }} />,
+                onClick: () => onStatusChange(task.id, isDone ? 'pending' : 'done'),
+              },
+              {
+                label: 'Mover para período',
+                icon: <Clock style={{ width: 14, height: 14 }} />,
+                children: periodOptions.map(p => ({
+                  label: p.label,
+                  onClick: () => onUpdateTask({ ...task, dayPeriod: p.key }),
+                })),
+              },
+              {
+                label: tomorrowLabel,
+                icon: <CalendarPlus style={{ width: 14, height: 14 }} />,
+                onClick: () => onUpdateTask({ ...task, scheduledDate: tomorrowStr }),
+              },
+              {
+                label: dayAfterLabel,
+                icon: <CalendarDays style={{ width: 14, height: 14 }} />,
+                onClick: () => onUpdateTask({ ...task, scheduledDate: dayAfterStr }),
+              },
+              {
+                label: 'Desagendar',
+                icon: <XCircle style={{ width: 14, height: 14 }} />,
+                onClick: () => onUpdateTask({ ...task, scheduledDate: undefined }),
+              },
+            ]}
+          />
+        );
+      })()}
     </>
   );
 }
