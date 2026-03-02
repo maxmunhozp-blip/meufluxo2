@@ -207,12 +207,18 @@ function DayTaskCard({
 /* ── Collapsed Past Period Summary ── */
 function CollapsedPeriodSummary({
   period, tasks, isExpanded, onToggle,
+  projects, sections, allTasks, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, rolloverMap,
+  overItemId, dropLinePosition, justDroppedId, isDragActive,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; isExpanded: boolean; onToggle: () => void;
+  projects: Project[]; sections: Section[]; allTasks: Task[];
+  selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
+  rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null; isDragActive?: boolean;
 }) {
   const PeriodIcon = period.icon;
   const doneCount = tasks.filter(t => t.status === 'done').length;
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
+  const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
 
   if (tasks.length === 0) return null;
 
@@ -251,7 +257,7 @@ function CollapsedPeriodSummary({
         />
       </button>
 
-      {/* Expanded content */}
+      {/* Expanded content — full interactive DayTaskCards */}
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
@@ -261,21 +267,29 @@ function CollapsedPeriodSummary({
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div className="mt-1 space-y-0.5" style={{ opacity: 0.4 }}>
-              {tasks.map(task => (
-                <div key={task.id} className="flex items-center h-[36px] gap-2 px-1">
-                  {task.status === 'done' ? (
-                    <Check style={{ width: 13, height: 13, color: 'var(--success)' }} />
-                  ) : (
-                    <span className="w-[13px] h-[13px] rounded-full border" style={{ borderColor: 'var(--text-placeholder)' }} />
-                  )}
-                  <span className="text-[13px] truncate" style={{
-                    color: 'var(--text-secondary)',
-                  }}>
-                    {task.name}
-                  </span>
-                </div>
-              ))}
+            <div className="mt-1 space-y-0.5">
+              <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+                {tasks.map(task => {
+                  const project = projects.find(p => p.id === task.projectId);
+                  return (
+                    <DayTaskCard
+                      key={task.id}
+                      task={task}
+                      projectColor={project?.color || 'var(--accent-blue)'}
+                      isSelected={selectedTaskId === task.id}
+                      onSelect={() => onSelectTask(task)}
+                      onStatusChange={onStatusChange}
+                      onUpdateTask={onUpdateTask}
+                      projectName={project?.name}
+                      rolloverDays={rolloverMap.get(task.id)}
+                      sectionName={sections.find(s => s.id === task.section)?.title}
+                      parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                      dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                      justDropped={justDroppedId === task.id}
+                    />
+                  );
+                })}
+              </SortableContext>
             </div>
           </motion.div>
         )}
@@ -514,6 +528,12 @@ function TempoVivoLayout({
               tasks={tasksByPeriod[period.key]}
               isExpanded={expandedPast.has(period.key)}
               onToggle={() => togglePastExpanded(period.key)}
+              projects={projects} sections={sections} allTasks={allTasks}
+              selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+              onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+              rolloverMap={rolloverMap} overItemId={overItemId}
+              dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+              isDragActive={!!activeDragId}
             />
           ))}
         </div>
