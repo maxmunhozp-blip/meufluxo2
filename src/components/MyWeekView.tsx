@@ -301,7 +301,7 @@ function WeekSourceSidebar({
         }))
         .filter(g => g.tasks.length > 0);
       return { project, totalCount: projectTasks.length, sectionGroups, month: projectMonth };
-    }).filter(g => g.totalCount > 0);
+    });
   }, [projects, filteredTasks, sections, projectMonthOffsets]);
 
   const totalPending = filteredTasks.length;
@@ -430,6 +430,13 @@ function WeekSourceSidebar({
 
               {expanded && (
                 <div>
+                  {sectionGroups.length === 0 && (
+                    <div className="px-5 py-3 text-center">
+                      <span style={{ fontSize: 11, color: 'var(--text-placeholder)' }}>
+                        Nenhuma tarefa pendente neste mês
+                      </span>
+                    </div>
+                  )}
                   {sectionGroups.map(({ section, tasks: sectionTasks }) => (
                     <div key={section.id}>
                       {sectionGroups.length > 1 && (
