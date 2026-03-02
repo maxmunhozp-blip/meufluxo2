@@ -244,7 +244,7 @@ export function MyDayView({
     const scheduled: Task[] = [];
     const scheduledIds = new Set<string>();
 
-    const promoteSubtask = (sub: any, parent: Task): Task => ({
+    const promoteSubtask = (sub: any, parent: Task, index: number): Task => ({
       ...sub,
       id: sub.id,
       name: sub.name,
@@ -253,7 +253,7 @@ export function MyDayView({
       status: sub.status,
       parentTaskId: sub.parentTaskId,
       dayPeriod: sub.dayPeriod || parent.dayPeriod || 'morning',
-      position: (sub as any).position ?? parent.position ?? 0,
+      position: (sub as any).position != null ? (sub as any).position : (parent.position ?? 0) * 100 + index,
     });
 
     tasks.forEach(t => {
@@ -265,9 +265,9 @@ export function MyDayView({
 
       // Check subtasks scheduled for today
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
-        subs.forEach(sub => {
+        subs.forEach((sub, idx) => {
           if (sub.scheduledDate === todayStr && sub.status !== 'done') {
-            const promoted = promoteSubtask(sub, parent);
+            const promoted = promoteSubtask(sub, parent, idx);
             scheduled.push(promoted);
             scheduledIds.add(sub.id);
           }
@@ -299,12 +299,12 @@ export function MyDayView({
 
         // Check subtasks for overdue
         const findOverdueSubtasks = (subs: any[], parent: Task) => {
-          subs.forEach(sub => {
+          subs.forEach((sub, idx) => {
             if (sub.status === 'done' || scheduledIds.has(sub.id)) return;
             if (sub.scheduledDate && sub.scheduledDate < todayStr) {
               const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
               if (days > 0) {
-                const promoted = promoteSubtask(sub, parent);
+                const promoted = promoteSubtask(sub, parent, idx);
                 rMap.set(sub.id, days);
                 overdue.push(promoted);
               }

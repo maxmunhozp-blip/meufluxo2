@@ -808,7 +808,8 @@ export function MyWeekView({
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       const collectSubs = (subs: Subtask[], parent: Task) => {
-        for (const sub of subs) {
+        for (let i = 0; i < subs.length; i++) {
+          const sub = subs[i];
           const dateKey = sub.scheduledDate || sub.dueDate;
           if (dateKey && map[dateKey] !== undefined) {
             const pseudo: Task = {
@@ -817,7 +818,7 @@ export function MyWeekView({
               dueDate: sub.dueDate, scheduledDate: sub.scheduledDate,
               section: sub.section, projectId: sub.projectId || parent.projectId,
               parentTaskId: sub.parentTaskId, members: sub.members, subtasks: sub.subtasks,
-              position: (sub as any).position ?? parent.position ?? 0,
+              position: (sub as any).position != null ? (sub as any).position : (parent.position ?? 0) * 100 + i,
             };
             if (!map[dateKey].some(e => e.id === sub.id)) map[dateKey].push(pseudo);
           }
