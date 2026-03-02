@@ -1117,6 +1117,7 @@ const Index = () => {
     onDeleteSection: handleDeleteSection,
     onMoveTaskToProject: handleMoveTaskToProject,
     onMoveTaskToSection: handleMoveTaskToSection,
+    isPro: planLimits.isPro,
   };
 
   // Determine active view for bottom nav
