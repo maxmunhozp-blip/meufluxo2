@@ -340,7 +340,7 @@ export function MyDayView({
       // Check subtasks scheduled for today
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach((sub, idx) => {
-          if (sub.scheduledDate === todayStr && sub.status !== 'done') {
+          if (sub.scheduledDate === todayStr) {
             const promoted = promoteSubtask(sub, parent, idx);
             scheduled.push(promoted);
             scheduledIds.add(sub.id);
