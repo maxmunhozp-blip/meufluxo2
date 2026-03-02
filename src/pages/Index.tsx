@@ -55,7 +55,7 @@ const Index = () => {
     acceptWorkspaceInvite, generateInviteLink, addProjectMember, removeProjectMember, getProjectMembers,
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
-    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
+    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb, updateSectionType,
     createTask, updateTask, batchUpdatePositions, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
@@ -1747,6 +1747,9 @@ const Index = () => {
                       } catch (err) {
                         console.error('Erro ao criar seção:', err);
                       }
+                    }}
+                    onChangeSectionType={(sectionId, sectionType) => {
+                      updateSectionType(sectionId, sectionType);
                     }}
                   />
                 );
