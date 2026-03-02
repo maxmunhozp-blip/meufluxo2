@@ -126,7 +126,7 @@ function DayTaskCard({
         <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
           {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
           {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
-          <span className={`flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
+          <span className="flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200"
             style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
           {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
           {sectionName && <span className="truncate text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, flexShrink: 1, minWidth: 0 }}>{sectionName}</span>}
