@@ -216,12 +216,33 @@ function PeriodSection({
   const headerColor = periodState === 'current' ? 'var(--text-secondary)' : 'var(--text-tertiary)';
 
   return (
-    <div ref={setNodeRef} className={`transition-all duration-200 ${isOver ? 'ring-1 ring-primary/30 rounded-lg' : ''}`} style={{ marginBottom: 24 }}>
-      <div className="flex items-center gap-1.5 mb-2" style={{ opacity: headerOpacity, height: 20 }}>
-        <PeriodIcon className="flex-shrink-0" style={{ width: 14, height: 14, color: headerColor }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: headerColor, letterSpacing: 0.5 }}>{period.label}</span>
+    <div
+      ref={setNodeRef}
+      className="transition-all duration-200"
+      style={{
+        marginBottom: 24,
+        borderRadius: 10,
+        padding: isOver ? '6px 8px' : '0px',
+        background: isOver ? 'var(--accent-subtle)' : 'transparent',
+        border: isOver ? '1px dashed var(--accent-blue)' : '1px dashed transparent',
+      }}
+    >
+      {/* Period header */}
+      <div className="flex items-center gap-1.5 mb-1.5" style={{ opacity: headerOpacity, height: 24, paddingLeft: isOver ? 0 : 0 }}>
+        <PeriodIcon className="flex-shrink-0" style={{ width: 14, height: 14, color: periodState === 'current' ? 'var(--accent-blue)' : headerColor }} />
+        <span style={{
+          fontSize: 12, fontWeight: 500, letterSpacing: 0.5,
+          color: periodState === 'current' ? 'var(--accent-blue)' : headerColor,
+        }}>
+          {period.label}
+        </span>
+        {periodState === 'current' && (
+          <span style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, marginLeft: 4 }}>· agora</span>
+        )}
       </div>
-      {tasks.length > 0 && (
+
+      {/* Tasks */}
+      {tasks.length > 0 ? (
         <LayoutGroup id={`period-${period.key}`}>
           <div className="space-y-0.5">
             <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -253,6 +274,22 @@ function PeriodSection({
             </SortableContext>
           </div>
         </LayoutGroup>
+      ) : (
+        /* Empty period — subtle drop hint */
+        <div
+          className="flex items-center justify-center"
+          style={{
+            height: 32,
+            borderRadius: 8,
+            border: '1px dashed var(--border-subtle)',
+            opacity: isOver ? 1 : 0.4,
+            transition: 'all 150ms ease-out',
+          }}
+        >
+          <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
+            {isOver ? 'Soltar aqui' : 'Arraste tarefas para cá'}
+          </span>
+        </div>
       )}
     </div>
   );
