@@ -289,7 +289,7 @@ const Index = () => {
 
   // Store original positions/dayPeriods before moving completed tasks to the end
   const originalPositionsRef = useRef<Map<string, number>>(new Map());
-  const originalDayPeriodsRef = useRef<Map<string, string>>(new Map());
+  // (originalDayPeriodsRef removed — dayPeriod never changes on completion)
   // Running counter to guarantee unique end positions when completing multiple tasks quickly
   const completionCounterRef = useRef(0);
 
@@ -338,20 +338,8 @@ const Index = () => {
         (!prev.scheduledDate && prev.dueDate && prev.dueDate < today && prev.status !== 'done')
       );
 
-      // For promoted tasks (pending tasks from past periods shown in the active period),
-      // update dayPeriod to the ACTIVE period so the task stays where the user sees it.
-      // Save the original dayPeriod for restoration when uncompleting.
-      if (isMyDayTask) {
-        const h = new Date().getHours();
-        const currentPeriod = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
-        const taskPeriodOrder = prev.dayPeriod === 'morning' ? 0 : prev.dayPeriod === 'afternoon' ? 1 : 2;
-        const currentPeriodOrder = currentPeriod === 'morning' ? 0 : currentPeriod === 'afternoon' ? 1 : 2;
-        if (taskPeriodOrder < currentPeriodOrder) {
-          // Task is promoted from a past period — lock it to the visual period
-          originalDayPeriodsRef.current.set(taskId, prev.dayPeriod!);
-          prev = { ...prev, dayPeriod: currentPeriod as any };
-        }
-      }
+      // RULE: Completing a task NEVER changes its dayPeriod/section.
+      // The task stays in its original period and moves to the END of that period's list.
 
       let allSiblings: { id: string; position: number }[];
       if (isMyDayTask) {
@@ -394,11 +382,9 @@ const Index = () => {
     } else if (prevStatus === 'done' && newStatus !== 'done') {
       // Restore original position AND dayPeriod when uncompleting
       const originalPos = originalPositionsRef.current.get(taskId);
-      const originalPeriod = originalDayPeriodsRef.current.get(taskId);
       const restoredTask = { ...prev!, status: newStatus } as Task;
 
       if (originalPos !== undefined) restoredTask.position = originalPos;
-      if (originalPeriod) restoredTask.dayPeriod = originalPeriod as any;
 
       if (isSubtask && parentTaskId) {
         updateSubtask(taskId, { status: newStatus });
@@ -409,7 +395,6 @@ const Index = () => {
       }
 
       originalPositionsRef.current.delete(taskId);
-      originalDayPeriodsRef.current.delete(taskId);
     } else {
       // Normal status change (not completion/uncompletion)
       if (isSubtask && parentTaskId) {
