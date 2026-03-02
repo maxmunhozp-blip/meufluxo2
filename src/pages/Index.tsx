@@ -335,7 +335,12 @@ const Index = () => {
       originalPositionsRef.current.set(taskId, prev.position ?? 0);
 
       const today = new Date().toISOString().slice(0, 10);
-      const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
+      const isMyDayTask = prev.dayPeriod && (
+        prev.scheduledDate === today ||
+        (prev.dueDate === today && !prev.scheduledDate) ||
+(prev.scheduledDate && prev.scheduledDate < today && prev.status !== 'done') ||
+        (!prev.scheduledDate && prev.dueDate && prev.dueDate < today && prev.status !== 'done')
+      );
 
       // If completing a promoted task (from a past period), update day_period to current
       let originalDayPeriod: string | undefined;
