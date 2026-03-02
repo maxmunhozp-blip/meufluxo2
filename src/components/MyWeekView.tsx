@@ -909,99 +909,110 @@ export function MyWeekView({
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Columns view (3days or week) */}
-        <div
-          className={`absolute inset-0 flex transition-opacity duration-200 ${
-            effectiveView !== 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-          }`}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Master List sidebar — shared across all views */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
         >
-          <DndContext
-            sensors={sensors}
-            collisionDetection={pointerWithin}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex-1 flex overflow-x-auto md:overflow-hidden">
-              {visibleDates.map((dayDate) => {
-                const dateKey = format(dayDate, 'yyyy-MM-dd');
-                const dayTasks = tasksByDay[dateKey] || [];
-                return (
-                  <DayColumn
-                    key={dateKey}
-                    dayDate={dayDate}
-                    tasks={dayTasks}
-                    allTasks={tasks}
-                    projects={projects}
-                    sections={sections}
-                    isCurrentDay={isToday(dayDate)}
-                    isDragOver={dragOverDay === dateKey}
-                    onSelectTask={onSelectTask}
-                    selectedTaskId={selectedTaskId}
-                    truncateText={effectiveView === 'week'}
-                  />
-                );
-              })}
-            </div>
-
-            <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
-              {activeDragTask ? (() => {
-                const dragProject = projects.find(p => p.id === activeDragTask.projectId);
-                const dragSection = sections.find(s => s.id === activeDragTask.section);
-                return (
-                  <div
-                    className="flex flex-col gap-0.5 px-2.5 py-2 rounded-md"
-                    style={{
-                      background: 'var(--bg-elevated)',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
-                      transform: 'scale(1.02)',
-                      maxWidth: 260,
-                    }}
-                  >
-                    <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
-                      <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
-                      {dragProject && <span>{dragProject.name}</span>}
-                      {dragProject && dragSection && <span>·</span>}
-                      {dragSection && <span className="truncate">{dragSection.title}</span>}
-                    </span>
-                    <span className="text-[12px] leading-[1.4] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
-                  </div>
-                );
-              })() : activeDragSubtask ? (
-                <div
-                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md"
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    borderLeft: `2px solid ${activeDragSubtask.projectColor}`,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
-                    transform: 'scale(1.02)',
-                  }}
-                >
-                  <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragSubtask.subtask.name}</span>
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        </div>
-
-        {/* Timeline view */}
-        <div
-          className={`absolute inset-0 transition-opacity duration-200 ${
-            effectiveView === 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-          }`}
-        >
-          <WeekTimelineView
-            tasks={tasks}
+          <WeekSourceSidebar
             projects={projects}
             sections={sections}
-            weekDates={weekDatesForTimeline}
-            onUpdateTask={onUpdateTask}
-            onStatusChange={onStatusChange}
-            onSelectTask={onSelectTask}
-            selectedTaskId={selectedTaskId}
+            tasks={tasks}
+            collapsed={sidebarCollapsed}
+            onToggle={toggleSidebar}
           />
-        </div>
+
+          <div className="flex-1 relative overflow-hidden">
+            {/* Columns view (3days or week) */}
+            <div
+              className={`absolute inset-0 flex transition-opacity duration-200 ${
+                effectiveView !== 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              <div className="flex-1 flex overflow-x-auto md:overflow-hidden">
+                {visibleDates.map((dayDate) => {
+                  const dateKey = format(dayDate, 'yyyy-MM-dd');
+                  const dayTasks = tasksByDay[dateKey] || [];
+                  return (
+                    <DayColumn
+                      key={dateKey}
+                      dayDate={dayDate}
+                      tasks={dayTasks}
+                      allTasks={tasks}
+                      projects={projects}
+                      sections={sections}
+                      isCurrentDay={isToday(dayDate)}
+                      isDragOver={dragOverDay === dateKey}
+                      onSelectTask={onSelectTask}
+                      selectedTaskId={selectedTaskId}
+                      truncateText={effectiveView === 'week'}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Timeline view */}
+            <div
+              className={`absolute inset-0 transition-opacity duration-200 ${
+                effectiveView === 'timeline' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              <WeekTimelineView
+                tasks={tasks}
+                projects={projects}
+                sections={sections}
+                weekDates={weekDatesForTimeline}
+                onUpdateTask={onUpdateTask}
+                onStatusChange={onStatusChange}
+                onSelectTask={onSelectTask}
+                selectedTaskId={selectedTaskId}
+              />
+            </div>
+          </div>
+
+          <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+            {activeDragTask ? (() => {
+              const dragProject = projects.find(p => p.id === activeDragTask.projectId);
+              const dragSection = sections.find(s => s.id === activeDragTask.section);
+              return (
+                <div
+                  className="flex flex-col gap-0.5 px-2.5 py-2 rounded-md"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+                    transform: 'scale(1.02)',
+                    maxWidth: 260,
+                  }}
+                >
+                  <span className="text-[11px] leading-[1.4] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
+                  <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+                    <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
+                    {dragProject && <span>{dragProject.name}</span>}
+                    {dragProject && dragSection && <span>·</span>}
+                    {dragSection && <span className="truncate">{dragSection.title}</span>}
+                  </span>
+                </div>
+              );
+            })() : activeDragSubtask ? (
+              <div
+                className="h-[30px] flex items-center gap-1.5 px-2 rounded-md"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  borderLeft: `2px solid ${activeDragSubtask.projectColor}`,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+                  transform: 'scale(1.02)',
+                }}
+              >
+                <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragSubtask.subtask.name}</span>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       {/* Mobile FAB for Master List */}
