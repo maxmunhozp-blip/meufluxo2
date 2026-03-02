@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN manually_moved boolean NOT NULL DEFAULT false;

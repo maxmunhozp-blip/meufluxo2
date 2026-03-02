@@ -58,6 +58,7 @@ export function mapDbTask(row: any): Task {
     displayMonth: row.display_month || undefined,
     position: row.position ?? 0,
     completedAt: row.completed_at || undefined,
+    manuallyMoved: row.manually_moved ?? false,
   };
 }
 
