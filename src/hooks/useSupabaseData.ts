@@ -989,47 +989,57 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         }
       }
     }
-    if (!section) return;
+    if (!section || !projectId) {
+      console.error('[addSubtask] Could not find parent task:', parentTaskId);
+      return;
+    }
 
     const position = existingSubtasks.length;
-    const { data, error } = await supabase.from('tasks').insert({
-      title: name,
-      parent_task_id: parentTaskId,
-      section_id: section,
-      project_id: projectId,
-      status: 'pending',
-      priority: 'low',
-      position,
-      workspace_id: activeWorkspaceId,
-    }).select().single();
-    if (error) throw error;
-    const sub: Subtask = {
-      id: data.id,
-      name: data.title,
-      status: data.status as TaskStatus,
-      priority: data.priority as Priority | undefined,
-      description: data.description || undefined,
-      dueDate: data.due_date || undefined,
-      section: data.section_id,
-      projectId: data.project_id,
-      parentTaskId: data.parent_task_id,
-    };
-
-    setTasksState(prev => prev.map(t => {
-      // Direct child of top-level task
-      if (t.id === parentTaskId) {
-        return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
+    try {
+      const { data, error } = await supabase.from('tasks').insert({
+        title: name,
+        parent_task_id: parentTaskId,
+        section_id: section,
+        project_id: projectId,
+        status: 'pending',
+        priority: 'low',
+        position,
+        workspace_id: activeWorkspaceId,
+      }).select().single();
+      if (error) {
+        console.error('[addSubtask] Insert error:', error.message);
+        return;
       }
-      // Child of a subtask (level 2)
-      return {
-        ...t,
-        subtasks: (t.subtasks || []).map(s => s.id === parentTaskId
-          ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
-          : s
-        ),
+      const sub: Subtask = {
+        id: data.id,
+        name: data.title,
+        status: data.status as TaskStatus,
+        priority: data.priority as Priority | undefined,
+        description: data.description || undefined,
+        dueDate: data.due_date || undefined,
+        section: data.section_id,
+        projectId: data.project_id,
+        parentTaskId: data.parent_task_id,
       };
-    }));
-  }, [tasksState]);
+
+      setTasksState(prev => prev.map(t => {
+        // Direct child of top-level task
+        if (t.id === parentTaskId) {
+          return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
+        }
+        // Child of a subtask (level 2)
+        return {
+          ...t,
+          subtasks: (t.subtasks || []).map(s => s.id === parentTaskId
+            ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
+            : s
+          ),
+        };
+      }));
+    } catch (err) {
+      console.error('[addSubtask] Unexpected error:', err);
+    }
+  }, [tasksState, activeWorkspaceId]);
 
   const updateSubtaskFn = useCallback(async (subtaskId: string, updates: { name?: string; status?: TaskStatus }) => {
     const dbUpdates: any = {};
