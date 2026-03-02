@@ -1740,6 +1740,14 @@ const Index = () => {
                       });
                     }}
                     fadingOutTaskId={fadingOutTaskId}
+                    onCreateSectionFromEntrada={async (sectionName) => {
+                      try {
+                        const id = await createSectionFn(sectionName, activeProjectId, activeMonthKey);
+                        expandSection(id);
+                      } catch (err) {
+                        console.error('Erro ao criar seção:', err);
+                      }
+                    }}
                   />
                 );
               })}
