@@ -815,8 +815,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   }, [activeWorkspaceId, session]);
 
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
-    await supabase.from('tasks').update({ status }).eq('id', id);
-    setTasksState(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+    const completedAt = status === 'done' ? new Date().toISOString() : null;
+    await supabase.from('tasks').update({ status, completed_at: completedAt }).eq('id', id);
+    setTasksState(prev => prev.map(t => t.id === id ? { ...t, status, completedAt: completedAt || undefined } : t));
 
     // Auto-create next occurrence for recurring tasks when marked done
     if (status === 'done') {
