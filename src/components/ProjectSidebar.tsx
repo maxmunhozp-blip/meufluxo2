@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { format } from 'date-fns';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
@@ -426,7 +427,7 @@ export function ProjectSidebar({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
   const dayCount = useMemo(() => {
     let count = 0;
     const scheduledIds = new Set<string>();
@@ -472,7 +473,7 @@ export function ProjectSidebar({
   }, [tasks, todayStr, isPro]);
   const weekCount = useMemo(() => {
     const end = new Date(); end.setDate(end.getDate() + 7);
-    const endStr = end.toISOString().slice(0, 10);
+    const endStr = format(end, 'yyyy-MM-dd');
     return tasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate >= todayStr && t.dueDate <= endStr).length;
   }, [tasks, todayStr]);
 
