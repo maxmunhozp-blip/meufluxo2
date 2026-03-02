@@ -261,9 +261,9 @@ function CollapsedPeriodSummary({
         />
       </button>
 
-      {/* Expanded content — full interactive DayTaskCards */}
+      {/* Expanded content — full interactive DayTaskCards with drag & drop */}
       <AnimatePresence initial={false}>
-        {isExpanded && tasks.length > 0 && (
+        {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -480,22 +480,27 @@ function TempoVivoLayout({
         />
       ))}
 
-      {/* Past periods — same PeriodSection for full drag & drop support */}
+      {/* Past periods — collapsible with full drag & drop when expanded */}
       {pastPeriods.length > 0 && (
         <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-          {pastPeriods.map(period => (
-            <PeriodSection
-              key={period.key} period={period}
-              tasks={tasksByPeriod[period.key]}
-              allTasks={allTasks} projects={projects} sections={sections}
-              periodState="past"
-              selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
-              onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
-              rolloverMap={rolloverMap} overItemId={overItemId}
-              dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
-              isDragActive={!!activeDragId}
-            />
-          ))}
+          {pastPeriods.map(period => {
+            const pastTasks = tasksByPeriod[period.key];
+            return (
+              <CollapsedPeriodSummary
+                key={period.key}
+                period={period}
+                tasks={pastTasks}
+                isExpanded={expandedPast.has(period.key)}
+                onToggle={() => togglePastExpanded(period.key)}
+                projects={projects} sections={sections} allTasks={allTasks}
+                selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+                onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+                rolloverMap={rolloverMap} overItemId={overItemId}
+                dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+                isDragActive={!!activeDragId}
+              />
+            );
+          })}
         </div>
       )}
 
