@@ -37,7 +37,7 @@ export function useTaskOps(deps: SharedState) {
       title: task.name, status: task.status, priority: task.priority || 'low',
       description: task.description || null, due_date: task.dueDate || null,
       scheduled_date: task.scheduledDate || null, assignee: task.assignee || null,
-      section_id: task.section, day_period: task.dayPeriod || 'morning',
+      section_id: task.section, day_period: task.dayPeriod ?? undefined,
       recurrence_type: task.recurrenceType || null, recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null, parent_task_id: task.parentTaskId || null,
     };
