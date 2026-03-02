@@ -332,6 +332,7 @@ interface ProjectSidebarProps {
   onDeleteSection?: (id: string) => void;
   onMoveTaskToProject?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
   onMoveTaskToSection?: (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => void;
+  isPro?: boolean;
 }
 
 export function ProjectSidebar({
@@ -345,7 +346,7 @@ export function ProjectSidebar({
   onAcceptInvite, onGenerateInviteLink, onAddProjectMember, onRemoveProjectMember, getProjectMembers,
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
-  onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection,
+  onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -428,24 +429,47 @@ export function ProjectSidebar({
   const todayStr = new Date().toISOString().slice(0, 10);
   const dayCount = useMemo(() => {
     let count = 0;
-    const countSubtasks = (subs: any[]) => {
+    const scheduledIds = new Set<string>();
+
+    // First pass: count tasks scheduled for today
+    const countScheduledSubtasks = (subs: any[]) => {
       subs.forEach(sub => {
-        if (sub.status !== 'done' && sub.scheduledDate === todayStr) count++;
-        if (sub.subtasks) countSubtasks(sub.subtasks);
+        if (sub.status !== 'done' && sub.scheduledDate === todayStr) {
+          count++;
+          scheduledIds.add(sub.id);
+        }
+        if (sub.subtasks) countScheduledSubtasks(sub.subtasks);
       });
     };
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       if (t.status !== 'done') {
-        if (t.scheduledDate === todayStr) count++;
-        else if (t.dueDate === todayStr && !t.scheduledDate) count++;
-        else if (t.scheduledDate && t.scheduledDate < todayStr) count++;
-        else if (!t.scheduledDate && t.dueDate && t.dueDate < todayStr) count++;
+        if (t.scheduledDate === todayStr) { count++; scheduledIds.add(t.id); }
+        else if (t.dueDate === todayStr && !t.scheduledDate) { count++; scheduledIds.add(t.id); }
       }
-      if (t.subtasks) countSubtasks(t.subtasks);
+      if (t.subtasks) countScheduledSubtasks(t.subtasks);
     });
+
+    // Second pass: count overdue tasks (only for Pro users, matching MyDayView)
+    if (isPro) {
+      const countOverdueSubtasks = (subs: any[]) => {
+        subs.forEach(sub => {
+          if (sub.status === 'done' || scheduledIds.has(sub.id)) return;
+          if (sub.scheduledDate && sub.scheduledDate < todayStr) count++;
+          if (sub.subtasks) countOverdueSubtasks(sub.subtasks);
+        });
+      };
+      tasks.forEach(t => {
+        if (t.parentTaskId || t.status === 'done') return;
+        if (scheduledIds.has(t.id)) return;
+        if (t.scheduledDate && t.scheduledDate < todayStr) count++;
+        else if (!t.scheduledDate && t.dueDate && t.dueDate < todayStr) count++;
+        if (t.subtasks) countOverdueSubtasks(t.subtasks);
+      });
+    }
+
     return count;
-  }, [tasks, todayStr]);
+  }, [tasks, todayStr, isPro]);
   const weekCount = useMemo(() => {
     const end = new Date(); end.setDate(end.getDate() + 7);
     const endStr = end.toISOString().slice(0, 10);
