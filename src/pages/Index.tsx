@@ -340,30 +340,30 @@ const Index = () => {
 
       const today = new Date().toISOString().slice(0, 10);
       const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
-      let siblings: Task[];
+      let allSiblings: { id: string; position: number }[];
       if (isMyDayTask) {
-        siblings = taskList.filter(t =>
-          t.scheduledDate === today &&
-          (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning') &&
-          !t.parentTaskId &&
-          t.id !== taskId
-        );
-        // Also include promoted subtasks scheduled for today in the same period
+        // Collect ALL items in the same period (top-level + promoted subtasks)
+        allSiblings = taskList
+          .filter(t => t.scheduledDate === today && (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning') && !t.parentTaskId)
+          .map(t => ({ id: t.id, position: t.position ?? 0 }));
         for (const t of taskList) {
           if (t.subtasks) {
             for (const sub of t.subtasks) {
-              if (sub.id !== taskId && sub.scheduledDate === today &&
-                  ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning')) {
-                siblings.push({ ...sub, position: (sub as any).position ?? 0 } as Task);
+              if (sub.scheduledDate === today && ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning')) {
+                allSiblings.push({ id: sub.id, position: (sub as any).position ?? 0 });
               }
             }
           }
         }
       } else {
-        siblings = taskList.filter(t => t.section === prev!.section && !t.parentTaskId && t.id !== taskId);
+        allSiblings = taskList
+          .filter(t => t.section === prev!.section && !t.parentTaskId)
+          .map(t => ({ id: t.id, position: t.position ?? 0 }));
       }
-      const maxPos = siblings.reduce((max, t) => Math.max(max, t.position ?? 0), 0);
-      batchUpdatePositions([{ id: taskId, position: maxPos + 1 }]);
+      // Use a position guaranteed to be at the absolute end
+      const maxPos = allSiblings.reduce((max, t) => Math.max(max, t.position), 0);
+      const endPosition = Math.max(maxPos + 1, allSiblings.length + 1000);
+      batchUpdatePositions([{ id: taskId, position: endPosition }]);
     }
 
     // Restore original position when uncompleting a task
