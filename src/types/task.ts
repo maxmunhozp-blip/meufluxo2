@@ -90,6 +90,7 @@ export interface Task {
   serviceTagId?: string;
   createdAt?: string;
   displayMonth?: string; // "YYYY-MM-01" — permanent month this task belongs to
+  position?: number; // Used for ordering within day columns
 }
 
 export interface Section {

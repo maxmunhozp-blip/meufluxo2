@@ -128,6 +128,7 @@ function mapDbTask(row: any): Task {
     serviceTagId: row.service_tag_id || undefined,
     createdAt: row.created_at || undefined,
     displayMonth: row.display_month || undefined,
+    position: row.position ?? 0,
   };
 }
 
@@ -689,6 +690,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     };
     // Only include display_month if defined (column is NOT NULL)
     if (task.displayMonth) updates.display_month = task.displayMonth;
+    // Persist position if provided
+    if (task.position !== undefined) updates.position = task.position;
     await supabase.from('tasks').update(updates).eq('id', task.id);
 
     if (task.parentTaskId) {
