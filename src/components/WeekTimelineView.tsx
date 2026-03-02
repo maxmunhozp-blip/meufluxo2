@@ -6,6 +6,8 @@ import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   DragEndEvent, DragStartEvent, DragOverlay, useDroppable,
 } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Task, TaskStatus, Project, Section } from '@/types/task';
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
@@ -22,83 +24,209 @@ interface WeekTimelineViewProps {
   selectedTaskId?: string;
 }
 
-/* ── Drop cell for a specific client row + day ─────── */
-function DayDropCell({ clientKey, dateStr, isToday: isTodayCol, overloadCount, children }: {
-  clientKey: string;
-  dateStr: string;
-  isToday: boolean;
-  overloadCount?: number;
-  children?: React.ReactNode;
+/* ── Sortable task card ── */
+function TimelineTaskCard({
+  task, project, section, parentTask, isSelected, onSelect,
+}: {
+  task: Task; project?: Project; section?: Section; parentTask?: Task;
+  isSelected: boolean; onSelect: () => void;
 }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    data: { type: 'timeline-task', task },
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 150ms ease',
+    opacity: isDragging ? 0.3 : 1,
+  };
+
+  const isDone = task.status === 'done';
+
+  // Context parts
+  const contextParts: string[] = [];
+  if (project) contextParts.push(project.name);
+  if (section) contextParts.push(section.title);
+  if (parentTask) contextParts.push(parentTask.name);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="cursor-pointer"
+      onClick={onSelect}
+      {...attributes}
+      {...listeners}
+    >
+      <div
+        className={`rounded-md px-2 py-1.5 flex flex-col gap-0.5 ${isSelected ? 'ring-1' : ''}`}
+        style={{
+          background: 'var(--bg-elevated)',
+          borderRadius: 'var(--radius-sm)',
+          boxShadow: isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 1px 2px rgba(0,0,0,0.04)'
+            : '0 0.5px 1px rgba(0,0,0,0.04)',
+          transition: 'all 150ms ease-out',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'var(--bg-hover)';
+          e.currentTarget.style.boxShadow = isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 1px 3px rgba(0,0,0,0.08)'
+            : '0 1px 3px rgba(0,0,0,0.06)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'var(--bg-elevated)';
+          e.currentTarget.style.boxShadow = isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 1px 2px rgba(0,0,0,0.04)'
+            : '0 0.5px 1px rgba(0,0,0,0.04)';
+        }}
+      >
+        {/* Line 1: Task name */}
+        <span
+          className={`text-[11px] leading-[1.4] truncate ${isDone ? 'line-through opacity-40' : ''}`}
+          style={{ color: 'var(--text-primary)', fontWeight: 400 }}
+        >
+          {task.name}
+        </span>
+
+        {/* Line 2: Context (project · section) */}
+        {contextParts.length > 0 && (
+          <span
+            className="truncate flex items-center gap-1"
+            style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3, opacity: isDone ? 0.4 : 0.7 }}
+          >
+            <span
+              className="flex-shrink-0 rounded-full"
+              style={{ width: 5, height: 5, background: project?.color || 'var(--accent-blue)', opacity: 0.75 }}
+            />
+            <span className="truncate">{contextParts.join(' · ')}</span>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Droppable day column ── */
+function TimelineDayColumn({
+  dayDate, tasks, allTasks, projects, sections, selectedTaskId, onSelectTask, overloadCount,
+}: {
+  dayDate: Date; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[];
+  selectedTaskId?: string; onSelectTask: (t: Task) => void; overloadCount?: number;
+}) {
+  const dateStr = format(dayDate, 'yyyy-MM-dd');
+  const current = isToday(dayDate);
+  const dayOfWeek = (dayDate.getDay() + 6) % 7;
+  const DAY_LABELS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+
   const { setNodeRef, isOver } = useDroppable({
-    id: `cell-${clientKey}-${dateStr}`,
-    data: { type: 'timeline-day', date: dateStr, clientKey },
+    id: `timeline-day-${dateStr}`,
+    data: { type: 'timeline-day', date: dateStr },
   });
 
   return (
     <div
       ref={setNodeRef}
-      className="flex-1 min-w-[80px] md:min-w-[100px] p-1 space-y-1"
+      className="flex flex-col flex-1 min-w-0"
       style={{
         borderRight: '1px solid var(--border-subtle)',
-        background: isOver
-          ? 'var(--accent-subtle)'
-          : isTodayCol
-            ? 'var(--accent-subtle)'
-            : overloadCount
-              ? 'var(--warning-bg)'
-              : undefined,
+        background: isOver ? 'var(--accent-subtle)' : current ? 'var(--accent-subtle)' : undefined,
         transition: 'background 120ms ease-out',
       }}
     >
-      {children}
+      {/* Header */}
+      <div
+        className="flex flex-col items-center justify-center py-2 flex-shrink-0 relative"
+        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+      >
+        <span style={{
+          fontSize: 11, fontWeight: 600,
+          color: current ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+          textTransform: 'uppercase' as const, letterSpacing: 0.5,
+        }}>
+          {DAY_LABELS[dayOfWeek]}
+        </span>
+        <span style={{
+          fontSize: 16, fontWeight: current ? 700 : 500,
+          color: current ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        }}>
+          {format(dayDate, 'dd')}
+        </span>
+        {overloadCount && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: 'var(--warning)' }} />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="text-xs">{overloadCount} clientes neste dia</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Tasks */}
+      <div className="flex-1 p-1 space-y-1 overflow-y-auto">
+        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          {tasks.map(task => {
+            const project = projects.find(p => p.id === task.projectId);
+            const section = sections.find(s => s.id === task.section);
+            const parentTask = task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId) : undefined;
+            return (
+              <TimelineTaskCard
+                key={task.id}
+                task={task}
+                project={project}
+                section={section}
+                parentTask={parentTask}
+                isSelected={selectedTaskId === task.id}
+                onSelect={() => onSelectTask(task)}
+              />
+            );
+          })}
+        </SortableContext>
+      </div>
     </div>
   );
 }
 
-/* ── Client row type ─────── */
-interface ClientRow {
-  key: string;
-  displayName: string;
-  projects: { project: Project; sectionId: string }[];
-  tasks: Task[];
-}
-
-/* ── Main Timeline View ──────────────────────── */
+/* ── Main Timeline View ── */
 export function WeekTimelineView({
-  tasks,
-  projects,
-  sections,
-  weekDates,
-  onUpdateTask,
-  onStatusChange,
-  onSelectTask,
-  selectedTaskId,
+  tasks, projects, sections, weekDates,
+  onUpdateTask, onStatusChange, onSelectTask, selectedTaskId,
 }: WeekTimelineViewProps) {
   const [activeDragTask, setActiveDragTask] = useState<Task | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const todayStart = useMemo(() => startOfDay(new Date()), []);
-
   const weekDateStrs = useMemo(() => weekDates.map(d => format(d, 'yyyy-MM-dd')), [weekDates]);
 
-  const allRelevantTasks = useMemo(() => {
-    const result: Task[] = [];
+  // Flat task list per day
+  const tasksByDay = useMemo(() => {
+    const map: Record<string, Task[]> = {};
+    weekDateStrs.forEach(d => { map[d] = []; });
+
+    // Top-level tasks
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       const dateKey = t.scheduledDate || t.dueDate;
-      if (dateKey && weekDateStrs.includes(dateKey)) {
-        result.push({ ...t, dueDate: dateKey });
+      if (dateKey && map[dateKey] !== undefined) {
+        map[dateKey].push(t);
       }
+    });
+
+    // Subtasks
+    tasks.forEach(t => {
+      if (t.parentTaskId) return;
       const collectSubs = (subs: typeof t.subtasks) => {
         if (!subs) return;
         for (const sub of subs) {
           const subDate = sub.scheduledDate || sub.dueDate;
-          if (subDate && weekDateStrs.includes(subDate)) {
-            if (!result.some(r => r.id === sub.id)) {
-              result.push({
+          if (subDate && map[subDate] !== undefined) {
+            if (!map[subDate].some(r => r.id === sub.id)) {
+              map[subDate].push({
                 id: sub.id, name: sub.name, status: sub.status,
                 priority: sub.priority || 'low', description: sub.description,
-                dueDate: subDate, scheduledDate: sub.scheduledDate,
+                dueDate: sub.dueDate, scheduledDate: sub.scheduledDate,
                 section: sub.section, projectId: sub.projectId || t.projectId,
                 parentTaskId: sub.parentTaskId, members: sub.members,
                 subtasks: sub.subtasks,
@@ -111,64 +239,34 @@ export function WeekTimelineView({
       collectSubs(t.subtasks);
     });
 
+    // Rollover overdue to today
     const todayStr = format(todayStart, 'yyyy-MM-dd');
-    tasks.forEach(t => {
-      if (t.parentTaskId || t.status === 'done') return;
-      const dateKey = t.scheduledDate || t.dueDate;
-      if (!dateKey) return;
-      const due = parseISO(dateKey);
-      if (isBefore(startOfDay(due), todayStart) && !weekDateStrs.includes(dateKey)) {
-        if (!result.some(r => r.id === t.id)) {
-          result.push({ ...t, dueDate: todayStr });
+    if (map[todayStr] !== undefined) {
+      tasks.forEach(t => {
+        if (t.parentTaskId || t.status === 'done') return;
+        const dateKey = t.scheduledDate || t.dueDate;
+        if (!dateKey) return;
+        const due = parseISO(dateKey);
+        if (isBefore(startOfDay(due), todayStart) && !weekDateStrs.includes(dateKey)) {
+          if (!map[todayStr].some(r => r.id === t.id)) {
+            map[todayStr].push({ ...t, dueDate: todayStr });
+          }
         }
-      }
-    });
+      });
+    }
 
-    return result;
+    return map;
   }, [tasks, weekDateStrs, todayStart]);
 
-  const clientRows = useMemo(() => {
-    const map = new Map<string, ClientRow>();
-
-    for (const t of allRelevantTasks) {
-      const section = sections.find(s => s.id === t.section);
-      const project = projects.find(p => p.id === t.projectId);
-      if (!project) continue;
-
-      const sectionName = section?.title || project.name;
-      const key = sectionName.trim().toLowerCase();
-
-      if (!map.has(key)) {
-        map.set(key, { key, displayName: sectionName.trim(), projects: [], tasks: [] });
-      }
-
-      const row = map.get(key)!;
-      row.tasks.push(t);
-      if (!row.projects.some(p => p.project.id === project.id)) {
-        row.projects.push({ project, sectionId: section?.id || '' });
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, [allRelevantTasks, sections, projects]);
-
+  // Overload detection
   const overloadDays = useMemo(() => {
-    const dayClients: Record<string, Set<string>> = {};
-    weekDateStrs.forEach(d => { dayClients[d] = new Set(); });
-    for (const t of allRelevantTasks) {
-      const dateKey = t.dueDate || t.scheduledDate;
-      if (dateKey && dayClients[dateKey]) {
-        const section = sections.find(s => s.id === t.section);
-        const clientKey = (section?.title || '').trim().toLowerCase();
-        dayClients[dateKey].add(clientKey);
-      }
-    }
     const result: Record<string, number> = {};
-    for (const [day, clients] of Object.entries(dayClients)) {
-      if (clients.size >= 3) result[day] = clients.size;
+    for (const [day, dayTasks] of Object.entries(tasksByDay)) {
+      const uniqueProjects = new Set(dayTasks.map(t => t.projectId));
+      if (uniqueProjects.size >= 3) result[day] = uniqueProjects.size;
     }
     return result;
-  }, [allRelevantTasks, weekDateStrs, sections]);
+  }, [tasksByDay]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
@@ -190,186 +288,26 @@ export function WeekTimelineView({
     }
   };
 
-  const DAY_LABELS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
-
   return (
     <TooltipProvider>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Sticky header row */}
-          <div className="flex flex-shrink-0 sticky top-0 z-20" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-subtle)' }}>
-            {/* Client label column spacer */}
-            <div className="w-[120px] md:w-[160px] flex-shrink-0 sticky left-0 z-30" style={{ background: 'var(--bg-base)', borderRight: '1px solid var(--border-subtle)' }} />
-            {/* Day headers */}
-            {weekDates.map((d) => {
-              const dateStr = format(d, 'yyyy-MM-dd');
-              const overload = overloadDays[dateStr];
-              const current = isToday(d);
-              const dayOfWeek = (d.getDay() + 6) % 7;
-              return (
-                <div
-                  key={dateStr}
-                  className="flex-1 min-w-[80px] md:min-w-[100px] flex flex-col items-center justify-center h-12 relative"
-                  style={{
-                    borderRight: '1px solid var(--border-subtle)',
-                    background: current ? 'var(--accent-subtle)' : undefined,
-                  }}
-                >
-                  <span style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: current ? 'var(--accent-blue)' : 'var(--text-tertiary)',
-                    textTransform: 'uppercase' as const,
-                    letterSpacing: 0.5,
-                  }}>
-                    {DAY_LABELS[dayOfWeek]}
-                  </span>
-                  <span style={{
-                    fontSize: 16,
-                    fontWeight: current ? 700 : 500,
-                    color: current ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                  }}>
-                    {format(d, 'dd')}
-                  </span>
-                  {overload && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: 'var(--warning)' }} />
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p className="text-xs">{overload} clientes neste dia — considere redistribuir</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Client rows */}
-          <div className="flex-1 overflow-auto">
-            {clientRows.length === 0 && (
-              <div className="flex items-center justify-center h-40">
-                <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Nenhuma tarefa agendada esta semana</span>
-              </div>
-            )}
-            {clientRows.map((row) => {
-              const tasksByDay: Record<string, Task[]> = {};
-              weekDateStrs.forEach(d => { tasksByDay[d] = []; });
-              row.tasks.forEach(t => {
-                const dateKey = t.dueDate || t.scheduledDate;
-                if (dateKey && tasksByDay[dateKey]) tasksByDay[dateKey].push(t);
-              });
-
-              const maxTasks = Math.max(1, ...Object.values(tasksByDay).map(arr => arr.length));
-              const rowHeight = Math.max(48, maxTasks * 32 + 12);
-              const projectNames = row.projects.map(p => p.project.name).join(', ');
-
-              return (
-                <div
-                  key={row.key}
-                  className="flex"
-                  style={{
-                    minHeight: `${rowHeight}px`,
-                    borderBottom: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  {/* Client label (sticky left) */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="w-[120px] md:w-[160px] flex-shrink-0 flex items-center gap-1.5 px-2 md:px-3 sticky left-0 z-10 cursor-default"
-                        style={{
-                          background: 'var(--bg-base)',
-                          borderRight: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        {/* Project color dots */}
-                        <div className="flex items-center gap-0.5 flex-shrink-0">
-                          {row.projects.map(p => (
-                            <span
-                              key={p.project.id}
-                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                              style={{ background: p.project.color }}
-                            />
-                          ))}
-                        </div>
-                        <span className="truncate" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
-                          {row.displayName}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p className="text-xs">{projectNames}</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Day cells */}
-                  {weekDates.map((d) => {
-                    const dateStr = format(d, 'yyyy-MM-dd');
-                    const dayTasks = tasksByDay[dateStr];
-
-                    return (
-                      <DayDropCell
-                        key={dateStr}
-                        clientKey={row.key}
-                        dateStr={dateStr}
-                        isToday={isToday(d)}
-                        overloadCount={overloadDays[dateStr]}
-                      >
-                        {dayTasks.map(task => {
-                          const project = row.projects.find(p => p.project.id === task.projectId)?.project;
-                          return (
-                            <div
-                              key={task.id}
-                              className="px-2 py-1.5 flex flex-col gap-0.5 cursor-pointer select-none overflow-hidden"
-                              style={{
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-elevated)',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-                                transition: 'all 150ms ease-out',
-                              }}
-                              onClick={() => onSelectTask(task)}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.background = 'var(--bg-overlay)';
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.background = 'var(--bg-elevated)';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
-                              }}
-                            >
-                              {/* Line 1: Context */}
-                              <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
-                                <span
-                                  className="flex-shrink-0 rounded-full"
-                                  style={{ width: 5, height: 5, background: project?.color || 'var(--accent-blue)', opacity: 0.85 }}
-                                />
-                                {(() => {
-                                  const section = sections.find(s => s.id === task.section);
-                                  const parent = task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId) : null;
-                                  const parts: string[] = [];
-                                  if (section) parts.push(section.title);
-                                  if (parent) parts.push(parent.name);
-                                  return parts.length > 0 ? <span className="truncate">{parts.join(' · ')}</span> : null;
-                                })()}
-                              </span>
-                              {/* Line 2: Title */}
-                              <span className="truncate" style={{ fontSize: 11, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-                                {task.name}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </DayDropCell>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+        <div className="flex-1 flex overflow-hidden">
+          {weekDates.map(d => {
+            const dateStr = format(d, 'yyyy-MM-dd');
+            return (
+              <TimelineDayColumn
+                key={dateStr}
+                dayDate={d}
+                tasks={tasksByDay[dateStr] || []}
+                allTasks={tasks}
+                projects={projects}
+                sections={sections}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={onSelectTask}
+                overloadCount={overloadDays[dateStr]}
+              />
+            );
+          })}
         </div>
 
         <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
@@ -378,22 +316,24 @@ export function WeekTimelineView({
             const dragSection = sections.find(s => s.id === activeDragTask.section);
             return (
               <div
-                className="px-2.5 py-1.5 flex flex-col gap-0.5"
+                className="flex flex-col gap-0.5 px-2 py-1.5 rounded-md"
                 style={{
-                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--bg-elevated)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.08)',
                   transform: 'scale(1.02)',
-                  minWidth: 120,
+                  minWidth: 100,
+                  maxWidth: 180,
                 }}
               >
-                <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
-                  <span className="flex-shrink-0 rounded-full" style={{ width: 5, height: 5, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
+                <span className="text-[11px] leading-[1.4] truncate" style={{ color: 'var(--text-primary)' }}>
+                  {activeDragTask.name}
+                </span>
+                <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', lineHeight: 1.3 }}>
+                  <span className="flex-shrink-0 rounded-full" style={{ width: 5, height: 5, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.75 }} />
                   {dragProject && <span>{dragProject.name}</span>}
                   {dragProject && dragSection && <span>·</span>}
                   {dragSection && <span className="truncate">{dragSection.title}</span>}
                 </span>
-                <span className="truncate" style={{ fontSize: 11, color: 'var(--text-primary)', lineHeight: 1.3 }}>{activeDragTask.name}</span>
               </div>
             );
           })() : null}
