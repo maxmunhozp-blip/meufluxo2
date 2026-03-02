@@ -63,7 +63,8 @@ function WeekTaskCard({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms ease',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   const isDone = task.status === 'done';
@@ -84,15 +85,29 @@ function WeekTaskCard({
       {...listeners}
     >
       <div
-        className={`rounded-md px-2.5 py-2 flex flex-col gap-0.5 transition-colors ${isSelected ? 'ring-1' : ''}`}
+        className={`rounded-md px-2.5 py-2 flex flex-col gap-0.5 ${isSelected ? 'ring-1' : ''}`}
         style={{
           background: 'var(--bg-elevated)',
           borderRadius: 'var(--radius-sm)',
+          boxShadow: isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 1px 3px rgba(0,0,0,0.08)'
+            : '0 1px 2px rgba(0,0,0,0.06)',
           transition: 'all 150ms ease-out',
-          ...(isSelected ? { boxShadow: '0 0 0 1px var(--border-interactive)' } : {}),
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'var(--bg-overlay)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 2px 8px rgba(0,0,0,0.12)'
+            : '0 2px 8px rgba(0,0,0,0.1)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'var(--bg-elevated)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = isSelected
+            ? '0 0 0 1px var(--border-interactive), 0 1px 3px rgba(0,0,0,0.08)'
+            : '0 1px 2px rgba(0,0,0,0.06)';
+        }}
       >
         {/* Line 1: Context — ● Project · Section */}
         <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
@@ -931,23 +946,36 @@ export function MyWeekView({
             </div>
 
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
-              {activeDragTask ? (
+              {activeDragTask ? (() => {
+                const dragProject = projects.find(p => p.id === activeDragTask.projectId);
+                const dragSection = sections.find(s => s.id === activeDragTask.section);
+                return (
+                  <div
+                    className="flex flex-col gap-0.5 px-2.5 py-2 rounded-md"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+                      transform: 'scale(1.02)',
+                      maxWidth: 260,
+                    }}
+                  >
+                    <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+                      <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
+                      {dragProject && <span>{dragProject.name}</span>}
+                      {dragProject && dragSection && <span>·</span>}
+                      {dragSection && <span className="truncate">{dragSection.title}</span>}
+                    </span>
+                    <span className="text-[12px] leading-[1.4] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
+                  </div>
+                );
+              })() : activeDragSubtask ? (
                 <div
-                  className="flex flex-col gap-0.5 px-2.5 py-1.5 rounded-md shadow-lg"
+                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md"
                   style={{
                     background: 'var(--bg-elevated)',
-                    opacity: 0.95,
-                  }}
-                >
-                  <span className="text-[12px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
-                </div>
-              ) : activeDragSubtask ? (
-                <div
-                  className="h-[30px] flex items-center gap-1.5 px-2 rounded-md shadow-lg"
-                  style={{
-                    background: 'hsl(var(--bg-surface))',
                     borderLeft: `2px solid ${activeDragSubtask.projectColor}`,
-                    opacity: 0.95,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)',
+                    transform: 'scale(1.02)',
                   }}
                 >
                   <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragSubtask.subtask.name}</span>
