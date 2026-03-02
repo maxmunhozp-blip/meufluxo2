@@ -243,11 +243,7 @@ function CollapsedPeriodSummary({
             {doneCount}✓
           </span>
         )}
-        {pendingCount > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--warning)', fontWeight: 400 }}>
-            {pendingCount}→
-          </span>
-        )}
+        {/* Pending tasks are promoted to active period, so no arrow badge needed here */}
         <ChevronDown
           className="flex-shrink-0 transition-transform duration-200"
           style={{
