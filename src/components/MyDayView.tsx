@@ -263,7 +263,7 @@ function CollapsedPeriodSummary({
 
       {/* Expanded content — full interactive DayTaskCards */}
       <AnimatePresence initial={false}>
-        {(isExpanded || isDragActive) && tasks.length > 0 && (
+        {isExpanded && tasks.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
