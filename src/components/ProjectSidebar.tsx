@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
+import { Search } from 'lucide-react';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
@@ -336,6 +337,7 @@ interface ProjectSidebarProps {
   isPro?: boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onOpenSearch?: () => void;
 }
 
 export function ProjectSidebar({
@@ -350,7 +352,7 @@ export function ProjectSidebar({
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
   onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
-  collapsed, onToggleCollapse,
+  collapsed, onToggleCollapse, onOpenSearch,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -650,6 +652,27 @@ export function ProjectSidebar({
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
+          {/* Search button */}
+          <button
+            onClick={onOpenSearch}
+            className="w-full flex items-center gap-2.5 select-none"
+            style={{
+              height: 36,
+              paddingLeft: 10,
+              paddingRight: 10,
+              borderRadius: 'var(--radius-sm)',
+              fontSize: 13,
+              fontWeight: 400,
+              color: 'var(--text-secondary)',
+              transition: 'all 150ms ease-out',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <Search style={{ width: 16, height: 16, flexShrink: 0 }} />
+            <span className="flex-1 text-left truncate">Pesquisar</span>
+            <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--text-placeholder)', background: 'var(--bg-elevated)', fontFamily: 'system-ui' }}>⌘K</kbd>
+          </button>
         </div>
 
         {/* Separator — 24px gap above and below */}
