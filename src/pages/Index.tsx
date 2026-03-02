@@ -97,6 +97,7 @@ const Index = () => {
   const [isMyWeekView, setIsMyWeekView] = useState(false);
   const [isMyDayView, setIsMyDayView] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('meufluxo-sidebar-collapsed') === 'true');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   // Per-project active month map
@@ -1118,6 +1119,8 @@ const Index = () => {
     onMoveTaskToProject: handleMoveTaskToProject,
     onMoveTaskToSection: handleMoveTaskToSection,
     isPro: planLimits.isPro,
+    collapsed: sidebarCollapsed,
+    onToggleCollapse: () => setSidebarCollapsed(prev => { const next = !prev; localStorage.setItem('meufluxo-sidebar-collapsed', String(next)); return next; }),
   };
 
   // Determine active view for bottom nav
@@ -1191,7 +1194,7 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:block flex-shrink-0" style={{ width: 260, minWidth: 260, maxWidth: 260 }}>
+        <div className="hidden lg:block flex-shrink-0" style={{ width: sidebarCollapsed ? 48 : 260, minWidth: sidebarCollapsed ? 48 : 260, maxWidth: sidebarCollapsed ? 48 : 260, transition: 'width 200ms ease-out, min-width 200ms ease-out, max-width 200ms ease-out' }}>
           <ProjectSidebar {...sidebarProps} />
         </div>
       )}
