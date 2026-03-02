@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useRef } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays, addDays, subDays, isToday, isTomorrow, isYesterday, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -519,7 +519,8 @@ export function MyDayView({
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  // (no promotion tracking needed — tasks always show in their DB dayPeriod)
+  const promotedIdsRef = useRef<Set<string>>(new Set());
+  const midnightResetDoneRef = useRef<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
@@ -635,6 +636,50 @@ export function MyDayView({
     return map;
   }, [todayTasks]);
 
+  // ── Sistema 1: Promoção automática por horário ──
+  // Ao meio-dia: pendentes da Manhã → Tarde. Às 18h: pendentes da Tarde → Noite.
+  // Ignora tarefas com manuallyMoved=true. Roda UMA VEZ por tarefa.
+  useEffect(() => {
+    if (!viewingToday) return;
+    const promotions: { task: Task; targetPeriod: DayPeriod }[] = [];
+
+    todayTasks.forEach(t => {
+      if (t.status === 'done') return;
+      if (t.manuallyMoved) return;
+      if (promotedIdsRef.current.has(t.id)) return;
+      const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
+      const dbOrder = getPeriodOrder(dbPeriod);
+      if (dbOrder < currentPeriodOrder) {
+        promotions.push({ task: t, targetPeriod: currentPeriod });
+      }
+    });
+
+    if (promotions.length > 0) {
+      promotions.forEach(({ task, targetPeriod }) => {
+        promotedIdsRef.current.add(task.id);
+        onUpdateTask({ ...task, dayPeriod: targetPeriod });
+      });
+    }
+  }, [todayTasks, viewingToday, currentPeriod, currentPeriodOrder, onUpdateTask]);
+
+  // ── Midnight reset: limpa manually_moved de todas as tarefas ──
+  useEffect(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    if (midnightResetDoneRef.current === todayStr) return;
+
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+
+    const timer = setTimeout(async () => {
+      // Reset all manually_moved for today's tasks
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.from('tasks').update({ manually_moved: false } as any).eq('manually_moved', true);
+      midnightResetDoneRef.current = format(addDays(new Date(), 0), 'yyyy-MM-dd');
+      promotedIdsRef.current.clear();
+    }, msUntilMidnight);
+
+    return () => clearTimeout(timer);
+  }, []);
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
 
   const handleStatusChangeWrapped = useCallback((taskId: string, status: TaskStatus) => {
@@ -676,8 +721,7 @@ export function MyDayView({
       const task = activeData.task as Task; const targetPeriod = overData.period as DayPeriod;
       const displayPeriod = getDisplayPeriod(task.id);
       if (displayPeriod !== targetPeriod) {
-        onUpdateTask({ ...task, dayPeriod: targetPeriod });
-        
+        onUpdateTask({ ...task, dayPeriod: targetPeriod, manuallyMoved: true });
       }
       return;
     }
@@ -701,8 +745,7 @@ export function MyDayView({
           }
         }
       } else {
-        onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod });
-        
+        onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod, manuallyMoved: true });
       }
     }
   };

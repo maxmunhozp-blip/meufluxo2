@@ -560,6 +560,7 @@ export type Database = {
           display_month: string
           due_date: string | null
           id: string
+          manually_moved: boolean
           metrics: Json | null
           monthly_instance_id: string | null
           original_due_date: string | null
@@ -588,6 +589,7 @@ export type Database = {
           display_month?: string
           due_date?: string | null
           id?: string
+          manually_moved?: boolean
           metrics?: Json | null
           monthly_instance_id?: string | null
           original_due_date?: string | null
@@ -616,6 +618,7 @@ export type Database = {
           display_month?: string
           due_date?: string | null
           id?: string
+          manually_moved?: boolean
           metrics?: Json | null
           monthly_instance_id?: string | null
           original_due_date?: string | null

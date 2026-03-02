@@ -93,6 +93,7 @@ export interface Task {
   displayMonth?: string; // "YYYY-MM-01" — permanent month this task belongs to
   position?: number; // Used for ordering within day columns
   completedAt?: string; // ISO timestamp when task was marked as done
+  manuallyMoved?: boolean; // true if user explicitly dragged this task to a period
 }
 
 export interface Section {

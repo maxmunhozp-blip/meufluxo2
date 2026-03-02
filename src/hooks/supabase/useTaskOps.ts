@@ -41,6 +41,7 @@ export function useTaskOps(deps: SharedState) {
       recurrence_type: task.recurrenceType || null, recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null, parent_task_id: task.parentTaskId || null,
     };
+    if (task.manuallyMoved !== undefined) updates.manually_moved = task.manuallyMoved;
     if (task.displayMonth) updates.display_month = task.displayMonth;
     if (task.position !== undefined) updates.position = task.position;
     await supabase.from('tasks').update(updates).eq('id', task.id);
