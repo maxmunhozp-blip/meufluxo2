@@ -17,11 +17,8 @@ import { TaskListHeader, FilterMode } from '@/components/TaskListHeader';
 import { ColumnHeader } from '@/components/ColumnHeader';
 import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
-import { MyTasksView } from '@/components/MyTasksView';
-import { MyWeekView } from '@/components/MyWeekView';
-import { MyDayView } from '@/components/MyDayView';
+import { ViewRouter } from '@/components/ViewRouter';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
-import { GlobalNotesView } from '@/components/GlobalNotesView';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
@@ -1301,58 +1298,26 @@ const Index = () => {
           <span className="ml-2 text-[16px] font-bold text-nd-text">MeuFluxo</span>
         </div>
 
-        {isMyDayView ? (
-          <MyDayView
+        {(isMyDayView || isMyWeekView || isMyTasksView || isNotesView) ? (
+          <ViewRouter
+            activeView={isMyDayView ? 'day' : isMyWeekView ? 'week' : isMyTasksView ? 'tasks' : 'notes'}
             tasks={taskList}
             projects={projects}
             sections={sectionList}
+            profiles={profiles}
             serviceTags={serviceTags}
-            userName={profiles.find(p => p.id === session?.user?.id)?.fullName || session?.user?.email || 'Usuário'}
-            isPro={planLimits.isPro}
-            onUpdateTask={handleUpdateTask}
-            onBatchUpdatePositions={batchUpdatePositions}
-            onStatusChange={handleStatusChange}
-            onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
+            activeWorkspaceId={activeWorkspaceId}
+            session={session}
             selectedTaskId={selectedTaskId || undefined}
-            onNavigateToWeek={() => { setIsMyWeekView(true); setIsMyDayView(false); setIsMyTasksView(false); }}
-          />
-        ) : isMyWeekView ? (
-          <MyWeekView
-            tasks={taskList}
-            projects={projects}
-            sections={sectionList}
-            onUpdateTask={handleUpdateTask}
-            onBatchUpdatePositions={batchUpdatePositions}
+            isPro={planLimits.isPro}
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
+            onUpdateTask={handleUpdateTask}
+            onBatchUpdatePositions={batchUpdatePositions}
             onScheduleSubtask={scheduleSubtask}
-            selectedTaskId={selectedTaskId || undefined}
-            isPro={planLimits.isPro}
             onUpgrade={() => setShowUpgradeModal(true)}
+            onNavigateToWeek={() => { setIsMyWeekView(true); setIsMyDayView(false); setIsMyTasksView(false); }}
             onViewModeChange={(mode) => setIsTimelineActive(mode === 'timeline')}
-          />
-        ) : isMyTasksView ? (
-          <>
-            <div className="h-14 px-6 flex items-center border-b border-nd-border" style={{ background: 'hsl(var(--bg-app))' }}>
-              <h1 className="text-[18px] font-bold text-nd-text">Minhas Tarefas</h1>
-            </div>
-            <MyTasksView
-              tasks={taskList}
-              sections={sectionList}
-              currentUserId={session?.user?.id}
-              profiles={profiles}
-              onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
-              selectedTaskId={selectedTaskId || undefined}
-              onStatusChange={handleStatusChange}
-            />
-          </>
-        ) : isNotesView ? (
-          <GlobalNotesView
-            workspaceId={activeWorkspaceId}
-            userId={session?.user?.id || ''}
-            projects={projects}
-            isPro={planLimits.isPro}
-            onUpgrade={() => setShowUpgradeModal(true)}
           />
         ) : activeProject ? (
           <>
