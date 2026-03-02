@@ -219,11 +219,19 @@ function CollapsedPeriodSummary({
   const doneCount = tasks.filter(t => t.status === 'done').length;
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
   const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
 
-  if (tasks.length === 0) return null;
+  if (tasks.length === 0 && !isDragActive) return null;
 
   return (
-    <div style={{ marginBottom: isExpanded ? 16 : 12 }}>
+    <div ref={setDropRef} style={{
+      marginBottom: isExpanded ? 16 : 12,
+      borderRadius: 10,
+      padding: isOver ? '6px 8px' : '0px',
+      background: isOver ? 'var(--accent-subtle)' : 'transparent',
+      border: isOver ? '1px dashed var(--accent-blue)' : '1px dashed transparent',
+      transition: 'all 200ms ease',
+    }}>
       <button
         onClick={onToggle}
         className="flex items-center gap-1.5 w-full text-left transition-colors group"
@@ -255,7 +263,7 @@ function CollapsedPeriodSummary({
 
       {/* Expanded content — full interactive DayTaskCards */}
       <AnimatePresence initial={false}>
-        {isExpanded && (
+        {(isExpanded || isDragActive) && tasks.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
