@@ -67,14 +67,14 @@ function DayTaskCard({
   onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
   dropIndicator?: 'top' | 'bottom' | null; justDropped?: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
+  const { attributes, listeners, setNodeRef, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
   const [completing, setCompleting] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
+  // No transform — items stay in place; only the blue drop indicator shows position
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 150ms cubic-bezier(0.22,1,0.36,1)',
-    opacity: isDragging ? 0.35 : 1,
+    opacity: isDragging ? 0.25 : 1,
+    transition: 'opacity 150ms ease-out',
     cursor: 'grab',
   };
 
@@ -105,14 +105,14 @@ function DayTaskCard({
         onContextMenu={handleContextMenu}
         onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        {...attributes} {...listeners}
       >
         {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
-        {/* Drag handle — 6 dots */}
+        {/* Drag handle — visual only, drag activates from whole row */}
         <div
-          className="flex-shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-40 transition-opacity duration-150"
+          className="flex-shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-40 transition-opacity duration-150"
           style={{ width: 20, height: '100%', marginRight: 8 }}
-          {...attributes} {...listeners}
         >
           <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
             <circle cx="2" cy="2" r="1.2" fill="var(--text-secondary)" />
