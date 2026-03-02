@@ -55,6 +55,7 @@ interface UseSupabaseDataReturn {
   changeProjectColor: (id: string, color: string) => Promise<void>;
   createSection: (title: string, projectId: string, displayMonth?: string, sectionType?: string | null) => Promise<string>;
   renameSection: (id: string, title: string) => Promise<void>;
+  updateSectionType: (id: string, sectionType: string | null) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   deleteSectionFromDb: (id: string) => Promise<void>;
   createTask: (task: Partial<Task> & { name: string; section: string; projectId: string }) => Promise<string>;

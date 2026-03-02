@@ -24,6 +24,11 @@ export function useSectionOps(deps: SharedState) {
     setSectionsState(prev => prev.map(s => s.id === id ? { ...s, title } : s));
   }, []);
 
+  const updateSectionType = useCallback(async (id: string, sectionType: string | null) => {
+    await (supabase as any).from('sections').update({ section_type: sectionType }).eq('id', id);
+    setSectionsState(prev => prev.map(s => s.id === id ? { ...s, sectionType: sectionType as any } : s));
+  }, []);
+
   const deleteSection = useCallback(async (id: string) => {
     await supabase.from('tasks').delete().eq('section_id', id);
     await supabase.from('sections').delete().eq('id', id);
@@ -36,5 +41,5 @@ export function useSectionOps(deps: SharedState) {
     await supabase.from('sections').delete().eq('id', id);
   }, []);
 
-  return { createSection, renameSection, deleteSection, deleteSectionFromDb };
+  return { createSection, renameSection, updateSectionType, deleteSection, deleteSectionFromDb };
 }
