@@ -375,22 +375,6 @@ function PeriodSection({
                             parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
                             dropIndicator={overItemId === task.id ? dropLinePosition : null} justDropped={justDroppedId === task.id} />
                         </div>
-                        {/* Promoted badge */}
-                        {promoted && fromLabel && (
-                          <span
-                            className="flex-shrink-0 ml-1 whitespace-nowrap"
-                            style={{
-                              fontSize: 10,
-                              color: 'rgba(255,255,255,0.35)',
-                              fontWeight: 400,
-                              padding: '1px 6px',
-                              borderRadius: 4,
-                              background: 'rgba(255,255,255,0.06)',
-                            }}
-                          >
-                            ← {fromLabel}
-                          </span>
-                        )}
                       </div>
                     </motion.div>
                   );
