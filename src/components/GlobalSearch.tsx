@@ -220,11 +220,11 @@ export function GlobalSearch({ open, onClose, tasks, projects, sections, attachm
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-[200]"
-            style={{ background: 'var(--bg-base)', opacity: 0.6 }}
+            style={{ background: 'var(--bg-base)' }}
             onClick={onClose}
           />
           {/* Modal */}
@@ -233,9 +233,10 @@ export function GlobalSearch({ open, onClose, tasks, projects, sections, attachm
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -8 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed z-[201] left-1/2 -translate-x-1/2"
-            style={{ top: '15%', width: '100%', maxWidth: 520 }}
+            className="fixed z-[201] inset-x-0 flex justify-center px-4"
+            style={{ top: '15%' }}
           >
+            <div style={{ width: '100%', maxWidth: 520 }}>
             <div
               className="rounded-xl overflow-hidden shadow-2xl border"
               style={{
@@ -351,6 +352,7 @@ export function GlobalSearch({ open, onClose, tasks, projects, sections, attachm
                   </span>
                 </div>
               )}
+            </div>
             </div>
           </motion.div>
         </>
