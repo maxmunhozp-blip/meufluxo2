@@ -332,7 +332,32 @@ const Index = () => {
   const isSectionExpanded = (sectionId: string) => expandedSections[sectionId] !== false;
 
   const handleDeleteTask = useCallback((taskId: string) => {
-    const task = taskList.find(t => t.id === taskId);
+    // Find task — could be top-level or a subtask nested inside a parent
+    let task = taskList.find(t => t.id === taskId);
+    if (!task) {
+      for (const t of taskList) {
+        const sub = (t.subtasks || []).find(s => s.id === taskId);
+        if (sub) {
+          task = {
+            id: sub.id,
+            name: sub.name,
+            status: sub.status,
+            priority: sub.priority,
+            section: sub.section,
+            projectId: sub.projectId,
+            parentTaskId: sub.parentTaskId,
+            dayPeriod: sub.dayPeriod as any,
+            description: sub.description,
+            dueDate: sub.dueDate,
+            scheduledDate: sub.scheduledDate,
+            assignee: sub.assignee,
+            members: sub.members,
+            serviceTagId: sub.serviceTagId,
+          } as Task;
+          break;
+        }
+      }
+    }
     deleteTaskFn(taskId);
     if (selectedTaskId === taskId) setSelectedTaskId(null);
     if (focusedTaskId === taskId) {

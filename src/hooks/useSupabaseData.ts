@@ -725,7 +725,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const deleteTaskFn = useCallback(async (id: string) => {
     await supabase.from('task_members').delete().eq('task_id', id);
     await supabase.from('tasks').delete().eq('id', id);
-    setTasksState(prev => prev.filter(t => t.id !== id));
+    setTasksState(prev => {
+      // Remove from top-level or from parent's subtasks
+      return prev
+        .filter(t => t.id !== id)
+        .map(t => ({
+          ...t,
+          subtasks: (t.subtasks || []).filter(s => s.id !== id),
+        }));
+    });
   }, []);
 
   /** Re-insert a previously deleted task with its original ID and position */
@@ -761,8 +769,17 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         await supabase.from('task_members').insert({ task_id: snapshot.id, user_id: m.userId });
       }
     }
-    // Re-add to local state with full data
-    setTasksState(prev => prev.some(t => t.id === snapshot.id) ? prev : [snapshot, ...prev]);
+    // Re-add to local state — if subtask, nest back inside parent
+    if (snapshot.parentTaskId) {
+      setTasksState(prev => prev.map(t => {
+        if (t.id !== snapshot.parentTaskId) return t;
+        const alreadyExists = (t.subtasks || []).some(s => s.id === snapshot.id);
+        if (alreadyExists) return t;
+        return { ...t, subtasks: [...(t.subtasks || []), snapshot as any] };
+      }));
+    } else {
+      setTasksState(prev => prev.some(t => t.id === snapshot.id) ? prev : [snapshot, ...prev]);
+    }
   }, [activeWorkspaceId, session]);
 
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
