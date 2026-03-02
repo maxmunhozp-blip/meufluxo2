@@ -34,10 +34,11 @@ type ViewMode = '3days' | 'week' | 'timeline';
 
 const DAY_LABELS_UPPER = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
 
-// ── Task card in day column — colored, no checkbox ──
+// ── Task card in day column — 2-line anatomy: context + title ──
 function WeekTaskCard({
   task,
   projectColor,
+  projectName,
   isSelected,
   onSelect,
   truncate,
@@ -47,6 +48,7 @@ function WeekTaskCard({
 }: {
   task: Task;
   projectColor: string;
+  projectName?: string;
   isSelected: boolean;
   onSelect: () => void;
   truncate?: boolean;
@@ -66,6 +68,12 @@ function WeekTaskCard({
 
   const isDone = task.status === 'done';
 
+  // Build context line: ● ProjectName · SectionName (or · ParentTaskName)
+  const contextParts: string[] = [];
+  if (sectionName) contextParts.push(sectionName);
+  if (parentTaskName) contextParts.push(parentTaskName);
+  const contextSuffix = contextParts.join(' · ');
+
   return (
     <div
       ref={setNodeRef}
@@ -76,10 +84,9 @@ function WeekTaskCard({
       {...listeners}
     >
       <div
-        className={`rounded-md px-2 py-1.5 flex items-center gap-1.5 transition-colors ${isSelected ? 'ring-1' : ''}`}
+        className={`rounded-md px-2.5 py-2 flex flex-col gap-0.5 transition-colors ${isSelected ? 'ring-1' : ''}`}
         style={{
           background: 'var(--bg-elevated)',
-          borderLeft: `3px solid ${projectColor}`,
           borderRadius: 'var(--radius-sm)',
           transition: 'all 150ms ease-out',
           ...(isSelected ? { boxShadow: '0 0 0 1px var(--border-interactive)' } : {}),
@@ -87,13 +94,20 @@ function WeekTaskCard({
         onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
       >
-        {(sectionName || parentTaskName) && (
-          <span className="truncate block" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.2 }}>
-            {sectionName}{sectionName && parentTaskName ? ' · ' : ''}{parentTaskName && <i>{parentTaskName}</i>}
-          </span>
-        )}
+        {/* Line 1: Context — ● Project · Section */}
+        <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+          <span
+            className="flex-shrink-0 rounded-full"
+            style={{ width: 6, height: 6, background: projectColor, opacity: 0.7 }}
+          />
+          {projectName && <span>{projectName}</span>}
+          {projectName && contextSuffix && <span>·</span>}
+          {contextSuffix && <span className="truncate">{contextSuffix}</span>}
+        </span>
+
+        {/* Line 2: Task title */}
         <span
-          className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
+          className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
           style={{ color: 'var(--text-primary)', fontWeight: 400 }}
         >
           {task.name}
@@ -184,6 +198,7 @@ function DayColumn({
                 key={task.id}
                 task={task}
                 projectColor={project?.color || 'var(--accent-blue)'}
+                projectName={project?.name}
                 isSelected={selectedTaskId === task.id}
                 onSelect={() => onSelectTask(task)}
                 truncate={truncateText}
@@ -917,10 +932,9 @@ export function MyWeekView({
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
               {activeDragTask ? (
                 <div
-                  className="h-[36px] flex items-center gap-1.5 px-2 rounded-md shadow-lg"
+                  className="flex flex-col gap-0.5 px-2.5 py-1.5 rounded-md shadow-lg"
                   style={{
-                    background: 'hsl(var(--bg-surface))',
-                    borderLeft: `2px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
+                    background: 'var(--bg-elevated)',
                     opacity: 0.95,
                   }}
                 >

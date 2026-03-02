@@ -322,26 +322,33 @@ export function WeekTimelineView({
                           return (
                             <div
                               key={task.id}
-                              className="h-[28px] px-2 flex items-center cursor-pointer select-none overflow-hidden"
+                              className="px-2 py-1.5 flex flex-col gap-0.5 cursor-pointer select-none overflow-hidden"
                               style={{
                                 borderRadius: 'var(--radius-sm)',
                                 background: 'var(--bg-elevated)',
-                                borderLeft: `3px solid ${project?.color || 'var(--accent-blue)'}`,
                                 transition: 'all 150ms ease-out',
                               }}
                               onClick={() => onSelectTask(task)}
                               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
                               onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                             >
-                              {task.parentTaskId && (() => {
-                                const parent = tasks.find(t => t.id === task.parentTaskId);
-                                return parent ? (
-                                  <span className="truncate block" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.2 }}>
-                                    <i>{parent.name}</i>
-                                  </span>
-                                ) : null;
-                              })()}
-                              <span className="truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>
+                              {/* Line 1: Context */}
+                              <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+                                <span
+                                  className="flex-shrink-0 rounded-full"
+                                  style={{ width: 5, height: 5, background: project?.color || 'var(--accent-blue)', opacity: 0.7 }}
+                                />
+                                {(() => {
+                                  const section = sections.find(s => s.id === task.section);
+                                  const parent = task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId) : null;
+                                  const parts: string[] = [];
+                                  if (section) parts.push(section.title);
+                                  if (parent) parts.push(parent.name);
+                                  return parts.length > 0 ? <span className="truncate">{parts.join(' · ')}</span> : null;
+                                })()}
+                              </span>
+                              {/* Line 2: Title */}
+                              <span className="truncate" style={{ fontSize: 11, color: 'var(--text-primary)', lineHeight: 1.3 }}>
                                 {task.name}
                               </span>
                             </div>
@@ -359,16 +366,15 @@ export function WeekTimelineView({
         <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
           {activeDragTask ? (
             <div
-              className="h-[28px] px-2 flex items-center shadow-lg"
+              className="px-2.5 py-1.5 flex flex-col gap-0.5 shadow-lg"
               style={{
                 borderRadius: 'var(--radius-sm)',
                 background: 'var(--bg-elevated)',
-                borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
                 opacity: 0.9,
                 minWidth: 120,
               }}
             >
-              <span className="truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
+              <span className="truncate" style={{ fontSize: 11, color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
             </div>
           ) : null}
         </DragOverlay>
