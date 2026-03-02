@@ -135,7 +135,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
           if (e.key === 'Enter') { e.preventDefault(); submit(); }
           if (e.key === 'Escape') close();
         }}
-        onBlur={() => { if (!value.trim()) close(); }}
+        onBlur={() => { if (value.trim()) submit(); else close(); }}
         placeholder={indented ? 'Nome da subtarefa...' : 'Nome da tarefa...'}
         className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
