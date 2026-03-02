@@ -65,6 +65,7 @@ interface UseSupabaseDataReturn {
   createTask: (task: Partial<Task> & { name: string; section: string; projectId: string }) => Promise<string>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  restoreTask: (snapshot: Task) => Promise<void>;
   duplicateTask: (taskId: string) => Promise<string>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
   reorderProjects: (projects: Project[]) => void;
@@ -726,6 +727,43 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     await supabase.from('tasks').delete().eq('id', id);
     setTasksState(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  /** Re-insert a previously deleted task with its original ID and position */
+  const restoreTaskFn = useCallback(async (snapshot: Task) => {
+    if (!activeWorkspaceId) return;
+    const { error } = await supabase.from('tasks').insert({
+      id: snapshot.id,
+      title: snapshot.name,
+      section_id: snapshot.section,
+      project_id: snapshot.projectId,
+      status: snapshot.status,
+      priority: snapshot.priority || 'low',
+      description: snapshot.description || null,
+      due_date: snapshot.dueDate || null,
+      scheduled_date: snapshot.scheduledDate || null,
+      assignee: snapshot.assignee || null,
+      day_period: snapshot.dayPeriod || 'morning',
+      service_tag_id: snapshot.serviceTagId || null,
+      display_month: snapshot.displayMonth || undefined,
+      recurrence_type: snapshot.recurrenceType || null,
+      recurrence_config: (snapshot.recurrenceConfig as any) || null,
+      parent_task_id: snapshot.parentTaskId || null,
+      workspace_id: activeWorkspaceId,
+      created_by: session?.user?.id || null,
+    });
+    if (error) {
+      console.error('[restoreTask] Insert error:', error.message);
+      return;
+    }
+    // Re-add members
+    if (snapshot.members && snapshot.members.length > 0) {
+      for (const m of snapshot.members) {
+        await supabase.from('task_members').insert({ task_id: snapshot.id, user_id: m.userId });
+      }
+    }
+    // Re-add to local state with full data
+    setTasksState(prev => prev.some(t => t.id === snapshot.id) ? prev : [snapshot, ...prev]);
+  }, [activeWorkspaceId, session]);
 
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
     await supabase.from('tasks').update({ status }).eq('id', id);
@@ -1431,6 +1469,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     createTask,
     updateTask,
     deleteTask: deleteTaskFn,
+    restoreTask: restoreTaskFn,
     duplicateTask: duplicateTaskFn,
     updateTaskStatus,
     reorderProjects,

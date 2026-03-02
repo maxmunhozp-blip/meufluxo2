@@ -58,7 +58,7 @@ const Index = () => {
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
     createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
-    createTask, updateTask, deleteTask: deleteTaskFn, duplicateTask, updateTaskStatus,
+    createTask, updateTask, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
     addSubtask, updateSubtask, deleteSubtask, reorderSubtasks, scheduleSubtask,
@@ -341,23 +341,10 @@ const Index = () => {
       setFocusedTaskId(next);
     }
     if (task) {
-      const restoreTask = async () => {
-        await createTask({
-          name: task.name,
-          status: task.status,
-          section: task.section,
-          projectId: task.projectId,
-          priority: task.priority,
-          description: task.description,
-          dueDate: task.dueDate,
-          displayMonth: task.displayMonth,
-          scheduledDate: task.scheduledDate,
-          assignee: task.assignee,
-          dayPeriod: task.dayPeriod,
-          serviceTagId: task.serviceTagId,
-        });
-        // Navigate to the project where the task was restored
-        setActiveProjectId(task.projectId);
+      const snapshot = { ...task };
+      const doRestore = async () => {
+        await restoreTaskFn(snapshot);
+        setActiveProjectId(snapshot.projectId);
         setIsMyDayView(false);
         setIsMyTasksView(false);
         setIsMyWeekView(false);
@@ -365,15 +352,15 @@ const Index = () => {
       };
       pushUndo({
         label: 'Excluir tarefa',
-        undo: restoreTask,
+        undo: doRestore,
       });
       toast({
         title: 'Tarefa excluída',
         duration: 5000,
-        action: <ToastAction altText="Desfazer" onClick={restoreTask}>Desfazer</ToastAction>,
+        action: <ToastAction altText="Desfazer" onClick={doRestore}>Desfazer</ToastAction>,
       });
     }
-  }, [deleteTaskFn, selectedTaskId, focusedTaskId, visibleTaskIds, taskList, createTask, pushUndo]);
+  }, [deleteTaskFn, restoreTaskFn, selectedTaskId, focusedTaskId, visibleTaskIds, taskList, pushUndo]);
 
   const createTaskInSection = useCallback(async (sectionId: string, taskName?: string) => {
     const project = projects.find(p => p.id === activeProjectId);
