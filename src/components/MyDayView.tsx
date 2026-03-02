@@ -23,6 +23,7 @@ interface MyDayViewProps {
   userName: string;
   isPro?: boolean;
   onUpdateTask: (task: Task) => void;
+  onBatchUpdatePositions?: (updates: { id: string; position: number }[]) => Promise<void>;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
   selectedTaskId?: string;
@@ -212,7 +213,7 @@ function PeriodSection({
 
 /* ── Main MyDayView ── */
 export function MyDayView({
-  tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
+  tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
 }: MyDayViewProps) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
@@ -355,9 +356,12 @@ export function MyDayView({
         const newIdx = periodTasks.findIndex(t => t.id === targetTask.id);
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
           const reordered = arrayMove(periodTasks, oldIdx, newIdx);
-          reordered.forEach((t, i) => {
-            onUpdateTask({ ...t, position: i });
-          });
+          const updates = reordered.map((t, i) => ({ id: t.id, position: i }));
+          if (onBatchUpdatePositions) {
+            onBatchUpdatePositions(updates);
+          } else {
+            reordered.forEach((t, i) => onUpdateTask({ ...t, position: i }));
+          }
         }
       } else {
         // Different period → move to target period

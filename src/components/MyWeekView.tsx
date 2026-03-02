@@ -23,6 +23,7 @@ interface MyWeekViewProps {
   projects: Project[];
   sections: Section[];
   onUpdateTask: (task: Task) => void;
+  onBatchUpdatePositions?: (updates: { id: string; position: number }[]) => Promise<void>;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSelectTask: (task: Task) => void;
   onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => Promise<void>;
@@ -680,6 +681,7 @@ export function MyWeekView({
   projects,
   sections,
   onUpdateTask,
+  onBatchUpdatePositions,
   onStatusChange,
   onSelectTask,
   onScheduleSubtask,
@@ -876,12 +878,15 @@ export function MyWeekView({
       setDropLinePosition(null);
     } else if (over?.data.current?.type === 'week-task' && active.data.current?.type === 'week-task') {
       // Show drop indicator between cards in same day
-      const activeIndex = active.data.current?.sortable?.index ?? -1;
-      const overIndex = over.data.current?.sortable?.index ?? -1;
+      const activeTask = active.data.current.task as Task;
+      const overTask = over.data.current.task as Task;
+      const targetDate = overTask.scheduledDate || overTask.dueDate;
+      const dayTasks = targetDate ? (tasksByDay[targetDate] || []) : [];
+      const activeIdx = dayTasks.findIndex(t => t.id === activeTask.id);
+      const overIdx = dayTasks.findIndex(t => t.id === overTask.id);
       setOverItemId(over.id as string);
-      setDropLinePosition(activeIndex > overIndex ? 'top' : 'bottom');
+      setDropLinePosition(activeIdx > overIdx ? 'top' : 'bottom');
       // Also highlight the day column
-      const targetDate = (over.data.current.task as Task).scheduledDate || (over.data.current.task as Task).dueDate;
       setDragOverDay(targetDate || null);
     } else if (over?.data.current?.type === 'week-task') {
       // Source task dragged over a week-task — show indicator
@@ -940,10 +945,12 @@ export function MyWeekView({
         const newIdx = dayTasks.findIndex(t => t.id === targetTask.id);
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
           const reordered = arrayMove(dayTasks, oldIdx, newIdx);
-          // Batch persist positions
-          reordered.forEach((t, i) => {
-            onUpdateTask({ ...t, position: i });
-          });
+          const updates = reordered.map((t, i) => ({ id: t.id, position: i }));
+          if (onBatchUpdatePositions) {
+            onBatchUpdatePositions(updates);
+          } else {
+            reordered.forEach((t, i) => onUpdateTask({ ...t, position: i }));
+          }
         }
         return;
       }

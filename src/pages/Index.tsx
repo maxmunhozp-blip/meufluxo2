@@ -58,7 +58,7 @@ const Index = () => {
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
     createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
-    createTask, updateTask, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
+    createTask, updateTask, batchUpdatePositions, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
     addSubtask, updateSubtask, deleteSubtask, reorderSubtasks, scheduleSubtask,
@@ -1227,6 +1227,7 @@ const Index = () => {
             userName={profiles.find(p => p.id === session?.user?.id)?.fullName || session?.user?.email || 'Usuário'}
             isPro={planLimits.isPro}
             onUpdateTask={handleUpdateTask}
+            onBatchUpdatePositions={batchUpdatePositions}
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
             selectedTaskId={selectedTaskId || undefined}
@@ -1238,6 +1239,7 @@ const Index = () => {
             projects={projects}
             sections={sectionList}
             onUpdateTask={handleUpdateTask}
+            onBatchUpdatePositions={batchUpdatePositions}
             onStatusChange={handleStatusChange}
             onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
             onScheduleSubtask={scheduleSubtask}
