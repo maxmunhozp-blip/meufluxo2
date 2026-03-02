@@ -626,22 +626,13 @@ export function MyDayView({
       const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
       let displayPeriod = dbPeriod;
 
-      if (viewingToday) {
-        if (t.status === 'done') {
-          // If we tracked where this task was displayed when completed, use that
-          const savedPeriod = completedDisplayPeriodRef.current.get(t.id);
-          if (savedPeriod) {
-            displayPeriod = savedPeriod;
-          } else if (getPeriodOrder(dbPeriod) < currentPeriodOrder) {
-            // Done task from past period with no tracking — show in its DB period
-            displayPeriod = dbPeriod;
-          }
-        } else {
-          // Pending/in_progress: promote past-period tasks to active period
-          if (getPeriodOrder(dbPeriod) < currentPeriodOrder) {
-            displayPeriod = currentPeriod;
-          }
+      if (viewingToday && t.status === 'done') {
+        // If we tracked where this task was displayed when completed, use that
+        const savedPeriod = completedDisplayPeriodRef.current.get(t.id);
+        if (savedPeriod) {
+          displayPeriod = savedPeriod;
         }
+        // Otherwise use dbPeriod (default)
       }
 
       map[displayPeriod].push(t);
