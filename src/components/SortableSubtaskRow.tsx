@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GripVertical, CalendarDays } from 'lucide-react';
+import { GripVertical, CalendarDays, ArrowUpFromLine, FolderInput, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Subtask, TaskStatus, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -94,10 +94,12 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
   const contextMenuItems = [
     {
       label: 'Converter em tarefa',
+      icon: <ArrowUpFromLine style={{ width: 15, height: 15 }} />,
       onClick: () => onConvertToTask?.(subtask.id),
     },
     ...(sections && sections.filter(s => s.id !== parentSectionId).length > 0 ? [{
       label: 'Mover para seção',
+      icon: <FolderInput style={{ width: 15, height: 15 }} />,
       children: sections.filter(s => s.id !== parentSectionId).map(s => ({
         label: s.title,
         onClick: () => onMoveSubtaskToSection?.(subtask.id, s.id),
@@ -105,6 +107,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
     }] : []),
     {
       label: 'Excluir subtarefa',
+      icon: <Trash2 style={{ width: 15, height: 15 }} />,
       danger: true,
       onClick: () => {
         onDeleteSubtask?.(parentTaskId, subtask.id);
