@@ -56,7 +56,9 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const todayTasks = useMemo(() => tasks, [tasks]);
 
   const getTasksByPeriod = useCallback((period: DayPeriod) => {
-    return todayTasks.filter(t => (t.dayPeriod || 'morning') === period && t.status !== 'done' && !skippedIds.has(t.id));
+    return todayTasks
+      .filter(t => (t.dayPeriod || 'morning') === period && t.status !== 'done' && !skippedIds.has(t.id))
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   }, [todayTasks, skippedIds]);
 
   const findFirstTask = useCallback((): FocusState => {
