@@ -139,13 +139,13 @@ function DayTaskCard({
           <span className="flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200"
             style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
           {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {sectionName && <span className="truncate text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, flexShrink: 1, minWidth: 0 }}>{sectionName}</span>}
+          {sectionName && <span className="truncate text-[11px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)' }}>{sectionName}</span>}
           {sectionName && parentTaskName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {parentTaskName && <span className="truncate text-[11px] max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0 }}>{parentTaskName}</span>}
+          {parentTaskName && <span className="truncate text-[11px] max-w-[120px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)' }}>{parentTaskName}</span>}
         </div>
         {rolloverDays && rolloverDays > 0 && (
           <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
-            style={{ fontSize: 10, color: 'var(--warning)', fontWeight: 400, background: 'var(--warning-bg)' }}>
+            style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 400, background: 'rgba(255,255,255,0.06)' }}>
             ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
           </span>
         )}
@@ -239,7 +239,7 @@ function CollapsedPeriodSummary({
           ·
         </span>
         {doneCount > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--success)', fontWeight: 400 }}>
+          <span style={{ fontSize: 11, color: '#10B981', fontWeight: 400 }}>
             {doneCount}✓
           </span>
         )}
@@ -385,11 +385,11 @@ function PeriodSection({
                             className="flex-shrink-0 ml-1 whitespace-nowrap"
                             style={{
                               fontSize: 10,
-                              color: 'var(--warning)',
+                              color: 'rgba(255,255,255,0.35)',
                               fontWeight: 400,
                               padding: '1px 6px',
                               borderRadius: 4,
-                              background: 'var(--warning-bg)',
+                              background: 'rgba(255,255,255,0.06)',
                             }}
                           >
                             ← {fromLabel}
@@ -800,25 +800,25 @@ export function MyDayView({
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSelectedDate(d => subDays(d, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-lg"
-              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out', padding: 8 }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Dia anterior"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-[18px] h-[18px]" />
             </button>
 
-            <div className="flex items-center gap-2 min-w-[180px] justify-center">
+            <div className="flex items-center gap-3 min-w-[180px] justify-center">
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     className="tabular-nums text-center cursor-pointer rounded-md px-2 py-1 transition-colors"
                     style={{
-                      fontSize: 14,
-                      fontWeight: 500,
+                      fontSize: 16,
+                      fontWeight: 600,
                       lineHeight: 1.5,
-                      color: viewingToday ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      color: 'rgba(255,255,255,0.85)',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
@@ -841,14 +841,14 @@ export function MyDayView({
               {/* Temporal Context Badge */}
               {!viewingToday && temporalLabel && (
                 <span
-                  style={{
+                 style={{
                     padding: '2px 8px',
                     borderRadius: 9999,
                     fontSize: 11,
                     fontWeight: 500,
                     lineHeight: 1.5,
-                    background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
-                    color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: 'rgba(255,255,255,0.35)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -859,13 +859,13 @@ export function MyDayView({
 
             <button
               onClick={() => setSelectedDate(d => addDays(d, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-lg"
-              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out', padding: 8 }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Próximo dia"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-[18px] h-[18px]" />
             </button>
           </div>
 
