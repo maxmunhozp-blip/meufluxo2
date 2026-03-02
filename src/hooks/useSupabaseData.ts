@@ -341,7 +341,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           ...t, name: row.title, status: row.status, priority: row.priority,
           position: row.position ?? t.position, description: row.description || undefined,
           dueDate: row.due_date || undefined, scheduledDate: row.scheduled_date || undefined,
-          assignee: row.assignee || undefined, dayPeriod: row.day_period || 'morning',
+          assignee: row.assignee || undefined, dayPeriod: row.day_period || t.dayPeriod || 'morning',
           recurrenceType: row.recurrence_type || null, recurrenceConfig: row.recurrence_config || undefined,
           section: row.section_id, projectId: row.project_id, serviceTagId: row.service_tag_id || undefined,
         } : t));
