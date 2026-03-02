@@ -111,7 +111,7 @@ function DayTaskCard({
         {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
         <div className="w-1 flex-shrink-0 flex items-center justify-center ml-1">
-          <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor }} />
+          <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }} />
         </div>
         <div className="w-2 flex-shrink-0" />
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
