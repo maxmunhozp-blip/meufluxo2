@@ -171,6 +171,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       <StatusCheckbox
         status={subtask.status}
         onChange={(s) => onStatusChange?.(parentTaskId, subtask.id, s)}
+        quickComplete
       />
       {isRenaming ? (
         <input

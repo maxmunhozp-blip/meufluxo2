@@ -395,6 +395,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
               <StatusCheckbox
                 status={task.status}
                 onChange={(s) => onStatusChange(task.id, s)}
+                quickComplete
               />
               {isRenaming ? (
                 <input

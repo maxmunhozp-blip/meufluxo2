@@ -1464,17 +1464,49 @@ const Index = () => {
                     focusedTaskId={focusedTaskId || undefined}
                     onStatusChange={handleStatusChange}
                     onSubtaskStatusChange={(taskId, subtaskId, status) => {
+                      const parentTask = taskList.find(t => t.id === taskId);
+                      const prevSubtask = parentTask?.subtasks?.find(s => s.id === subtaskId);
+                      const prevStatus = prevSubtask?.status || 'pending';
+
+                      // Save original order index before moving to end
+                      if (status === 'done' && parentTask?.subtasks) {
+                        const idx = parentTask.subtasks.findIndex(s => s.id === subtaskId);
+                        if (idx !== -1) originalPositionsRef.current.set(subtaskId, idx);
+                      }
+
                       updateSubtask(subtaskId, { status }).then(() => {
-                        // Move completed subtasks to the end
-                        const parentTask = taskList.find(t => t.id === taskId);
                         if (parentTask?.subtasks) {
-                          const updated = parentTask.subtasks.map(s =>
-                            s.id === subtaskId ? { ...s, status } : s
-                          );
-                          const pending = updated.filter(s => s.status !== 'done');
-                          const done = updated.filter(s => s.status === 'done');
-                          const reordered = [...pending, ...done];
-                          reorderSubtasks(taskId, reordered.map(s => s.id));
+                          if (status === 'done') {
+                            // Move completed subtask to end
+                            const updated = parentTask.subtasks.map(s =>
+                              s.id === subtaskId ? { ...s, status } : s
+                            );
+                            const pending = updated.filter(s => s.status !== 'done');
+                            const done = updated.filter(s => s.status === 'done');
+                            const reordered = [...pending, ...done];
+                            reorderSubtasks(taskId, reordered.map(s => s.id));
+                          } else if (prevStatus === 'done') {
+                            // Restore original position
+                            const originalIdx = originalPositionsRef.current.get(subtaskId);
+                            if (originalIdx !== undefined) {
+                              const current = parentTask.subtasks
+                                .map(s => s.id === subtaskId ? { ...s, status } : s)
+                                .filter(s => s.id !== subtaskId);
+                              const restored = [...current];
+                              const clampedIdx = Math.min(originalIdx, restored.length);
+                              restored.splice(clampedIdx, 0, { ...prevSubtask!, status });
+                              reorderSubtasks(taskId, restored.map(s => s.id));
+                              originalPositionsRef.current.delete(subtaskId);
+                            } else {
+                              // No saved position — move to top of pending
+                              const updated = parentTask.subtasks.map(s =>
+                                s.id === subtaskId ? { ...s, status } : s
+                              );
+                              const pending = updated.filter(s => s.status !== 'done');
+                              const done = updated.filter(s => s.status === 'done');
+                              reorderSubtasks(taskId, [...pending, ...done].map(s => s.id));
+                            }
+                          }
                         }
                       });
                     }}
