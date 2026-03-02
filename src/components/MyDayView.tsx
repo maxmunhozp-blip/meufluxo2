@@ -519,8 +519,7 @@ export function MyDayView({
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  // Track which display period a promoted task was shown in when completed
-  const completedDisplayPeriodRef = useRef<Map<string, DayPeriod>>(new Map());
+  // (no promotion tracking needed — tasks always show in their DB dayPeriod)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
@@ -624,18 +623,7 @@ export function MyDayView({
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
       const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
-      let displayPeriod = dbPeriod;
-
-      if (viewingToday && t.status === 'done') {
-        // If we tracked where this task was displayed when completed, use that
-        const savedPeriod = completedDisplayPeriodRef.current.get(t.id);
-        if (savedPeriod) {
-          displayPeriod = savedPeriod;
-        }
-        // Otherwise use dbPeriod (default)
-      }
-
-      map[displayPeriod].push(t);
+      map[dbPeriod].push(t);
     });
     // Sort within each period: pending first, done last, each group by position
     Object.keys(map).forEach(key => {
@@ -645,31 +633,13 @@ export function MyDayView({
       map[period] = [...pending, ...done];
     });
     return map;
-  }, [todayTasks, rolloverMap, viewingToday, currentPeriod, currentPeriodOrder]);
+  }, [todayTasks]);
 
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
 
-  // Wrap onStatusChange to track display period for promoted tasks
   const handleStatusChangeWrapped = useCallback((taskId: string, status: TaskStatus) => {
-    if (status === 'done' && viewingToday) {
-      // Find which display period this task is currently shown in
-      for (const periodKey of ['morning', 'afternoon', 'evening'] as DayPeriod[]) {
-        if (tasksByPeriod[periodKey].some(t => t.id === taskId)) {
-          const task = tasksByPeriod[periodKey].find(t => t.id === taskId);
-          const dbPeriod = (task?.dayPeriod || 'morning') as DayPeriod;
-          // Only track if the display period differs from DB period (i.e. it was promoted)
-          if (periodKey !== dbPeriod) {
-            completedDisplayPeriodRef.current.set(taskId, periodKey);
-          }
-          break;
-        }
-      }
-    } else if (status !== 'done') {
-      // Uncompleting — remove tracking so it gets promoted again
-      completedDisplayPeriodRef.current.delete(taskId);
-    }
     onStatusChange(taskId, status);
-  }, [onStatusChange, viewingToday, tasksByPeriod]);
+  }, [onStatusChange]);
 
   const handleDragStart = (event: DragStartEvent) => { const data = event.active.data.current; if (data?.type === 'day-task') setActiveDragId(data.task.id); };
   const handleDragOver = (event: DragOverEvent) => {
@@ -707,7 +677,7 @@ export function MyDayView({
       const displayPeriod = getDisplayPeriod(task.id);
       if (displayPeriod !== targetPeriod) {
         onUpdateTask({ ...task, dayPeriod: targetPeriod });
-        completedDisplayPeriodRef.current.delete(task.id);
+        
       }
       return;
     }
@@ -732,7 +702,7 @@ export function MyDayView({
         }
       } else {
         onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod });
-        completedDisplayPeriodRef.current.delete(draggedTask.id);
+        
       }
     }
   };
