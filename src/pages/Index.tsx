@@ -298,9 +298,40 @@ const Index = () => {
   const originalPositionsRef = useRef<Map<string, number>>(new Map());
 
   const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
-    const prev = taskList.find(t => t.id === taskId);
+    // Find task — could be top-level or a nested subtask (promoted in MyDay)
+    let prev = taskList.find(t => t.id === taskId);
+    let isSubtask = false;
+    let parentTaskId: string | undefined;
+
+    if (!prev) {
+      // Search in subtasks
+      for (const t of taskList) {
+        if (t.subtasks) {
+          const sub = t.subtasks.find(s => s.id === taskId);
+          if (sub) {
+            prev = {
+              id: sub.id, name: sub.name, status: sub.status, priority: sub.priority || 'low',
+              section: sub.section, projectId: sub.projectId || t.projectId,
+              parentTaskId: sub.parentTaskId || t.id, dayPeriod: sub.dayPeriod as any,
+              position: (sub as any).position ?? 0, scheduledDate: sub.scheduledDate,
+              dueDate: sub.dueDate, description: sub.description,
+            } as Task;
+            isSubtask = true;
+            parentTaskId = t.id;
+            break;
+          }
+        }
+      }
+    }
+
     const prevStatus = prev?.status || 'pending';
-    updateTaskStatus(taskId, newStatus);
+
+    if (isSubtask && parentTaskId) {
+      // Use updateSubtask for nested subtasks so local state updates correctly
+      updateSubtask(taskId, { status: newStatus });
+    } else {
+      updateTaskStatus(taskId, newStatus);
+    }
 
     // Move completed tasks to the end of their section/period
     if (newStatus === 'done' && prev) {
@@ -313,12 +344,23 @@ const Index = () => {
       if (isMyDayTask) {
         siblings = taskList.filter(t =>
           t.scheduledDate === today &&
-          (t.dayPeriod || 'morning') === (prev.dayPeriod || 'morning') &&
+          (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning') &&
           !t.parentTaskId &&
           t.id !== taskId
         );
+        // Also include promoted subtasks scheduled for today in the same period
+        for (const t of taskList) {
+          if (t.subtasks) {
+            for (const sub of t.subtasks) {
+              if (sub.id !== taskId && sub.scheduledDate === today &&
+                  ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning')) {
+                siblings.push({ ...sub, position: (sub as any).position ?? 0 } as Task);
+              }
+            }
+          }
+        }
       } else {
-        siblings = taskList.filter(t => t.section === prev.section && !t.parentTaskId && t.id !== taskId);
+        siblings = taskList.filter(t => t.section === prev!.section && !t.parentTaskId && t.id !== taskId);
       }
       const maxPos = siblings.reduce((max, t) => Math.max(max, t.position ?? 0), 0);
       batchUpdatePositions([{ id: taskId, position: maxPos + 1 }]);
@@ -335,9 +377,15 @@ const Index = () => {
 
     pushUndo({
       label: 'Mudança de status',
-      undo: () => updateTaskStatus(taskId, prevStatus),
+      undo: () => {
+        if (isSubtask && parentTaskId) {
+          updateSubtask(taskId, { status: prevStatus });
+        } else {
+          updateTaskStatus(taskId, prevStatus);
+        }
+      },
     });
-  }, [updateTaskStatus, taskList, pushUndo, batchUpdatePositions]);
+  }, [updateTaskStatus, updateSubtask, taskList, pushUndo, batchUpdatePositions]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);

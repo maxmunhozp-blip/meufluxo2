@@ -817,7 +817,21 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
     const completedAt = status === 'done' ? new Date().toISOString() : null;
     await supabase.from('tasks').update({ status, completed_at: completedAt }).eq('id', id);
-    setTasksState(prev => prev.map(t => t.id === id ? { ...t, status, completedAt: completedAt || undefined } : t));
+    setTasksState(prev => prev.map(t => {
+      if (t.id === id) return { ...t, status, completedAt: completedAt || undefined };
+      // Also update if it's a nested subtask
+      if (t.subtasks) {
+        const updatedSubs = t.subtasks.map(s => {
+          if (s.id === id) return { ...s, status };
+          if (s.subtasks) {
+            return { ...s, subtasks: s.subtasks.map(ss => ss.id === id ? { ...ss, status } : ss) };
+          }
+          return s;
+        });
+        return { ...t, subtasks: updatedSubs };
+      }
+      return t;
+    }));
 
     // Auto-create next occurrence for recurring tasks when marked done
     if (status === 'done') {
@@ -1132,7 +1146,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const updateSubtaskFn = useCallback(async (subtaskId: string, updates: { name?: string; status?: TaskStatus }) => {
     const dbUpdates: any = {};
     if (updates.name !== undefined) dbUpdates.title = updates.name;
-    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.status !== undefined) {
+      dbUpdates.status = updates.status;
+      dbUpdates.completed_at = updates.status === 'done' ? new Date().toISOString() : null;
+    }
     await supabase.from('tasks').update(dbUpdates).eq('id', subtaskId);
     setTasksState(prev => prev.map(t => ({
       ...t,
