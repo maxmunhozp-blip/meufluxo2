@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -334,6 +334,8 @@ interface ProjectSidebarProps {
   onMoveTaskToProject?: (taskId: string, sourceProjectId: string, targetProjectId: string, taskName: string) => void;
   onMoveTaskToSection?: (taskId: string, sourceProjectId: string, targetProjectId: string, targetSectionId: string, taskName: string) => void;
   isPro?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function ProjectSidebar({
@@ -348,6 +350,7 @@ export function ProjectSidebar({
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
   onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
+  collapsed, onToggleCollapse,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -534,10 +537,85 @@ export function ProjectSidebar({
     </button>
   );
 
+  // Collapsed mini sidebar
+  if (collapsed) {
+    return (
+      <aside
+        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]"
+        style={{ width: 48, minWidth: 48, maxWidth: 48, transition: 'width 200ms ease-out' }}
+      >
+        <div className="flex flex-col items-center gap-1 pt-3 px-1">
+          {/* Expand button */}
+          <button
+            onClick={onToggleCollapse}
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title="Expandir menu"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <PanelLeft className="w-4 h-4" />
+          </button>
+
+          <div className="w-5 h-px my-1" style={{ background: 'var(--border-subtle)' }} />
+
+          {/* Nav icons */}
+          <button
+            onClick={onToggleMyDay}
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title="Meu Dia"
+            style={{ color: isMyDayView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isMyDayView ? 'var(--accent-subtle)' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyDayView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+            onMouseLeave={e => { if (!isMyDayView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+          >
+            <Sun className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onToggleMyWeek}
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title="Minha Semana"
+            style={{ color: isMyWeekView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isMyWeekView ? 'var(--accent-subtle)' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+            onMouseLeave={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+          >
+            <CalendarDays className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onToggleNotes}
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title="Notas"
+            style={{ color: isNotesView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isNotesView ? 'var(--accent-subtle)' : 'transparent' }}
+            onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+            onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+          >
+            <StickyNote className="w-4 h-4" />
+          </button>
+
+          <div className="w-5 h-px my-1" style={{ background: 'var(--border-subtle)' }} />
+
+          {/* Project dots */}
+          {projects.map(p => (
+            <button
+              key={p.id}
+              onClick={() => onSelectProject(p.id)}
+              title={p.name}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+              style={{ background: activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'var(--accent-subtle)' : 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'var(--accent-subtle)' : 'transparent'; }}
+            >
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+            </button>
+          ))}
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden bg-[#E8E3DB] dark:bg-[#141416]"
-      style={{ width: 260, minWidth: 260, maxWidth: 260 }}
+      style={{ width: 260, minWidth: 260, maxWidth: 260, transition: 'width 200ms ease-out' }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -551,10 +629,22 @@ export function ProjectSidebar({
     >
       {/* NAVEGAÇÃO — flex-shrink-0 */}
       <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
-        <div style={{ marginBottom: 8 }}>
+        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             Navegação
           </span>
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="w-6 h-6 flex items-center justify-center rounded-md"
+              title="Recolher menu"
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <PanelLeftClose className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
