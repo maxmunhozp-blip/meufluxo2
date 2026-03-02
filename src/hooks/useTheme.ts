@@ -32,13 +32,16 @@ async function syncThemeToProfile(preference: Theme) {
   await (supabase.from('profiles') as any).update({ theme_preference: preference }).eq('id', user.id);
 }
 
+// Apply theme synchronously on module load (before any React render)
+const _initialPref = (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark';
+applyTheme(resolveTheme(_initialPref));
+
 export function useTheme() {
-  const [preference, setPreference] = useState<Theme>(() => {
-    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark';
-  });
+  const [preference, setPreference] = useState<Theme>(_initialPref);
 
   const effective = resolveTheme(preference);
 
+  // Keep DOM in sync when preference changes (after initial)
   useEffect(() => {
     applyTheme(effective);
   }, [effective]);
