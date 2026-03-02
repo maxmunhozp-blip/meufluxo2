@@ -64,6 +64,7 @@ interface UseSupabaseDataReturn {
   deleteSectionFromDb: (id: string) => Promise<void>;
   createTask: (task: Partial<Task> & { name: string; section: string; projectId: string }) => Promise<string>;
   updateTask: (task: Task) => Promise<void>;
+  batchUpdatePositions: (updates: { id: string; position: number }[]) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   restoreTask: (snapshot: Task) => Promise<void>;
   duplicateTask: (taskId: string) => Promise<string>;
@@ -723,6 +724,20 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         return prev.map(t => t.id === task.id ? task : t);
       });
     }
+  }, []);
+
+  /** Batch update positions for multiple tasks in a single state update */
+  const batchUpdatePositions = useCallback(async (updates: { id: string; position: number }[]) => {
+    if (updates.length === 0) return;
+    // Optimistic: update local state in one batch
+    setTasksState(prev => {
+      const posMap = new Map(updates.map(u => [u.id, u.position]));
+      return prev.map(t => posMap.has(t.id) ? { ...t, position: posMap.get(t.id)! } : t);
+    });
+    // Persist to DB in parallel
+    await Promise.all(
+      updates.map(u => supabase.from('tasks').update({ position: u.position }).eq('id', u.id))
+    );
   }, []);
 
   const deleteTaskFn = useCallback(async (id: string) => {
@@ -1488,6 +1503,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     deleteSectionFromDb,
     createTask,
     updateTask,
+    batchUpdatePositions,
     deleteTask: deleteTaskFn,
     restoreTask: restoreTaskFn,
     duplicateTask: duplicateTaskFn,
