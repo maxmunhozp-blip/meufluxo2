@@ -701,25 +701,40 @@ export function MyDayView({
       setOverItemId(null); setDropLinePosition(null);
     }
   };
+  // Helper: find the DISPLAY period a task is shown in (may differ from DB dayPeriod due to promotion)
+  const getDisplayPeriod = useCallback((taskId: string): DayPeriod => {
+    for (const p of ['morning', 'afternoon', 'evening'] as DayPeriod[]) {
+      if (tasksByPeriod[p].some(t => t.id === taskId)) return p;
+    }
+    return 'morning';
+  }, [tasksByPeriod]);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const droppedId = activeDragId;
     setActiveDragId(null); setOverItemId(null); setDropLinePosition(null);
     const { active, over } = event; if (!over) { return; }
-    // Trigger pulse on the dropped card
     if (droppedId) { setJustDroppedId(droppedId); setTimeout(() => setJustDroppedId(null), 450); }
     const activeData = active.data.current; const overData = over.data.current;
+
     if (activeData?.type === 'day-task' && overData?.type === 'period-drop') {
+      // Dropped on empty period zone
       const task = activeData.task as Task; const targetPeriod = overData.period as DayPeriod;
-      if (task.dayPeriod !== targetPeriod) onUpdateTask({ ...task, dayPeriod: targetPeriod }); return;
+      const displayPeriod = getDisplayPeriod(task.id);
+      if (displayPeriod !== targetPeriod) {
+        onUpdateTask({ ...task, dayPeriod: targetPeriod });
+        completedDisplayPeriodRef.current.delete(task.id);
+      }
+      return;
     }
+
     if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
       const draggedTask = activeData.task as Task; const targetTask = overData.task as Task;
-      const draggedPeriod = draggedTask.dayPeriod || 'morning';
-      const targetPeriod = targetTask.dayPeriod || 'morning';
+      const draggedDisplayPeriod = getDisplayPeriod(draggedTask.id);
+      const targetDisplayPeriod = getDisplayPeriod(targetTask.id);
 
-      if (draggedPeriod === targetPeriod) {
-        // Same period → reorder with position persistence
-        const periodTasks = [...(tasksByPeriod[draggedPeriod as DayPeriod] || [])];
+      if (draggedDisplayPeriod === targetDisplayPeriod) {
+        // Same display period → reorder positions
+        const periodTasks = [...(tasksByPeriod[draggedDisplayPeriod] || [])];
         const oldIdx = periodTasks.findIndex(t => t.id === draggedTask.id);
         const newIdx = periodTasks.findIndex(t => t.id === targetTask.id);
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
@@ -732,8 +747,9 @@ export function MyDayView({
           }
         }
       } else {
-        // Different period → move to target period
-        onUpdateTask({ ...draggedTask, dayPeriod: targetPeriod as DayPeriod });
+        // Different display period → move to target period (update DB dayPeriod)
+        onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod });
+        completedDisplayPeriodRef.current.delete(draggedTask.id);
       }
     }
   };
