@@ -275,7 +275,8 @@ export function TaskSection({
         <div
           {...sectionAttrs}
           {...sectionListeners}
-          className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity hidden md:block"
+          className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity hidden md:flex items-center justify-center z-10"
+          style={{ width: 28, height: 36, touchAction: 'none' }}
         >
           <GripVertical className="w-4 h-4" style={{ color: 'var(--text-placeholder)' }} />
         </div>

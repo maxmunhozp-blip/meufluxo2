@@ -296,6 +296,8 @@ const Index = () => {
 
   // Store original positions before moving completed tasks to the end
   const originalPositionsRef = useRef<Map<string, number>>(new Map());
+  // Running counter to guarantee unique end positions when completing multiple tasks quickly
+  const completionCounterRef = useRef(0);
 
   const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
     // Find task — could be top-level or a nested subtask (promoted in MyDay)
@@ -360,9 +362,11 @@ const Index = () => {
           .filter(t => t.section === prev!.section && !t.parentTaskId)
           .map(t => ({ id: t.id, position: t.position ?? 0 }));
       }
-      // Use a position guaranteed to be at the absolute end
+      // Use a position guaranteed to be at the absolute end, incrementing counter
+      // to handle rapid sequential completions where taskList hasn't updated yet
+      completionCounterRef.current += 1;
       const maxPos = allSiblings.reduce((max, t) => Math.max(max, t.position), 0);
-      const endPosition = Math.max(maxPos + 1, allSiblings.length + 1000);
+      const endPosition = Math.max(maxPos + 1, allSiblings.length + 1000) + completionCounterRef.current;
       batchUpdatePositions([{ id: taskId, position: endPosition }]);
     }
 
