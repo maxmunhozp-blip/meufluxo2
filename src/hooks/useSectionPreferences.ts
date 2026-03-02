@@ -23,7 +23,7 @@ export function useSectionPreferences(userId: string | undefined) {
     loadedRef.current = true;
 
     (async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('user_preferences')
         .select('collapsed_sections')
         .eq('user_id', userId)
@@ -49,7 +49,7 @@ export function useSectionPreferences(userId: string | undefined) {
         .filter(([, v]) => v === false)
         .map(([k]) => k);
 
-      await supabase
+      await (supabase as any)
         .from('user_preferences')
         .upsert(
           { user_id: userId, collapsed_sections: collapsed },
