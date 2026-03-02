@@ -33,7 +33,7 @@ import { toast as sonnerToast } from 'sonner';
 import { ToastAction } from '@/components/ui/toast';
 import { ensureEntradaSection } from '@/utils/ensureEntradaSection';
 import { UpgradeModal } from '@/components/UpgradeModal';
-
+import { GlobalSearch } from '@/components/GlobalSearch';
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
 function generateSectionTitle(projectName: string): string {
@@ -100,6 +100,7 @@ const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('meufluxo-sidebar-collapsed') === 'true');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   // Per-project active month map
   const [projectMonths, setProjectMonths] = useState<Record<string, string>>(() => {
     try {
@@ -144,12 +145,16 @@ const Index = () => {
   const listRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ target: 'sidebar' | 'detail'; startX: number; startWidth: number } | null>(null);
 
-  // Ctrl+Shift+N quick note shortcut
+  // Ctrl+Shift+N quick note shortcut + Cmd+K search
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'N') {
         e.preventDefault();
         setShowQuickNote(true);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowGlobalSearch(prev => !prev);
       }
     };
     window.addEventListener('keydown', handler);
@@ -1121,6 +1126,7 @@ const Index = () => {
     isPro: planLimits.isPro,
     collapsed: sidebarCollapsed,
     onToggleCollapse: () => setSidebarCollapsed(prev => { const next = !prev; localStorage.setItem('meufluxo-sidebar-collapsed', String(next)); return next; }),
+    onOpenSearch: () => setShowGlobalSearch(true),
   };
 
   // Determine active view for bottom nav
@@ -1881,6 +1887,32 @@ const Index = () => {
           onClose={() => setShowTemplateModal(false)}
         />
       )}
+      <GlobalSearch
+        open={showGlobalSearch}
+        onClose={() => setShowGlobalSearch(false)}
+        tasks={taskList}
+        projects={projects}
+        sections={sectionList}
+        attachments={attachments.map(a => ({ id: a.id, taskId: a.taskId, fileName: a.fileName }))}
+        onSelectTask={(taskId, projectId) => {
+          setSelectedTaskId(taskId);
+          setFocusedTaskId(taskId);
+          if (projectId) {
+            setActiveProjectId(projectId);
+            setIsMyDayView(false);
+            setIsMyWeekView(false);
+            setIsMyTasksView(false);
+            setIsNotesView(false);
+          }
+        }}
+        onSelectProject={(projectId) => {
+          setActiveProjectId(projectId);
+          setIsMyDayView(false);
+          setIsMyWeekView(false);
+          setIsMyTasksView(false);
+          setIsNotesView(false);
+        }}
+      />
       {confirmDialog}
     </div>
   );
