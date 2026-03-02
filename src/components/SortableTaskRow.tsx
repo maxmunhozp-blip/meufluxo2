@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { GripVertical, MessageSquare, Play, Repeat, Plus, CalendarDays } from 'lucide-react';
+import { GripVertical, MessageSquare, Play, Repeat, Plus, CalendarDays, ListPlus, Copy, FolderInput, CalendarArrowDown, CalendarCheck, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Task, TaskStatus, Subtask, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -35,6 +35,7 @@ interface SortableTaskRowProps {
   onConvertSubtaskToTask?: (subtaskId: string) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   isFadingOut?: boolean;
+  onScheduleToday?: (taskId: string) => void;
 }
 
 function formatDate(dateStr?: string): string {
@@ -211,7 +212,7 @@ function InlineSubtaskInput({ taskId, onAddSubtask }: { taskId: string; onAddSub
   );
 }
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -550,16 +551,15 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
           items={[
             {
               label: 'Adicionar subtarefa',
+              icon: <ListPlus style={{ width: 15, height: 15 }} />,
               onClick: () => {
                 setExpanded(true);
                 setTimeout(() => {
                   const row = document.querySelector(`[data-task-id="${task.id}"]`);
-                  // Try to find existing input first, otherwise click the add button
                   const input = row?.querySelector<HTMLInputElement>('.subtask-inline-input');
                   if (input) {
                     input.focus();
                   } else {
-                    // Click the "Adicionar subtarefa..." button to activate the input
                     const btn = row?.querySelector<HTMLButtonElement>('.subtask-add-btn');
                     btn?.click();
                   }
@@ -568,10 +568,17 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             },
             {
               label: 'Duplicar tarefa',
+              icon: <Copy style={{ width: 15, height: 15 }} />,
               onClick: () => onDuplicateTask?.(task.id),
             },
+            ...(onScheduleToday ? [{
+              label: 'Agendar pra hoje',
+              icon: <CalendarCheck style={{ width: 15, height: 15 }} />,
+              onClick: () => onScheduleToday(task.id),
+            }] : []),
             ...(sections && sections.filter(s => s.id !== task.section).length > 0 ? [{
               label: 'Mover para seção',
+              icon: <FolderInput style={{ width: 15, height: 15 }} />,
               children: sections.filter(s => s.id !== task.section).map(s => ({
                 label: s.title,
                 onClick: () => onMoveToSection?.(task.id, s.id),
@@ -579,6 +586,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             }] : []),
             ...(onMoveToMonth ? [{
               label: 'Mover para mês',
+              icon: <CalendarArrowDown style={{ width: 15, height: 15 }} />,
               customContent: (
                 <MonthYearPicker onSelect={(year, month) => {
                   onMoveToMonth(task.id, year, month);
@@ -588,6 +596,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             }] : []),
             {
               label: 'Excluir tarefa',
+              icon: <Trash2 style={{ width: 15, height: 15 }} />,
               danger: true,
               onClick: () => {
                 onDeleteTask?.(task.id);

@@ -59,6 +59,7 @@ interface TaskSectionProps {
   fadingOutTaskId?: string | null;
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
+  onScheduleToday?: (taskId: string) => void;
 }
 
 // Footer input with Tab-indent support
@@ -182,6 +183,7 @@ export function TaskSection({
   fadingOutTaskId,
   onMoveSectionToMonth,
   onNestAsSubtask,
+  onScheduleToday,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -358,6 +360,7 @@ export function TaskSection({
                 onConvertSubtaskToTask={onConvertSubtaskToTask}
                 onNestAsSubtask={onNestAsSubtask}
                 isFadingOut={fadingOutTaskId === task.id}
+                onScheduleToday={onScheduleToday}
               />
             ))}
           </SortableContext>
