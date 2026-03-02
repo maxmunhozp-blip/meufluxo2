@@ -333,10 +333,10 @@ export function WeekTimelineView({
                               onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                             >
                               {/* Line 1: Context */}
-                              <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+                              <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-secondary)', opacity: 0.55, fontWeight: 400, lineHeight: 1.3 }}>
                                 <span
                                   className="flex-shrink-0 rounded-full"
-                                  style={{ width: 5, height: 5, background: project?.color || 'var(--accent-blue)', opacity: 0.7 }}
+                                  style={{ width: 5, height: 5, background: project?.color || 'var(--accent-blue)', opacity: 0.85 }}
                                 />
                                 {(() => {
                                   const section = sections.find(s => s.id === task.section);
