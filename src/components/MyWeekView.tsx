@@ -186,12 +186,11 @@ function DayColumn({
       ref={setNodeRef}
       className="flex flex-col flex-1 min-w-0 transition-colors"
       style={{
-        background: isCurrentDay ? 'var(--accent-subtle)' : 'transparent',
-        borderRight: '1px solid var(--border-subtle)',
-        ...(highlight ? {
-          border: '1px dashed var(--accent-blue)',
-          background: 'var(--accent-subtle)',
-        } : {}),
+        background: highlight ? 'var(--accent-subtle)' : isCurrentDay ? 'var(--accent-subtle)' : 'transparent',
+        borderTop: highlight ? '1px dashed var(--accent-blue)' : undefined,
+        borderBottom: highlight ? '1px dashed var(--accent-blue)' : undefined,
+        borderLeft: highlight ? '1px dashed var(--accent-blue)' : undefined,
+        borderRight: highlight ? '1px dashed var(--accent-blue)' : '1px solid var(--border-subtle)',
       }}
     >
       {/* Column header */}
@@ -816,6 +815,7 @@ export function MyWeekView({
               dueDate: sub.dueDate, scheduledDate: sub.scheduledDate,
               section: sub.section, projectId: sub.projectId || parent.projectId,
               parentTaskId: sub.parentTaskId, members: sub.members, subtasks: sub.subtasks,
+              position: (sub as any).position ?? parent.position ?? 0,
             };
             if (!map[dateKey].some(e => e.id === sub.id)) map[dateKey].push(pseudo);
           }

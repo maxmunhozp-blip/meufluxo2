@@ -253,6 +253,7 @@ export function MyDayView({
       status: sub.status,
       parentTaskId: sub.parentTaskId,
       dayPeriod: sub.dayPeriod || parent.dayPeriod || 'morning',
+      position: (sub as any).position ?? parent.position ?? 0,
     });
 
     tasks.forEach(t => {
@@ -386,7 +387,16 @@ export function MyDayView({
     }
   };
 
-  const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
+  // Find drag task — search top-level tasks first, then subtask pseudo-tasks in todayTasks
+  const activeDragTask = useMemo(() => {
+    if (!activeDragId) return null;
+    const topLevel = tasks.find(t => t.id === activeDragId);
+    if (topLevel) return topLevel;
+    // Search in todayTasks (subtask pseudo-tasks)
+    const pseudo = todayTasks.find(t => t.id === activeDragId);
+    if (pseudo) return pseudo;
+    return null;
+  }, [activeDragId, tasks, todayTasks]);
   const firstName = userName?.split(' ')[0] || 'Usuário';
   const allEmpty = todayTasks.length === 0;
 
