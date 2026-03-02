@@ -876,23 +876,31 @@ export function MyWeekView({
       setDragOverDay(over.data.current.date);
       setOverItemId(null);
       setDropLinePosition(null);
-    } else if (over?.data.current?.type === 'week-task' && active.data.current?.type === 'week-task') {
-      // Show drop indicator between cards in same day
-      const activeTask = active.data.current.task as Task;
+    } else if (over?.data.current?.type === 'week-task') {
       const overTask = over.data.current.task as Task;
       const targetDate = overTask.scheduledDate || overTask.dueDate;
-      const dayTasks = targetDate ? (tasksByDay[targetDate] || []) : [];
-      const activeIdx = dayTasks.findIndex(t => t.id === activeTask.id);
-      const overIdx = dayTasks.findIndex(t => t.id === overTask.id);
-      setOverItemId(over.id as string);
-      setDropLinePosition(activeIdx > overIdx ? 'top' : 'bottom');
-      // Also highlight the day column
-      setDragOverDay(targetDate || null);
-    } else if (over?.data.current?.type === 'week-task') {
-      // Source task dragged over a week-task — show indicator
-      setOverItemId(over.id as string);
-      setDropLinePosition('bottom');
-      const targetDate = (over.data.current.task as Task).scheduledDate || (over.data.current.task as Task).dueDate;
+      
+      if (active.data.current?.type === 'week-task') {
+        // Same-context reorder: determine position from pointer relative to element center
+        const activeTask = active.data.current.task as Task;
+        const dayTasks = targetDate ? (tasksByDay[targetDate] || []) : [];
+        const activeIdx = dayTasks.findIndex(t => t.id === activeTask.id);
+        const overIdx = dayTasks.findIndex(t => t.id === overTask.id);
+        
+        // Use the delta from dnd-kit to determine direction
+        const delta = event.delta?.y ?? 0;
+        setOverItemId(over.id as string);
+        if (activeIdx === -1) {
+          // Coming from another day — always show bottom
+          setDropLinePosition('bottom');
+        } else {
+          setDropLinePosition(activeIdx < overIdx ? 'bottom' : 'top');
+        }
+      } else {
+        // Source task dragged over a week-task
+        setOverItemId(over.id as string);
+        setDropLinePosition('bottom');
+      }
       setDragOverDay(targetDate || null);
     } else {
       setDragOverDay(null);
@@ -1157,9 +1165,10 @@ export function MyWeekView({
                     background: 'var(--bg-elevated)',
                     boxShadow: '0 12px 32px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1)',
                     maxWidth: 260,
+                    minWidth: 120,
                   }}
                 >
-                  <span className="text-[11px] leading-[1.4] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
+                  <span className="text-[12px] leading-[1.4] line-clamp-2" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
                   <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
                     <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
                     {dragProject && <span>{dragProject.name}</span>}
