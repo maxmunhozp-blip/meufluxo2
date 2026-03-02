@@ -30,9 +30,11 @@ export function useSectionPreferences(userId: string | undefined) {
         .maybeSingle();
 
       if (data?.collapsed_sections) {
-        const collapsed = data.collapsed_sections as string[];
+        // Legacy: collapsed_sections stores IDs that were explicitly set
+        // Now we treat stored IDs as expanded sections (inverted default)
+        const stored = data.collapsed_sections as string[];
         const record: Record<string, boolean> = {};
-        collapsed.forEach(id => { record[id] = false; });
+        stored.forEach(id => { record[id] = true; });
         setExpandedSections(record);
         localStorage.setItem('meufluxo_expanded_sections', JSON.stringify(record));
       }
@@ -45,14 +47,15 @@ export function useSectionPreferences(userId: string | undefined) {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
     saveTimerRef.current = setTimeout(async () => {
-      const collapsed = Object.entries(record)
-        .filter(([, v]) => v === false)
+      // Store expanded section IDs (since default is now collapsed)
+      const expanded = Object.entries(record)
+        .filter(([, v]) => v === true)
         .map(([k]) => k);
 
       await (supabase as any)
         .from('user_preferences')
         .upsert(
-          { user_id: userId, collapsed_sections: collapsed },
+          { user_id: userId, collapsed_sections: expanded },
           { onConflict: 'user_id' }
         );
     }, 500);
@@ -60,7 +63,7 @@ export function useSectionPreferences(userId: string | undefined) {
 
   const toggleSection = useCallback((sectionId: string) => {
     setExpandedSections(prev => {
-      const next = { ...prev, [sectionId]: prev[sectionId] === false ? true : false };
+      const next = { ...prev, [sectionId]: prev[sectionId] === true ? false : true };
       localStorage.setItem('meufluxo_expanded_sections', JSON.stringify(next));
       persistToDB(next);
       return next;
@@ -69,7 +72,7 @@ export function useSectionPreferences(userId: string | undefined) {
 
   const expandSection = useCallback((sectionId: string) => {
     setExpandedSections(prev => {
-      if (prev[sectionId] !== false) return prev; // already expanded
+      if (prev[sectionId] === true) return prev; // already expanded
       const next = { ...prev, [sectionId]: true };
       localStorage.setItem('meufluxo_expanded_sections', JSON.stringify(next));
       persistToDB(next);
@@ -78,7 +81,7 @@ export function useSectionPreferences(userId: string | undefined) {
   }, [persistToDB]);
 
   const isSectionExpanded = useCallback((sectionId: string) => {
-    return expandedSections[sectionId] !== false;
+    return expandedSections[sectionId] === true;
   }, [expandedSections]);
 
   return { expandedSections, toggleSection, expandSection, isSectionExpanded };
