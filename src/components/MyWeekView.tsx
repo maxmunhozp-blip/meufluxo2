@@ -42,6 +42,8 @@ function WeekTaskCard({
   onSelect,
   truncate,
   isRolledOverOrigin,
+  sectionName,
+  parentTaskName,
 }: {
   task: Task;
   projectColor: string;
@@ -49,6 +51,8 @@ function WeekTaskCard({
   onSelect: () => void;
   truncate?: boolean;
   isRolledOverOrigin?: boolean;
+  sectionName?: string;
+  parentTaskName?: string;
 }) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
@@ -83,6 +87,11 @@ function WeekTaskCard({
         onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
       >
+        {(sectionName || parentTaskName) && (
+          <span className="truncate block" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.2 }}>
+            {sectionName}{sectionName && parentTaskName ? ' · ' : ''}{parentTaskName && <i>{parentTaskName}</i>}
+          </span>
+        )}
         <span
           className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'line-through opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
           style={{ color: 'var(--text-primary)', fontWeight: 400 }}
@@ -98,7 +107,9 @@ function WeekTaskCard({
 function DayColumn({
   dayDate,
   tasks,
+  allTasks,
   projects,
+  sections,
   isCurrentDay,
   isDragOver,
   onSelectTask,
@@ -107,7 +118,9 @@ function DayColumn({
 }: {
   dayDate: Date;
   tasks: Task[];
+  allTasks: Task[];
   projects: Project[];
+  sections: Section[];
   isCurrentDay: boolean;
   isDragOver: boolean;
   onSelectTask: (t: Task) => void;
@@ -175,6 +188,8 @@ function DayColumn({
                 onSelect={() => onSelectTask(task)}
                 truncate={truncateText}
                 isRolledOverOrigin={isRolledOverOrigin}
+                sectionName={sections.find(s => s.id === task.section)?.title}
+                parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
               />
             );
           })}
@@ -886,7 +901,9 @@ export function MyWeekView({
                     key={dateKey}
                     dayDate={dayDate}
                     tasks={dayTasks}
+                    allTasks={tasks}
                     projects={projects}
+                    sections={sections}
                     isCurrentDay={isToday(dayDate)}
                     isDragOver={dragOverDay === dateKey}
                     onSelectTask={onSelectTask}

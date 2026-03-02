@@ -333,6 +333,14 @@ export function WeekTimelineView({
                               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
                               onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                             >
+                              {task.parentTaskId && (() => {
+                                const parent = tasks.find(t => t.id === task.parentTaskId);
+                                return parent ? (
+                                  <span className="truncate block" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.2 }}>
+                                    <i>{parent.name}</i>
+                                  </span>
+                                ) : null;
+                              })()}
                               <span className="truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>
                                 {task.name}
                               </span>
