@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useRef } from 'react';
 import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays, addDays, subDays, isToday, isTomorrow, isYesterday, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -297,27 +297,22 @@ function CollapsedPeriodSummary({
 /* ── Period section ── */
 function PeriodSection({
   period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap, overItemId, dropLinePosition, justDroppedId, isDragActive,
-  promotedTasks,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
   overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null;
   isDragActive?: boolean;
-  promotedTasks?: { task: Task; fromPeriod: DayPeriod }[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
   const PeriodIcon = period.icon;
   const headerOpacity = periodState === 'current' ? 1 : 0.7;
   const headerColor = periodState === 'current' ? 'var(--text-secondary)' : 'var(--text-tertiary)';
-  const isEmpty = tasks.length === 0 && (!promotedTasks || promotedTasks.length === 0);
+  const isEmpty = tasks.length === 0;
 
-  // Combine own tasks + promoted tasks for rendering
   const allDisplayTasks = useMemo(() => {
-    const own = tasks.map(t => ({ task: t, promoted: false, fromPeriod: undefined as DayPeriod | undefined }));
-    const promoted = (promotedTasks || []).map(p => ({ task: p.task, promoted: true, fromPeriod: p.fromPeriod }));
-    return [...own, ...promoted];
-  }, [tasks, promotedTasks]);
+    return tasks.map(t => ({ task: t, promoted: false, fromPeriod: undefined as DayPeriod | undefined }));
+  }, [tasks]);
 
   const allTaskIds = useMemo(() => allDisplayTasks.map(dt => dt.task.id), [allDisplayTasks]);
 
@@ -444,35 +439,15 @@ function TempoVivoLayout({
     return { activePeriods: active, futurePeriods: future, pastPeriods: past };
   }, [viewingToday, currentPeriodOrder]);
 
-  // Compute promoted tasks: pending tasks from past periods → shown in active period
-  const promotedToActive = useMemo(() => {
-    if (!viewingToday) return [];
-    const promoted: { task: Task; fromPeriod: DayPeriod }[] = [];
-    pastPeriods.forEach(p => {
-      tasksByPeriod[p.key].forEach(t => {
-        if (t.status !== 'done') {
-          promoted.push({ task: t, fromPeriod: p.key });
-        }
-      });
-    });
-    return promoted;
-  }, [viewingToday, pastPeriods, tasksByPeriod]);
-
-  // Active period's own tasks (exclude done if promoted pending exist, to reduce noise)
-  const activeOwnTasks = useMemo(() => {
-    if (!viewingToday || activePeriods.length === 0) return {};
-    const result: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
-    activePeriods.forEach(p => { result[p.key] = tasksByPeriod[p.key]; });
-    return result;
-  }, [viewingToday, activePeriods, tasksByPeriod]);
+  // Promotion is now handled in tasksByPeriod — no separate promotedToActive needed
 
   return (
     <div className="max-w-[640px] mx-auto">
-      {/* Active period(s) — with promoted tasks */}
+      {/* Active period(s) — tasks already include promoted ones from tasksByPeriod */}
       {activePeriods.map(period => (
         <PeriodSection
           key={period.key} period={period}
-          tasks={viewingToday ? tasksByPeriod[period.key] : tasksByPeriod[period.key]}
+          tasks={tasksByPeriod[period.key]}
           allTasks={allTasks} projects={projects} sections={sections}
           periodState={viewingToday ? 'current' : 'future'}
           selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
@@ -480,7 +455,6 @@ function TempoVivoLayout({
           rolloverMap={rolloverMap} overItemId={overItemId}
           dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
           isDragActive={!!activeDragId}
-          promotedTasks={viewingToday ? promotedToActive : undefined}
         />
       ))}
 
@@ -502,8 +476,8 @@ function TempoVivoLayout({
       {pastPeriods.length > 0 && (
         <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
           {pastPeriods.map(period => {
-            // Only show done tasks in collapsed past — pending ones are promoted to active
-            const pastTasks = tasksByPeriod[period.key].filter(t => t.status === 'done');
+            // Past periods only contain tasks not promoted away — show them all
+            const pastTasks = tasksByPeriod[period.key];
             return (
             <CollapsedPeriodSummary
               key={period.key}
@@ -548,6 +522,8 @@ export function MyDayView({
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  // Track which display period a promoted task was shown in when completed
+  const completedDisplayPeriodRef = useRef<Map<string, DayPeriod>>(new Map());
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
@@ -649,18 +625,63 @@ export function MyDayView({
 
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
-    todayTasks.forEach(t => { const p = (t.dayPeriod || 'morning') as DayPeriod; map[p].push(t); });
+    todayTasks.forEach(t => {
+      const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
+      let displayPeriod = dbPeriod;
+
+      if (viewingToday) {
+        if (t.status === 'done') {
+          // If we tracked where this task was displayed when completed, use that
+          const savedPeriod = completedDisplayPeriodRef.current.get(t.id);
+          if (savedPeriod) {
+            displayPeriod = savedPeriod;
+          } else if (getPeriodOrder(dbPeriod) < currentPeriodOrder) {
+            // Done task from past period with no tracking — show in its DB period
+            displayPeriod = dbPeriod;
+          }
+        } else {
+          // Pending/in_progress: promote past-period tasks to active period
+          if (getPeriodOrder(dbPeriod) < currentPeriodOrder) {
+            displayPeriod = currentPeriod;
+          }
+        }
+      }
+
+      map[displayPeriod].push(t);
+    });
+    // Sort within each period: pending first, done last, each group by position
     Object.keys(map).forEach(key => {
       const period = key as DayPeriod;
-      // Sort: pending/in_progress first (by position), then done (by position)
       const pending = map[period].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       const done = map[period].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       map[period] = [...pending, ...done];
     });
     return map;
-  }, [todayTasks, rolloverMap]);
+  }, [todayTasks, rolloverMap, viewingToday, currentPeriod, currentPeriodOrder]);
 
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
+
+  // Wrap onStatusChange to track display period for promoted tasks
+  const handleStatusChangeWrapped = useCallback((taskId: string, status: TaskStatus) => {
+    if (status === 'done' && viewingToday) {
+      // Find which display period this task is currently shown in
+      for (const periodKey of ['morning', 'afternoon', 'evening'] as DayPeriod[]) {
+        if (tasksByPeriod[periodKey].some(t => t.id === taskId)) {
+          const task = tasksByPeriod[periodKey].find(t => t.id === taskId);
+          const dbPeriod = (task?.dayPeriod || 'morning') as DayPeriod;
+          // Only track if the display period differs from DB period (i.e. it was promoted)
+          if (periodKey !== dbPeriod) {
+            completedDisplayPeriodRef.current.set(taskId, periodKey);
+          }
+          break;
+        }
+      }
+    } else if (status !== 'done') {
+      // Uncompleting — remove tracking so it gets promoted again
+      completedDisplayPeriodRef.current.delete(taskId);
+    }
+    onStatusChange(taskId, status);
+  }, [onStatusChange, viewingToday, tasksByPeriod]);
 
   const handleDragStart = (event: DragStartEvent) => { const data = event.active.data.current; if (data?.type === 'day-task') setActiveDragId(data.task.id); };
   const handleDragOver = (event: DragOverEvent) => {
@@ -901,7 +922,7 @@ export function MyDayView({
                       const project = projects.find(p => p.id === task.projectId);
                       return (
                         <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                          onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
+                          onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
                           rolloverDays={rolloverMap.get(task.id)}
                           sectionName={sections.find(s => s.id === task.section)?.title}
                           parentTaskName={task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
@@ -925,7 +946,7 @@ export function MyDayView({
             viewingToday={viewingToday}
             selectedTaskId={selectedTaskId}
             onSelectTask={onSelectTask}
-            onStatusChange={onStatusChange}
+            onStatusChange={handleStatusChangeWrapped}
             onUpdateTask={onUpdateTask}
             rolloverMap={rolloverMap}
             overItemId={overItemId}
@@ -958,7 +979,7 @@ export function MyDayView({
       </div>
 
       {focusModeOpen && (
-        <FocusMode tasks={todayTasks} projects={projects} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
+        <FocusMode tasks={todayTasks} projects={projects} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
       )}
     </div>
   );
