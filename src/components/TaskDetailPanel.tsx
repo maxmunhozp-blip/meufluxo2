@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -825,6 +825,28 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             placeholder="Nome da tarefa..." rows={1}
             className="w-full bg-transparent border-none focus:outline-none resize-none overflow-hidden mb-2"
             style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4, padding: 0 }} />
+
+          {/* Completion badge — quiet proof of accomplishment */}
+          {localTask.status === 'done' && (() => {
+            const completedDate = localTask.completedAt ? new Date(localTask.completedAt) : null;
+            if (!completedDate) return null;
+            const day = String(completedDate.getDate()).padStart(2, '0');
+            const month = String(completedDate.getMonth() + 1).padStart(2, '0');
+            const year = completedDate.getFullYear();
+            const weekdays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+            const weekday = weekdays[completedDate.getDay()];
+            return (
+              <div className="flex items-center gap-1.5 mb-3 select-none" style={{ opacity: 0.85 }}>
+                <BadgeCheck className="w-[14px] h-[14px] flex-shrink-0" style={{ color: 'hsl(var(--status-done))' }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'hsl(var(--status-done))', letterSpacing: '0.01em' }}>
+                  Concluída em {day}/{month}/{year}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400 }}>
+                  · {weekday}
+                </span>
+              </div>
+            );
+          })()}
 
           {/* Description */}
           <div className="mb-5">
