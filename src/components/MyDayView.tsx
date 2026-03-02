@@ -72,8 +72,10 @@ function DayTaskCard({
   };
 
   const handleStatus = (s: TaskStatus) => {
-    if (s === 'done') { setCompleting(true); setTimeout(() => { onStatusChange(task.id, s); setCompleting(false); }, 400); }
-    else { onStatusChange(task.id, s); }
+    // Binary toggle: pending ↔ done (skip in_progress to reduce cognitive load for neurodivergent users)
+    const targetStatus: TaskStatus = task.status === 'done' ? 'pending' : 'done';
+    if (targetStatus === 'done') { setCompleting(true); setTimeout(() => { onStatusChange(task.id, targetStatus); setCompleting(false); }, 400); }
+    else { onStatusChange(task.id, targetStatus); }
   };
 
   const isDone = task.status === 'done';
@@ -91,14 +93,17 @@ function DayTaskCard({
       </div>
       <div className="w-3 flex-shrink-0" />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
-        {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
-        {projectName && (sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-        {sectionName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400 }}>{sectionName}</span>}
-        {sectionName && parentTaskName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-        {parentTaskName && <span className="flex-shrink-0 text-[11px] truncate max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic' }}>{parentTaskName}</span>}
-        {(projectName || sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
         <span className={`min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
           style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
+        {(projectName || sectionName || parentTaskName) && (
+          <span className="flex-shrink-0 flex items-center gap-1 min-w-0" style={{ opacity: isDone || completing ? 0.3 : 0.55 }}>
+            {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400 }}>{projectName}</span>}
+            {projectName && sectionName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+            {sectionName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400 }}>{sectionName}</span>}
+            {(projectName || sectionName) && parentTaskName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+            {parentTaskName && <span className="flex-shrink-0 text-[11px] truncate max-w-[100px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic' }}>{parentTaskName}</span>}
+          </span>
+        )}
       </div>
       {rolloverDays && rolloverDays > 0 && (
         <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
