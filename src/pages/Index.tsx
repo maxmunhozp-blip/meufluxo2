@@ -294,6 +294,9 @@ const Index = () => {
     return null;
   }, [selectedTaskId, taskList]);
 
+  // Store original positions before moving completed tasks to the end
+  const originalPositionsRef = useRef<Map<string, number>>(new Map());
+
   const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
     const prev = taskList.find(t => t.id === taskId);
     const prevStatus = prev?.status || 'pending';
@@ -301,11 +304,13 @@ const Index = () => {
 
     // Move completed tasks to the end of their section/period
     if (newStatus === 'done' && prev) {
+      // Save original position before moving
+      originalPositionsRef.current.set(taskId, prev.position ?? 0);
+
       const today = new Date().toISOString().slice(0, 10);
       const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
       let siblings: Task[];
       if (isMyDayTask) {
-        // In Meu Dia: siblings are tasks in the same dayPeriod scheduled for today
         siblings = taskList.filter(t =>
           t.scheduledDate === today &&
           (t.dayPeriod || 'morning') === (prev.dayPeriod || 'morning') &&
@@ -313,11 +318,19 @@ const Index = () => {
           t.id !== taskId
         );
       } else {
-        // In project view: siblings are tasks in the same section
         siblings = taskList.filter(t => t.section === prev.section && !t.parentTaskId && t.id !== taskId);
       }
       const maxPos = siblings.reduce((max, t) => Math.max(max, t.position ?? 0), 0);
       batchUpdatePositions([{ id: taskId, position: maxPos + 1 }]);
+    }
+
+    // Restore original position when uncompleting a task
+    if (prevStatus === 'done' && newStatus !== 'done') {
+      const originalPos = originalPositionsRef.current.get(taskId);
+      if (originalPos !== undefined) {
+        batchUpdatePositions([{ id: taskId, position: originalPos }]);
+        originalPositionsRef.current.delete(taskId);
+      }
     }
 
     pushUndo({
