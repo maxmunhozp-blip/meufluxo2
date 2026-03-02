@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -99,11 +99,17 @@ function DayTaskCard({
         onContextMenu={handleContextMenu}
         onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-        <div className="w-4 flex-shrink-0 flex items-center justify-center">
+        <div {...attributes} {...listeners}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing mr-0.5"
+          onClick={(e) => e.stopPropagation()}
+          style={{ touchAction: 'none' }}>
+          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+        </div>
+        <div className="w-1 flex-shrink-0 flex items-center justify-center">
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor }} />
         </div>
-        <div className="w-1 flex-shrink-0" />
-        <div {...attributes} {...listeners} className="flex-shrink-0 cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
+        <div className="w-2 flex-shrink-0" />
+        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
         </div>
         <div className="w-3 flex-shrink-0" />
