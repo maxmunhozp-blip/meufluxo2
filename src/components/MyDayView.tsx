@@ -434,6 +434,8 @@ function TempoVivoLayout({
       else if (order > currentPeriodOrder) future.push(p);
       else past.push(p);
     });
+    // Past periods in reverse order (most recent first, e.g. Tarde before Manhã)
+    past.reverse();
     return { activePeriods: active, futurePeriods: future, pastPeriods: past };
   }, [viewingToday, currentPeriodOrder]);
 
