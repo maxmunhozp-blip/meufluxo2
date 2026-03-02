@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   addDays, addMonths, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
   startOfWeek, startOfMonth,
@@ -848,6 +848,16 @@ export function MyWeekView({
     return map;
   }, [tasks, visibleDates]);
 
+  // Helper: get the effective display date of a task (considering rollover to today)
+  const getEffectiveDate = useCallback((task: Task): string | undefined => {
+    const dateKey = task.scheduledDate || task.dueDate;
+    if (!dateKey) return undefined;
+    const todayKey = format(startOfDay(new Date()), 'yyyy-MM-dd');
+    // If the task appears in today's column (rollover), treat it as today
+    if (tasksByDay[todayKey]?.some(t => t.id === task.id)) return todayKey;
+    return dateKey;
+  }, [tasksByDay]);
+
   // Pending count for mobile FAB
   const pendingCount = useMemo(() => tasks.filter(t => t.status !== 'done' && !t.parentTaskId && !t.scheduledDate).length, [tasks]);
 
@@ -885,30 +895,25 @@ export function MyWeekView({
       setDropLinePosition(null);
     } else if (over?.data.current?.type === 'week-task') {
       const overTask = over.data.current.task as Task;
-      const targetDate = overTask.scheduledDate || overTask.dueDate;
+      const effectiveOverDate = getEffectiveDate(overTask);
       
       if (active.data.current?.type === 'week-task') {
-        // Same-context reorder: determine position from pointer relative to element center
         const activeTask = active.data.current.task as Task;
-        const dayTasks = targetDate ? (tasksByDay[targetDate] || []) : [];
+        const dayTasks = effectiveOverDate ? (tasksByDay[effectiveOverDate] || []) : [];
         const activeIdx = dayTasks.findIndex(t => t.id === activeTask.id);
         const overIdx = dayTasks.findIndex(t => t.id === overTask.id);
         
-        // Use the delta from dnd-kit to determine direction
-        const delta = event.delta?.y ?? 0;
         setOverItemId(over.id as string);
         if (activeIdx === -1) {
-          // Coming from another day — always show bottom
           setDropLinePosition('bottom');
         } else {
           setDropLinePosition(activeIdx < overIdx ? 'bottom' : 'top');
         }
       } else {
-        // Source task dragged over a week-task
         setOverItemId(over.id as string);
         setDropLinePosition('bottom');
       }
-      setDragOverDay(targetDate || null);
+      setDragOverDay(effectiveOverDate || null);
     } else {
       setDragOverDay(null);
       setOverItemId(null);
@@ -952,17 +957,27 @@ export function MyWeekView({
     if (activeData?.type === 'week-task' && overData?.type === 'week-task') {
       const draggedTask = activeData.task as Task;
       const targetTask = overData.task as Task;
-      const draggedDate = draggedTask.scheduledDate || draggedTask.dueDate;
-      const targetDate = targetTask.scheduledDate || targetTask.dueDate;
+      const effectiveDraggedDate = getEffectiveDate(draggedTask);
+      const effectiveTargetDate = getEffectiveDate(targetTask);
 
-      // Same day → reorder with position persistence
-      if (draggedDate && targetDate && draggedDate === targetDate) {
-        const dayTasks = [...(tasksByDay[targetDate] || [])];
+      // Same display column → reorder with position persistence
+      if (effectiveDraggedDate && effectiveTargetDate && effectiveDraggedDate === effectiveTargetDate) {
+        const dayTasks = [...(tasksByDay[effectiveTargetDate] || [])];
         const oldIdx = dayTasks.findIndex(t => t.id === draggedTask.id);
         const newIdx = dayTasks.findIndex(t => t.id === targetTask.id);
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
           const reordered = arrayMove(dayTasks, oldIdx, newIdx);
           const updates = reordered.map((t, i) => ({ id: t.id, position: i }));
+          // Also update the scheduledDate for rolled-over tasks so they stick to today
+          const todayKey = format(startOfDay(new Date()), 'yyyy-MM-dd');
+          if (effectiveTargetDate === todayKey) {
+            reordered.forEach((t, i) => {
+              const taskDate = t.scheduledDate || t.dueDate;
+              if (taskDate && taskDate !== todayKey && t.status !== 'done') {
+                onUpdateTask({ ...t, scheduledDate: todayKey, position: i });
+              }
+            });
+          }
           if (onBatchUpdatePositions) {
             onBatchUpdatePositions(updates);
           } else {
@@ -973,8 +988,8 @@ export function MyWeekView({
       }
 
       // Different day → move to target day
-      if (targetDate && draggedTask.scheduledDate !== targetDate) {
-        onUpdateTask({ ...draggedTask, scheduledDate: targetDate });
+      if (effectiveTargetDate && draggedTask.scheduledDate !== effectiveTargetDate) {
+        onUpdateTask({ ...draggedTask, scheduledDate: effectiveTargetDate });
       }
       return;
     }
