@@ -536,19 +536,22 @@ export function MyDayView({
                 </div>
               )}
             </div>
-            <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' }}>
-              {activeDragTask ? (
-                <div className="h-[44px] flex items-center gap-2 px-3 rounded-lg"
-                  style={{
-                    background: 'var(--bg-surface)',
-                    borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
-                    opacity: 0.95,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.1)',
-                    transform: 'rotate(0.5deg) scale(1.02)',
-                  }}>
-                  <span className="text-[14px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
-                </div>
-              ) : null}
+            <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
+              {activeDragTask ? (() => {
+                const dragProject = projects.find(p => p.id === activeDragTask.projectId);
+                return (
+                  <div className="h-[44px] flex items-center gap-2 px-3 rounded-lg"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.1)',
+                      transform: 'scale(1.015)',
+                      maxWidth: 480,
+                    }}>
+                    <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.75 }} />
+                    <span className="text-[14px] truncate" style={{ color: 'var(--text-primary)', fontWeight: 400 }}>{activeDragTask.name}</span>
+                  </div>
+                );
+              })() : null}
             </DragOverlay>
           </DndContext>
         )}
