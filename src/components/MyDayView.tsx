@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays, addDays } from 'date-fns';
+import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays, addDays, subDays, isToday, isTomorrow, isYesterday, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -8,13 +8,16 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical, Check, Clock, CalendarDays, CalendarPlus, XCircle } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Check, Clock, CalendarDays, CalendarPlus, CalendarCheck, XCircle } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
 import { DropIndicatorLine } from './DropIndicatorLine';
 import { ContextMenu } from './ContextMenu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface MyDayViewProps {
   tasks: Task[];
@@ -301,6 +304,8 @@ function PeriodSection({
 export function MyDayView({
   tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
 }: MyDayViewProps) {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
@@ -311,10 +316,22 @@ export function MyDayView({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
-  const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const viewingToday = isToday(selectedDate);
+  const selectedDateStr = useMemo(() => format(selectedDate, 'yyyy-MM-dd'), [selectedDate]);
+
+  // Temporal distance for badges
+  const daysDiff = useMemo(() => differenceInCalendarDays(selectedDate, startOfDay(new Date())), [selectedDate]);
+  const getTemporalLabel = (): string => {
+    if (viewingToday) return '';
+    if (isYesterday(selectedDate)) return 'ontem';
+    if (isTomorrow(selectedDate)) return 'amanhã';
+    const abs = Math.abs(daysDiff);
+    if (daysDiff < 0) return abs <= 7 ? `${abs} dias atrás` : `${Math.ceil(abs / 7)} sem. atrás`;
+    return abs <= 7 ? `em ${abs} dias` : `em ${Math.ceil(abs / 7)} sem.`;
+  };
 
   const { todayTasks, rolloverMap } = useMemo(() => {
-    const todayStart = startOfDay(new Date());
+    const todayStart = startOfDay(selectedDate);
     const scheduled: Task[] = [];
     const scheduledIds = new Set<string>();
 
@@ -333,14 +350,14 @@ export function MyDayView({
     tasks.forEach(t => {
       if (t.parentTaskId) return;
       let isScheduled = false;
-      if (t.scheduledDate === todayStr) isScheduled = true;
-      else if (t.dueDate === todayStr && !t.scheduledDate) isScheduled = true;
+      if (t.scheduledDate === selectedDateStr) isScheduled = true;
+      else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
       if (isScheduled) { scheduled.push(t); scheduledIds.add(t.id); }
 
-      // Check subtasks scheduled for today
+      // Check subtasks scheduled for selected date
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach((sub, idx) => {
-          if (sub.scheduledDate === todayStr) {
+          if (sub.scheduledDate === selectedDateStr) {
             const promoted = promoteSubtask(sub, parent, idx);
             scheduled.push(promoted);
             scheduledIds.add(sub.id);
@@ -353,12 +370,12 @@ export function MyDayView({
 
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
-    if (isPro) {
-      // Check top-level tasks for overdue
+    if (isPro && viewingToday) {
+      // Overdue rollover only applies when viewing today
       tasks.forEach(t => {
         if (t.parentTaskId || t.status === 'done') return;
         if (scheduledIds.has(t.id)) return;
-        if (t.scheduledDate && t.scheduledDate < todayStr) {
+        if (t.scheduledDate && t.scheduledDate < selectedDateStr) {
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
           if (days > 0) { rMap.set(t.id, days); overdue.push(t); }
           return;
@@ -375,7 +392,7 @@ export function MyDayView({
         const findOverdueSubtasks = (subs: any[], parent: Task) => {
           subs.forEach((sub, idx) => {
             if (sub.status === 'done' || scheduledIds.has(sub.id)) return;
-            if (sub.scheduledDate && sub.scheduledDate < todayStr) {
+            if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
               const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
               if (days > 0) {
                 const promoted = promoteSubtask(sub, parent, idx);
@@ -390,7 +407,7 @@ export function MyDayView({
       });
     }
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
-  }, [tasks, todayStr]);
+  }, [tasks, selectedDateStr, viewingToday]);
 
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
@@ -474,16 +491,18 @@ export function MyDayView({
     return map;
   }, [todayTasks]);
 
+  const temporalLabel = getTemporalLabel();
+  const isPast = daysDiff < 0;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
       <div className="px-6 pt-6 flex-shrink-0">
         <div className="flex items-start justify-between">
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{getGreeting()}, {firstName}</h1>
-            <p style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)', marginTop: 4 }}>
-              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-            </p>
+            <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+              {viewingToday ? `${getGreeting()}, ${firstName}` : `Planejamento de ${firstName}`}
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             {serviceTags.length > 0 && (
@@ -521,6 +540,105 @@ export function MyDayView({
             </button>
           </div>
         </div>
+
+        {/* Day Navigator */}
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSelectedDate(d => subDays(d, 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-lg"
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+              aria-label="Dia anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2 min-w-[180px] justify-center">
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="tabular-nums text-center cursor-pointer rounded-md px-2 py-1 transition-colors"
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                      color: viewingToday ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => { if (date) { setSelectedDate(date); setCalendarOpen(false); } }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Temporal Context Badge */}
+              {!viewingToday && temporalLabel && (
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 9999,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                    background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
+                    color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {temporalLabel}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => setSelectedDate(d => addDays(d, 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-lg"
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+              aria-label="Próximo dia"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* "Hoje" button — only when not viewing today */}
+          {!viewingToday && (
+            <button
+              onClick={() => setSelectedDate(new Date())}
+              className="flex items-center gap-1.5"
+              style={{
+                padding: '4px 12px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                background: 'var(--temporal-today-bg)',
+                color: '#FFFFFF',
+                transition: 'background 150ms ease-out',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
+              aria-label="Voltar para hoje"
+            >
+              <CalendarCheck className="w-3.5 h-3.5" />
+              <span>Hoje</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -552,7 +670,7 @@ export function MyDayView({
                 </div>
               );
             })}
-            {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
+            {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
@@ -560,18 +678,21 @@ export function MyDayView({
               {PERIODS.map(period => {
                 const periodTasks = tasksByPeriod[period.key];
                 const periodOrder = getPeriodOrder(period.key);
-                const periodState: 'past' | 'current' | 'future' =
-                  periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future';
+                const periodState: 'past' | 'current' | 'future' = viewingToday
+                  ? (periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future')
+                  : 'future'; // When not viewing today, show all periods as neutral/future
                 return (
                   <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
                     selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap}
                     overItemId={overItemId} dropLinePosition={dropLinePosition} justDroppedId={justDroppedId} isDragActive={!!activeDragId} />
                 );
               })}
-              {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
+              {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
               {allDone && (
                 <div className="flex items-center justify-center pt-4">
-                  <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--success)', opacity: 0.6 }}>Tudo feito por hoje ✓</span>
+                  <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--success)', opacity: 0.6 }}>
+                    {viewingToday ? 'Tudo feito por hoje ✓' : 'Tudo feito nesse dia ✓'}
+                  </span>
                 </div>
               )}
             </div>
@@ -603,12 +724,18 @@ export function MyDayView({
   );
 }
 
-function EmptyState({ onNavigateToWeek }: { onNavigateToWeek: () => void }) {
+function EmptyState({ onNavigateToWeek, viewingToday = true }: { onNavigateToWeek: () => void; viewingToday?: boolean }) {
   return (
     <div className="flex items-center justify-center pt-8">
-      <button onClick={onNavigateToWeek} className="text-[13px] transition-colors hover:underline" style={{ color: 'var(--accent-blue)' }}>
-        Planeje na Minha Semana →
-      </button>
+      {viewingToday ? (
+        <button onClick={onNavigateToWeek} className="text-[13px] transition-colors hover:underline" style={{ color: 'var(--accent-blue)' }}>
+          Planeje na Minha Semana →
+        </button>
+      ) : (
+        <span className="text-[13px]" style={{ color: 'var(--text-placeholder)' }}>
+          Nenhuma tarefa agendada para este dia
+        </span>
+      )}
     </div>
   );
 }
