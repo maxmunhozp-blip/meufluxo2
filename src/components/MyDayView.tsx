@@ -7,7 +7,8 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -73,7 +74,8 @@ function DayTaskCard({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 150ms cubic-bezier(0.22,1,0.36,1)',
-    opacity: isDragging ? 0.9 : 1,
+    opacity: isDragging ? 0.35 : 1,
+    cursor: 'grab',
   };
 
   const handleStatus = (s: TaskStatus) => {
@@ -98,23 +100,21 @@ function DayTaskCard({
 
   return (
     <>
-      <div ref={setNodeRef} style={{ ...style, position: 'relative' }} className="flex items-center h-[44px] cursor-pointer group" onClick={onSelect} role="button" tabIndex={0}
+      <div ref={setNodeRef} style={{ ...style, position: 'relative' }}
+        className="flex items-center h-[44px] group active:cursor-grabbing"
+        onClick={onSelect} role="button" tabIndex={0}
         onContextMenu={handleContextMenu}
         onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        {...attributes} {...listeners}
+      >
         {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
-        <div {...attributes} {...listeners}
-          className="flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing mr-0.5"
-          onClick={(e) => e.stopPropagation()}
-          style={{ touchAction: 'none' }}>
-          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
-        </div>
-        <div className="w-1 flex-shrink-0 flex items-center justify-center">
+        <div className="w-1 flex-shrink-0 flex items-center justify-center ml-1">
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor }} />
         </div>
         <div className="w-2 flex-shrink-0" />
-        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
           <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
         </div>
         <div className="w-3 flex-shrink-0" />
@@ -187,25 +187,37 @@ function PeriodSection({
         <span style={{ fontSize: 12, fontWeight: 500, color: headerColor, letterSpacing: 0.5 }}>{period.label}</span>
       </div>
       {tasks.length > 0 && (
-        <div className="space-y-0.5">
-          <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-            {tasks.map(task => {
-              const project = projects.find(p => p.id === task.projectId);
-              const isDone = task.status === 'done';
-              const taskOpacity = periodState === 'past' && isDone ? 0.3 : 1;
-              return (
-                <div key={task.id} style={{ opacity: taskOpacity }}>
-                  <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                    onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
-                    projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
-                    sectionName={sections.find(s => s.id === task.section)?.title}
-                    parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
-                    dropIndicator={overItemId === task.id ? dropLinePosition : null} />
-                </div>
-              );
-            })}
-          </SortableContext>
-        </div>
+        <LayoutGroup id={`period-${period.key}`}>
+          <div className="space-y-0.5">
+            <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+              <AnimatePresence initial={false}>
+                {tasks.map(task => {
+                  const project = projects.find(p => p.id === task.projectId);
+                  const isDone = task.status === 'done';
+                  const taskOpacity = periodState === 'past' && isDone ? 0.3 : 1;
+                  return (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      initial={false}
+                      animate={{ opacity: taskOpacity, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                      style={{ opacity: taskOpacity }}
+                    >
+                      <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
+                        onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
+                        projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
+                        sectionName={sections.find(s => s.id === task.section)?.title}
+                        parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                        dropIndicator={overItemId === task.id ? dropLinePosition : null} />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </SortableContext>
+          </div>
+        </LayoutGroup>
       )}
     </div>
   );
