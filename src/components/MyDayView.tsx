@@ -585,10 +585,13 @@ export function MyDayView({
       else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
       if (isScheduled) { scheduled.push(t); scheduledIds.add(t.id); }
 
-      // Check subtasks scheduled for selected date
+      // Check subtasks scheduled for selected date (or due today without scheduled)
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
         subs.forEach((sub, idx) => {
-          if (sub.scheduledDate === selectedDateStr) {
+          let subScheduled = false;
+          if (sub.scheduledDate === selectedDateStr) subScheduled = true;
+          else if (sub.dueDate === selectedDateStr && !sub.scheduledDate) subScheduled = true;
+          if (subScheduled) {
             const promoted = promoteSubtask(sub, parent, idx);
             scheduled.push(promoted);
             scheduledIds.add(sub.id);
