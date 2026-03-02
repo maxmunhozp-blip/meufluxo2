@@ -92,6 +92,7 @@ export interface Task {
   createdAt?: string;
   displayMonth?: string; // "YYYY-MM-01" — permanent month this task belongs to
   position?: number; // Used for ordering within day columns
+  completedAt?: string; // ISO timestamp when task was marked as done
 }
 
 export interface Section {

@@ -130,6 +130,7 @@ function mapDbTask(row: any): Task {
     createdAt: row.created_at || undefined,
     displayMonth: row.display_month || undefined,
     position: row.position ?? 0,
+    completedAt: row.completed_at || undefined,
   };
 }
 
