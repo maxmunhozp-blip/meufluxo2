@@ -1680,6 +1680,19 @@ const Index = () => {
                         sonnerToast.error('Erro ao mover tarefa');
                       }
                     }}
+                    onScheduleToday={(taskId) => {
+                      const t = taskList.find(t => t.id === taskId);
+                      if (!t) return;
+                      const today = new Date();
+                      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                      const originalDate = t.scheduledDate;
+                      updateTask({ ...t, scheduledDate: todayStr });
+                      toast({
+                        title: 'Agendada para hoje',
+                        duration: 5000,
+                        action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, scheduledDate: originalDate })}>Desfazer</ToastAction>,
+                      });
+                    }}
                     onMoveSectionToMonth={async (sectionId, year, month) => {
                       const newMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
                       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
