@@ -16,6 +16,7 @@ export interface Subtask {
   name: string;
   status: TaskStatus;
   priority?: Priority;
+  position?: number;
   description?: string;
   dueDate?: string;
   scheduledDate?: string;
