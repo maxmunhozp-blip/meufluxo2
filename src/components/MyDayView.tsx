@@ -57,10 +57,10 @@ function getPeriodOrder(period: DayPeriod): number {
 
 /* ── Task card ── */
 function DayTaskCard({
-  task, projectColor, isSelected, onSelect, onStatusChange, showProjectBadge, projectName, rolloverDays, sectionName,
+  task, projectColor, isSelected, onSelect, onStatusChange, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName,
 }: {
   task: Task; projectColor: string; isSelected: boolean; onSelect: () => void;
-  onStatusChange: (id: string, s: TaskStatus) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string;
+  onStatusChange: (id: string, s: TaskStatus) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
   const [completing, setCompleting] = useState(false);
@@ -92,9 +92,11 @@ function DayTaskCard({
       <div className="w-3 flex-shrink-0" />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
         {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
-        {projectName && sectionName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+        {projectName && (sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
         {sectionName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400 }}>{sectionName}</span>}
-        {(projectName || sectionName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+        {sectionName && parentTaskName && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+        {parentTaskName && <span className="flex-shrink-0 text-[11px] truncate max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic' }}>{parentTaskName}</span>}
+        {(projectName || sectionName || parentTaskName) && <span style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
         <span className={`min-w-0 text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
           style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
       </div>
@@ -114,9 +116,9 @@ function DayTaskCard({
 
 /* ── Period section ── */
 function PeriodSection({
-  period, tasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, showProjectBadge, rolloverMap,
+  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, showProjectBadge, rolloverMap,
 }: {
-  period: typeof PERIODS[number]; tasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
+  period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
 }) {
@@ -143,7 +145,8 @@ function PeriodSection({
                   <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
                     onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} showProjectBadge={showProjectBadge}
                     projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
-                    sectionName={sections.find(s => s.id === task.section)?.title} />
+                    sectionName={sections.find(s => s.id === task.section)?.title}
+                    parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
                 </div>
               );
             })}
@@ -355,7 +358,8 @@ export function MyDayView({
                         <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
                           onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} showProjectBadge projectName={project?.name}
                           rolloverDays={rolloverMap.get(task.id)}
-                          sectionName={sections.find(s => s.id === task.section)?.title} />
+                          sectionName={sections.find(s => s.id === task.section)?.title}
+                          parentTaskName={task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
                       );
                     })}
                   </div>
@@ -373,7 +377,7 @@ export function MyDayView({
                 const periodState: 'past' | 'current' | 'future' =
                   periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future';
                 return (
-                  <PeriodSection key={period.key} period={period} tasks={periodTasks} projects={projects} sections={sections} periodState={periodState}
+                  <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
                     selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} rolloverMap={rolloverMap} />
                 );
               })}
