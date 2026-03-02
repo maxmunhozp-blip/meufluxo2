@@ -301,7 +301,21 @@ const Index = () => {
 
     // Move completed tasks to the end of their section/period
     if (newStatus === 'done' && prev) {
-      const siblings = taskList.filter(t => t.section === prev.section && !t.parentTaskId && t.id !== taskId);
+      const today = new Date().toISOString().slice(0, 10);
+      const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
+      let siblings: Task[];
+      if (isMyDayTask) {
+        // In Meu Dia: siblings are tasks in the same dayPeriod scheduled for today
+        siblings = taskList.filter(t =>
+          t.scheduledDate === today &&
+          (t.dayPeriod || 'morning') === (prev.dayPeriod || 'morning') &&
+          !t.parentTaskId &&
+          t.id !== taskId
+        );
+      } else {
+        // In project view: siblings are tasks in the same section
+        siblings = taskList.filter(t => t.section === prev.section && !t.parentTaskId && t.id !== taskId);
+      }
       const maxPos = siblings.reduce((max, t) => Math.max(max, t.position ?? 0), 0);
       batchUpdatePositions([{ id: taskId, position: maxPos + 1 }]);
     }
