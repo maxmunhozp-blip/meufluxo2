@@ -26,6 +26,7 @@ import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
+import { useSectionPreferences } from '@/hooks/useSectionPreferences';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, Project } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
@@ -81,12 +82,7 @@ const Index = () => {
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    try {
-      const raw = localStorage.getItem('meufluxo_expanded_sections');
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
-  });
+  const { expandedSections, toggleSection, expandSection, isSectionExpanded } = useSectionPreferences(session?.user?.id);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [activeTaskDragId, setActiveTaskDragId] = useState<string | null>(null);
   const [overTaskDragId, setOverTaskDragId] = useState<string | null>(null);
@@ -414,15 +410,6 @@ const Index = () => {
     setMobileSidebarOpen(false);
   };
 
-  const toggleSection = useCallback((sectionId: string) => {
-    setExpandedSections(prev => {
-      const next = { ...prev, [sectionId]: prev[sectionId] === false ? true : false };
-      localStorage.setItem('meufluxo_expanded_sections', JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  const isSectionExpanded = (sectionId: string) => expandedSections[sectionId] !== false;
 
   const handleDeleteTask = useCallback((taskId: string) => {
     // Find task — could be top-level or a subtask nested inside a parent
@@ -533,7 +520,7 @@ const Index = () => {
         displayMonth: activeMonthKey,
        });
       setFocusedTaskId(newId);
-      setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
+      expandSection(sectionId);
 
       // AI auto-tag: fire-and-forget (non-blocking)
       autoTagTask(newId, name, sectionId);
@@ -613,7 +600,7 @@ const Index = () => {
     if (!trimmed) return;
     try {
       const id = await createSectionFn(trimmed, activeProjectId, activeMonthKey);
-      setExpandedSections(prev => ({ ...prev, [id]: true }));
+      expandSection(id);
     } catch (err) {
       console.error('Erro ao criar seção:', err);
     }
