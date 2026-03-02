@@ -320,16 +320,10 @@ export function MyDayView({
 
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
-    todayTasks.forEach(t => { const p = rolloverMap.has(t.id) ? 'morning' : (t.dayPeriod || 'morning'); map[p].push(t); });
+    todayTasks.forEach(t => { const p = (t.dayPeriod || 'morning') as DayPeriod; map[p].push(t); });
     Object.keys(map).forEach(key => {
       const period = key as DayPeriod;
-      map[period].sort((a, b) => {
-        const aRoll = rolloverMap.get(a.id) || 0; const bRoll = rolloverMap.get(b.id) || 0;
-        if (aRoll > 0 && bRoll === 0) return -1; if (aRoll === 0 && bRoll > 0) return 1;
-        if (aRoll > 0 && bRoll > 0) return bRoll - aRoll;
-        // Sort by position for persistent ordering
-        return (a.position ?? 0) - (b.position ?? 0);
-      });
+      map[period].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     });
     return map;
   }, [todayTasks, rolloverMap]);
@@ -363,8 +357,8 @@ export function MyDayView({
     }
     if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
       const draggedTask = activeData.task as Task; const targetTask = overData.task as Task;
-      const draggedPeriod = rolloverMap.has(draggedTask.id) ? 'morning' : (draggedTask.dayPeriod || 'morning');
-      const targetPeriod = rolloverMap.has(targetTask.id) ? 'morning' : (targetTask.dayPeriod || 'morning');
+      const draggedPeriod = draggedTask.dayPeriod || 'morning';
+      const targetPeriod = targetTask.dayPeriod || 'morning';
 
       if (draggedPeriod === targetPeriod) {
         // Same period → reorder with position persistence
