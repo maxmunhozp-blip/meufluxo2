@@ -96,12 +96,15 @@ export interface Task {
   manuallyMoved?: boolean; // true if user explicitly dragged this task to a period
 }
 
+export type SectionType = 'recurrent' | 'project' | 'buffer' | 'adhoc' | null;
+
 export interface Section {
   id: string;
   title: string;
   projectId: string;
   workspaceId?: string;
   displayMonth?: string;
+  sectionType?: SectionType;
 }
 
 export interface Project {

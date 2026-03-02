@@ -49,14 +49,15 @@ export async function ensureEntradaSection(
     });
   }
 
-  // 4. Create "Entrada" section at position 0
-  const { data: newSection, error: insertError } = await supabase
+  // 4. Create "Entrada" section at position 0 with buffer type
+  const { data: newSection, error: insertError } = await (supabase as any)
     .from('sections')
     .insert({
       name: 'Entrada',
       project_id: projectId,
       workspace_id: workspaceId,
-      position: 0
+      position: 0,
+      section_type: 'buffer',
     })
     .select()
     .single();

@@ -5,12 +5,13 @@ import { SharedState, mapDbSection } from './types';
 export function useSectionOps(deps: SharedState) {
   const { activeWorkspaceId, sectionsState, setSectionsState, setTasksState } = deps;
 
-  const createSection = useCallback(async (title: string, projectId: string, displayMonth?: string): Promise<string> => {
+  const createSection = useCallback(async (title: string, projectId: string, displayMonth?: string, sectionType?: string | null): Promise<string> => {
     if (!activeWorkspaceId) throw new Error('Nenhum workspace ativo');
     const position = sectionsState.filter(s => s.projectId === projectId).length;
-    const { data, error } = await supabase.from('sections').insert({
+    const { data, error } = await (supabase as any).from('sections').insert({
       name: title, project_id: projectId, position, workspace_id: activeWorkspaceId,
       ...(displayMonth ? { display_month: displayMonth } : {}),
+      ...(sectionType ? { section_type: sectionType } : {}),
     }).select().single();
     if (error) throw error;
     const section = mapDbSection(data);

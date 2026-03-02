@@ -53,7 +53,7 @@ interface UseSupabaseDataReturn {
   renameProject: (id: string, name: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   changeProjectColor: (id: string, color: string) => Promise<void>;
-  createSection: (title: string, projectId: string, displayMonth?: string) => Promise<string>;
+  createSection: (title: string, projectId: string, displayMonth?: string, sectionType?: string | null) => Promise<string>;
   renameSection: (id: string, title: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   deleteSectionFromDb: (id: string) => Promise<void>;

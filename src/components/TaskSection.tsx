@@ -9,6 +9,8 @@ import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
 import { ContextMenu } from './ContextMenu';
+import { SectionTypeIcon } from './SectionTypeChips';
+import { EntradaSuggestionChip } from './EntradaSuggestionChip';
 
 // Invisible drop zone at the end of a section's task list
 function SectionEndDropZone({ sectionId }: { sectionId: string }) {
@@ -60,15 +62,17 @@ interface TaskSectionProps {
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   onScheduleToday?: (taskId: string) => void;
+  onCreateSectionFromEntrada?: (sectionName: string) => void;
 }
 
 // Footer input with Tab-indent support
-function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSection, onAddSubtask }: {
+function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSection, onAddSubtask, placeholder }: {
   sectionId: string;
   tasks: Task[];
   isCreatingTask: boolean;
   onAddTaskInSection: (sectionId: string, taskName?: string) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  placeholder?: string;
 }) {
   const [isActive, setIsActive] = useState(false);
   const [value, setValue] = useState('');
@@ -136,7 +140,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
           if (e.key === 'Escape') close();
         }}
         onBlur={() => { if (value.trim()) submit(); else close(); }}
-        placeholder={indented ? 'Nome da subtarefa...' : 'Nome da tarefa...'}
+        placeholder={indented ? 'Nome da subtarefa...' : (placeholder || 'Nome da tarefa...')}
         className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
           background: 'var(--bg-input)',
@@ -184,6 +188,7 @@ export function TaskSection({
   onMoveSectionToMonth,
   onNestAsSubtask,
   onScheduleToday,
+  onCreateSectionFromEntrada,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -295,17 +300,18 @@ export function TaskSection({
             style={{ fontSize: 14, fontWeight: 600, background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
           />
         ) : (
-          <button
-            onClick={onToggleExpand}
-            onDoubleClick={(e) => { e.stopPropagation(); startRename(); }}
-            className="flex items-center gap-2 flex-1 min-w-0"
-          >
-            <span className="w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
-              <Play
-                className={`w-3 h-3 fill-current transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
-                style={{ color: 'var(--text-tertiary)' }}
-              />
-            </span>
+            <button
+              onClick={onToggleExpand}
+              onDoubleClick={(e) => { e.stopPropagation(); startRename(); }}
+              className="flex items-center gap-2 flex-1 min-w-0"
+            >
+              <span className="w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
+                <Play
+                  className={`w-3 h-3 fill-current transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
+                  style={{ color: 'var(--text-tertiary)' }}
+                />
+              </span>
+              {section.sectionType && <SectionTypeIcon sectionType={section.sectionType} />}
             <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
@@ -366,6 +372,13 @@ export function TaskSection({
             ))}
           </SortableContext>
           <SectionEndDropZone sectionId={section.id} />
+          {section.sectionType === 'buffer' && onCreateSectionFromEntrada && (
+            <EntradaSuggestionChip
+              sectionId={section.id}
+              tasks={tasks}
+              onCreateSection={onCreateSectionFromEntrada}
+            />
+          )}
           {tasks.length === 0 && (
             <div className="h-9 px-6 flex items-center justify-center">
               <span className="text-[13px] text-nd-text-muted">Nenhuma tarefa aqui ainda</span>
@@ -383,6 +396,7 @@ export function TaskSection({
             isCreatingTask={!!isCreatingTask}
             onAddTaskInSection={onAddTaskInSection}
             onAddSubtask={onAddSubtask}
+            placeholder={section.sectionType === 'buffer' ? 'Nova demanda, ideia ou tarefa...' : undefined}
           />
         </div>
       )}
