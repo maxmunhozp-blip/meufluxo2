@@ -642,10 +642,11 @@ export function MyWeekView({
     }
   }, [dayOffset, effectiveView]);
 
-  // Full week dates for timeline
+  // Full week dates for timeline — always respects dayOffset
   const weekDatesForTimeline = useMemo(() => {
     const today = new Date();
-    const weekStart = startOfWeek(addDays(today, (effectiveView === 'week' ? dayOffset : 0) * 7), { weekStartsOn: 1 });
+    const multiplier = effectiveView === '3days' ? 1 : 7;
+    const weekStart = startOfWeek(addDays(today, dayOffset * multiplier), { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   }, [dayOffset, effectiveView]);
 
