@@ -322,14 +322,10 @@ const Index = () => {
 
     const prevStatus = prev?.status || 'pending';
 
-    if (isSubtask && parentTaskId) {
-      // Use updateSubtask for nested subtasks so local state updates correctly
-      updateSubtask(taskId, { status: newStatus });
-    } else {
-      updateTaskStatus(taskId, newStatus);
-    }
-
     // Move completed tasks to the end of their section/period
+    // IMPORTANT: We use updateTask (single DB call with status+position) instead of
+    // separate updateTaskStatus + batchUpdatePositions to avoid realtime race conditions
+    // where the status update triggers a realtime event with the OLD position.
     if (newStatus === 'done' && prev) {
       // Save original position and dayPeriod before moving
       originalPositionsRef.current.set(taskId, prev.position ?? 0);
@@ -338,35 +334,38 @@ const Index = () => {
       const isMyDayTask = prev.dayPeriod && (
         prev.scheduledDate === today ||
         (prev.dueDate === today && !prev.scheduledDate) ||
-(prev.scheduledDate && prev.scheduledDate < today && prev.status !== 'done') ||
+        (prev.scheduledDate && prev.scheduledDate < today && prev.status !== 'done') ||
         (!prev.scheduledDate && prev.dueDate && prev.dueDate < today && prev.status !== 'done')
       );
 
       // If completing a promoted task (from a past period), update day_period to current
-      let originalDayPeriod: string | undefined;
       if (isMyDayTask) {
         const h = new Date().getHours();
         const currentPeriod = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
         const taskPeriodOrder = prev.dayPeriod === 'morning' ? 0 : prev.dayPeriod === 'afternoon' ? 1 : 2;
         const currentPeriodOrder = currentPeriod === 'morning' ? 0 : currentPeriod === 'afternoon' ? 1 : 2;
         if (taskPeriodOrder < currentPeriodOrder) {
-          originalDayPeriod = prev.dayPeriod;
-          originalDayPeriodsRef.current.set(taskId, originalDayPeriod!);
-          // Task was promoted from a past period — move it to the current period
-          updateTask({ ...prev, dayPeriod: currentPeriod as any });
+          originalDayPeriodsRef.current.set(taskId, prev.dayPeriod!);
           prev = { ...prev, dayPeriod: currentPeriod as any };
         }
       }
+
       let allSiblings: { id: string; position: number }[];
       if (isMyDayTask) {
-        // Collect ALL items in the same period (top-level + promoted subtasks)
         allSiblings = taskList
-          .filter(t => t.scheduledDate === today && (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning') && !t.parentTaskId)
+          .filter(t => {
+            const matchesPeriod = (t.dayPeriod || 'morning') === (prev!.dayPeriod || 'morning');
+            const isToday = t.scheduledDate === today || (t.dueDate === today && !t.scheduledDate) ||
+              (t.scheduledDate && t.scheduledDate < today) || (!t.scheduledDate && t.dueDate && t.dueDate < today);
+            return isToday && matchesPeriod && !t.parentTaskId;
+          })
           .map(t => ({ id: t.id, position: t.position ?? 0 }));
         for (const t of taskList) {
           if (t.subtasks) {
             for (const sub of t.subtasks) {
-              if (sub.scheduledDate === today && ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning')) {
+              const subMatchesPeriod = ((sub.dayPeriod as any) || 'morning') === (prev!.dayPeriod || 'morning');
+              const subIsToday = sub.scheduledDate === today || (sub.dueDate === today && !sub.scheduledDate);
+              if (subIsToday && subMatchesPeriod) {
                 allSiblings.push({ id: sub.id, position: (sub as any).position ?? 0 });
               }
             }
@@ -377,29 +376,43 @@ const Index = () => {
           .filter(t => t.section === prev!.section && !t.parentTaskId)
           .map(t => ({ id: t.id, position: t.position ?? 0 }));
       }
-      // Use a position guaranteed to be at the absolute end, incrementing counter
-      // to handle rapid sequential completions where taskList hasn't updated yet
+
       completionCounterRef.current += 1;
       const maxPos = allSiblings.reduce((max, t) => Math.max(max, t.position), 0);
       const endPosition = Math.max(maxPos + 1, allSiblings.length + 1000) + completionCounterRef.current;
-      batchUpdatePositions([{ id: taskId, position: endPosition }]);
-    }
 
-    // Restore original position when uncompleting a task
-    if (prevStatus === 'done' && newStatus !== 'done') {
+      // Single atomic update: status + position (+ dayPeriod if promoted) in one DB call
+      if (isSubtask && parentTaskId) {
+        updateSubtask(taskId, { status: newStatus });
+        batchUpdatePositions([{ id: taskId, position: endPosition }]);
+      } else {
+        updateTask({ ...prev, status: newStatus, position: endPosition });
+      }
+    } else if (prevStatus === 'done' && newStatus !== 'done') {
+      // Restore original position when uncompleting a task
       const originalPos = originalPositionsRef.current.get(taskId);
       const originalPeriod = originalDayPeriodsRef.current.get(taskId);
-      if (originalPos !== undefined) {
-        batchUpdatePositions([{ id: taskId, position: originalPos }]);
-        originalPositionsRef.current.delete(taskId);
+      const restoredTask = { ...prev!, status: newStatus } as Task;
+
+      if (originalPos !== undefined) restoredTask.position = originalPos;
+      if (originalPeriod) restoredTask.dayPeriod = originalPeriod as any;
+
+      if (isSubtask && parentTaskId) {
+        updateSubtask(taskId, { status: newStatus });
+        if (originalPos !== undefined) batchUpdatePositions([{ id: taskId, position: originalPos }]);
+      } else {
+        // Single atomic update: status + position + dayPeriod in one DB call
+        updateTask(restoredTask);
       }
-      // Restore original dayPeriod if it was changed during promotion-completion
-      if (originalPeriod) {
-        const task = taskList.find(t => t.id === taskId);
-        if (task) {
-          updateTask({ ...task, status: newStatus, dayPeriod: originalPeriod as any });
-        }
-        originalDayPeriodsRef.current.delete(taskId);
+
+      originalPositionsRef.current.delete(taskId);
+      originalDayPeriodsRef.current.delete(taskId);
+    } else {
+      // Normal status change (not completion/uncompletion)
+      if (isSubtask && parentTaskId) {
+        updateSubtask(taskId, { status: newStatus });
+      } else {
+        updateTaskStatus(taskId, newStatus);
       }
     }
 
