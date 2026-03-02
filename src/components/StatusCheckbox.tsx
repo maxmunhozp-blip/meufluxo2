@@ -4,15 +4,20 @@ interface StatusCheckboxProps {
   status: TaskStatus;
   onChange?: (status: TaskStatus) => void;
   size?: number;
+  quickComplete?: boolean;
 }
 
-export function StatusCheckbox({ status, onChange, size = 20 }: StatusCheckboxProps) {
+export function StatusCheckbox({ status, onChange, size = 20, quickComplete = false }: StatusCheckboxProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onChange) return;
-    const next: TaskStatus =
-      status === 'pending' ? 'in_progress' :
-      status === 'in_progress' ? 'done' : 'pending';
+    let next: TaskStatus;
+    if (quickComplete) {
+      next = status === 'done' ? 'pending' : 'done';
+    } else {
+      next = status === 'pending' ? 'in_progress' :
+        status === 'in_progress' ? 'done' : 'pending';
+    }
     onChange(next);
   };
 
