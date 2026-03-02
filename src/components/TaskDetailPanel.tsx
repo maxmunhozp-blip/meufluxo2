@@ -512,7 +512,7 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); } }
+        if (file) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" class="desc-inline-img" />`); handleInput(); } }
         return;
       }
     }
@@ -522,13 +522,13 @@ function RichDescription({ value, onChange, placeholder, onUploadImage, isPro = 
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     if (files.length === 0 || !onUploadImage) return;
     e.preventDefault();
-    for (const file of files) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); } }
+    for (const file of files) { const url = await onUploadImage(file); if (url && editorRef.current) { document.execCommand('insertHTML', false, `<img src="${url}" class="desc-inline-img" />`); handleInput(); } }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file || !onUploadImage) return; e.target.value = '';
     const url = await onUploadImage(file);
-    if (url && editorRef.current) { editorRef.current.focus(); document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:8px 0;cursor:pointer;" />`); handleInput(); }
+    if (url && editorRef.current) { editorRef.current.focus(); document.execCommand('insertHTML', false, `<img src="${url}" class="desc-inline-img" />`); handleInput(); }
   };
 
   const handleEditorClick = (e: React.MouseEvent) => {
@@ -659,6 +659,104 @@ function LinkPreviewInline({ url }: { url: string }) {
         <p className="text-[11px] mt-1" style={{ color: 'var(--text-tertiary)' }}>{meta.domain}</p>
       </div>
     </a>
+  );
+}
+
+// Attachments section — Apple-style thumbnail grid + file list
+function AttachmentsSection({ attachments, uploadingFile, onUpload, onDelete }: {
+  attachments: Attachment[];
+  uploadingFile: boolean;
+  onUpload: () => void;
+  onDelete: (id: string) => void;
+}) {
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const images = attachments.filter(a => a.contentType?.startsWith('image/'));
+  const files = attachments.filter(a => !a.contentType?.startsWith('image/'));
+
+  const getUrl = (att: Attachment) =>
+    att.url || supabase.storage.from('task-attachments').getPublicUrl(att.filePath).data.publicUrl;
+
+  const formatSize = (size: number) =>
+    size < 1024 * 1024 ? `${Math.round(size / 1024)} KB` : `${(size / (1024 * 1024)).toFixed(1)} MB`;
+
+  return (
+    <div className="space-y-3 mb-4">
+      {/* Image thumbnails — grid */}
+      {images.length > 0 && (
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))' }}>
+          {images.map(att => {
+            const url = getUrl(att);
+            return (
+              <div key={att.id} className="group relative rounded-lg overflow-hidden cursor-pointer"
+                style={{ aspectRatio: '1', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+                onClick={() => setLightboxUrl(url)}>
+                <img src={url} alt={att.fileName} className="w-full h-full object-cover" loading="lazy" />
+                {/* Hover overlay with actions */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-end justify-between p-1"
+                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)' }}>
+                  <a href={url} target="_blank" rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="w-5 h-5 flex items-center justify-center rounded"
+                    style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Download className="w-3 h-3" />
+                  </a>
+                  <button onClick={e => { e.stopPropagation(); onDelete(att.id); }}
+                    className="w-5 h-5 flex items-center justify-center rounded"
+                    style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* File attachments — compact list */}
+      {files.length > 0 && (
+        <div className="space-y-0.5">
+          {files.map(att => (
+            <div key={att.id} className="flex items-center gap-2 group py-1.5 px-2 rounded-md transition-colors"
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+              <span className="text-[13px] truncate flex-1" style={{ color: 'var(--text-primary)' }}>{att.fileName}</span>
+              <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>{formatSize(att.fileSize)}</span>
+              <a href={getUrl(att)} target="_blank" rel="noopener noreferrer"
+                className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--text-secondary)' }}>
+                <Download className="w-3 h-3" />
+              </a>
+              <button onClick={() => onDelete(att.id)}
+                className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add button */}
+      <button onClick={onUpload}
+        className="flex items-center gap-1 text-[12px] transition-colors px-2 py-1.5"
+        style={{ color: 'var(--text-tertiary)' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
+        <Plus className="w-3 h-3" /> {uploadingFile ? 'Enviando...' : 'Adicionar anexo'}
+      </button>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center cursor-pointer"
+          style={{ background: 'rgba(0,0,0,0.8)' }}
+          onClick={() => setLightboxUrl(null)}>
+          <img src={lightboxUrl} alt="" className="max-w-[90vw] max-h-[90vh] rounded-lg" style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -969,41 +1067,17 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
 
             {/* Attachments */}
             {activeTab === 'attachments' && (
-              <div className="space-y-2 mb-4">
-                {taskAttachments.map(att => (
-                  <div key={att.id} className="flex items-center gap-2 group py-1.5 px-2 rounded-md"
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                    {att.contentType?.startsWith('image/') ? <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
-                      : <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />}
-                    <span className="text-[13px] truncate flex-1" style={{ color: 'var(--text-primary)' }}>{att.fileName}</span>
-                    <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
-                      {att.fileSize < 1024 * 1024 ? `${Math.round(att.fileSize / 1024)}KB` : `${(att.fileSize / (1024 * 1024)).toFixed(1)}MB`}
-                    </span>
-                    <a href={supabase.storage.from('task-attachments').getPublicUrl(att.filePath).data.publicUrl} target="_blank" rel="noopener noreferrer"
-                      className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
-                      <Download className="w-3 h-3" />
-                    </a>
-                    <button onClick={() => onDeleteAttachment(att.id)}
-                      className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--status-overdue))'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1 text-[12px] transition-colors px-2 py-1.5" style={{ color: 'var(--text-tertiary)' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
-                  <Plus className="w-3 h-3" /> {uploadingFile ? 'Enviando...' : 'Adicionar anexo'}
-                </button>
-                <input ref={fileInputRef} type="file" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0]; if (!file) return; e.target.value = '';
-                  setUploadingFile(true); await onUploadAttachment(localTask.id, file); setUploadingFile(false);
-                }} />
-              </div>
+              <AttachmentsSection
+                attachments={taskAttachments}
+                uploadingFile={uploadingFile}
+                onUpload={() => fileInputRef.current?.click()}
+                onDelete={onDeleteAttachment}
+              />
             )}
+            <input ref={fileInputRef} type="file" className="hidden" onChange={async (e) => {
+              const file = e.target.files?.[0]; if (!file) return; e.target.value = '';
+              setUploadingFile(true); await onUploadAttachment(localTask.id, file); setUploadingFile(false);
+            }} />
 
             {/* Comments */}
             {activeTab === 'activity' && (
