@@ -122,7 +122,7 @@ function WeekTaskCard({
         <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
           <span
             className="flex-shrink-0 rounded-full"
-            style={{ width: 6, height: 6, background: projectColor, opacity: 0.85 }}
+            style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }}
           />
           {projectName && <span>{projectName}</span>}
           {projectName && contextSuffix && <span>·</span>}
@@ -1249,7 +1249,7 @@ export function MyWeekView({
                 >
                   <span className="text-[12px] leading-[1.4] line-clamp-2" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
                   <span className="truncate flex items-center gap-1" style={{ fontSize: 9, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
-                    <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.85 }} />
+                    <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.4 }} />
                     {dragProject && <span>{dragProject.name}</span>}
                     {dragProject && dragSection && <span>·</span>}
                     {dragSection && <span className="truncate">{dragSection.title}</span>}
