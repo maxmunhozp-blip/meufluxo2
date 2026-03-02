@@ -899,12 +899,14 @@ export function MyWeekView({
       
       if (active.data.current?.type === 'week-task') {
         const activeTask = active.data.current.task as Task;
+        const effectiveActiveDate = getEffectiveDate(activeTask);
         const dayTasks = effectiveOverDate ? (tasksByDay[effectiveOverDate] || []) : [];
         const activeIdx = dayTasks.findIndex(t => t.id === activeTask.id);
         const overIdx = dayTasks.findIndex(t => t.id === overTask.id);
         
         setOverItemId(over.id as string);
-        if (activeIdx === -1) {
+        if (effectiveActiveDate !== effectiveOverDate || activeIdx === -1) {
+          // Coming from another day or not found — show bottom indicator
           setDropLinePosition('bottom');
         } else {
           setDropLinePosition(activeIdx < overIdx ? 'bottom' : 'top');
@@ -949,7 +951,11 @@ export function MyWeekView({
       const task = activeData.task as Task;
       const targetDate = overData.date as string;
       if (task.scheduledDate !== targetDate) {
-        onUpdateTask({ ...task, scheduledDate: targetDate });
+        if (task.parentTaskId) {
+          onScheduleSubtask?.(task.id, targetDate);
+        } else {
+          onUpdateTask({ ...task, scheduledDate: targetDate });
+        }
       }
       return;
     }
@@ -987,9 +993,25 @@ export function MyWeekView({
         return;
       }
 
-      // Different day → move to target day
+      // Different day → move to target day at the specific position
       if (effectiveTargetDate && draggedTask.scheduledDate !== effectiveTargetDate) {
-        onUpdateTask({ ...draggedTask, scheduledDate: effectiveTargetDate });
+        const targetDayTasks = tasksByDay[effectiveTargetDate] || [];
+        const targetIdx = targetDayTasks.findIndex(t => t.id === targetTask.id);
+        // Insert after the target task (dropLinePosition was 'bottom')
+        const insertPosition = targetIdx !== -1 ? targetIdx + 1 : targetDayTasks.length;
+        
+        // Shift positions of existing tasks to make room
+        const updates: { id: string; position: number }[] = [];
+        targetDayTasks.forEach((t, i) => {
+          const newPos = i >= insertPosition ? i + 1 : i;
+          if (newPos !== i) updates.push({ id: t.id, position: newPos });
+        });
+        updates.push({ id: draggedTask.id, position: insertPosition });
+        
+        onUpdateTask({ ...draggedTask, scheduledDate: effectiveTargetDate, position: insertPosition });
+        if (onBatchUpdatePositions && updates.length > 1) {
+          onBatchUpdatePositions(updates);
+        }
       }
       return;
     }
@@ -1014,7 +1036,18 @@ export function MyWeekView({
     }
   };
 
-  const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
+  // Find drag task — search top-level tasks first, then subtask pseudo-tasks in day columns
+  const activeDragTask = useMemo(() => {
+    if (!activeDragId) return null;
+    const topLevel = tasks.find(t => t.id === activeDragId);
+    if (topLevel) return topLevel;
+    // Search in tasksByDay (subtask pseudo-tasks)
+    for (const dayTasks of Object.values(tasksByDay)) {
+      const found = dayTasks.find(t => t.id === activeDragId);
+      if (found) return found;
+    }
+    return null;
+  }, [activeDragId, tasks, tasksByDay]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
