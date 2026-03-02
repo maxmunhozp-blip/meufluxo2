@@ -729,10 +729,20 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   /** Batch update positions for multiple tasks in a single state update */
   const batchUpdatePositions = useCallback(async (updates: { id: string; position: number }[]) => {
     if (updates.length === 0) return;
-    // Optimistic: update local state in one batch
+    const posMap = new Map(updates.map(u => [u.id, u.position]));
+    // Optimistic: update local state — top-level AND nested subtasks
     setTasksState(prev => {
-      const posMap = new Map(updates.map(u => [u.id, u.position]));
-      return prev.map(t => posMap.has(t.id) ? { ...t, position: posMap.get(t.id)! } : t);
+      const updateSubtasks = (subs: Subtask[]): Subtask[] =>
+        subs.map(s => ({
+          ...s,
+          position: posMap.has(s.id) ? posMap.get(s.id)! : (s as any).position,
+          subtasks: s.subtasks ? updateSubtasks(s.subtasks) : undefined,
+        }));
+      return prev.map(t => ({
+        ...t,
+        position: posMap.has(t.id) ? posMap.get(t.id)! : t.position,
+        subtasks: t.subtasks ? updateSubtasks(t.subtasks) : t.subtasks,
+      }));
     });
     // Persist to DB in parallel
     await Promise.all(
