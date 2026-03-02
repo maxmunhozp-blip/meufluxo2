@@ -652,30 +652,6 @@ export function ProjectSidebar({
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
-          {/* Search — quiet input-style affordance, visually subordinate to nav items */}
-          <button
-            onClick={onOpenSearch}
-            className="w-full flex items-center gap-2 select-none"
-            style={{
-              height: 32,
-              paddingLeft: 10,
-              paddingRight: 10,
-              marginTop: 4,
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 400,
-              color: 'var(--text-placeholder)',
-              background: 'var(--bg-elevated)',
-              border: '1px solid transparent',
-              transition: 'all 150ms ease-out',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = 'var(--text-placeholder)'; }}
-          >
-            <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.6 }} />
-            <span className="flex-1 text-left truncate">Buscar</span>
-            <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--text-placeholder)', background: 'var(--bg-surface)', fontFamily: 'system-ui', opacity: 0.6 }}>⌘K</kbd>
-          </button>
         </div>
 
         {/* Separator — 24px gap above and below */}
@@ -788,9 +764,32 @@ export function ProjectSidebar({
             + Novo Cliente
           </button>
         )}
+        {/* Search — quiet affordance below client list */}
+        <button
+          onClick={onOpenSearch}
+          className="w-full flex items-center gap-2 select-none"
+          style={{
+            height: 30,
+            paddingLeft: 10,
+            paddingRight: 10,
+            marginTop: 6,
+            borderRadius: 8,
+            fontSize: 12,
+            fontWeight: 400,
+            color: 'var(--text-placeholder)',
+            background: 'var(--bg-elevated)',
+            border: '1px solid transparent',
+            transition: 'all 150ms ease-out',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+        >
+          <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.6 }} />
+          <span className="flex-1 text-left truncate">Buscar</span>
+          <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--text-placeholder)', background: 'var(--bg-surface)', fontFamily: 'system-ui', opacity: 0.6 }}>⌘K</kbd>
+        </button>
       </div>
 
-      {/* Footer */}
       <div className="relative" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
           <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
