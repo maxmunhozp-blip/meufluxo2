@@ -8,7 +8,7 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown } from 'lucide-react';
+import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, GripVertical } from 'lucide-react';
 import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -106,11 +106,17 @@ function DayTaskCard({
         onContextMenu={handleContextMenu}
         onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-        {...attributes} {...listeners}
       >
         {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
         {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
-        <div className="w-1 flex-shrink-0 flex items-center justify-center ml-1">
+        {/* Drag handle */}
+        <div
+          className="flex-shrink-0 flex items-center justify-center w-5 h-full cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+          {...attributes} {...listeners}
+        >
+          <GripVertical style={{ width: 12, height: 12, color: 'var(--text-placeholder)' }} />
+        </div>
+        <div className="w-0.5 flex-shrink-0 flex items-center justify-center">
           <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }} />
         </div>
         <div className="w-2 flex-shrink-0" />
