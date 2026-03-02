@@ -3,7 +3,7 @@ import { format, parseISO, startOfDay, isBefore, differenceInCalendarDays } from
 import { ptBR } from 'date-fns/locale';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
-  DragEndEvent, DragStartEvent, DragOverlay, useDroppable,
+  DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -12,6 +12,7 @@ import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/typ
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
+import { DropIndicatorLine } from './DropIndicatorLine';
 import { ContextMenu } from './ContextMenu';
 
 interface MyDayViewProps {
@@ -58,10 +59,11 @@ function getPeriodOrder(period: DayPeriod): number {
 
 /* ── Task card ── */
 function DayTaskCard({
-  task, projectColor, isSelected, onSelect, onStatusChange, onUpdateTask, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName,
+  task, projectColor, isSelected, onSelect, onStatusChange, onUpdateTask, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName, dropIndicator,
 }: {
   task: Task; projectColor: string; isSelected: boolean; onSelect: () => void;
   onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
+  dropIndicator?: 'top' | 'bottom' | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
   const [completing, setCompleting] = useState(false);
@@ -95,10 +97,12 @@ function DayTaskCard({
 
   return (
     <>
-      <div ref={setNodeRef} style={style} className="flex items-center h-[44px] cursor-pointer group" onClick={onSelect} role="button" tabIndex={0}
+      <div ref={setNodeRef} style={{ ...style, position: 'relative' }} className="flex items-center h-[44px] cursor-pointer group" onClick={onSelect} role="button" tabIndex={0}
         onContextMenu={handleContextMenu}
         onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+        {dropIndicator === 'top' && <DropIndicatorLine position="top" />}
+        {dropIndicator === 'bottom' && <DropIndicatorLine position="bottom" />}
         <div {...attributes} {...listeners}
           className="flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing mr-0.5"
           onClick={(e) => e.stopPropagation()}
@@ -163,11 +167,12 @@ function DayTaskCard({
 
 /* ── Period section ── */
 function PeriodSection({
-  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap,
+  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap, overItemId, dropLinePosition,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
+  overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
   const PeriodIcon = period.icon;
@@ -193,7 +198,8 @@ function PeriodSection({
                     onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
                     projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
                     sectionName={sections.find(s => s.id === task.section)?.title}
-                    parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
+                    parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                    dropIndicator={overItemId === task.id ? dropLinePosition : null} />
                 </div>
               );
             })}
@@ -210,6 +216,8 @@ export function MyDayView({
 }: MyDayViewProps) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
+  const [overItemId, setOverItemId] = useState<string | null>(null);
+  const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -314,8 +322,22 @@ export function MyDayView({
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
 
   const handleDragStart = (event: DragStartEvent) => { const data = event.active.data.current; if (data?.type === 'day-task') setActiveDragId(data.task.id); };
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || !active) { setOverItemId(null); setDropLinePosition(null); return; }
+    const overData = over.data.current;
+    if (overData?.type === 'day-task') {
+      const activeIndex = active.data.current?.sortable?.index ?? -1;
+      const overIndex = overData?.sortable?.index ?? -1;
+      setOverItemId(over.id as string);
+      setDropLinePosition(activeIndex > overIndex ? 'top' : 'bottom');
+    } else {
+      setOverItemId(null); setDropLinePosition(null);
+    }
+  };
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragId(null); const { active, over } = event; if (!over) return;
+    setActiveDragId(null); setOverItemId(null); setDropLinePosition(null);
+    const { active, over } = event; if (!over) return;
     const activeData = active.data.current; const overData = over.data.current;
     if (activeData?.type === 'day-task' && overData?.type === 'period-drop') {
       const task = activeData.task as Task; const targetPeriod = overData.period as DayPeriod;
@@ -435,7 +457,7 @@ export function MyDayView({
             {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <div className="max-w-[640px] mx-auto">
               {PERIODS.map(period => {
                 const periodTasks = tasksByPeriod[period.key];
@@ -444,7 +466,8 @@ export function MyDayView({
                   periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future';
                 return (
                   <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
-                    selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap} />
+                    selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap}
+                    overItemId={overItemId} dropLinePosition={dropLinePosition} />
                 );
               })}
               {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
@@ -454,10 +477,16 @@ export function MyDayView({
                 </div>
               )}
             </div>
-            <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+            <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' }}>
               {activeDragTask ? (
-                <div className="h-[44px] flex items-center gap-2 px-3 rounded-lg shadow-lg"
-                  style={{ background: 'var(--bg-surface)', borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`, opacity: 0.95 }}>
+                <div className="h-[44px] flex items-center gap-2 px-3 rounded-lg"
+                  style={{
+                    background: 'var(--bg-surface)',
+                    borderLeft: `3px solid ${projects.find(p => p.id === activeDragTask.projectId)?.color || 'var(--accent-blue)'}`,
+                    opacity: 0.95,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.1)',
+                    transform: 'rotate(0.5deg) scale(1.02)',
+                  }}>
                   <span className="text-[14px] truncate" style={{ color: 'var(--text-primary)' }}>{activeDragTask.name}</span>
                 </div>
               ) : null}
