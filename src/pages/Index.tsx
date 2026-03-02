@@ -335,6 +335,20 @@ const Index = () => {
 
       const today = new Date().toISOString().slice(0, 10);
       const isMyDayTask = prev.scheduledDate === today && prev.dayPeriod;
+
+      // If completing a promoted task (from a past period), update day_period to current
+      if (isMyDayTask) {
+        const h = new Date().getHours();
+        const currentPeriod = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+        const taskPeriodOrder = prev.dayPeriod === 'morning' ? 0 : prev.dayPeriod === 'afternoon' ? 1 : 2;
+        const currentPeriodOrder = currentPeriod === 'morning' ? 0 : currentPeriod === 'afternoon' ? 1 : 2;
+        if (taskPeriodOrder < currentPeriodOrder) {
+          // Task was promoted from a past period — move it to the current period
+          updateTask({ ...prev, dayPeriod: currentPeriod as any });
+          // Update prev reference for sibling calculation below
+          prev = { ...prev, dayPeriod: currentPeriod as any };
+        }
+      }
       let allSiblings: { id: string; position: number }[];
       if (isMyDayTask) {
         // Collect ALL items in the same period (top-level + promoted subtasks)
@@ -382,7 +396,7 @@ const Index = () => {
         }
       },
     });
-  }, [updateTaskStatus, updateSubtask, taskList, pushUndo, batchUpdatePositions]);
+  }, [updateTaskStatus, updateSubtask, updateTask, taskList, pushUndo, batchUpdatePositions]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);
