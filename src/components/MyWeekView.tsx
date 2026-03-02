@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import {
-  addDays, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
-  startOfWeek,
+  addDays, addMonths, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
+  startOfWeek, startOfMonth,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -250,6 +250,18 @@ function WeekSourceSidebar({
     } catch { return {}; }
   });
 
+  // Per-project month offsets (0 = current month)
+  const [projectMonthOffsets, setProjectMonthOffsets] = useState<Record<string, number>>({});
+
+  const getProjectMonth = (projectId: string) => {
+    const offset = projectMonthOffsets[projectId] || 0;
+    return format(startOfMonth(addMonths(new Date(), offset)), 'yyyy-MM-01');
+  };
+
+  const changeProjectMonth = (projectId: string, delta: number) => {
+    setProjectMonthOffsets(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + delta }));
+  };
+
   const toggleProject = (id: string) => {
     setExpandedProjects(prev => {
       const next = { ...prev, [id]: !prev[id] };
@@ -270,17 +282,27 @@ function WeekSourceSidebar({
 
   const groupedData = useMemo(() => {
     return projects.map(project => {
-      const projectTasks = filteredTasks.filter(t => t.projectId === project.id);
-      const sectionGroups = sections
-        .filter(s => s.projectId === project.id)
+      const projectMonth = getProjectMonth(project.id);
+      const projectTasks = filteredTasks.filter(t => {
+        if (t.projectId !== project.id) return false;
+        // Filter by display_month if the task has one
+        if (t.displayMonth && t.displayMonth !== projectMonth) return false;
+        return true;
+      });
+      const projectSections = sections.filter(s => {
+        if (s.projectId !== project.id) return false;
+        if (s.displayMonth && s.displayMonth !== projectMonth) return false;
+        return true;
+      });
+      const sectionGroups = projectSections
         .map(s => ({
           section: s,
           tasks: projectTasks.filter(t => t.section === s.id),
         }))
         .filter(g => g.tasks.length > 0);
-      return { project, totalCount: projectTasks.length, sectionGroups };
+      return { project, totalCount: projectTasks.length, sectionGroups, month: projectMonth };
     }).filter(g => g.totalCount > 0);
-  }, [projects, filteredTasks, sections]);
+  }, [projects, filteredTasks, sections, projectMonthOffsets]);
 
   const totalPending = filteredTasks.length;
 
@@ -349,23 +371,63 @@ function WeekSourceSidebar({
 
       {/* Task list */}
       <div className="flex-1 overflow-y-auto py-1">
-        {groupedData.map(({ project, totalCount, sectionGroups }) => {
+        {groupedData.map(({ project, totalCount, sectionGroups, month }) => {
           const expanded = expandedProjects[project.id] !== false;
+          const monthOffset = projectMonthOffsets[project.id] || 0;
+          const monthLabel = format(parseISO(month), 'MMM yyyy', { locale: ptBR });
+          const isCurrentMonth = monthOffset === 0;
+
           return (
             <div key={project.id} className="mb-1">
+              {/* Project header — neutral text + small color dot */}
               <button
                 onClick={() => toggleProject(project.id)}
                 className="w-full h-8 px-3 flex items-center gap-2 transition-colors"
-                style={{ color: project.color }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <Play className={`w-2.5 h-2.5 fill-current transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} />
-                <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.3 }} className="truncate flex-1 text-left">
+                <span className="flex-shrink-0 w-2 h-2 rounded-full" style={{ background: project.color }} />
+                <Play className={`w-2.5 h-2.5 flex-shrink-0 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`} style={{ color: 'var(--text-tertiary)' }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }} className="truncate flex-1 text-left">
                   {project.name}
                 </span>
                 <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{totalCount}</span>
               </button>
+
+              {/* Month navigator — discrete, below project name */}
+              {expanded && (
+                <div className="flex items-center justify-center gap-1 px-3 pb-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); changeProjectMonth(project.id, -1); }}
+                    className="w-5 h-5 flex items-center justify-center rounded transition-colors"
+                    style={{ color: 'var(--text-placeholder)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </button>
+                  <span style={{
+                    fontSize: 10,
+                    color: isCurrentMonth ? 'var(--text-tertiary)' : 'var(--accent-blue)',
+                    fontWeight: isCurrentMonth ? 400 : 500,
+                    minWidth: 60,
+                    textAlign: 'center' as const,
+                    textTransform: 'capitalize' as const,
+                  }}>
+                    {monthLabel}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); changeProjectMonth(project.id, 1); }}
+                    className="w-5 h-5 flex items-center justify-center rounded transition-colors"
+                    style={{ color: 'var(--text-placeholder)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
               {expanded && (
                 <div>
                   {sectionGroups.map(({ section, tasks: sectionTasks }) => (
