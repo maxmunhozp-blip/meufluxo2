@@ -298,11 +298,19 @@ const Index = () => {
     const prev = taskList.find(t => t.id === taskId);
     const prevStatus = prev?.status || 'pending';
     updateTaskStatus(taskId, newStatus);
+
+    // Move completed tasks to the end of their section/period
+    if (newStatus === 'done' && prev) {
+      const siblings = taskList.filter(t => t.section === prev.section && !t.parentTaskId && t.id !== taskId);
+      const maxPos = siblings.reduce((max, t) => Math.max(max, t.position ?? 0), 0);
+      batchUpdatePositions([{ id: taskId, position: maxPos + 1 }]);
+    }
+
     pushUndo({
       label: 'Mudança de status',
       undo: () => updateTaskStatus(taskId, prevStatus),
     });
-  }, [updateTaskStatus, taskList, pushUndo]);
+  }, [updateTaskStatus, taskList, pushUndo, batchUpdatePositions]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);
