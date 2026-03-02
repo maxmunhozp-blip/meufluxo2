@@ -263,7 +263,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 />
               ) : (
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 max-w-[65%]">
-                  <span className={`text-[14px] truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground opacity-70' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)' }}>
+                  <span className={`text-[14px] truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)', opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>
                     {task.name}
                   </span>
                   {hasSubtasks && (() => {
@@ -277,7 +277,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                         style={{
                           fontSize: 11,
                           fontWeight: 400,
-                          color: allDone ? 'hsl(var(--status-done))' : 'var(--text-placeholder)',
+                          color: allDone ? 'rgba(255,255,255,0.3)' : 'var(--text-placeholder)',
                           opacity: 0.7,
                           letterSpacing: '0.01em',
                         }}

@@ -134,14 +134,14 @@ function DayTaskCard({
         </div>
         <div className="w-3 flex-shrink-0" />
         <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
-          {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
+          {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400, opacity: isDone ? 0.25 : 1 }}>{projectName}</span>}
           {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
           <span className="flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200"
-            style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
+            style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.35 : 1, fontWeight: 400, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>{task.name}</span>
           {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {sectionName && <span className="truncate text-[11px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)' }}>{sectionName}</span>}
+          {sectionName && <span className="truncate text-[11px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{sectionName}</span>}
           {sectionName && parentTaskName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {parentTaskName && <span className="truncate text-[11px] max-w-[120px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)' }}>{parentTaskName}</span>}
+          {parentTaskName && <span className="truncate text-[11px] max-w-[120px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{parentTaskName}</span>}
         </div>
         {rolloverDays && rolloverDays > 0 && (
           <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
@@ -239,7 +239,7 @@ function CollapsedPeriodSummary({
           ·
         </span>
         {doneCount > 0 && (
-          <span style={{ fontSize: 11, color: '#10B981', fontWeight: 400 }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>
             {doneCount}✓
           </span>
         )}
