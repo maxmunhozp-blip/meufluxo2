@@ -653,7 +653,11 @@ export function MyDayView({
     Object.keys(map).forEach(key => {
       const period = key as DayPeriod;
       const pending = map[period].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const done = map[period].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const done = map[period].filter(t => t.status === 'done').sort((a, b) => {
+        const aTime = a.completedAt || '';
+        const bTime = b.completedAt || '';
+        return aTime.localeCompare(bTime);
+      });
       map[period] = [...pending, ...done];
     });
     return map;
