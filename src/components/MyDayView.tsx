@@ -12,6 +12,7 @@ import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/typ
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
+import { ContextMenu } from './ContextMenu';
 
 interface MyDayViewProps {
   tasks: Task[];
@@ -57,13 +58,14 @@ function getPeriodOrder(period: DayPeriod): number {
 
 /* ── Task card ── */
 function DayTaskCard({
-  task, projectColor, isSelected, onSelect, onStatusChange, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName,
+  task, projectColor, isSelected, onSelect, onStatusChange, onUpdateTask, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName,
 }: {
   task: Task; projectColor: string; isSelected: boolean; onSelect: () => void;
-  onStatusChange: (id: string, s: TaskStatus) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
+  onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
   const [completing, setCompleting] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -72,56 +74,93 @@ function DayTaskCard({
   };
 
   const handleStatus = (s: TaskStatus) => {
-    // Binary toggle: pending ↔ done (skip in_progress to reduce cognitive load for neurodivergent users)
     const targetStatus: TaskStatus = task.status === 'done' ? 'pending' : 'done';
     if (targetStatus === 'done') { setCompleting(true); setTimeout(() => { onStatusChange(task.id, targetStatus); setCompleting(false); }, 400); }
     else { onStatusChange(task.id, targetStatus); }
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
   const isDone = task.status === 'done';
+  const currentPeriod = task.dayPeriod || 'morning';
+  const periodOptions: { key: DayPeriod; label: string }[] = ([
+    { key: 'morning' as DayPeriod, label: 'Manhã' },
+    { key: 'afternoon' as DayPeriod, label: 'Tarde' },
+    { key: 'evening' as DayPeriod, label: 'Noite' },
+  ] as const).filter(p => p.key !== currentPeriod);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center h-[44px] cursor-pointer group" onClick={onSelect} role="button" tabIndex={0}
-      onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-      <div className="w-4 flex-shrink-0 flex items-center justify-center">
-        <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor }} />
+    <>
+      <div ref={setNodeRef} style={style} className="flex items-center h-[44px] cursor-pointer group" onClick={onSelect} role="button" tabIndex={0}
+        onContextMenu={handleContextMenu}
+        onMouseEnter={e => { if (!isDone) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+        <div className="w-4 flex-shrink-0 flex items-center justify-center">
+          <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: projectColor }} />
+        </div>
+        <div className="w-1 flex-shrink-0" />
+        <div {...attributes} {...listeners} className="flex-shrink-0 cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
+          <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
+        </div>
+        <div className="w-3 flex-shrink-0" />
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
+          {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
+          {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
+          <span className={`flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
+            style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
+          {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+          {sectionName && <span className="truncate text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, flexShrink: 1, minWidth: 0 }}>{sectionName}</span>}
+          {sectionName && parentTaskName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+          {parentTaskName && <span className="truncate text-[11px] max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0 }}>{parentTaskName}</span>}
+        </div>
+        {rolloverDays && rolloverDays > 0 && (
+          <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
+            style={{ fontSize: 10, color: 'var(--warning)', fontWeight: 400, background: 'var(--warning-bg)' }}>
+            ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
+          </span>
+        )}
+        {showProjectBadge && projectName && (
+          <span className="flex-shrink-0 ml-1 px-1.5 py-0.5 rounded" style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg-elevated)' }}>{projectName}</span>
+        )}
+        {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: 'var(--text-tertiary)' }} />}
       </div>
-      <div className="w-1 flex-shrink-0" />
-      <div {...attributes} {...listeners} className="flex-shrink-0 cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
-        <StatusCheckbox status={task.status} onChange={handleStatus} size={20} />
-      </div>
-      <div className="w-3 flex-shrink-0" />
-      <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
-        {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>{projectName}</span>}
-        {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
-        <span className={`flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200 ${isDone ? 'line-through' : ''}`}
-          style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.4 : 1, fontWeight: 400 }}>{task.name}</span>
-        {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-        {sectionName && <span className="truncate text-[11px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, flexShrink: 1, minWidth: 0 }}>{sectionName}</span>}
-        {sectionName && parentTaskName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-        {parentTaskName && <span className="truncate text-[11px] max-w-[120px]" style={{ color: 'var(--text-placeholder)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0 }}>{parentTaskName}</span>}
-      </div>
-      {rolloverDays && rolloverDays > 0 && (
-        <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
-          style={{ fontSize: 10, color: 'var(--warning)', fontWeight: 400, background: 'var(--warning-bg)' }}>
-          ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
-        </span>
+      {contextMenu && (
+        <ContextMenu
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+          items={[
+            {
+              label: isDone ? 'Marcar como pendente' : 'Marcar como feito',
+              onClick: () => onStatusChange(task.id, isDone ? 'pending' : 'done'),
+            },
+            {
+              label: 'Mover para período',
+              children: periodOptions.map(p => ({
+                label: p.label,
+                onClick: () => onUpdateTask({ ...task, dayPeriod: p.key }),
+              })),
+            },
+            {
+              label: 'Desagendar',
+              onClick: () => onUpdateTask({ ...task, scheduledDate: undefined }),
+            },
+          ]}
+        />
       )}
-      {showProjectBadge && projectName && (
-        <span className="flex-shrink-0 ml-1 px-1.5 py-0.5 rounded" style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg-elevated)' }}>{projectName}</span>
-      )}
-      {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: 'var(--text-tertiary)' }} />}
-    </div>
+    </>
   );
 }
 
 /* ── Period section ── */
 function PeriodSection({
-  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, showProjectBadge, rolloverMap,
+  period, tasks, allTasks, projects, sections, periodState, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, showProjectBadge, rolloverMap,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; allTasks: Task[]; projects: Project[]; sections: Section[]; periodState: 'past' | 'current' | 'future';
-  selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void;
+  selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   showProjectBadge?: boolean; rolloverMap: Map<string, number>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
@@ -145,7 +184,7 @@ function PeriodSection({
               return (
                 <div key={task.id} style={{ opacity: taskOpacity }}>
                   <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                    onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} showProjectBadge={showProjectBadge}
+                    onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
                     projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
                     sectionName={sections.find(s => s.id === task.section)?.title}
                     parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
@@ -358,7 +397,7 @@ export function MyDayView({
                       const project = projects.find(p => p.id === task.projectId);
                       return (
                         <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                          onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} showProjectBadge projectName={project?.name}
+                          onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
                           rolloverDays={rolloverMap.get(task.id)}
                           sectionName={sections.find(s => s.id === task.section)?.title}
                           parentTaskName={task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
@@ -380,7 +419,7 @@ export function MyDayView({
                   periodOrder < currentPeriodOrder ? 'past' : periodOrder === currentPeriodOrder ? 'current' : 'future';
                 return (
                   <PeriodSection key={period.key} period={period} tasks={periodTasks} allTasks={tasks} projects={projects} sections={sections} periodState={periodState}
-                    selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} rolloverMap={rolloverMap} />
+                    selectedTaskId={selectedTaskId} onSelectTask={onSelectTask} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} rolloverMap={rolloverMap} />
                 );
               })}
               {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} />}
