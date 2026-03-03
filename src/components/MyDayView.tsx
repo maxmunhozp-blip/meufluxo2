@@ -649,18 +649,12 @@ export function MyDayView({
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
-      let period: DayPeriod;
       if (!viewingToday) {
-        // Past/future days: all tasks shown in morning
-        period = 'morning';
-      } else if (t.manuallyMoved) {
-        // User explicitly dragged today — respect their choice
-        period = (t.dayPeriod || 'morning') as DayPeriod;
-      } else {
-        // Not manually moved — start in morning (auto-promotion will handle the rest)
-        period = 'morning';
+        map['morning'].push(t);
+        return;
       }
-      map[period].push(t);
+      const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
+      map[dbPeriod].push(t);
     });
     // Sort within each period: pending first, done last, each group by position
     Object.keys(map).forEach(key => {
@@ -698,26 +692,45 @@ export function MyDayView({
     }
   }, [todayTasks, viewingToday, currentPeriod, currentPeriodOrder, onUpdateTask]);
 
-  // ── Midnight reset: limpa APENAS manually_moved ──
-  // day_period NÃO é tocado — a lógica de exibição em tasksByPeriod cuida disso.
+  // ── Startup reset: uma vez por dia via localStorage ──
   useEffect(() => {
-    const runReset = async () => {
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
-      if (midnightResetDoneRef.current === todayStr) return;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const resetKey = `meufluxo-day-reset-${todayStr}`;
 
+    if (localStorage.getItem(resetKey)) return;
+
+    const runReset = async () => {
       const { supabase } = await import('@/integrations/supabase/client');
-      await supabase.from('tasks').update({ manually_moved: false } as any).eq('manually_moved', true);
-      midnightResetDoneRef.current = todayStr;
-      promotedIdsRef.current.clear();
+      await supabase
+        .from('tasks')
+        .update({ day_period: 'morning', manually_moved: false } as any)
+        .neq('status', 'done')
+        .or('day_period.neq.morning,manually_moved.eq.true');
+
+      localStorage.setItem(resetKey, 'done');
+
+      // Limpar flags de dias anteriores
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('meufluxo-day-reset-') && key !== resetKey) {
+          localStorage.removeItem(key);
+        }
+      }
     };
 
     runReset();
+  }, []);
 
+  // ── Timer de meia-noite: limpar localStorage para próximo ciclo ──
+  useEffect(() => {
     const now = new Date();
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+
     const timer = setTimeout(() => {
-      midnightResetDoneRef.current = null;
-      runReset();
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const resetKey = `meufluxo-day-reset-${todayStr}`;
+      localStorage.removeItem(resetKey);
+      promotedIdsRef.current.clear();
     }, msUntilMidnight);
 
     return () => clearTimeout(timer);
