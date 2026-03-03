@@ -244,14 +244,15 @@ function DayTaskCard({
 function CollapsedPeriodSummary({
   period, tasks, isExpanded, onToggle,
   projects, sections, allTasks, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, rolloverMap,
-  overItemId, dropLinePosition, justDroppedId, isDragActive, alwaysShow,
+  overItemId, dropLinePosition, justDroppedId, isDragActive, alwaysShow, periodState,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; isExpanded: boolean; onToggle: () => void;
   projects: Project[]; sections: Section[]; allTasks: Task[];
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null; isDragActive?: boolean;
-  alwaysShow?: boolean;
+  alwaysShow?: boolean; periodState?: 'current' | 'past' | 'future';
 }) {
+  const isCurrent = periodState === 'current';
   const PeriodIcon = period.icon;
   const doneCount = tasks.filter(t => t.status === 'done').length;
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
@@ -272,14 +273,17 @@ function CollapsedPeriodSummary({
       <button
         onClick={onToggle}
         className="flex items-center gap-1.5 w-full text-left transition-colors group"
-        style={{ height: 28, opacity: 0.5 }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
-        onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}
+        style={{ height: 28, opacity: isCurrent ? 1 : 0.5 }}
+        onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.opacity = '0.8'; }}
+        onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.opacity = '0.5'; }}
       >
-        <PeriodIcon className="flex-shrink-0" style={{ width: 13, height: 13, color: 'var(--text-tertiary)' }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.3 }}>
+        <PeriodIcon className="flex-shrink-0" style={{ width: 13, height: 13, color: isCurrent ? 'var(--accent-blue)' : 'var(--text-tertiary)' }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: isCurrent ? 'var(--accent-blue)' : 'var(--text-tertiary)', letterSpacing: 0.3 }}>
           {period.label}
         </span>
+        {isCurrent && (
+          <span style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, marginLeft: 2 }}>agora</span>
+        )}
         {tasks.length > 0 && (
           <>
             <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>·</span>
@@ -442,8 +446,20 @@ function TempoVivoLayout({
   rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null;
   justDroppedId?: string | null; activeDragId?: string | null; onNavigateToWeek: () => void; allDone: boolean; allEmpty: boolean;
 }) {
-  const [expandedPeriods, setExpandedPeriods] = useState<Set<DayPeriod>>(new Set());
+  const [expandedPeriods, setExpandedPeriods] = useState<Set<DayPeriod>>(() =>
+    viewingToday ? new Set() : new Set(['morning', 'afternoon', 'evening'] as DayPeriod[])
+  );
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
+
+  // Reset expanded state when switching days
+  // Today: only the active period starts expanded; other days: all expanded
+  useEffect(() => {
+    if (viewingToday) {
+      setExpandedPeriods(new Set([currentPeriod]));
+    } else {
+      setExpandedPeriods(new Set(['morning', 'afternoon', 'evening'] as DayPeriod[]));
+    }
+  }, [viewingToday, isPastDay, currentPeriod]);
 
   const togglePeriodExpanded = useCallback((period: DayPeriod) => {
     setExpandedPeriods(prev => {
@@ -457,8 +473,8 @@ function TempoVivoLayout({
   // Compute period ordering: Active → Future → Past
   const { activePeriods, futurePeriods, pastPeriods } = useMemo(() => {
     if (!viewingToday) {
-      // Past & future days: all periods expanded (active-style) for full visibility
-      return { activePeriods: [...PERIODS], futurePeriods: [] as typeof PERIODS, pastPeriods: [] as typeof PERIODS };
+      // Past & future days: all periods use CollapsedPeriodSummary but start expanded
+      return { activePeriods: [] as typeof PERIODS, futurePeriods: [...PERIODS], pastPeriods: [] as typeof PERIODS };
     }
     const active: typeof PERIODS = [];
     const future: typeof PERIODS = [];
@@ -478,18 +494,22 @@ function TempoVivoLayout({
 
   return (
     <div className="max-w-[640px] mx-auto">
-      {/* Active period(s) — tasks already include promoted ones from tasksByPeriod */}
+      {/* Active period(s) — collapsible, starting expanded */}
       {activePeriods.map(period => (
-        <PeriodSection
-          key={period.key} period={period}
+        <CollapsedPeriodSummary
+          key={period.key}
+          period={period}
           tasks={tasksByPeriod[period.key]}
-          allTasks={allTasks} projects={projects} sections={sections}
-          periodState={viewingToday ? 'current' : 'future'}
+          isExpanded={expandedPeriods.has(period.key)}
+          onToggle={() => togglePeriodExpanded(period.key)}
+          projects={projects} sections={sections} allTasks={allTasks}
           selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
           onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
           rolloverMap={rolloverMap} overItemId={overItemId}
           dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
           isDragActive={!!activeDragId}
+          alwaysShow
+          periodState="current"
         />
       ))}
 
