@@ -75,6 +75,7 @@ interface UseSupabaseDataReturn {
   scheduleSubtask: (subtaskId: string, scheduledDate: string | null) => Promise<void>;
   deleteSubtask: (parentTaskId: string, subtaskId: string) => Promise<void>;
   reorderSubtasks: (parentTaskId: string, subtaskIds: string[]) => Promise<void>;
+  moveTaskToSection: (taskId: string, targetSectionId: string) => Promise<void>;
   uploadAttachment: (taskId: string, file: File) => Promise<void>;
   deleteAttachment: (attachmentId: string) => Promise<void>;
   createServiceTag: (name: string, icon: string) => Promise<void>;
