@@ -364,8 +364,56 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
         const row = payload.new as any;
+        const old = payload.old as any;
+        const parentChanged = row.parent_task_id !== old.parent_task_id;
+
         if (row.parent_task_id) {
-          setTasksState(prev => prev.map(t => {
+          setTasksState(prev => {
+            let updated = prev;
+
+            // If parent changed, relocate: remove from old location, add to new parent
+            if (parentChanged) {
+              // Remove from top-level
+              updated = updated.filter(t => t.id !== row.id);
+              // Remove from all subtask trees
+              const removeFromSubs = (subs: Subtask[]): Subtask[] =>
+                subs.filter(s => s.id !== row.id).map(s => ({ ...s, subtasks: removeFromSubs(s.subtasks || []) }));
+              updated = updated.map(t => ({ ...t, subtasks: removeFromSubs(t.subtasks || []) }));
+
+              // Build the new subtask entry
+              const newSub: Subtask = {
+                id: row.id, name: row.title, status: row.status as TaskStatus,
+                priority: row.priority as Priority | undefined,
+                position: row.position ?? 0,
+                description: row.description || undefined, dueDate: row.due_date || undefined,
+                scheduledDate: row.scheduled_date || undefined, dayPeriod: row.day_period || 'morning',
+                depth: row.depth ?? 1, section: row.section_id, projectId: row.project_id,
+                parentTaskId: row.parent_task_id, subtasks: [],
+              };
+
+              // Check if it's already in the target (optimistic update already placed it)
+              let alreadyPlaced = false;
+              const checkPlaced = (subs: Subtask[]): boolean => subs.some(s => s.id === row.id || checkPlaced(s.subtasks || []));
+              for (const t of updated) {
+                if (t.id === row.parent_task_id && checkPlaced(t.subtasks || [])) { alreadyPlaced = true; break; }
+                if (checkPlaced(t.subtasks || [])) { alreadyPlaced = true; break; }
+              }
+
+              if (!alreadyPlaced) {
+                // Add to new parent
+                const addToParent = (subs: Subtask[]): Subtask[] =>
+                  subs.map(s => s.id === row.parent_task_id
+                    ? { ...s, subtasks: [...(s.subtasks || []), newSub] }
+                    : { ...s, subtasks: addToParent(s.subtasks || []) });
+                updated = updated.map(t => t.id === row.parent_task_id
+                  ? { ...t, subtasks: [...(t.subtasks || []), newSub] }
+                  : { ...t, subtasks: addToParent(t.subtasks || []) });
+              }
+
+              return updated;
+            }
+
+            // Same parent — just update properties in-place
             const updateSub = (s: Subtask): Subtask => s.id === row.id ? {
               ...s, name: row.title, status: row.status as TaskStatus,
               priority: row.priority as Priority | undefined,
@@ -377,8 +425,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
               projectId: row.project_id ?? s.projectId,
               parentTaskId: row.parent_task_id ?? s.parentTaskId,
             } : { ...s, subtasks: (s.subtasks || []).map(updateSub) };
-            return { ...t, subtasks: (t.subtasks || []).map(updateSub) };
-          }));
+            return updated.map(t => ({ ...t, subtasks: (t.subtasks || []).map(updateSub) }));
+          });
           return;
         }
         setTasksState(prev => prev.map(t => t.id === row.id ? {
