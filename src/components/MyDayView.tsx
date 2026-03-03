@@ -564,10 +564,7 @@ export function MyDayView({
       if (t.scheduledDate === selectedDateStr) isScheduled = true;
       else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
       if (isScheduled) {
-        // When viewing today, reset non-manually-moved tasks to morning so they start fresh
-        const shouldResetPeriod = viewingToday && !t.manuallyMoved && t.status !== 'done';
-        const task = shouldResetPeriod ? { ...t, dayPeriod: 'morning' as DayPeriod } : t;
-        scheduled.push(task);
+        scheduled.push(t);
         scheduledIds.add(t.id);
       }
 
