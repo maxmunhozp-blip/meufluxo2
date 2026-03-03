@@ -1772,13 +1772,14 @@ const Index = () => {
                           };
                           updated = removeFromTree(updated);
                           // Add as subtask of target
-                          const updateSubsContext = (subs: Subtask[] | undefined): Subtask[] => {
+                          const updateSubsContext = (subs: Subtask[] | undefined, parentDepth: number): Subtask[] => {
                             if (!subs) return [];
                             return subs.map(s => ({
                               ...s,
+                              depth: parentDepth + 1,
                               section: target.section,
                               projectId: target.projectId,
-                              subtasks: updateSubsContext(s.subtasks),
+                              subtasks: updateSubsContext(s.subtasks, parentDepth + 1),
                             }));
                           };
                           const newSub: Subtask = {
@@ -1792,7 +1793,8 @@ const Index = () => {
                             section: target.section,
                             projectId: target.projectId,
                             parentTaskId: targetTaskId,
-                            subtasks: updateSubsContext((dragged as Task).subtasks),
+                            depth: newDepth,
+                            subtasks: updateSubsContext((dragged as Task).subtasks, newDepth),
                           };
                           // Recursively add to target (which may be nested)
                           const addToTarget = (tasks: Task[]): Task[] => {
