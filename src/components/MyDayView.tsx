@@ -602,7 +602,7 @@ export function MyDayView({
           if (days > 0) {
             rMap.set(t.id, days);
             // Reset to morning — overdue tasks start fresh at the beginning of the day
-            overdue.push({ ...t, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
+            overdue.push(t);
           }
           return;
         }
@@ -611,7 +611,7 @@ export function MyDayView({
           if (isBefore(startOfDay(dueDate), todayStart)) {
             const days = t.rolloverCount && t.rolloverCount > 0 ? t.rolloverCount : differenceInCalendarDays(todayStart, dueDate);
             rMap.set(t.id, days);
-            overdue.push({ ...t, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
+            overdue.push(t);
           }
         }
 
@@ -626,7 +626,7 @@ export function MyDayView({
               if (days > 0) {
                 const promoted = promoteSubtask(sub, parent, idx);
                 rMap.set(sub.id, days);
-                overdue.push({ ...promoted, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
+                overdue.push({ ...promoted });
               }
             } else if (!sub.scheduledDate && sub.dueDate) {
               const dueDate = parseISO(sub.dueDate);
@@ -634,7 +634,7 @@ export function MyDayView({
                 const days = differenceInCalendarDays(todayStart, dueDate);
                 const promoted = promoteSubtask(sub, parent, idx);
                 rMap.set(sub.id, days);
-                overdue.push({ ...promoted, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
+                overdue.push({ ...promoted });
               }
             }
             if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
