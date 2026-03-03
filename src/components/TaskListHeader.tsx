@@ -57,11 +57,12 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
       </h1>
 
       {onMonthChange && (
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Arrow zone — fixed width (Fitts's Law + W3C COGA O4P01) */}
+          <div className="flex items-center" style={{ width: 220 }}>
             <button
               onClick={goToPrev}
-              className="w-8 h-8 flex items-center justify-center rounded-lg"
+              className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg"
               style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
@@ -70,37 +71,18 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
               <ChevronLeft className="w-4 h-4" />
             </button>
             
-            <div className="flex items-center gap-2 min-w-[140px] justify-center">
+            <div className="flex-1 flex items-center justify-center overflow-hidden">
               <span
-                className="tabular-nums text-center"
+                className="tabular-nums text-center truncate"
                 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
               >
                 {MONTH_NAMES[currentMonth]} {currentYear}
               </span>
-
-              {/* Temporal Context Badge — ADHD external memory aid */}
-              {!isCurrentMonth && (
-                <span
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: 9999,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
-                    color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  aria-label={`Você está visualizando ${getTemporalLabel()}`}
-                >
-                  {getTemporalLabel()}
-                </span>
-              )}
             </div>
             
             <button
               onClick={goToNext}
-              className="w-8 h-8 flex items-center justify-center rounded-lg"
+              className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg"
               style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
@@ -110,11 +92,30 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
             </button>
           </div>
 
-          {/* "Ir para Hoje" — instant return to current context */}
+          {/* Temporal badge — outside arrow zone */}
+          {!isCurrentMonth && (
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
+                color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
+                whiteSpace: 'nowrap',
+              }}
+              aria-label={`Você está visualizando ${getTemporalLabel()}`}
+            >
+              {getTemporalLabel()}
+            </span>
+          )}
+
+          {/* "Ir para Hoje" — outside arrow zone */}
           {!isCurrentMonth && (
             <button
               onClick={goToToday}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 flex-shrink-0"
               style={{
                 padding: '4px 12px',
                 borderRadius: 8,

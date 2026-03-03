@@ -957,12 +957,30 @@ export function MyDayView({
         </div>
 
         {/* Day Navigator */}
-        <div className="flex items-center gap-2 mt-3">
-          <div className="flex items-center gap-1">
+        {/* 
+          Spatial Stability Navigation — W3C COGA O4P01 + Fitts's Law
+          
+          Research basis:
+          - W3C Cognitive Accessibility: "Controls must not move unexpectedly" (O4P01)
+          - Fitts's Law (1954): Target acquisition time = f(distance, size). Moving targets 
+            force motor re-planning, increasing error rate and cognitive load.
+          - NN/g Spatial Memory: Users develop muscle memory for control positions.
+            Breaking spatial consistency causes disorientation in all users, 
+            but disproportionately impacts ADHD (executive function deficit 
+            impairs rapid motor re-planning) and ASD (spatial predictability 
+            is a core coping mechanism).
+          
+          Design decision: Arrows are pinned to a fixed-width container.
+          Date text is centered within it. Badge and "Hoje" live OUTSIDE 
+          the arrow zone so they never shift arrow positions.
+        */}
+        <div className="flex items-center gap-3 mt-3">
+          {/* Arrow zone — fixed width, arrows never move */}
+          <div className="flex items-center" style={{ width: 310 }}>
             <button
               onClick={() => setSelectedDate(d => subDays(d, 1))}
-              className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out', padding: 8 }}
+              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Dia anterior"
@@ -970,11 +988,12 @@ export function MyDayView({
               <ChevronLeft className="w-[18px] h-[18px]" />
             </button>
 
-            <div className="flex items-center gap-3 min-w-[180px] justify-center">
+            {/* Date label — centered in remaining space, text never pushes arrows */}
+            <div className="flex-1 flex items-center justify-center overflow-hidden">
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="tabular-nums text-center cursor-pointer rounded-md px-2 py-1 transition-colors"
+                    className="tabular-nums text-center cursor-pointer rounded-md px-2 py-1 transition-colors truncate"
                     style={{
                       fontSize: 16,
                       fontWeight: 600,
@@ -998,30 +1017,12 @@ export function MyDayView({
                   />
                 </PopoverContent>
               </Popover>
-
-              {/* Temporal Context Badge */}
-              {!viewingToday && temporalLabel && (
-                <span
-                 style={{
-                    padding: '2px 8px',
-                    borderRadius: 9999,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    background: 'rgba(255,255,255,0.06)',
-                    color: 'rgba(255,255,255,0.35)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {temporalLabel}
-                </span>
-              )}
             </div>
 
             <button
               onClick={() => setSelectedDate(d => addDays(d, 1))}
-              className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out', padding: 8 }}
+              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Próximo dia"
@@ -1030,11 +1031,29 @@ export function MyDayView({
             </button>
           </div>
 
-          {/* "Hoje" button — only when not viewing today */}
+          {/* Temporal badge — outside arrow zone, never affects arrow positions */}
+          {!viewingToday && temporalLabel && (
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'rgba(255,255,255,0.35)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {temporalLabel}
+            </span>
+          )}
+
+          {/* "Hoje" button — outside arrow zone */}
           {!viewingToday && (
             <button
               onClick={() => setSelectedDate(new Date())}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 flex-shrink-0"
               style={{
                 padding: '4px 12px',
                 borderRadius: 8,
