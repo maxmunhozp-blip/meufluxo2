@@ -18,6 +18,7 @@ interface SortableTaskRowProps {
   isDragSource?: boolean;
   dropIndicator?: 'top' | 'bottom' | null;
   projectColor?: string;
+  sectionType?: string;
   onSelect: (task: Task) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onSubtaskStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
@@ -62,6 +63,7 @@ function isOverdue(dateStr?: string, status?: TaskStatus): boolean {
 
 
 
+
 const DEPTH_STYLES = {
   0: { paddingLeft: 8, checkboxSize: 18, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' },
   1: { paddingLeft: 32, checkboxSize: 16, fontSize: 14, fontWeight: 400, color: 'var(--text-primary)' },
@@ -69,7 +71,7 @@ const DEPTH_STYLES = {
   3: { paddingLeft: 80, checkboxSize: 12, fontSize: 12, fontWeight: 400, color: 'var(--text-tertiary)' },
 } as const;
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, sectionType, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -127,6 +129,21 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const depth = Math.min(task.depth ?? 0, 3) as 0 | 1 | 2 | 3;
   const dStyle = DEPTH_STYLES[depth];
+
+  // Aging badge for inbox sections (>48h)
+  const agingBadge = (() => {
+    if (sectionType !== 'inbox' || !task.createdAt || isDone) return null;
+    const ageMs = Date.now() - new Date(task.createdAt).getTime();
+    if (ageMs < 172800000) return null;
+    const ageDays = Math.floor(ageMs / 86400000);
+    const ageHours = Math.floor(ageMs / 3600000);
+    const ageLabel = ageDays > 0 ? `${ageDays}d` : `${ageHours}h`;
+    return (
+      <span className="flex-shrink-0" style={{ fontSize: 10, fontWeight: 500, color: 'var(--warning-subtle, #F59E0B)', opacity: 0.7, padding: '1px 6px', borderRadius: 4, background: 'rgba(245, 158, 11, 0.08)' }}>
+        {ageLabel}
+      </span>
+    );
+  })();
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -276,6 +293,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   <span className={`truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontSize: dStyle.fontSize, fontWeight: dStyle.fontWeight, lineHeight: 1.5, color: isDone ? undefined : dStyle.color, opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>
                     {task.name}
                   </span>
+                  {agingBadge}
                   {task.scheduledDate && (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
