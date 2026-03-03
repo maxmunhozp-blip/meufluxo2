@@ -524,6 +524,9 @@ export function MyDayView({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const promotedIdsRef = useRef<Set<string>>(new Set());
   const midnightResetDoneRef = useRef<string | null>(null);
+  const todayTasksRef = useRef<Task[]>([]);
+  const onUpdateTaskRef = useRef(onUpdateTask);
+  onUpdateTaskRef.current = onUpdateTask;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const currentPeriod = useMemo(() => getCurrentPeriod(), []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
@@ -643,6 +646,8 @@ export function MyDayView({
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
   }, [tasks, selectedDateStr, viewingToday]);
 
+  todayTasksRef.current = todayTasks;
+
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
@@ -650,27 +655,26 @@ export function MyDayView({
         map['morning'].push(t);
         return;
       }
-      const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
-      map[dbPeriod].push(t);
+      const period = (t.dayPeriod || 'morning') as DayPeriod;
+      map[period].push(t);
     });
-    // Sort within each period: pending first, done last, each group by position
     Object.keys(map).forEach(key => {
-      const period = key as DayPeriod;
-      const pending = map[period].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const done = map[period].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      map[period] = [...pending, ...done];
+      const p = key as DayPeriod;
+      const pending = map[p].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const done = map[p].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      map[p] = [...pending, ...done];
     });
     return map;
   }, [todayTasks, viewingToday]);
 
   // ── Sistema 1: Promoção automática por horário ──
-  // Ao meio-dia: pendentes da Manhã → Tarde. Às 18h: pendentes da Tarde → Noite.
-  // Ignora tarefas com manuallyMoved=true. Roda UMA VEZ por tarefa.
+  // Runs ONCE on mount (and when period changes). Uses refs to avoid loop.
   useEffect(() => {
     if (!viewingToday) return;
+    const currentTasks = todayTasksRef.current;
     const promotions: { task: Task; targetPeriod: DayPeriod }[] = [];
 
-    todayTasks.forEach(t => {
+    currentTasks.forEach(t => {
       if (t.status === 'done') return;
       if (t.manuallyMoved) return;
       if (promotedIdsRef.current.has(t.id)) return;
@@ -684,10 +688,10 @@ export function MyDayView({
     if (promotions.length > 0) {
       promotions.forEach(({ task, targetPeriod }) => {
         promotedIdsRef.current.add(task.id);
-        onUpdateTask({ ...task, dayPeriod: targetPeriod });
+        onUpdateTaskRef.current({ ...task, dayPeriod: targetPeriod });
       });
     }
-  }, [todayTasks, viewingToday, currentPeriod, currentPeriodOrder, onUpdateTask]);
+  }, [viewingToday, currentPeriod, currentPeriodOrder]);
 
   // ── Startup reset: uma vez por dia via localStorage ──
   useEffect(() => {
