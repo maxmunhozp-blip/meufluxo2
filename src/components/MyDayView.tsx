@@ -587,7 +587,16 @@ export function MyDayView({
   const onUpdateTaskRef = useRef(onUpdateTask);
   onUpdateTaskRef.current = onUpdateTask;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const currentPeriod = useMemo(() => getCurrentPeriod(), []);
+  // Live-updating period: re-checks every 60s so promotion triggers when period changes
+  const [currentPeriod, setCurrentPeriod] = useState<DayPeriod>(getCurrentPeriod);
+  useEffect(() => {
+    const check = () => {
+      const now = getCurrentPeriod();
+      setCurrentPeriod(prev => prev !== now ? now : prev);
+    };
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
   const viewingToday = isToday(selectedDate);
   const selectedDateStr = useMemo(() => format(selectedDate, 'yyyy-MM-dd'), [selectedDate]);
