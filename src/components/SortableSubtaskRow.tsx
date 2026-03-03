@@ -21,7 +21,7 @@ interface SortableSubtaskRowProps {
   depth?: number;
   isSelected: boolean;
   isDragging?: boolean;
-  dropIndicator?: 'top' | 'bottom' | null;
+  dropIndicator?: 'top' | 'bottom' | 'center' | null;
   onSelect?: (subtask: Subtask) => void;
   onStatusChange?: (taskId: string, subtaskId: string, status: TaskStatus) => void;
   onRename?: (subtaskId: string, name: string) => void;
@@ -170,9 +170,15 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pr-4 md:pr-6 flex items-center gap-2 group/sub ${
         isSelected ? 'bg-nd-active' : ''
       } ${isParentDragging ? 'opacity-40' : ''}`}
-      style={{ touchAction: 'none', paddingLeft: dStyle.paddingLeft }}
+      style={{
+        touchAction: 'none',
+        paddingLeft: dStyle.paddingLeft,
+        background: dropIndicator === 'center' ? 'hsl(var(--primary) / 0.08)' : undefined,
+        outline: dropIndicator === 'center' ? '2px dashed hsl(var(--primary) / 0.5)' : undefined,
+        outlineOffset: dropIndicator === 'center' ? '-2px' : undefined,
+      }}
     >
-      {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
+      {dropIndicator && dropIndicator !== 'center' && <DropIndicatorLine position={dropIndicator} />}
       <div
         className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/sub:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
       >
