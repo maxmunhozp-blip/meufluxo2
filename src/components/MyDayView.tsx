@@ -695,10 +695,6 @@ export function MyDayView({
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     const isPastDay = isBefore(startOfDay(selectedDate), startOfDay(new Date()));
     todayTasks.forEach(t => {
-      if (isPastDay) {
-        map['morning'].push(t);
-        return;
-      }
       const period = (t.dayPeriod || 'morning') as DayPeriod;
       map[period].push(t);
     });
