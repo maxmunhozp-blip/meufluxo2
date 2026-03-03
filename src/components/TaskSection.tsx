@@ -383,6 +383,7 @@ export function TaskSection({
                 isDragSource={activeTaskId === task.id}
                 dropIndicator={overTaskId === task.id ? taskDropPosition : null}
                 projectColor={projectColor}
+                sectionType={section.sectionType}
                 onSelect={onSelectTask}
                 onStatusChange={onStatusChange}
                 onSubtaskStatusChange={onSubtaskStatusChange}

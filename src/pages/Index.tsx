@@ -546,7 +546,10 @@ const Index = () => {
       const t = taskList.find(t => t.id === focusedTaskId);
       if (t) sectionId = t.section;
     }
-    if (!sectionId) sectionId = projectSections[projectSections.length - 1]?.id;
+    if (!sectionId) {
+      const inboxSection = projectSections.find(s => s.sectionType === 'inbox');
+      sectionId = inboxSection?.id || projectSections[0]?.id;
+    }
     if (!sectionId) return;
     createTaskInSection(sectionId);
   }, [focusedTaskId, taskList, projectSections, createTaskInSection]);
