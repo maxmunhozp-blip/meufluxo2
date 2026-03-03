@@ -34,11 +34,19 @@ export function useTaskOps(deps: SharedState) {
 
   const updateTask = useCallback(async (task: Task) => {
     // ── Optimistic update FIRST (instant UI feedback) ──
+    // Deep recursive updater for nested subtasks at any depth
+    const updateSubtasksDeep = (subs: Subtask[]): Subtask[] =>
+      subs.map(s => {
+        if (s.id === task.id) return { ...s, ...task } as Subtask;
+        if (s.subtasks) return { ...s, subtasks: updateSubtasksDeep(s.subtasks) };
+        return s;
+      });
+
     if (task.parentTaskId) {
-      setTasksState(prev => prev.map(t => {
-        if (t.id !== task.parentTaskId) return t;
-        return { ...t, subtasks: (t.subtasks || []).map(s => s.id === task.id ? { ...s, ...task } : s) };
-      }));
+      setTasksState(prev => prev.map(t => ({
+        ...t,
+        subtasks: t.subtasks ? updateSubtasksDeep(t.subtasks) : t.subtasks,
+      })));
     } else {
       setTasksState(prev => {
         const wasSubtask = prev.some(t => (t.subtasks || []).some(s => s.id === task.id));
@@ -222,28 +230,30 @@ export function useTaskOps(deps: SharedState) {
     let section = '';
     let projectId = '';
     let existingSubtasks: Subtask[] = [];
+    let parentDepth = 0;
+
+    // Deep search for parent at any depth
+    const findParentDeep = (subs: Subtask[]): Subtask | undefined => {
+      for (const s of subs) {
+        if (s.id === parentTaskId) return s;
+        if (s.subtasks) { const found = findParentDeep(s.subtasks); if (found) return found; }
+      }
+      return undefined;
+    };
 
     const topLevel = tasksState.find(t => t.id === parentTaskId);
     if (topLevel) {
       section = topLevel.section; projectId = topLevel.projectId; existingSubtasks = topLevel.subtasks || [];
+      parentDepth = topLevel.depth ?? 0;
     } else {
       for (const t of tasksState) {
-        const sub = (t.subtasks || []).find(s => s.id === parentTaskId);
-        if (sub) { section = sub.section; projectId = sub.projectId; existingSubtasks = sub.subtasks || []; break; }
+        const sub = findParentDeep(t.subtasks || []);
+        if (sub) { section = sub.section; projectId = sub.projectId; existingSubtasks = sub.subtasks || []; parentDepth = sub.depth ?? 1; break; }
       }
     }
     if (!section || !projectId) { console.error('[addSubtask] Could not find parent task:', parentTaskId); return; }
 
     const position = existingSubtasks.length;
-    let parentDepth = 0;
-    if (topLevel) {
-      parentDepth = topLevel.depth ?? 0;
-    } else {
-      for (const t of tasksState) {
-        const sub = (t.subtasks || []).find(s => s.id === parentTaskId);
-        if (sub) { parentDepth = sub.depth ?? 1; break; }
-      }
-    }
     const newDepth = parentDepth + 1;
     if (newDepth > 3) { toast.error('Profundidade máxima atingida (4 níveis)'); return; }
     try {
@@ -258,10 +268,16 @@ export function useTaskOps(deps: SharedState) {
         priority: data.priority as Priority | undefined,
         description: data.description || undefined, dueDate: data.due_date || undefined,
         section: data.section_id, projectId: data.project_id, parentTaskId: data.parent_task_id,
+        depth: newDepth,
       };
+      const addToParentDeep = (subs: Subtask[]): Subtask[] =>
+        subs.map(s => s.id === parentTaskId
+          ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] }
+          : { ...s, subtasks: s.subtasks ? addToParentDeep(s.subtasks) : undefined }
+        );
       setTasksState(prev => prev.map(t => {
         if (t.id === parentTaskId) return { ...t, subtasks: [...(t.subtasks || []).filter(s => s.id !== sub.id), sub] };
-        return { ...t, subtasks: (t.subtasks || []).map(s => s.id === parentTaskId ? { ...s, subtasks: [...(s.subtasks || []).filter(ss => ss.id !== sub.id), sub] } : s) };
+        return { ...t, subtasks: t.subtasks ? addToParentDeep(t.subtasks) : t.subtasks };
       }));
     } catch (err) { console.error('[addSubtask] Unexpected error:', err); }
   }, [tasksState, activeWorkspaceId]);
@@ -271,30 +287,37 @@ export function useTaskOps(deps: SharedState) {
     if (updates.name !== undefined) dbUpdates.title = updates.name;
     if (updates.status !== undefined) { dbUpdates.status = updates.status; dbUpdates.completed_at = updates.status === 'done' ? new Date().toISOString() : null; }
     await supabase.from('tasks').update(dbUpdates).eq('id', subtaskId);
+    const applyUpdates = (s: Subtask): Subtask => ({
+      ...s,
+      ...(s.id === subtaskId ? { ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) } : {}),
+      subtasks: s.subtasks ? s.subtasks.map(applyUpdates) : undefined,
+    });
     setTasksState(prev => prev.map(t => ({
-      ...t, subtasks: (t.subtasks || []).map(s => {
-        if (s.id === subtaskId) return { ...s, ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) };
-        return { ...s, subtasks: (s.subtasks || []).map(ss => ss.id === subtaskId ? { ...ss, ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) } : ss) };
-      }),
+      ...t, subtasks: (t.subtasks || []).map(applyUpdates),
     })));
   }, []);
 
   const scheduleSubtask = useCallback(async (subtaskId: string, scheduledDate: string | null) => {
     await supabase.from('tasks').update({ scheduled_date: scheduledDate }).eq('id', subtaskId);
+    const applySchedule = (s: Subtask): Subtask => ({
+      ...s,
+      ...(s.id === subtaskId ? { scheduledDate: scheduledDate || undefined } : {}),
+      subtasks: s.subtasks ? s.subtasks.map(applySchedule) : undefined,
+    });
     setTasksState(prev => prev.map(t => ({
-      ...t, subtasks: (t.subtasks || []).map(s => {
-        if (s.id === subtaskId) return { ...s, scheduledDate: scheduledDate || undefined };
-        return { ...s, subtasks: (s.subtasks || []).map(ss => ss.id === subtaskId ? { ...ss, scheduledDate: scheduledDate || undefined } : ss) };
-      }),
+      ...t, subtasks: (t.subtasks || []).map(applySchedule),
     })));
   }, []);
 
   const deleteSubtask = useCallback(async (parentTaskId: string, subtaskId: string) => {
     await supabase.from('tasks').delete().eq('id', subtaskId);
-    setTasksState(prev => prev.map(t => {
-      if (t.id === parentTaskId) return { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== subtaskId) };
-      return { ...t, subtasks: (t.subtasks || []).map(s => s.id === parentTaskId ? { ...s, subtasks: (s.subtasks || []).filter(ss => ss.id !== subtaskId) } : s) };
-    }));
+    const removeDeep = (subs: Subtask[]): Subtask[] =>
+      subs.filter(s => s.id !== subtaskId).map(s => ({
+        ...s, subtasks: s.subtasks ? removeDeep(s.subtasks) : undefined,
+      }));
+    setTasksState(prev => prev.map(t => ({
+      ...t, subtasks: t.subtasks ? removeDeep(t.subtasks) : t.subtasks,
+    })));
   }, []);
 
   const reorderSubtasks = useCallback(async (parentTaskId: string, subtaskIds: string[]) => {
