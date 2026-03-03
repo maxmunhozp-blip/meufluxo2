@@ -245,10 +245,11 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             data-dndkit-grip
             {...attributes}
             {...listeners}
-            className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
+            className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-grab active:cursor-grabbing transition-opacity duration-150 z-10 hidden md:flex items-center justify-center rounded-sm"
+            style={{ left: -8, width: 22, height: 28 }}
             title="Arrastar para reordenar ou mover"
           >
-            <GripVertical className="w-4 h-4 text-muted-foreground" />
+            <GripVertical className="w-3.5 h-3.5 text-muted-foreground/70" />
           </div>
 
           <div className="h-full flex items-center" style={{ paddingLeft: dStyle.paddingLeft, paddingRight: 12 }}>
