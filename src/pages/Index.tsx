@@ -1735,16 +1735,20 @@ const Index = () => {
                         }).eq('id', draggedTaskId);
 
                         // Recursively update depth of all children
-                        const updateChildrenDepth = async (subs: Subtask[], parentDepth: number) => {
+                        const updateChildrenRecursive = async (subs: Subtask[], parentDepth: number) => {
                           for (const sub of subs) {
                             const childDepth = parentDepth + 1;
-                            await supabase.from('tasks').update({ depth: childDepth }).eq('id', sub.id);
+                            await supabase.from('tasks').update({
+                              depth: childDepth,
+                              section_id: target.section,
+                              project_id: target.projectId,
+                            }).eq('id', sub.id);
                             if (sub.subtasks && sub.subtasks.length > 0) {
-                              await updateChildrenDepth(sub.subtasks, childDepth);
+                              await updateChildrenRecursive(sub.subtasks, childDepth);
                             }
                           }
                         };
-                        await updateChildrenDepth((dragged as Task).subtasks || [], newDepth);
+                        await updateChildrenRecursive((dragged as Task).subtasks || [], newDepth);
 
                         setTasks(prev => {
                           let updated = prev;
@@ -1759,6 +1763,15 @@ const Index = () => {
                           // Remove from top-level if it was a top-level task
                           updated = updated.filter(t => t.id !== draggedTaskId);
                           // Add as subtask of target
+                          const updateSubsContext = (subs: Subtask[] | undefined): Subtask[] => {
+                            if (!subs) return [];
+                            return subs.map(s => ({
+                              ...s,
+                              section: target.section,
+                              projectId: target.projectId,
+                              subtasks: updateSubsContext(s.subtasks),
+                            }));
+                          };
                           const newSub: Subtask = {
                             id: dragged!.id,
                             name: dragged!.name,
@@ -1770,7 +1783,7 @@ const Index = () => {
                             section: target.section,
                             projectId: target.projectId,
                             parentTaskId: targetTaskId,
-                            subtasks: (dragged as Task).subtasks,
+                            subtasks: updateSubsContext((dragged as Task).subtasks),
                           };
                           return updated.map(t =>
                             t.id === targetTaskId
@@ -1792,16 +1805,20 @@ const Index = () => {
                                 depth: originalDepth,
                               }).eq('id', draggedTaskId);
                               // Restore children depths
-                              const restoreChildrenDepth = async (subs: Subtask[], parentDepth: number) => {
+                              const restoreChildrenAll = async (subs: Subtask[], parentDepth: number) => {
                                 for (const sub of subs) {
                                   const childDepth = parentDepth + 1;
-                                  await supabase.from('tasks').update({ depth: childDepth }).eq('id', sub.id);
+                                  await supabase.from('tasks').update({
+                                    depth: childDepth,
+                                    section_id: originalSection,
+                                    project_id: dragged!.projectId,
+                                  }).eq('id', sub.id);
                                   if (sub.subtasks && sub.subtasks.length > 0) {
-                                    await restoreChildrenDepth(sub.subtasks, childDepth);
+                                    await restoreChildrenAll(sub.subtasks, childDepth);
                                   }
                                 }
                               };
-                              await restoreChildrenDepth((dragged as Task).subtasks || [], originalDepth);
+                              await restoreChildrenAll((dragged as Task).subtasks || [], originalDepth);
                               // Restore state by refetching
                               setTasks(prev => {
                                 // Remove from target's subtasks
