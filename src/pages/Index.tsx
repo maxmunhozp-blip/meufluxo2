@@ -1726,30 +1726,7 @@ const Index = () => {
                       }
 
                       try {
-                        // Update dragged task
-                        await supabase.from('tasks').update({
-                          parent_task_id: targetTaskId,
-                          section_id: target.section,
-                          project_id: target.projectId,
-                          depth: newDepth,
-                        }).eq('id', draggedTaskId);
-
-                        // Recursively update depth of all children
-                        const updateChildrenRecursive = async (subs: Subtask[], parentDepth: number) => {
-                          for (const sub of subs) {
-                            const childDepth = parentDepth + 1;
-                            await supabase.from('tasks').update({
-                              depth: childDepth,
-                              section_id: target.section,
-                              project_id: target.projectId,
-                            }).eq('id', sub.id);
-                            if (sub.subtasks && sub.subtasks.length > 0) {
-                              await updateChildrenRecursive(sub.subtasks, childDepth);
-                            }
-                          }
-                        };
-                        await updateChildrenRecursive((dragged as Task).subtasks || [], newDepth);
-
+                        // ── Optimistic UI update FIRST ──
                         setTasks(prev => {
                           let updated = prev;
                           // Recursively remove dragged from anywhere in the tree
@@ -1821,6 +1798,35 @@ const Index = () => {
                           };
                           return addToTarget(updated);
                         });
+
+                        // ── Persist to DB (async, after UI already updated) ──
+                        // Update dragged task
+                        supabase.from('tasks').update({
+                          parent_task_id: targetTaskId,
+                          section_id: target.section,
+                          project_id: target.projectId,
+                          depth: newDepth,
+                        }).eq('id', draggedTaskId).then(({ error }) => {
+                          if (error) console.error('Erro ao aninhar tarefa:', error);
+                        });
+
+                        // Recursively update depth of all children
+                        const updateChildrenRecursive = (subs: Subtask[], parentDepth: number) => {
+                          for (const sub of subs) {
+                            const childDepth = parentDepth + 1;
+                            supabase.from('tasks').update({
+                              depth: childDepth,
+                              section_id: target.section,
+                              project_id: target.projectId,
+                            }).eq('id', sub.id).then(({ error }) => {
+                              if (error) console.error('Erro ao atualizar filho:', error);
+                            });
+                            if (sub.subtasks && sub.subtasks.length > 0) {
+                              updateChildrenRecursive(sub.subtasks, childDepth);
+                            }
+                          }
+                        };
+                        updateChildrenRecursive((dragged as Task).subtasks || [], newDepth);
 
                         const targetName = target.name;
                         sonnerToast.success(`Movida como subtarefa de "${targetName}"`, {
