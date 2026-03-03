@@ -245,7 +245,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             data-dndkit-grip
             {...attributes}
             {...listeners}
-            className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
+            className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hidden md:block"
             title="Arrastar para reordenar ou mover"
           >
             <GripVertical className="w-4 h-4 text-muted-foreground" />
