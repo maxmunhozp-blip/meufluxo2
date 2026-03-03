@@ -1819,7 +1819,16 @@ const Index = () => {
                                 }
                               };
                               await restoreChildrenAll((dragged as Task).subtasks || [], originalDepth);
-                              // Restore state by refetching
+                              // Restore state: revert subtask context recursively
+                              const revertSubsContext = (subs: Subtask[] | undefined): Subtask[] => {
+                                if (!subs) return [];
+                                return subs.map(s => ({
+                                  ...s,
+                                  section: originalSection,
+                                  projectId: dragged!.projectId,
+                                  subtasks: revertSubsContext(s.subtasks),
+                                }));
+                              };
                               setTasks(prev => {
                                 // Remove from target's subtasks
                                 let restored = prev.map(t =>
@@ -1827,17 +1836,18 @@ const Index = () => {
                                     ? { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== draggedTaskId) }
                                     : t
                                 );
+                                const restoredSubs = revertSubsContext((dragged as Task).subtasks);
                                 if (originalParentId) {
                                   // Add back as subtask of original parent
-                                  const sub: Subtask = { id: draggedTaskId, name: dragged!.name, status: dragged!.status, priority: dragged!.priority, description: dragged!.description, dueDate: dragged!.dueDate, scheduledDate: dragged!.scheduledDate, section: originalSection, projectId: dragged!.projectId, parentTaskId: originalParentId };
+                                  const sub: Subtask = { id: draggedTaskId, name: dragged!.name, status: dragged!.status, priority: dragged!.priority, description: dragged!.description, dueDate: dragged!.dueDate, scheduledDate: dragged!.scheduledDate, section: originalSection, projectId: dragged!.projectId, parentTaskId: originalParentId, subtasks: restoredSubs };
                                   restored = restored.map(t =>
                                     t.id === originalParentId
                                       ? { ...t, subtasks: [...(t.subtasks || []), sub] }
                                       : t
                                   );
                                 } else {
-                                  // Add back as top-level task
-                                  restored = [...restored, { ...dragged!, parentTaskId: undefined } as Task];
+                                  // Add back as top-level task with subtasks
+                                  restored = [...restored, { ...dragged!, parentTaskId: undefined, subtasks: restoredSubs, section: originalSection, projectId: dragged!.projectId } as Task];
                                 }
                                 return restored;
                               });
