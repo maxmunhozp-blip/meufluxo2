@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GripVertical, CalendarDays, ArrowUpFromLine, FolderInput, Trash2 } from 'lucide-react';
+import { GripVertical, CalendarDays, ArrowUpFromLine, FolderInput, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Subtask, TaskStatus, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -32,9 +32,12 @@ interface SortableSubtaskRowProps {
   onNativeDragOver?: (e: React.DragEvent, subtaskId: string) => void;
   onNativeDrop?: (e: React.DragEvent, subtaskId: string) => void;
   onNativeDragLeave?: (e: React.DragEvent) => void;
+  hasChildren?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, depth: depthProp, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, depth: depthProp, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave, hasChildren, isCollapsed, onToggleCollapse }: SortableSubtaskRowProps) {
   const depth = Math.min(depthProp ?? (subtask.depth ?? 1), 3) as 0 | 1 | 2 | 3;
   const dStyle = DEPTH_STYLES[depth];
   const [isRenaming, setIsRenaming] = useState(false);
@@ -184,6 +187,17 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
       >
         <GripVertical className="w-3.5 h-3.5 text-nd-text-muted" />
       </div>
+      {hasChildren ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleCollapse?.(); }}
+          className="flex-shrink-0 p-0.5 rounded hover:bg-nd-hover transition-colors"
+          style={{ marginRight: -2 }}
+        >
+          {isCollapsed
+            ? <ChevronRight className="w-3.5 h-3.5 text-nd-text-muted" />
+            : <ChevronDown className="w-3.5 h-3.5 text-nd-text-muted" />}
+        </button>
+      ) : null}
       <StatusCheckbox
         status={subtask.status}
         onChange={(s) => onStatusChange?.(parentTaskId, subtask.id, s)}

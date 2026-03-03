@@ -32,6 +32,15 @@ export function SubtaskDndWrapper({
   const subtaskIds = subtasks.map(s => s.id);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | 'center' | null>(null);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  const toggleCollapse = useCallback((id: string) => {
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
     const draggedId = e.dataTransfer.types.includes('application/x-task-id') ? true : false;
@@ -96,6 +105,7 @@ export function SubtaskDndWrapper({
       {subtasks.map((sub) => {
         const hasChildren = sub.subtasks && sub.subtasks.length > 0;
         const childDepth = Math.min((sub.depth ?? depth) + 1, 3);
+        const isCollapsed = collapsedIds.has(sub.id);
         return (
           <div key={sub.id}>
             <SortableSubtaskRow
@@ -115,9 +125,12 @@ export function SubtaskDndWrapper({
               onNativeDragOver={handleDragOver}
               onNativeDrop={handleDrop}
               onNativeDragLeave={handleDragLeave}
+              hasChildren={!!hasChildren}
+              isCollapsed={isCollapsed}
+              onToggleCollapse={() => toggleCollapse(sub.id)}
             />
             {/* Recursively render sub-subtasks */}
-            {hasChildren && (
+            {hasChildren && !isCollapsed && (
               <div
                 className="relative mb-0.5 rounded-br-md"
                 style={{
