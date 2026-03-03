@@ -593,7 +593,12 @@ export function MyDayView({
       // Overdue rollover only applies when viewing today
       tasks.forEach(t => {
         if (t.parentTaskId) return;
-        if (t.status === 'done') return; // Don't rollover completed tasks
+        // Skip tasks completed before today (they stay on their original day)
+        // But keep tasks completed TODAY so they remain visible in Meu Dia
+        if (t.status === 'done' && t.completedAt) {
+          const completedDay = startOfDay(parseISO(t.completedAt));
+          if (isBefore(completedDay, todayStart)) return;
+        }
         if (scheduledIds.has(t.id)) return;
         if (t.scheduledDate && t.scheduledDate < selectedDateStr) {
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
@@ -617,7 +622,11 @@ export function MyDayView({
         const findOverdueSubtasks = (subs: any[], parent: Task) => {
           subs.forEach((sub, idx) => {
             if (scheduledIds.has(sub.id)) return;
-            if (sub.status === 'done') return; // Don't rollover completed subtasks
+            // Skip subtasks completed before today
+            if (sub.status === 'done' && sub.completedAt) {
+              const completedDay = startOfDay(parseISO(sub.completedAt));
+              if (isBefore(completedDay, todayStart)) return;
+            }
             if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
               const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
               if (days > 0) {
