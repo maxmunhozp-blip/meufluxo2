@@ -33,19 +33,7 @@ export function useTaskOps(deps: SharedState) {
   }, [tasksState, session, activeWorkspaceId]);
 
   const updateTask = useCallback(async (task: Task) => {
-    const updates: Record<string, any> = {
-      title: task.name, status: task.status, priority: task.priority || 'low',
-      description: task.description || null, due_date: task.dueDate || null,
-      scheduled_date: task.scheduledDate || null, assignee: task.assignee || null,
-      section_id: task.section, day_period: task.dayPeriod ?? undefined,
-      recurrence_type: task.recurrenceType || null, recurrence_config: (task.recurrenceConfig as any) || null,
-      service_tag_id: task.serviceTagId || null, parent_task_id: task.parentTaskId || null,
-    };
-    if (task.manuallyMoved !== undefined) updates.manually_moved = task.manuallyMoved;
-    if (task.displayMonth) updates.display_month = task.displayMonth;
-    if (task.position !== undefined) updates.position = task.position;
-    await supabase.from('tasks').update(updates).eq('id', task.id);
-
+    // ── Optimistic update FIRST (instant UI feedback) ──
     if (task.parentTaskId) {
       setTasksState(prev => prev.map(t => {
         if (t.id !== task.parentTaskId) return t;
@@ -60,6 +48,20 @@ export function useTaskOps(deps: SharedState) {
         return prev.map(t => t.id === task.id ? task : t);
       });
     }
+
+    // ── Then persist to DB ──
+    const updates: Record<string, any> = {
+      title: task.name, status: task.status, priority: task.priority || 'low',
+      description: task.description || null, due_date: task.dueDate || null,
+      scheduled_date: task.scheduledDate || null, assignee: task.assignee || null,
+      section_id: task.section, day_period: task.dayPeriod ?? undefined,
+      recurrence_type: task.recurrenceType || null, recurrence_config: (task.recurrenceConfig as any) || null,
+      service_tag_id: task.serviceTagId || null, parent_task_id: task.parentTaskId || null,
+    };
+    if (task.manuallyMoved !== undefined) updates.manually_moved = task.manuallyMoved;
+    if (task.displayMonth) updates.display_month = task.displayMonth;
+    if (task.position !== undefined) updates.position = task.position;
+    await supabase.from('tasks').update(updates).eq('id', task.id);
   }, []);
 
   const batchUpdatePositions = useCallback(async (updates: { id: string; position: number }[]) => {
