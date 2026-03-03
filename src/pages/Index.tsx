@@ -1686,20 +1686,65 @@ const Index = () => {
                       // Prevent nesting target task into its own subtask
                       const targetTask = taskList.find(t => t.id === targetTaskId);
                       if (targetTask?.parentTaskId === draggedTaskId) return;
+                      // Prevent circular: don't nest into own descendant
+                      const isDescendant = (parentId: string, checkId: string): boolean => {
+                        const t = taskList.find(x => x.id === parentId);
+                        if (!t) return false;
+                        for (const s of (t.subtasks || [])) {
+                          if (s.id === checkId) return true;
+                          if ((s.subtasks || []).length > 0 && isDescendant(s.id, checkId)) return true;
+                        }
+                        return false;
+                      };
+                      if (isDescendant(draggedTaskId, targetTaskId)) return;
 
                       const originalParentId = dragged.parentTaskId;
                       const originalSection = dragged.section;
+                      const originalDepth = (dragged as any).depth ?? 0;
 
                       // Update in DB: set parent_task_id, match section/project of target
                       const target = taskList.find(t => t.id === targetTaskId);
                       if (!target) return;
 
+                      // Calculate new depth based on target's depth
+                      const targetDepth = (target as any).depth ?? 0;
+                      const newDepth = targetDepth + 1;
+                      if (newDepth > 3) {
+                        sonnerToast.error('Profundidade máxima atingida (4 níveis)');
+                        return;
+                      }
+
+                      // Check if dragged task's subtree would exceed max depth
+                      const getMaxSubtreeDepth = (subs: Subtask[], currentDepth: number): number => {
+                        if (!subs || subs.length === 0) return currentDepth;
+                        return Math.max(...subs.map(s => getMaxSubtreeDepth(s.subtasks || [], currentDepth + 1)));
+                      };
+                      const draggedSubtreeMaxDepth = getMaxSubtreeDepth((dragged as Task).subtasks || [], newDepth);
+                      if (draggedSubtreeMaxDepth > 3) {
+                        sonnerToast.error('Subtarefas excedem a profundidade máxima (4 níveis)');
+                        return;
+                      }
+
                       try {
+                        // Update dragged task
                         await supabase.from('tasks').update({
                           parent_task_id: targetTaskId,
                           section_id: target.section,
                           project_id: target.projectId,
+                          depth: newDepth,
                         }).eq('id', draggedTaskId);
+
+                        // Recursively update depth of all children
+                        const updateChildrenDepth = async (subs: Subtask[], parentDepth: number) => {
+                          for (const sub of subs) {
+                            const childDepth = parentDepth + 1;
+                            await supabase.from('tasks').update({ depth: childDepth }).eq('id', sub.id);
+                            if (sub.subtasks && sub.subtasks.length > 0) {
+                              await updateChildrenDepth(sub.subtasks, childDepth);
+                            }
+                          }
+                        };
+                        await updateChildrenDepth((dragged as Task).subtasks || [], newDepth);
 
                         setTasks(prev => {
                           let updated = prev;
@@ -1744,7 +1789,19 @@ const Index = () => {
                                 parent_task_id: originalParentId || null,
                                 section_id: originalSection,
                                 project_id: dragged!.projectId,
+                                depth: originalDepth,
                               }).eq('id', draggedTaskId);
+                              // Restore children depths
+                              const restoreChildrenDepth = async (subs: Subtask[], parentDepth: number) => {
+                                for (const sub of subs) {
+                                  const childDepth = parentDepth + 1;
+                                  await supabase.from('tasks').update({ depth: childDepth }).eq('id', sub.id);
+                                  if (sub.subtasks && sub.subtasks.length > 0) {
+                                    await restoreChildrenDepth(sub.subtasks, childDepth);
+                                  }
+                                }
+                              };
+                              await restoreChildrenDepth((dragged as Task).subtasks || [], originalDepth);
                               // Restore state by refetching
                               setTasks(prev => {
                                 // Remove from target's subtasks
