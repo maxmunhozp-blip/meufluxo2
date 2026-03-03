@@ -635,6 +635,14 @@ export function MyDayView({
                 rMap.set(sub.id, days);
                 overdue.push({ ...promoted, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
               }
+            } else if (!sub.scheduledDate && sub.dueDate) {
+              const dueDate = parseISO(sub.dueDate);
+              if (isBefore(startOfDay(dueDate), todayStart)) {
+                const days = differenceInCalendarDays(todayStart, dueDate);
+                const promoted = promoteSubtask(sub, parent, idx);
+                rMap.set(sub.id, days);
+                overdue.push({ ...promoted, dayPeriod: 'morning' as DayPeriod, manuallyMoved: false });
+              }
             }
             if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
           });
