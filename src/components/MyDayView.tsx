@@ -9,7 +9,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Target, ArrowRight, Repeat, Sunrise, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Check, Clock, CalendarDays, CalendarPlus, CalendarCheck, XCircle } from 'lucide-react';
-import { Task, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
+import { Task, Subtask, TaskStatus, Project, Section, DayPeriod, ServiceTag } from '@/types/task';
 import { getTagIcon } from './ServiceTagsManager';
 import { StatusCheckbox } from './StatusCheckbox';
 import { FocusMode } from './FocusMode';
@@ -63,15 +63,37 @@ function getPeriodOrder(period: DayPeriod): number {
 }
 
 /* ── Ancestor trail builder ── */
+function findTaskById(id: string, tasks: Task[]): { name: string; parentTaskId?: string } | undefined {
+  for (const t of tasks) {
+    if (t.id === id) return t;
+    if (t.subtasks) {
+      const found = findInSubtasks(id, t.subtasks);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function findInSubtasks(id: string, subtasks: Subtask[]): { name: string; parentTaskId?: string } | undefined {
+  for (const s of subtasks) {
+    if (s.id === id) return { name: s.name, parentTaskId: s.parentTaskId };
+    if (s.subtasks) {
+      const found = findInSubtasks(id, s.subtasks);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
 function buildAncestorTrail(task: Task, allTasks: Task[]): string | undefined {
   if (!task.parentTaskId) return undefined;
   const ancestors: string[] = [];
-  let current: Task | undefined = task;
-  while (current?.parentTaskId) {
-    const parent = allTasks.find(t => t.id === current!.parentTaskId);
+  let currentParentId: string | undefined = task.parentTaskId;
+  while (currentParentId) {
+    const parent = findTaskById(currentParentId, allTasks);
     if (!parent) break;
     ancestors.unshift(parent.name);
-    current = parent;
+    currentParentId = parent.parentTaskId;
   }
   if (ancestors.length === 0) return undefined;
   if (ancestors.length <= 2) return ancestors.join(' › ');
