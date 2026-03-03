@@ -280,18 +280,13 @@ function CollapsedPeriodSummary({
         <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.3 }}>
           {period.label}
         </span>
-        <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
-          ·
-        </span>
-        {doneCount > 0 && (
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>
-            {doneCount}✓
-          </span>
-        )}
-        {pendingCount > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
-            {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
-          </span>
+        {tasks.length > 0 && (
+          <>
+            <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>·</span>
+            <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
+              {doneCount > 0 ? `${doneCount}✓` : ''}{doneCount > 0 && pendingCount > 0 ? ' · ' : ''}{pendingCount > 0 ? pendingCount : ''}
+            </span>
+          </>
         )}
         <ChevronDown
           className="flex-shrink-0 transition-transform duration-200"
