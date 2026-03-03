@@ -372,6 +372,10 @@ export function useSupabaseData(): UseSupabaseDataReturn {
               position: row.position ?? s.position,
               description: row.description || undefined, dueDate: row.due_date || undefined,
               scheduledDate: row.scheduled_date || undefined, dayPeriod: row.day_period || s.dayPeriod,
+              depth: row.depth ?? s.depth,
+              section: row.section_id ?? s.section,
+              projectId: row.project_id ?? s.projectId,
+              parentTaskId: row.parent_task_id ?? s.parentTaskId,
             } : { ...s, subtasks: (s.subtasks || []).map(updateSub) };
             return { ...t, subtasks: (t.subtasks || []).map(updateSub) };
           }));
