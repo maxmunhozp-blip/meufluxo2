@@ -283,10 +283,22 @@ export function useTaskOps(deps: SharedState) {
     await Promise.all(subtaskIds.map((id, idx) => supabase.from('tasks').update({ position: idx }).eq('id', id)));
   }, []);
 
+  const moveTaskToSection = useCallback(async (taskId: string, targetSectionId: string) => {
+    await supabase.from('tasks').update({ section_id: targetSectionId }).eq('id', taskId);
+    // Move subtasks too
+    await supabase.from('tasks').update({ section_id: targetSectionId }).eq('parent_task_id', taskId);
+    setTasksState(prev => prev.map(t => {
+      if (t.id === taskId) return { ...t, section: targetSectionId };
+      if (t.parentTaskId === taskId) return { ...t, section: targetSectionId };
+      return t;
+    }));
+  }, []);
+
   return {
     createTask, updateTask, batchUpdatePositions,
     deleteTask, restoreTask, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addSubtask, updateSubtask, scheduleSubtask, deleteSubtask, reorderSubtasks,
+    moveTaskToSection,
   };
 }

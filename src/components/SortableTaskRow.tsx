@@ -143,7 +143,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       ref={setNodeRef}
       data-task-id={task.id}
       className="relative"
-      style={isFadingOut ? { opacity: 0, transform: 'translateY(-4px)', transition: 'opacity 150ms ease-out, transform 150ms ease-out' } : undefined}
+      style={isFadingOut ? { opacity: 0, transform: 'translateX(20px)', transition: 'all 300ms ease-out' } : undefined}
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div className="flex" style={{ marginBottom: 8 }}>

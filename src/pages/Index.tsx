@@ -56,7 +56,7 @@ const Index = () => {
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
     createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
-    createTask, updateTask, batchUpdatePositions, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
+    createTask, updateTask, batchUpdatePositions, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus, moveTaskToSection,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
     addSubtask, updateSubtask, deleteSubtask, reorderSubtasks, scheduleSubtask,
@@ -296,14 +296,17 @@ const Index = () => {
   // For subtask reorder on complete/uncomplete in project view
   const subtaskOriginalPositionsRef = useRef<Map<string, number>>(new Map());
 
+  // Map to store pending auto-move timeouts (for cancellation on undo)
+  const autoMoveTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
   const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
     // Find if it's a subtask
+    let task = taskList.find(t => t.id === taskId);
     let isSubtask = false;
     let parentTaskId: string | undefined;
-    const prev = taskList.find(t => t.id === taskId);
-    const prevStatus = prev?.status || 'pending';
+    const prevStatus = task?.status || 'pending';
 
-    if (!prev) {
+    if (!task) {
       for (const t of taskList) {
         if (t.subtasks) {
           const sub = t.subtasks.find(s => s.id === taskId);
@@ -316,12 +319,59 @@ const Index = () => {
       }
     }
 
-    // ONLY flip the status. No position changes. No dayPeriod changes.
-    // Visual ordering (pending first, done last) is handled in the render layer.
+    // Flip the status
     if (isSubtask && parentTaskId) {
       updateSubtask(taskId, { status: newStatus });
     } else {
       updateTaskStatus(taskId, newStatus);
+    }
+
+    // Auto-move logic for top-level tasks marked as done
+    if (newStatus === 'done' && !isSubtask && task) {
+      const section = sectionList.find(s => s.id === task!.section);
+      const sectionType = section?.sectionType || 'custom';
+
+      // Only one_time and custom sections auto-move to Concluído
+      if (sectionType === 'one_time' || sectionType === 'custom') {
+        const completedSection = sectionList.find(
+          s => s.projectId === task!.projectId && s.sectionType === 'completed'
+        );
+
+        if (completedSection && completedSection.id !== task.section) {
+          const originalSectionId = task.section;
+
+          // Schedule fade-out after 2 seconds
+          const timeoutId = setTimeout(() => {
+            setFadingOutTaskId(taskId);
+            setTimeout(() => {
+              moveTaskToSection(taskId, completedSection.id);
+              setFadingOutTaskId(null);
+              autoMoveTimeoutsRef.current.delete(taskId);
+            }, 300);
+          }, 2000);
+
+          autoMoveTimeoutsRef.current.set(taskId, timeoutId);
+
+          toast({
+            title: '✓ Movida para Concluído',
+            duration: 5000,
+            action: (
+              <ToastAction altText="Desfazer" onClick={() => {
+                // Cancel the scheduled move
+                const tid = autoMoveTimeoutsRef.current.get(taskId);
+                if (tid) { clearTimeout(tid); autoMoveTimeoutsRef.current.delete(taskId); }
+                setFadingOutTaskId(null);
+                updateTaskStatus(taskId, prevStatus);
+                // If already moved, move back
+                moveTaskToSection(taskId, originalSectionId);
+              }}>
+                Desfazer
+              </ToastAction>
+            ),
+          });
+        }
+      }
+      // inbox and recurring: no auto-move, just visual flip
     }
 
     pushUndo({
@@ -334,7 +384,7 @@ const Index = () => {
         }
       },
     });
-  }, [updateTaskStatus, updateSubtask, taskList, pushUndo]);
+  }, [updateTaskStatus, updateSubtask, taskList, sectionList, pushUndo, toast, moveTaskToSection]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);
@@ -1421,11 +1471,19 @@ const Index = () => {
               {projectSections.map(section => {
                 const allSectionTasks = taskList.filter(t => t.section === section.id && t.projectId === activeProjectId);
                 const filteredSectionTasks = filterTasks(allSectionTasks);
+                // Sort completed section by completedAt DESC
+                const sortedTasks = section.sectionType === 'completed'
+                  ? [...filteredSectionTasks].sort((a, b) => {
+                      const aDate = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+                      const bDate = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+                      return bDate - aDate;
+                    })
+                  : filteredSectionTasks;
                 return (
                   <TaskSection
                     key={section.id}
                     section={section}
-                    tasks={filteredSectionTasks}
+                    tasks={sortedTasks}
                     onSelectTask={(task) => { setSelectedTaskId(task.id); setFocusedTaskId(task.id); }}
                     selectedTaskId={selectedTaskId || undefined}
                     focusedTaskId={focusedTaskId || undefined}
