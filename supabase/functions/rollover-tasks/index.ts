@@ -94,6 +94,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Global reset: ensure ALL pending tasks start the new day in morning
+    const { error: resetError } = await supabase
+      .from("tasks")
+      .update({ day_period: "morning", manually_moved: false })
+      .neq("status", "done")
+      .or("day_period.neq.morning,manually_moved.eq.true");
+
+    if (resetError) {
+      console.error("Error resetting day_period:", resetError);
+    }
+
     console.log(`Rolled over ${rolledOver} tasks to ${todayStr}`);
 
     return new Response(
