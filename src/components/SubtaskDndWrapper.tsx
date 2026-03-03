@@ -78,8 +78,8 @@ export function SubtaskDndWrapper({
       const reordered = arrayMove(subtaskIds, oldIdx, newIdx);
       onReorderSubtasks?.(taskId, reordered);
     } else {
-      // Not siblings — trigger nesting
-      onNestAsSubtask?.(draggedId, targetSubtaskId);
+      // Not siblings, edge drop — insert as sibling (nest under PARENT, not target)
+      onNestAsSubtask?.(draggedId, taskId);
     }
   }, [subtaskIds, taskId, onReorderSubtasks, onNestAsSubtask, dropPosition]);
 
