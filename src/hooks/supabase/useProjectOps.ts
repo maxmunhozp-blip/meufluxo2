@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Project } from '@/types/task';
 import { SharedState, WorkspaceMember, mapDbProject, mapDbSection, mapDbTask } from './types';
+import { ensureDefaultSections } from '@/utils/ensureDefaultSections';
 
 export function useProjectOps(deps: SharedState) {
   const {
@@ -22,6 +23,16 @@ export function useProjectOps(deps: SharedState) {
     if (error) throw error;
     const project = mapDbProject(data);
     setProjectsState(prev => prev.some(x => x.id === project.id) ? prev : [...prev, project]);
+
+    // Auto-create 3 default sections for new projects
+    try {
+      const defaultSections = await ensureDefaultSections(project.id, activeWorkspaceId);
+      const mapped = defaultSections.map(mapDbSection);
+      setSectionsState(prev => [...prev, ...mapped]);
+    } catch (err) {
+      console.error('Failed to create default sections:', err);
+    }
+
     return project.id;
   }, [activeWorkspaceId]);
 

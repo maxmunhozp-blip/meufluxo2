@@ -44,7 +44,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
         top: position.y,
         zIndex: 9999,
         background: 'var(--bg-elevated)',
-        border: '1px solid var(--border-default)',
+        border: '1px solid var(--border-subtle, var(--border-default))',
         borderRadius: 8,
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         padding: 4,
