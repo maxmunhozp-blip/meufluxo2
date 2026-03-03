@@ -562,7 +562,13 @@ export function MyDayView({
       let isScheduled = false;
       if (t.scheduledDate === selectedDateStr) isScheduled = true;
       else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
-      if (isScheduled) { scheduled.push(t); scheduledIds.add(t.id); }
+      if (isScheduled) {
+        // When viewing today, reset non-manually-moved tasks to morning so they start fresh
+        const shouldResetPeriod = viewingToday && !t.manuallyMoved && t.status !== 'done';
+        const task = shouldResetPeriod ? { ...t, dayPeriod: 'morning' as DayPeriod } : t;
+        scheduled.push(task);
+        scheduledIds.add(t.id);
+      }
 
       // Check subtasks scheduled for selected date (or due today without scheduled)
       const findScheduledSubtasks = (subs: any[], parent: Task) => {
