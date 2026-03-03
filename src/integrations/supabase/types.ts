@@ -404,6 +404,7 @@ export type Database = {
           created_at: string
           display_month: string
           id: string
+          is_fixed: boolean
           name: string
           position: number
           project_id: string
@@ -414,6 +415,7 @@ export type Database = {
           created_at?: string
           display_month?: string
           id?: string
+          is_fixed?: boolean
           name: string
           position?: number
           project_id: string
@@ -424,6 +426,7 @@ export type Database = {
           created_at?: string
           display_month?: string
           id?: string
+          is_fixed?: boolean
           name?: string
           position?: number
           project_id?: string
@@ -559,6 +562,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           day_period: string | null
+          depth: number
           description: string | null
           display_month: string
           due_date: string | null
@@ -588,6 +592,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           day_period?: string | null
+          depth?: number
           description?: string | null
           display_month?: string
           due_date?: string | null
@@ -617,6 +622,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           day_period?: string | null
+          depth?: number
           description?: string | null
           display_month?: string
           due_date?: string | null
