@@ -31,15 +31,19 @@ export function SubtaskDndWrapper({
 }: SubtaskDndWrapperProps) {
   const subtaskIds = subtasks.map(s => s.id);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | null>(null);
+  const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | 'center' | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent, targetSubtaskId: string) => {
     const draggedId = e.dataTransfer.types.includes('application/x-task-id') ? true : false;
     if (!draggedId) return;
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const midY = rect.top + rect.height / 2;
-    const pos = e.clientY < midY ? 'top' : 'bottom';
+    const relativeY = (e.clientY - rect.top) / rect.height;
+    // Center 40% = nesting zone, edges = reorder zone
+    let pos: 'top' | 'bottom' | 'center';
+    if (relativeY < 0.3) pos = 'top';
+    else if (relativeY > 0.7) pos = 'bottom';
+    else pos = 'center';
     setOverSubtaskId(targetSubtaskId);
     setDropPosition(pos);
   }, []);
@@ -54,12 +58,19 @@ export function SubtaskDndWrapper({
 
     e.preventDefault();
     e.stopPropagation();
+    const currentPosition = dropPosition;
     setOverSubtaskId(null);
     setDropPosition(null);
 
     if (draggedId === targetSubtaskId) return;
 
-    // If both are siblings, reorder
+    // Center drop = nesting (always)
+    if (currentPosition === 'center') {
+      onNestAsSubtask?.(draggedId, targetSubtaskId);
+      return;
+    }
+
+    // Edge drop between siblings = reorder
     if (subtaskIds.includes(draggedId) && subtaskIds.includes(targetSubtaskId)) {
       const oldIdx = subtaskIds.indexOf(draggedId);
       const newIdx = subtaskIds.indexOf(targetSubtaskId);
@@ -67,10 +78,10 @@ export function SubtaskDndWrapper({
       const reordered = arrayMove(subtaskIds, oldIdx, newIdx);
       onReorderSubtasks?.(taskId, reordered);
     } else {
-      // Not siblings — trigger nesting (make dragged a child of target)
+      // Not siblings — trigger nesting
       onNestAsSubtask?.(draggedId, targetSubtaskId);
     }
-  }, [subtaskIds, taskId, onReorderSubtasks, onNestAsSubtask]);
+  }, [subtaskIds, taskId, onReorderSubtasks, onNestAsSubtask, dropPosition]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     const related = e.relatedTarget as HTMLElement | null;
