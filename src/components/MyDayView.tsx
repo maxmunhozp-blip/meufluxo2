@@ -398,12 +398,12 @@ function PeriodSection({
 }
 /* ── Tempo Vivo Layout ── */
 function TempoVivoLayout({
-  tasks, tasksByPeriod, allTasks, projects, sections, currentPeriod, viewingToday,
+  tasks, tasksByPeriod, allTasks, projects, sections, currentPeriod, viewingToday, isPastDay,
   selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, rolloverMap,
   overItemId, dropLinePosition, justDroppedId, activeDragId, onNavigateToWeek, allDone, allEmpty,
 }: {
   tasks: Task[]; tasksByPeriod: Record<DayPeriod, Task[]>; allTasks: Task[]; projects: Project[]; sections: Section[];
-  currentPeriod: DayPeriod; viewingToday: boolean;
+  currentPeriod: DayPeriod; viewingToday: boolean; isPastDay: boolean;
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null;
   justDroppedId?: string | null; activeDragId?: string | null; onNavigateToWeek: () => void; allDone: boolean; allEmpty: boolean;
@@ -419,11 +419,12 @@ function TempoVivoLayout({
     });
   }, []);
 
+  
   // Compute period ordering: Active → Future → Past
   const { activePeriods, futurePeriods, pastPeriods } = useMemo(() => {
     if (!viewingToday) {
-      // When not viewing today, all periods are "neutral" — show in normal order
-      return { activePeriods: PERIODS, futurePeriods: [] as typeof PERIODS, pastPeriods: [] as typeof PERIODS };
+      // Past days: all periods collapsed; Future days: all periods open
+      return { activePeriods: [] as typeof PERIODS, futurePeriods: isPastDay ? [] as typeof PERIODS : PERIODS, pastPeriods: isPastDay ? [...PERIODS] : [] as typeof PERIODS };
     }
     const active: typeof PERIODS = [];
     const future: typeof PERIODS = [];
@@ -437,7 +438,7 @@ function TempoVivoLayout({
     // Past periods in reverse order (most recent first, e.g. Tarde before Manhã)
     past.reverse();
     return { activePeriods: active, futurePeriods: future, pastPeriods: past };
-  }, [viewingToday, currentPeriodOrder]);
+  }, [viewingToday, currentPeriodOrder, isPastDay]);
 
   // Promotion is now handled in tasksByPeriod — no separate promotedToActive needed
 
@@ -474,7 +475,7 @@ function TempoVivoLayout({
 
       {/* Past periods — collapsible with full drag & drop when expanded */}
       {pastPeriods.length > 0 && (
-        <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+        <div style={{ marginTop: viewingToday ? 8 : 0, paddingTop: viewingToday ? 12 : 0, borderTop: viewingToday ? '1px solid var(--border-subtle)' : 'none' }}>
           {pastPeriods.map(period => {
             const pastTasks = tasksByPeriod[period.key];
             return (
@@ -985,6 +986,7 @@ export function MyDayView({
             sections={sections}
             currentPeriod={currentPeriod}
             viewingToday={viewingToday}
+            isPastDay={isPast}
             selectedTaskId={selectedTaskId}
             onSelectTask={onSelectTask}
             onStatusChange={handleStatusChangeWrapped}
