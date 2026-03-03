@@ -690,40 +690,33 @@ export function MyDayView({
   }, [todayTasks, viewingToday, currentPeriod, currentPeriodOrder, onUpdateTask]);
 
   // ── Midnight reset: limpa manually_moved e day_period de todas as tarefas ──
-  // Roda IMEDIATAMENTE ao montar (se ainda não rodou hoje) + agenda para próxima meia-noite
+  // Roda UMA VEZ por dia ao montar + agenda para próxima meia-noite.
+  // NÃO depende de tasks/onUpdateTask — Supabase realtime propaga as mudanças.
   useEffect(() => {
     const runReset = async () => {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      if (midnightResetDoneRef.current === todayStr) return;
+
       const { supabase } = await import('@/integrations/supabase/client');
-      // Reset manually_moved + day_period for all pending tasks
       await supabase.from('tasks').update({ manually_moved: false, day_period: 'morning' } as any).eq('manually_moved', true);
       await supabase.from('tasks').update({ day_period: 'morning' } as any).neq('status', 'done').neq('day_period', 'morning');
-      midnightResetDoneRef.current = format(new Date(), 'yyyy-MM-dd');
+      midnightResetDoneRef.current = todayStr;
       promotedIdsRef.current.clear();
-      // Also update local state so UI reflects immediately
-      todayTasks.forEach(t => {
-        if (t.status !== 'done' && (t.dayPeriod !== 'morning' || t.manuallyMoved)) {
-          onUpdateTask({ ...t, dayPeriod: 'morning', manuallyMoved: false });
-        }
-      });
     };
 
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-
-    // Run immediately on mount if not done today
-    if (midnightResetDoneRef.current !== todayStr) {
-      runReset();
-    }
+    // Run immediately on mount
+    runReset();
 
     // Schedule for next midnight
     const now = new Date();
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
     const timer = setTimeout(() => {
-      midnightResetDoneRef.current = null; // Force re-run
+      midnightResetDoneRef.current = null;
       runReset();
     }, msUntilMidnight);
 
     return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
 
   const handleStatusChangeWrapped = useCallback((taskId: string, status: TaskStatus) => {
