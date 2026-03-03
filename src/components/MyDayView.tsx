@@ -697,9 +697,11 @@ export function MyDayView({
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
 
     const timer = setTimeout(async () => {
-      // Reset all manually_moved for today's tasks
+      // Reset all manually_moved AND day_period for the new day
       const { supabase } = await import('@/integrations/supabase/client');
-      await supabase.from('tasks').update({ manually_moved: false } as any).eq('manually_moved', true);
+      await supabase.from('tasks').update({ manually_moved: false, day_period: 'morning' } as any).eq('manually_moved', true);
+      // Also reset day_period for all non-done tasks so they start fresh in the morning
+      await supabase.from('tasks').update({ day_period: 'morning' } as any).neq('status', 'done').neq('day_period', 'morning');
       midnightResetDoneRef.current = format(addDays(new Date(), 0), 'yyyy-MM-dd');
       promotedIdsRef.current.clear();
     }, msUntilMidnight);
