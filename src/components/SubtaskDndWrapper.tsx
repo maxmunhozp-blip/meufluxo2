@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Subtask, TaskStatus, Section } from '@/types/task';
 import { SortableSubtaskRow } from './SortableSubtaskRow';
+import { InlineSubtaskInput } from './InlineSubtaskInput';
 import { arrayMove } from '@dnd-kit/sortable';
 
 interface SubtaskDndWrapperProps {
@@ -17,12 +18,16 @@ interface SubtaskDndWrapperProps {
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertToTask?: (subtaskId: string) => void;
   onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
+  onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
+  onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
+  depth?: number;
 }
 
 export function SubtaskDndWrapper({
   subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId,
   onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask,
   sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection,
+  onAddSubtask, onNestAsSubtask, depth = 1,
 }: SubtaskDndWrapperProps) {
   const subtaskIds = subtasks.map(s => s.id);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
@@ -71,27 +76,64 @@ export function SubtaskDndWrapper({
 
   return (
     <div>
-      {subtasks.map((sub) => (
-        <SortableSubtaskRow
-          key={sub.id}
-          subtask={sub}
-          parentTaskId={taskId}
-          parentProjectId={parentProjectId}
-          parentSectionId={parentSectionId}
-          isSelected={selectedSubtaskId === sub.id}
-          dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
-          onSelect={onSelectSubtask}
-          onStatusChange={onSubtaskStatusChange}
-          onRename={onRenameSubtask}
-          sections={sections}
-          onDeleteSubtask={onDeleteSubtask}
-          onConvertToTask={onConvertToTask}
-          onMoveSubtaskToSection={onMoveSubtaskToSection}
-          onNativeDragOver={handleDragOver}
-          onNativeDrop={handleDrop}
-          onNativeDragLeave={handleDragLeave}
-        />
-      ))}
+      {subtasks.map((sub) => {
+        const hasChildren = sub.subtasks && sub.subtasks.length > 0;
+        const childDepth = Math.min((sub.depth ?? depth) + 1, 3);
+        return (
+          <div key={sub.id}>
+            <SortableSubtaskRow
+              subtask={sub}
+              parentTaskId={taskId}
+              parentProjectId={parentProjectId}
+              parentSectionId={parentSectionId}
+              isSelected={selectedSubtaskId === sub.id}
+              dropIndicator={overSubtaskId === sub.id ? dropPosition : null}
+              onSelect={onSelectSubtask}
+              onStatusChange={onSubtaskStatusChange}
+              onRename={onRenameSubtask}
+              sections={sections}
+              onDeleteSubtask={onDeleteSubtask}
+              onConvertToTask={onConvertToTask}
+              onMoveSubtaskToSection={onMoveSubtaskToSection}
+              onNativeDragOver={handleDragOver}
+              onNativeDrop={handleDrop}
+              onNativeDragLeave={handleDragLeave}
+            />
+            {/* Recursively render sub-subtasks */}
+            {hasChildren && (
+              <div
+                className="relative mb-0.5 rounded-br-md"
+                style={{
+                  marginLeft: 9,
+                  borderLeft: '1px solid var(--border-subtle, var(--nd-border))',
+                }}
+              >
+                <SubtaskDndWrapper
+                  subtasks={sub.subtasks!}
+                  taskId={sub.id}
+                  parentProjectId={sub.projectId || parentProjectId}
+                  parentSectionId={sub.section || parentSectionId}
+                  selectedSubtaskId={selectedSubtaskId}
+                  onSelectSubtask={onSelectSubtask}
+                  onSubtaskStatusChange={onSubtaskStatusChange}
+                  onReorderSubtasks={onReorderSubtasks}
+                  onRenameSubtask={onRenameSubtask}
+                  sections={sections}
+                  onDeleteSubtask={onDeleteSubtask}
+                  onConvertToTask={onConvertToTask}
+                  onMoveSubtaskToSection={onMoveSubtaskToSection}
+                  onAddSubtask={onAddSubtask}
+                  onNestAsSubtask={onNestAsSubtask}
+                  depth={childDepth}
+                />
+                {childDepth < 3 && onAddSubtask && (
+                  <InlineSubtaskInput taskId={sub.id} onAddSubtask={onAddSubtask} />
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
