@@ -1003,7 +1003,17 @@ export function MyDayView({
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={selectedDateStr}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                      >
+                        {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                      </motion.span>
+                    </AnimatePresence>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
@@ -1075,8 +1085,16 @@ export function MyDayView({
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content — Apple-style crossfade on day change to avoid jarring transitions */}
       <div className="flex-1 overflow-y-auto px-6 pb-8" style={{ paddingTop: 32 }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedDateStr}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+          >
         {groupMode === 'service' ? (
           <div className="max-w-[640px] mx-auto">
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
@@ -1148,6 +1166,8 @@ export function MyDayView({
             </DragOverlay>
           </DndContext>
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {focusModeOpen && (
