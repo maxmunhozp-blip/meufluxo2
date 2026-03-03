@@ -1668,43 +1668,43 @@ const Index = () => {
                     onNestAsSubtask={async (draggedTaskId, targetTaskId) => {
                       // Prevent nesting a task into itself
                       if (draggedTaskId === targetTaskId) return;
-                      // Find the dragged task/subtask
-                      let dragged: Task | Subtask | undefined = taskList.find(t => t.id === draggedTaskId);
-                      let draggedParentId: string | undefined;
-                      if (!dragged) {
-                        for (const parent of taskList) {
-                          const sub = (parent.subtasks || []).find(s => s.id === draggedTaskId);
-                          if (sub) {
-                            dragged = sub;
-                            draggedParentId = parent.id;
-                            break;
+
+                      // Recursive finder: search all levels
+                      const findRecursive = (tasks: (Task | Subtask)[], id: string, parentId?: string): { item: Task | Subtask; parentId?: string } | null => {
+                        for (const t of tasks) {
+                          if (t.id === id) return { item: t, parentId };
+                          if (t.subtasks && t.subtasks.length > 0) {
+                            const found = findRecursive(t.subtasks, id, t.id);
+                            if (found) return found;
                           }
                         }
-                      }
-                      if (!dragged) return;
+                        return null;
+                      };
+
+                      const draggedResult = findRecursive(taskList, draggedTaskId);
+                      if (!draggedResult) return;
+                      const dragged = draggedResult.item;
+                      const draggedParentId = draggedResult.parentId;
+
+                      const targetResult = findRecursive(taskList, targetTaskId);
+                      if (!targetResult) return;
+                      const target = targetResult.item;
 
                       // Prevent nesting target task into its own subtask
-                      const targetTask = taskList.find(t => t.id === targetTaskId);
-                      if (targetTask?.parentTaskId === draggedTaskId) return;
+                      if (target.parentTaskId === draggedTaskId) return;
                       // Prevent circular: don't nest into own descendant
-                      const isDescendant = (parentId: string, checkId: string): boolean => {
-                        const t = taskList.find(x => x.id === parentId);
-                        if (!t) return false;
-                        for (const s of (t.subtasks || [])) {
+                      const isDescendant = (item: Task | Subtask, checkId: string): boolean => {
+                        for (const s of (item.subtasks || [])) {
                           if (s.id === checkId) return true;
-                          if ((s.subtasks || []).length > 0 && isDescendant(s.id, checkId)) return true;
+                          if (isDescendant(s, checkId)) return true;
                         }
                         return false;
                       };
-                      if (isDescendant(draggedTaskId, targetTaskId)) return;
+                      if (isDescendant(dragged, targetTaskId)) return;
 
-                      const originalParentId = dragged.parentTaskId;
+                      const originalParentId = dragged.parentTaskId || draggedParentId;
                       const originalSection = dragged.section;
                       const originalDepth = (dragged as any).depth ?? 0;
-
-                      // Update in DB: set parent_task_id, match section/project of target
-                      const target = taskList.find(t => t.id === targetTaskId);
-                      if (!target) return;
 
                       // Calculate new depth based on target's depth
                       const targetDepth = (target as any).depth ?? 0;
@@ -1752,16 +1752,25 @@ const Index = () => {
 
                         setTasks(prev => {
                           let updated = prev;
-                          // Remove from old parent's subtasks if it was a subtask
-                          if (originalParentId) {
-                            updated = updated.map(t =>
-                              t.id === originalParentId
-                                ? { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== draggedTaskId) }
-                                : t
-                            );
-                          }
-                          // Remove from top-level if it was a top-level task
-                          updated = updated.filter(t => t.id !== draggedTaskId);
+                          // Recursively remove dragged from anywhere in the tree
+                          const removeFromTree = (tasks: Task[]): Task[] => {
+                            return tasks
+                              .filter(t => t.id !== draggedTaskId)
+                              .map(t => ({
+                                ...t,
+                                subtasks: removeSubFromTree(t.subtasks),
+                              }));
+                          };
+                          const removeSubFromTree = (subs: Subtask[] | undefined): Subtask[] => {
+                            if (!subs) return [];
+                            return subs
+                              .filter(s => s.id !== draggedTaskId)
+                              .map(s => ({
+                                ...s,
+                                subtasks: removeSubFromTree(s.subtasks),
+                              }));
+                          };
+                          updated = removeFromTree(updated);
                           // Add as subtask of target
                           const updateSubsContext = (subs: Subtask[] | undefined): Subtask[] => {
                             if (!subs) return [];
@@ -1785,11 +1794,30 @@ const Index = () => {
                             parentTaskId: targetTaskId,
                             subtasks: updateSubsContext((dragged as Task).subtasks),
                           };
-                          return updated.map(t =>
-                            t.id === targetTaskId
-                              ? { ...t, subtasks: [...(t.subtasks || []), newSub] }
-                              : t
-                          );
+                          // Recursively add to target (which may be nested)
+                          const addToTarget = (tasks: Task[]): Task[] => {
+                            return tasks.map(t => {
+                              if (t.id === targetTaskId) {
+                                return { ...t, subtasks: [...(t.subtasks || []), newSub] };
+                              }
+                              if (t.subtasks && t.subtasks.length > 0) {
+                                return { ...t, subtasks: addSubToTarget(t.subtasks) };
+                              }
+                              return t;
+                            });
+                          };
+                          const addSubToTarget = (subs: Subtask[]): Subtask[] => {
+                            return subs.map(s => {
+                              if (s.id === targetTaskId) {
+                                return { ...s, subtasks: [...(s.subtasks || []), newSub] };
+                              }
+                              if (s.subtasks && s.subtasks.length > 0) {
+                                return { ...s, subtasks: addSubToTarget(s.subtasks) };
+                              }
+                              return s;
+                            });
+                          };
+                          return addToTarget(updated);
                         });
 
                         const targetName = target.name;
@@ -1830,23 +1858,30 @@ const Index = () => {
                                 }));
                               };
                               setTasks(prev => {
-                                // Remove from target's subtasks
-                                let restored = prev.map(t =>
-                                  t.id === targetTaskId
-                                    ? { ...t, subtasks: (t.subtasks || []).filter(s => s.id !== draggedTaskId) }
-                                    : t
-                                );
+                                // Recursively remove dragged from anywhere
+                                const removeRec = (tasks: Task[]): Task[] => tasks.filter(t => t.id !== draggedTaskId).map(t => ({ ...t, subtasks: removeSubRec(t.subtasks) }));
+                                const removeSubRec = (subs: Subtask[] | undefined): Subtask[] => {
+                                  if (!subs) return [];
+                                  return subs.filter(s => s.id !== draggedTaskId).map(s => ({ ...s, subtasks: removeSubRec(s.subtasks) }));
+                                };
+                                let restored = removeRec(prev);
                                 const restoredSubs = revertSubsContext((dragged as Task).subtasks);
                                 if (originalParentId) {
-                                  // Add back as subtask of original parent
                                   const sub: Subtask = { id: draggedTaskId, name: dragged!.name, status: dragged!.status, priority: dragged!.priority, description: dragged!.description, dueDate: dragged!.dueDate, scheduledDate: dragged!.scheduledDate, section: originalSection, projectId: dragged!.projectId, parentTaskId: originalParentId, subtasks: restoredSubs };
-                                  restored = restored.map(t =>
-                                    t.id === originalParentId
-                                      ? { ...t, subtasks: [...(t.subtasks || []), sub] }
-                                      : t
-                                  );
+                                  // Recursively find and add to original parent
+                                  const addBack = (tasks: Task[]): Task[] => tasks.map(t => {
+                                    if (t.id === originalParentId) return { ...t, subtasks: [...(t.subtasks || []), sub] };
+                                    return { ...t, subtasks: addBackSub(t.subtasks) };
+                                  });
+                                  const addBackSub = (subs: Subtask[] | undefined): Subtask[] => {
+                                    if (!subs) return [];
+                                    return subs.map(s => {
+                                      if (s.id === originalParentId) return { ...s, subtasks: [...(s.subtasks || []), sub] };
+                                      return { ...s, subtasks: addBackSub(s.subtasks) };
+                                    });
+                                  };
+                                  restored = addBack(restored);
                                 } else {
-                                  // Add back as top-level task with subtasks
                                   restored = [...restored, { ...dragged!, parentTaskId: undefined, subtasks: restoredSubs, section: originalSection, projectId: dragged!.projectId } as Task];
                                 }
                                 return restored;
