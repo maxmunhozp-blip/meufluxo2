@@ -62,6 +62,13 @@ function isOverdue(dateStr?: string, status?: TaskStatus): boolean {
 
 
 
+const DEPTH_STYLES = {
+  0: { paddingLeft: 8, checkboxSize: 18, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' },
+  1: { paddingLeft: 32, checkboxSize: 16, fontSize: 14, fontWeight: 400, color: 'var(--text-primary)' },
+  2: { paddingLeft: 56, checkboxSize: 14, fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' },
+  3: { paddingLeft: 80, checkboxSize: 12, fontSize: 12, fontWeight: 400, color: 'var(--text-tertiary)' },
+} as const;
+
 export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
@@ -118,6 +125,8 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
   const isDone = task.status === 'done';
   const overdue = isOverdue(task.dueDate, task.status);
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+  const depth = Math.min(task.depth ?? 0, 3) as 0 | 1 | 2 | 3;
+  const dStyle = DEPTH_STYLES[depth];
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -225,7 +234,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
 
-          <div className="h-full px-3 md:px-4 flex items-center" style={{ padding: '0 12px' }}>
+          <div className="h-full flex items-center" style={{ paddingLeft: dStyle.paddingLeft, paddingRight: 12 }}>
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {hasSubtasks ? (
                 <button
@@ -246,6 +255,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 status={task.status}
                 onChange={(s) => onStatusChange(task.id, s)}
                 quickComplete
+                size={dStyle.checkboxSize}
               />
               {isRenaming ? (
                 <input
@@ -263,30 +273,9 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 />
               ) : (
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 max-w-[65%]">
-                  <span className={`text-[14px] truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontWeight: 400, lineHeight: 1.5, color: isDone ? undefined : 'var(--text-primary)', opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>
+                  <span className={`truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontSize: dStyle.fontSize, fontWeight: dStyle.fontWeight, lineHeight: 1.5, color: isDone ? undefined : dStyle.color, opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>
                     {task.name}
                   </span>
-                  {hasSubtasks && (() => {
-                    const subs = task.subtasks!;
-                    const doneCount = subs.filter(s => s.status === 'done').length;
-                    const total = subs.length;
-                    const allDone = doneCount === total;
-                    return (
-                      <span
-                        className="flex-shrink-0 tabular-nums ml-auto"
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 400,
-                          color: allDone ? 'rgba(255,255,255,0.3)' : 'var(--text-placeholder)',
-                          opacity: 0.7,
-                          letterSpacing: '0.01em',
-                        }}
-                        title={`${doneCount} de ${total} subtarefas concluídas`}
-                      >
-                        {allDone ? '✓' : total - doneCount}
-                      </span>
-                    );
-                  })()}
                   {task.scheduledDate && (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
@@ -369,7 +358,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
       </div>
 
       {expanded && hasSubtasks && (
-        <div className="relative ml-6 md:ml-8 border-l border-nd-border/40 mb-1 bg-nd-bg-subtask rounded-br-md">
+        <div className="relative mb-1 rounded-br-md" style={{ marginLeft: dStyle.paddingLeft + 9, borderLeft: '1px solid var(--border-subtle, var(--nd-border))' }}>
           <SubtaskDndWrapper
             subtasks={task.subtasks!}
             taskId={task.id}
@@ -385,11 +374,11 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             onConvertToTask={onConvertSubtaskToTask}
             onMoveSubtaskToSection={(subtaskId, sectionId) => onMoveToSection?.(subtaskId, sectionId)}
           />
-          <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
+          {depth < 3 && <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />}
         </div>
       )}
-      {expanded && !hasSubtasks && (
-        <div className="relative ml-6 md:ml-8 border-l border-nd-border/40 mb-1 bg-nd-bg-subtask rounded-br-md">
+      {expanded && !hasSubtasks && depth < 3 && (
+        <div className="relative mb-1 rounded-br-md" style={{ marginLeft: dStyle.paddingLeft + 9, borderLeft: '1px solid var(--border-subtle, var(--nd-border))' }}>
           <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />
         </div>
       )}

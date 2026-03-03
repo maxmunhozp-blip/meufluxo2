@@ -87,6 +87,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
   const inputRef = useRef<HTMLInputElement>(null);
 
   const lastTask = tasks.length > 0 ? tasks[tasks.length - 1] : null;
+  const lastTaskDepth = lastTask?.depth ?? 0;
 
   const open = () => {
     setIsActive(true);
@@ -139,9 +140,13 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => {
-          if (e.key === 'Tab' && !value.trim() && lastTask && onAddSubtask) {
+          if (e.key === 'Tab' && !e.shiftKey && !value.trim() && lastTask && onAddSubtask && lastTaskDepth < 3) {
             e.preventDefault();
-            setIndented(prev => !prev);
+            setIndented(true);
+          }
+          if (e.key === 'Tab' && e.shiftKey && !value.trim()) {
+            e.preventDefault();
+            setIndented(false);
           }
           if (e.key === 'Enter') { e.preventDefault(); submit(); }
           if (e.key === 'Escape') close();

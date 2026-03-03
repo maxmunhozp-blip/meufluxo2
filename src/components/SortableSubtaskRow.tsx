@@ -6,11 +6,19 @@ import { StatusCheckbox } from './StatusCheckbox';
 import { DropIndicatorLine } from './DropIndicatorLine';
 import { ContextMenu } from './ContextMenu';
 
+const DEPTH_STYLES = {
+  0: { paddingLeft: 8, checkboxSize: 18, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' },
+  1: { paddingLeft: 32, checkboxSize: 16, fontSize: 14, fontWeight: 400, color: 'var(--text-primary)' },
+  2: { paddingLeft: 56, checkboxSize: 14, fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' },
+  3: { paddingLeft: 80, checkboxSize: 12, fontSize: 12, fontWeight: 400, color: 'var(--text-tertiary)' },
+} as const;
+
 interface SortableSubtaskRowProps {
   subtask: Subtask;
   parentTaskId: string;
   parentProjectId: string;
   parentSectionId: string;
+  depth?: number;
   isSelected: boolean;
   isDragging?: boolean;
   dropIndicator?: 'top' | 'bottom' | null;
@@ -26,7 +34,9 @@ interface SortableSubtaskRowProps {
   onNativeDragLeave?: (e: React.DragEvent) => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, depth: depthProp, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave }: SortableSubtaskRowProps) {
+  const depth = Math.min(depthProp ?? (subtask.depth ?? 1), 3) as 0 | 1 | 2 | 3;
+  const dStyle = DEPTH_STYLES[depth];
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(subtask.name);
   const renameRef = useRef<HTMLInputElement>(null);
@@ -157,10 +167,10 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         startRename();
       }}
       onContextMenu={handleContextMenu}
-      className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pl-6 md:pl-8 pr-4 md:pr-6 flex items-center gap-2 group/sub ${
+      className={`relative h-9 min-h-[44px] md:min-h-0 border-b border-nd-border/20 hover:bg-nd-hover transition-all duration-150 ease-out cursor-pointer pr-4 md:pr-6 flex items-center gap-2 group/sub ${
         isSelected ? 'bg-nd-active' : ''
       } ${isParentDragging ? 'opacity-40' : ''}`}
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'none', paddingLeft: dStyle.paddingLeft }}
     >
       {dropIndicator && <DropIndicatorLine position={dropIndicator} />}
       <div
@@ -172,6 +182,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         status={subtask.status}
         onChange={(s) => onStatusChange?.(parentTaskId, subtask.id, s)}
         quickComplete
+        size={dStyle.checkboxSize}
       />
       {isRenaming ? (
         <input
@@ -188,7 +199,7 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
         />
       ) : (
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className={`text-[13px] truncate transition-[color,opacity] duration-200 ease-out ${subDone ? 'text-nd-text-completed opacity-70' : 'text-nd-text'}`}>
+          <span className={`truncate transition-[color,opacity] duration-200 ease-out ${subDone ? 'opacity-70' : ''}`} style={{ fontSize: dStyle.fontSize, fontWeight: dStyle.fontWeight, color: subDone ? 'var(--text-placeholder)' : dStyle.color }}>
             {subtask.name}
           </span>
           {(subtask.scheduledDate || subtask.dueDate) && (
