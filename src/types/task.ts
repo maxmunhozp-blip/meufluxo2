@@ -26,6 +26,7 @@ export interface Subtask {
   parentTaskId?: string;
   serviceTagId?: string;
   dayPeriod?: string;
+  depth?: number;
   members?: TaskMember[];
   subtasks?: Subtask[];
   comments?: Comment[];
@@ -94,6 +95,7 @@ export interface Task {
   position?: number; // Used for ordering within day columns
   completedAt?: string; // ISO timestamp when task was marked as done
   manuallyMoved?: boolean; // true if user explicitly dragged this task to a period
+  depth?: number; // 0-3, max depth for subtask hierarchy
 }
 
 export interface Section {
@@ -102,6 +104,8 @@ export interface Section {
   projectId: string;
   workspaceId?: string;
   displayMonth?: string;
+  sectionType?: 'inbox' | 'recurring' | 'one_time' | 'completed' | 'custom';
+  isFixed?: boolean;
 }
 
 export interface Project {

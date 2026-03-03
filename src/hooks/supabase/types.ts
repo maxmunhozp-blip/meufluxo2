@@ -32,7 +32,15 @@ export function mapDbProject(row: any): Project {
 }
 
 export function mapDbSection(row: any): Section {
-  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id, displayMonth: row.display_month || undefined };
+  return {
+    id: row.id,
+    title: row.name,
+    projectId: row.project_id,
+    workspaceId: row.workspace_id,
+    displayMonth: row.display_month || undefined,
+    sectionType: row.section_type || 'custom',
+    isFixed: row.is_fixed ?? false,
+  };
 }
 
 export function mapDbTask(row: any): Task {
@@ -59,6 +67,7 @@ export function mapDbTask(row: any): Task {
     position: row.position ?? 0,
     completedAt: row.completed_at || undefined,
     manuallyMoved: row.manually_moved ?? false,
+    depth: row.depth ?? 0,
   };
 }
 

@@ -251,7 +251,31 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       setAttachmentsState(dbAttachments);
 
       if (projectsRes.data) setProjectsState(projectsRes.data.map(mapDbProject));
-      if (sectionsRes.data) setSectionsState(sectionsRes.data.map(mapDbSection));
+      if (sectionsRes.data) {
+        const allSections = sectionsRes.data.map(mapDbSection);
+        setSectionsState(allSections);
+
+        // Ensure fixed sections for projects that don't have them yet
+        if (projectsRes.data && activeWorkspaceId) {
+          const projectsWithFixed = new Set(
+            allSections.filter(s => s.isFixed).map(s => s.projectId)
+          );
+          const projectsMissingFixed = projectsRes.data.filter(p => !projectsWithFixed.has(p.id));
+          for (const proj of projectsMissingFixed) {
+            try {
+              const { ensureFixedSections } = await import('@/utils/ensureFixedSections');
+              const fixedSections = await ensureFixedSections(proj.id, activeWorkspaceId);
+              const mapped = fixedSections.map(s => mapDbSection(s));
+              setSectionsState(prev => {
+                const newOnes = mapped.filter(s => !prev.some(x => x.id === s.id));
+                return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
+              });
+            } catch (err) {
+              console.error('Error ensuring fixed sections for project', proj.id, err);
+            }
+          }
+        }
+      }
       if (tasksRes.data) {
         setTasksState(tasksRes.data.map((row: any) => ({
           ...mapDbTask(row), members: membersByTask[row.id] || [], subtasks: subtasksByParent[row.id] || [],

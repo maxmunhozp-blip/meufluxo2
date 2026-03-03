@@ -29,7 +29,7 @@ import { Task, TaskStatus, Project } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { ToastAction } from '@/components/ui/toast';
-import { ensureEntradaSection } from '@/utils/ensureEntradaSection';
+import { ensureFixedSections } from '@/utils/ensureFixedSections';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { GlobalSearch } from '@/components/GlobalSearch';
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -658,8 +658,9 @@ const Index = () => {
     };
 
     try {
-      // Ensure "Entrada" section exists in target project
-      const entradaSection = await ensureEntradaSection(targetProjectId, activeWorkspaceId || '');
+      // Ensure fixed sections exist in target project
+      const fixedSections = await ensureFixedSections(targetProjectId, activeWorkspaceId || '');
+      const entradaSection = fixedSections.find(s => s.section_type === 'inbox') || fixedSections[0];
 
       const updates: Record<string, unknown> = {
         project_id: targetProjectId,

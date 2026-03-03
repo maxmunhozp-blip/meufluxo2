@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Project } from '@/types/task';
 import { SharedState, WorkspaceMember, mapDbProject, mapDbSection, mapDbTask } from './types';
+import { ensureFixedSections } from '@/utils/ensureFixedSections';
 
 export function useProjectOps(deps: SharedState) {
   const {
@@ -22,6 +23,12 @@ export function useProjectOps(deps: SharedState) {
     if (error) throw error;
     const project = mapDbProject(data);
     setProjectsState(prev => prev.some(x => x.id === project.id) ? prev : [...prev, project]);
+    // Create 4 fixed sections for the new project
+    const fixedSections = await ensureFixedSections(project.id, activeWorkspaceId);
+    setSectionsState(prev => {
+      const newSections = fixedSections.map(s => mapDbSection(s)).filter(s => !prev.some(x => x.id === s.id));
+      return [...prev, ...newSections];
+    });
     return project.id;
   }, [activeWorkspaceId]);
 
