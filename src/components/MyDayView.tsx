@@ -62,12 +62,28 @@ function getPeriodOrder(period: DayPeriod): number {
   return 2;
 }
 
+/* ── Ancestor trail builder ── */
+function buildAncestorTrail(task: Task, allTasks: Task[]): string | undefined {
+  if (!task.parentTaskId) return undefined;
+  const ancestors: string[] = [];
+  let current: Task | undefined = task;
+  while (current?.parentTaskId) {
+    const parent = allTasks.find(t => t.id === current!.parentTaskId);
+    if (!parent) break;
+    ancestors.unshift(parent.name);
+    current = parent;
+  }
+  if (ancestors.length === 0) return undefined;
+  if (ancestors.length <= 2) return ancestors.join(' › ');
+  return `${ancestors[0]} › … › ${ancestors[ancestors.length - 1]}`;
+}
+
 /* ── Task card ── */
 function DayTaskCard({
-  task, projectColor, isSelected, onSelect, onStatusChange, onUpdateTask, showProjectBadge, projectName, rolloverDays, sectionName, parentTaskName, dropIndicator, justDropped,
+  task, projectColor, isSelected, onSelect, onStatusChange, onUpdateTask, showProjectBadge, projectName, rolloverDays, ancestorTrail, dropIndicator, justDropped,
 }: {
   task: Task; projectColor: string; isSelected: boolean; onSelect: () => void;
-  onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; sectionName?: string; parentTaskName?: string;
+  onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void; showProjectBadge?: boolean; projectName?: string; rolloverDays?: number; ancestorTrail?: string;
   dropIndicator?: 'top' | 'bottom' | null; justDropped?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useSortable({ id: task.id, data: { type: 'day-task', task } });
@@ -138,10 +154,8 @@ function DayTaskCard({
           {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
           <span className="flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200"
             style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.35 : 1, fontWeight: 400 }}>{task.name}</span>
-          {(sectionName || parentTaskName) && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {sectionName && <span className="truncate text-[11px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{sectionName}</span>}
-          {sectionName && parentTaskName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {parentTaskName && <span className="truncate text-[11px] max-w-[120px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, fontStyle: 'italic', flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{parentTaskName}</span>}
+          {ancestorTrail && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
+          {ancestorTrail && <span className="truncate text-[11px] max-w-[160px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{ancestorTrail}</span>}
         </div>
         {rolloverDays && rolloverDays > 0 && (
           <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
@@ -278,8 +292,7 @@ function CollapsedPeriodSummary({
                   onUpdateTask={onUpdateTask}
                   projectName={project?.name}
                   rolloverDays={rolloverMap.get(task.id)}
-                  sectionName={sections.find(s => s.id === task.section)?.title}
-                  parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                  ancestorTrail={buildAncestorTrail(task, allTasks)}
                   dropIndicator={overItemId === task.id ? dropLinePosition : null}
                   justDropped={justDroppedId === task.id}
                 />
@@ -364,8 +377,7 @@ function PeriodSection({
                           <DayTaskCard task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
                             onSelect={() => onSelectTask(task)} onStatusChange={onStatusChange} onUpdateTask={onUpdateTask} showProjectBadge={showProjectBadge}
                             projectName={project?.name} rolloverDays={rolloverMap.get(task.id)}
-                            sectionName={sections.find(s => s.id === task.section)?.title}
-                            parentTaskName={task.parentTaskId ? allTasks.find(t => t.id === task.parentTaskId)?.name : undefined}
+                            ancestorTrail={buildAncestorTrail(task, allTasks)}
                             dropIndicator={overItemId === task.id ? dropLinePosition : null} justDropped={justDroppedId === task.id} />
                         </div>
                       </div>
@@ -1021,8 +1033,7 @@ export function MyDayView({
                         <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
                           onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
                           rolloverDays={rolloverMap.get(task.id)}
-                          sectionName={sections.find(s => s.id === task.section)?.title}
-                          parentTaskName={task.parentTaskId ? tasks.find(t => t.id === task.parentTaskId)?.name : undefined} />
+                          ancestorTrail={buildAncestorTrail(task, tasks)} />
                       );
                     })}
                   </div>
