@@ -391,6 +391,8 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             onDeleteSubtask={onDeleteSubtask}
             onConvertToTask={onConvertSubtaskToTask}
             onMoveSubtaskToSection={(subtaskId, sectionId) => onMoveToSection?.(subtaskId, sectionId)}
+            onAddSubtask={onAddSubtask}
+            onNestAsSubtask={onNestAsSubtask}
           />
           {depth < 3 && <InlineSubtaskInput taskId={task.id} onAddSubtask={onAddSubtask} />}
         </div>
