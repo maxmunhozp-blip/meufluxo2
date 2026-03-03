@@ -257,7 +257,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         setSectionsState(allSections);
 
         // Ensure fixed sections for projects that don't have them yet
-        if (projectsRes.data && activeWorkspaceId) {
+        if (projectsRes.data && wsId) {
           const projectsWithFixed = new Set(
             allSections.filter(s => s.isFixed).map(s => s.projectId)
           );
@@ -265,7 +265,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           for (const proj of projectsMissingFixed) {
             try {
               const { ensureFixedSections } = await import('@/utils/ensureFixedSections');
-              const fixedSections = await ensureFixedSections(proj.id, activeWorkspaceId);
+              const fixedSections = await ensureFixedSections(proj.id, wsId);
               const mapped = fixedSections.map(s => mapDbSection(s));
               setSectionsState(prev => {
                 const newOnes = mapped.filter(s => !prev.some(x => x.id === s.id));
