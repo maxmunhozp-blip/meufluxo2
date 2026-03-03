@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, Play, Plus } from 'lucide-react';
+import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
@@ -24,6 +24,14 @@ function SectionEndDropZone({ sectionId }: { sectionId: string }) {
     />
   );
 }
+
+const SECTION_ICONS: Record<string, React.ComponentType<any>> = {
+  inbox: Inbox,
+  recurring: Repeat,
+  one_time: MapPin,
+  completed: CheckCircle,
+  custom: Folder,
+};
 
 interface TaskSectionProps {
   section: Section;
@@ -60,6 +68,9 @@ interface TaskSectionProps {
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   onScheduleToday?: (taskId: string) => void;
+  onMoveCompletedToSection?: (fromSectionId: string) => void;
+  onExpandAll?: () => void;
+  onCollapseAll?: () => void;
 }
 
 // Footer input with Tab-indent support
@@ -184,6 +195,9 @@ export function TaskSection({
   onMoveSectionToMonth,
   onNestAsSubtask,
   onScheduleToday,
+  onMoveCompletedToSection,
+  onExpandAll,
+  onCollapseAll,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -215,6 +229,7 @@ export function TaskSection({
   const taskIds = tasks.map(t => t.id);
 
   const startRename = () => {
+    if (section.isFixed) return;
     setRenameValue(section.title);
     setIsRenaming(true);
     setTimeout(() => renameRef.current?.focus(), 0);
@@ -272,14 +287,16 @@ export function TaskSection({
           setContextMenu({ x: e.clientX, y: e.clientY });
         }}
       >
-        <div
-          {...sectionAttrs}
-          {...sectionListeners}
-          className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity hidden md:flex items-center justify-center z-10"
-          style={{ width: 28, height: 36, touchAction: 'none' }}
-        >
-          <GripVertical className="w-4 h-4" style={{ color: 'var(--text-placeholder)' }} />
-        </div>
+        {!section.isFixed && (
+          <div
+            {...sectionAttrs}
+            {...sectionListeners}
+            className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity hidden md:flex items-center justify-center z-10"
+            style={{ width: 28, height: 36, touchAction: 'none' }}
+          >
+            <GripVertical className="w-4 h-4" style={{ color: 'var(--text-placeholder)' }} />
+          </div>
+        )}
 
         {isRenaming ? (
           <input
@@ -297,9 +314,13 @@ export function TaskSection({
         ) : (
           <button
             onClick={onToggleExpand}
-            onDoubleClick={(e) => { e.stopPropagation(); startRename(); }}
+            onDoubleClick={(e) => { e.stopPropagation(); if (!section.isFixed) startRename(); }}
             className="flex items-center gap-2 flex-1 min-w-0"
           >
+            {(() => {
+              const SectionIcon = SECTION_ICONS[section.sectionType || 'custom'] || Folder;
+              return <SectionIcon className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />;
+            })()}
             <span className="w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
               <Play
                 className={`w-3 h-3 fill-current transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
@@ -310,6 +331,19 @@ export function TaskSection({
               {section.title}
             </span>
             {tasks.length > 0 && (() => {
+              if (section.sectionType === 'completed') {
+                const now = new Date();
+                const thisMonth = tasks.filter(t => {
+                  if (!t.completedAt) return false;
+                  const d = new Date(t.completedAt);
+                  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                }).length;
+                return (
+                  <span className="ml-2 flex-shrink-0" style={{ fontSize: 11, color: 'var(--text-placeholder)' }}>
+                    ({thisMonth} este mês)
+                  </span>
+                );
+              }
               const done = tasks.filter(t => t.status === 'done').length;
               const total = tasks.length;
               const allDone = done === total;
@@ -392,8 +426,13 @@ export function TaskSection({
           position={contextMenu}
           onClose={() => setContextMenu(null)}
           items={[
-            { label: 'Renomear', onClick: startRename },
-            ...(onMoveSectionToMonth ? [{
+            ...(!section.isFixed ? [{ label: 'Renomear', onClick: startRename }] : []),
+            { label: 'Adicionar tarefa', onClick: () => onAddTaskInSection(section.id) },
+            ...(onMoveCompletedToSection && section.sectionType !== 'completed' ? [{
+              label: 'Mover concluídas → Concluído',
+              onClick: () => onMoveCompletedToSection(section.id),
+            }] : []),
+            ...(onMoveSectionToMonth && !section.isFixed ? [{
               label: 'Mover para mês',
               customContent: (
                 <MonthYearPicker onSelect={(year, month) => {
@@ -402,13 +441,13 @@ export function TaskSection({
                 }} />
               ),
             }] : []),
-            {
+            ...(onExpandAll ? [{ label: 'Expandir todas', onClick: onExpandAll }] : []),
+            ...(onCollapseAll ? [{ label: 'Colapsar todas', onClick: onCollapseAll }] : []),
+            ...(!section.isFixed ? [{
               label: 'Excluir',
               danger: true,
-              onClick: () => {
-                onDeleteSection(section.id);
-              },
-            },
+              onClick: () => { onDeleteSection(section.id); },
+            }] : []),
           ]}
         />
       )}

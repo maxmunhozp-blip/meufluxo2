@@ -220,8 +220,14 @@ const Index = () => {
     () => {
       const all = sectionList.filter(s => s.projectId === activeProjectId);
       const monthFiltered = all.filter(s => !s.displayMonth || s.displayMonth === activeMonthKey);
-      if (activeSectionId) return monthFiltered.filter(s => s.id === activeSectionId);
-      return monthFiltered;
+      const filtered = activeSectionId ? monthFiltered.filter(s => s.id === activeSectionId) : monthFiltered;
+      const fixedOrder = ['inbox', 'recurring', 'one_time', 'completed'];
+      return filtered.sort((a, b) => {
+        const aIdx = a.isFixed ? fixedOrder.indexOf(a.sectionType || '') : 999;
+        const bIdx = b.isFixed ? fixedOrder.indexOf(b.sectionType || '') : 999;
+        if (aIdx !== bIdx) return aIdx - bIdx;
+        return (a as any).position ?? 0 - ((b as any).position ?? 0);
+      });
     },
     [activeProjectId, sectionList, activeSectionId, activeMonthKey]
   );
@@ -1002,19 +1008,25 @@ const Index = () => {
     if (activeData?.type === 'section' && overData?.type === 'section') {
       const activeId = (active.id as string).replace('section-', '');
       const overId = (over.id as string).replace('section-', '');
+      // Block dragging fixed sections
+      const activeSec = sectionList.find(s => s.id === activeId);
+      const overSec = sectionList.find(s => s.id === overId);
+      if (activeSec?.isFixed || overSec?.isFixed) return;
       setSections(prev => {
-        const projectSecs = prev.filter(s => s.projectId === activeProjectId);
+        const projectSecs = prev.filter(s => s.projectId === activeProjectId && !s.isFixed);
+        const fixedSecs = prev.filter(s => s.projectId === activeProjectId && s.isFixed);
         const otherSecs = prev.filter(s => s.projectId !== activeProjectId);
         const oldIdx = projectSecs.findIndex(s => s.id === activeId);
         const newIdx = projectSecs.findIndex(s => s.id === overId);
         if (oldIdx === -1 || newIdx === -1) return prev;
         const reordered = arrayMove(projectSecs, oldIdx, newIdx);
-        // Persist new positions to database
+        // Persist new positions to database (fixed sections take 0-3, custom start at 4)
         reordered.forEach((s, i) => {
-          supabase.from('sections').update({ position: i }).eq('id', s.id)
+          const newPos = 4 + i;
+          supabase.from('sections').update({ position: newPos }).eq('id', s.id)
             .then(({ error }) => { if (error) console.error('Erro ao reordenar seção:', error); });
         });
-        return [...otherSecs, ...reordered];
+        return [...otherSecs, ...fixedSecs, ...reordered];
       });
       return;
     }
@@ -1145,6 +1157,10 @@ const Index = () => {
     collapsed: sidebarCollapsed,
     onToggleCollapse: () => setSidebarCollapsed(prev => { const next = !prev; localStorage.setItem('meufluxo-sidebar-collapsed', String(next)); return next; }),
     onOpenSearch: () => setShowGlobalSearch(true),
+    onAddSection: (projectId: string) => {
+      setActiveProjectId(projectId);
+      handleCreateSection();
+    },
   };
 
   // Determine active view for bottom nav
@@ -1782,15 +1798,9 @@ const Index = () => {
               />
             </div>
           ) : (
-            <button
-              onClick={handleCreateSection}
-              className="flex items-center transition-colors"
-              style={{ height: 40, paddingLeft: 32, fontSize: 14, color: 'var(--text-tertiary)', marginTop: 16, transition: 'all 150ms ease-out' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-            >
-              + Nova Seção
-            </button>
+            <p style={{ fontSize: 11, color: 'var(--text-quaternary)', opacity: 0.5, paddingLeft: 32, marginTop: 12 }}>
+              Clique com botão direito no cliente para opções avançadas
+            </p>
           )}
 
           {projectSections.length === 0 && (
