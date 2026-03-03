@@ -12,10 +12,9 @@ interface TaskListHeaderProps {
   onFilterChange: (filter: FilterMode) => void;
   activeMonth?: Date;
   onMonthChange?: (month: Date) => void;
-  onProjectContextMenu?: (e: React.MouseEvent) => void;
 }
 
-export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange, onProjectContextMenu }: TaskListHeaderProps) {
+export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
   const now = activeMonth || new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
@@ -53,11 +52,7 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
 
   return (
     <div className="flex items-center justify-between w-full">
-      <h1
-        className="truncate"
-        style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)', cursor: 'context-menu' }}
-        onContextMenu={onProjectContextMenu}
-      >
+      <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>
         {projectName}
       </h1>
 

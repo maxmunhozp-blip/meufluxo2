@@ -15,7 +15,6 @@ import { ProjectSidebar } from '@/components/ProjectSidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { TaskListHeader, FilterMode } from '@/components/TaskListHeader';
 import { ColumnHeader } from '@/components/ColumnHeader';
-import { ContextMenu } from '@/components/ContextMenu';
 import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { ViewRouter } from '@/components/ViewRouter';
@@ -30,7 +29,7 @@ import { Task, TaskStatus, Project } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { ToastAction } from '@/components/ui/toast';
-import { ensureInboxSection } from '@/utils/ensureDefaultSections';
+import { ensureEntradaSection } from '@/utils/ensureEntradaSection';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { GlobalSearch } from '@/components/GlobalSearch';
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -56,7 +55,7 @@ const Index = () => {
     acceptWorkspaceInvite, generateInviteLink, addProjectMember, removeProjectMember, getProjectMembers,
     createProject, renameProject, deleteProject: deleteProjectFn,
     changeProjectColor, reorderProjects,
-    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb, updateSectionType,
+    createSection: createSectionFn, renameSection: renameSectionFn, deleteSection: deleteSectionFn, deleteSectionFromDb,
     createTask, updateTask, batchUpdatePositions, deleteTask: deleteTaskFn, restoreTask: restoreTaskFn, duplicateTask, updateTaskStatus,
     addTaskMember, removeTaskMember,
     addComment, deleteComment,
@@ -95,7 +94,6 @@ const Index = () => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const [projectContextMenu, setProjectContextMenu] = useState<{ x: number; y: number } | null>(null);
   // Per-project active month map
   const [projectMonths, setProjectMonths] = useState<Record<string, string>>(() => {
     try {
@@ -223,12 +221,7 @@ const Index = () => {
       const all = sectionList.filter(s => s.projectId === activeProjectId);
       const monthFiltered = all.filter(s => !s.displayMonth || s.displayMonth === activeMonthKey);
       if (activeSectionId) return monthFiltered.filter(s => s.id === activeSectionId);
-      // Inbox sections always last
-      return monthFiltered.sort((a, b) => {
-        const aInbox = a.sectionType === 'inbox' ? 1 : 0;
-        const bInbox = b.sectionType === 'inbox' ? 1 : 0;
-        return aInbox - bInbox;
-      });
+      return monthFiltered;
     },
     [activeProjectId, sectionList, activeSectionId, activeMonthKey]
   );
@@ -666,7 +659,7 @@ const Index = () => {
 
     try {
       // Ensure "Entrada" section exists in target project
-      const entradaSection = await ensureInboxSection(targetProjectId, activeWorkspaceId || '');
+      const entradaSection = await ensureEntradaSection(targetProjectId, activeWorkspaceId || '');
 
       const updates: Record<string, unknown> = {
         project_id: targetProjectId,
@@ -1284,24 +1277,8 @@ const Index = () => {
                 onFilterChange={setFilter}
                 activeMonth={activeMonth}
                 onMonthChange={setActiveMonth}
-                onProjectContextMenu={(e) => {
-                  e.preventDefault();
-                  setProjectContextMenu({ x: e.clientX, y: e.clientY });
-                }}
               />
             </div>
-            {projectContextMenu && (
-              <ContextMenu
-                position={projectContextMenu}
-                onClose={() => setProjectContextMenu(null)}
-                items={[
-                  { label: 'Nova seção', onClick: () => { setProjectContextMenu(null); handleCreateSection(); } },
-                  { label: 'Gerar template do mês', onClick: () => { setProjectContextMenu(null); setShowTemplateModal(true); } },
-                  { label: 'Renomear cliente', onClick: () => { setProjectContextMenu(null); /* trigger rename inline */ const newName = prompt('Novo nome do cliente:', activeProject.name); if (newName?.trim()) handleRenameProject(activeProjectId, newName.trim()); } },
-                  { label: 'Arquivar cliente', danger: true, onClick: () => { setProjectContextMenu(null); handleDeleteProject(activeProjectId); } },
-                ]}
-              />
-            )}
             <div style={{ height: 24 }} />
             <div className="flex items-center" style={{ padding: '0 32px', borderBottom: '1px solid var(--border-subtle)', gap: 16 }}>
               <button
@@ -1763,17 +1740,6 @@ const Index = () => {
                       });
                     }}
                     fadingOutTaskId={fadingOutTaskId}
-                    onCreateSectionFromEntrada={async (sectionName) => {
-                      try {
-                        const id = await createSectionFn(sectionName, activeProjectId, activeMonthKey);
-                        expandSection(id);
-                      } catch (err) {
-                        console.error('Erro ao criar seção:', err);
-                      }
-                    }}
-                    onChangeSectionType={(sectionId, sectionType) => {
-                      updateSectionType(sectionId, sectionType);
-                    }}
                   />
                 );
               })}
@@ -1815,11 +1781,15 @@ const Index = () => {
               />
             </div>
           ) : (
-            <div style={{ padding: '8px 16px' }}>
-              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', opacity: 0.5, fontStyle: 'italic' }}>
-                Clique com o botão direito no cliente para adicionar seções
-              </span>
-            </div>
+            <button
+              onClick={handleCreateSection}
+              className="flex items-center transition-colors"
+              style={{ height: 40, paddingLeft: 32, fontSize: 14, color: 'var(--text-tertiary)', marginTop: 16, transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+            >
+              + Nova Seção
+            </button>
           )}
 
           {projectSections.length === 0 && (

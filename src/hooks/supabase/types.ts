@@ -32,7 +32,7 @@ export function mapDbProject(row: any): Project {
 }
 
 export function mapDbSection(row: any): Section {
-  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id, displayMonth: row.display_month || undefined, sectionType: row.section_type || null };
+  return { id: row.id, title: row.name, projectId: row.project_id, workspaceId: row.workspace_id, displayMonth: row.display_month || undefined };
 }
 
 export function mapDbTask(row: any): Task {

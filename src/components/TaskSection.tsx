@@ -3,13 +3,12 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, Play, MoreHorizontal } from 'lucide-react';
-import { Task, Section, TaskStatus, Subtask, SectionType } from '@/types/task';
+import { GripVertical, Play, Plus } from 'lucide-react';
+import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
 import { ContextMenu } from './ContextMenu';
-import { EntradaSuggestionChip } from './EntradaSuggestionChip';
 
 // Invisible drop zone at the end of a section's task list
 function SectionEndDropZone({ sectionId }: { sectionId: string }) {
@@ -23,58 +22,6 @@ function SectionEndDropZone({ sectionId }: { sectionId: string }) {
       className="h-2 -mt-1 transition-colors"
       style={{ background: isOver ? 'hsl(var(--primary) / 0.15)' : 'transparent' }}
     />
-  );
-}
-
-// ─── Section Flow State Menu ──────────────────────────────
-const FLOW_STATES: { value: SectionType; label: string }[] = [
-  { value: 'recurrent', label: 'Recorrente' },
-  { value: 'active', label: 'Em andamento' },
-  { value: 'inbox', label: 'Entrada' },
-];
-
-function FlowStateSubmenu({ current, onChange }: { current: SectionType; onChange: (v: SectionType) => void }) {
-  return (
-    <div style={{ minWidth: 160 }}>
-      {FLOW_STATES.map(s => (
-        <button
-          key={s.value}
-          onClick={() => onChange(s.value)}
-          className="w-full text-left select-none"
-          style={{
-            height: 32,
-            padding: '6px 12px',
-            borderRadius: 6,
-            fontSize: 13,
-            fontWeight: current === s.value ? 600 : 400,
-            color: current === s.value ? 'var(--text-primary)' : 'var(--text-secondary)',
-            transition: 'background 150ms ease-out',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover, var(--bg-overlay))'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-        >
-          {s.label}
-        </button>
-      ))}
-      <div style={{ height: 1, background: 'var(--border-subtle, var(--border-default))', margin: '4px 0' }} />
-      <button
-        onClick={() => onChange(null)}
-        className="w-full text-left select-none"
-        style={{
-          height: 32,
-          padding: '6px 12px',
-          borderRadius: 6,
-          fontSize: 13,
-          fontWeight: current === null ? 600 : 400,
-          color: current === null ? 'var(--text-primary)' : 'var(--text-secondary)',
-          transition: 'background 150ms ease-out',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover, var(--bg-overlay))'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-      >
-        Sem estado
-      </button>
-    </div>
   );
 }
 
@@ -113,18 +60,15 @@ interface TaskSectionProps {
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   onScheduleToday?: (taskId: string) => void;
-  onCreateSectionFromEntrada?: (sectionName: string) => void;
-  onChangeSectionType?: (sectionId: string, sectionType: SectionType) => void;
 }
 
 // Footer input with Tab-indent support
-function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSection, onAddSubtask, placeholder }: {
+function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSection, onAddSubtask }: {
   sectionId: string;
   tasks: Task[];
   isCreatingTask: boolean;
   onAddTaskInSection: (sectionId: string, taskName?: string) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
-  placeholder?: string;
 }) {
   const [isActive, setIsActive] = useState(false);
   const [value, setValue] = useState('');
@@ -147,6 +91,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
       await onAddSubtask(lastTask.id, trimmed);
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
+      // Pass the typed name to create the task with the correct title
       onAddTaskInSection(sectionId, trimmed);
       setIsActive(false);
     }
@@ -191,7 +136,7 @@ function SectionFooterInput({ sectionId, tasks, isCreatingTask, onAddTaskInSecti
           if (e.key === 'Escape') close();
         }}
         onBlur={() => { if (value.trim()) submit(); else close(); }}
-        placeholder={indented ? 'Nome da subtarefa...' : (placeholder || 'Nome da tarefa...')}
+        placeholder={indented ? 'Nome da subtarefa...' : 'Nome da tarefa...'}
         className="w-full h-8 px-2.5 text-[13px] rounded-md border focus:outline-none"
         style={{
           background: 'var(--bg-input)',
@@ -239,18 +184,12 @@ export function TaskSection({
   onMoveSectionToMonth,
   onNestAsSubtask,
   onScheduleToday,
-  onCreateSectionFromEntrada,
-  onChangeSectionType,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [nativeDragOver, setNativeDragOver] = useState(false);
   const renameRef = useRef<HTMLInputElement>(null);
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
-
-  const hasTasks = tasks.length > 0;
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
 
   const {
@@ -288,56 +227,11 @@ export function TaskSection({
     setIsRenaming(false);
   };
 
-  const openMenu = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setMenuPos({ x: rect.right - 160, y: rect.bottom + 4 });
-    setMenuOpen(true);
-  };
-
-  const openContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuPos({ x: e.clientX, y: e.clientY });
-    setMenuOpen(true);
-  };
-
-  // Merge section sortable ref + droppable ref
+  // Merge section sortable ref + droppable ref on the outer container
   const mergedRef = (node: HTMLElement | null) => {
     setSectionRef(node);
     setDropRef(node);
   };
-
-  // Build menu items
-  const menuItems = [
-    { label: 'Renomear', onClick: startRename },
-    ...(onChangeSectionType ? [{
-      label: 'Estado',
-      customContent: (
-        <FlowStateSubmenu
-          current={section.sectionType ?? null}
-          onChange={(type) => {
-            onChangeSectionType(section.id, type);
-            setMenuOpen(false);
-          }}
-        />
-      ),
-    }] : []),
-    ...(onMoveSectionToMonth ? [{
-      label: 'Mover para mês',
-      customContent: (
-        <MonthYearPicker onSelect={(year, month) => {
-          onMoveSectionToMonth(section.id, year, month);
-          setMenuOpen(false);
-        }} />
-      ),
-    }] : []),
-    // Separator + Delete only if empty
-    ...(!hasTasks ? [{
-      label: 'Excluir',
-      danger: true,
-      onClick: () => onDeleteSection(section.id),
-    }] : []),
-  ];
 
   return (
     <div ref={mergedRef} style={{ ...sectionStyle }} className={`group/section ${isDropTarget || isOver || nativeDragOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
@@ -346,7 +240,7 @@ export function TaskSection({
         style={{
           height: 44,
           paddingLeft: 16,
-          paddingRight: 8,
+          paddingRight: 16,
           borderRadius: 8,
           background: nativeDragOver ? 'var(--bg-active)' : 'var(--bg-elevated)',
           marginBottom: 8,
@@ -373,7 +267,10 @@ export function TaskSection({
           if (!taskId) return;
           onMoveToSection?.(taskId, section.id);
         }}
-        onContextMenu={openContextMenu}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        }}
       >
         <div
           {...sectionAttrs}
@@ -412,41 +309,30 @@ export function TaskSection({
             <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
-            {tasks.length > 0 && (
-              <span className="flex-shrink-0" style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                ({pendingCount})
-              </span>
-            )}
+            {tasks.length > 0 && (() => {
+              const done = tasks.filter(t => t.status === 'done').length;
+              const total = tasks.length;
+              const allDone = done === total;
+              const pending = total - done;
+              return (
+                <span className="ml-2 flex items-center gap-1.5 flex-shrink-0">
+                  {allDone ? (
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>✓</span>
+                  ) : (
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-placeholder)', letterSpacing: '0.01em' }}>
+                      {pending}
+                    </span>
+                  )}
+                </span>
+              );
+            })()}
           </button>
         )}
-
-        {/* Always-visible ··· menu button */}
-        <button
-          ref={menuBtnRef}
-          onClick={openMenu}
-          className="flex items-center justify-center flex-shrink-0"
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 4,
-            color: 'var(--text-tertiary)',
-            transition: 'all 150ms ease-out',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = 'var(--text-secondary)';
-            e.currentTarget.style.background = 'var(--bg-elevated)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = 'var(--text-tertiary)';
-            e.currentTarget.style.background = 'transparent';
-          }}
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
       </div>
 
       {isExpanded && (
         <div>
+          {/* Progress bar removed — Perry et al. (2024): bars "become sources of overwhelm" for ADHD */}
           <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
               <SortableTaskRow
@@ -480,13 +366,6 @@ export function TaskSection({
             ))}
           </SortableContext>
           <SectionEndDropZone sectionId={section.id} />
-          {section.sectionType === 'inbox' && onCreateSectionFromEntrada && (
-            <EntradaSuggestionChip
-              sectionId={section.id}
-              tasks={tasks}
-              onCreateSection={onCreateSectionFromEntrada}
-            />
-          )}
           {tasks.length === 0 && (
             <div className="h-9 px-6 flex items-center justify-center">
               <span className="text-[13px] text-nd-text-muted">Nenhuma tarefa aqui ainda</span>
@@ -504,16 +383,33 @@ export function TaskSection({
             isCreatingTask={!!isCreatingTask}
             onAddTaskInSection={onAddTaskInSection}
             onAddSubtask={onAddSubtask}
-            placeholder={section.sectionType === 'inbox' ? 'Nova demanda, ideia ou tarefa...' : undefined}
           />
         </div>
       )}
 
-      {menuOpen && menuPos && (
+      {contextMenu && (
         <ContextMenu
-          position={menuPos}
-          onClose={() => setMenuOpen(false)}
-          items={menuItems}
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+          items={[
+            { label: 'Renomear', onClick: startRename },
+            ...(onMoveSectionToMonth ? [{
+              label: 'Mover para mês',
+              customContent: (
+                <MonthYearPicker onSelect={(year, month) => {
+                  onMoveSectionToMonth(section.id, year, month);
+                  setContextMenu(null);
+                }} />
+              ),
+            }] : []),
+            {
+              label: 'Excluir',
+              danger: true,
+              onClick: () => {
+                onDeleteSection(section.id);
+              },
+            },
+          ]}
         />
       )}
     </div>
