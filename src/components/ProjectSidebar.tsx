@@ -338,6 +338,7 @@ interface ProjectSidebarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenSearch?: () => void;
+  onAddSection?: (projectId: string) => void;
 }
 
 export function ProjectSidebar({
@@ -352,7 +353,7 @@ export function ProjectSidebar({
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
   onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
-  collapsed, onToggleCollapse, onOpenSearch,
+  collapsed, onToggleCollapse, onOpenSearch, onAddSection,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -892,6 +893,7 @@ export function ProjectSidebar({
           onClose={() => setContextMenu(null)}
           items={[
             { label: 'Renomear', onClick: () => startRename(contextMenu.projectId) },
+            { label: 'Adicionar Seção', onClick: () => { onAddSection?.(contextMenu.projectId); setContextMenu(null); } },
             { label: 'Membros', onClick: () => setProjectMembersModal(contextMenu.projectId) },
             { label: 'Duplicar', onClick: () => setDuplicateDialog(contextMenu.projectId) },
             { label: 'Mudar cor', onClick: () => setColorPicker({ projectId: contextMenu.projectId, x: contextMenu.x, y: contextMenu.y }) },
@@ -905,26 +907,29 @@ export function ProjectSidebar({
         <ContextMenu
           position={{ x: sectionContextMenu.x, y: sectionContextMenu.y }}
           onClose={() => setSectionContextMenu(null)}
-          items={[
-            {
-              label: 'Renomear',
-              onClick: () => {
-                const section = allSections.find(s => s.id === sectionContextMenu.sectionId);
-                if (section) {
-                  setRenamingSectionId(section.id);
-                  setRenameSectionValue(section.title);
-                  setTimeout(() => sectionRenameRef.current?.focus(), 0);
-                }
-              },
-            },
-            {
-              label: 'Excluir',
-              danger: true,
-              onClick: () => {
-                onDeleteSection?.(sectionContextMenu.sectionId);
-              },
-            },
-          ]}
+          items={(() => {
+            const sec = allSections.find(s => s.id === sectionContextMenu.sectionId);
+            const isFixed = sec?.isFixed;
+            return [
+              ...(!isFixed ? [{
+                label: 'Renomear',
+                onClick: () => {
+                  if (sec) {
+                    setRenamingSectionId(sec.id);
+                    setRenameSectionValue(sec.title);
+                    setTimeout(() => sectionRenameRef.current?.focus(), 0);
+                  }
+                },
+              }] : []),
+              ...(!isFixed ? [{
+                label: 'Excluir',
+                danger: true,
+                onClick: () => {
+                  onDeleteSection?.(sectionContextMenu.sectionId);
+                },
+              }] : []),
+            ];
+          })()}
         />
       )}
 
