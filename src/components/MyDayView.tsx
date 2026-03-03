@@ -649,7 +649,8 @@ export function MyDayView({
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
     todayTasks.forEach(t => {
-      const dbPeriod = (t.dayPeriod || 'morning') as DayPeriod;
+      // When NOT viewing today (past or future day), ALL tasks go to morning
+      const dbPeriod = viewingToday ? ((t.dayPeriod || 'morning') as DayPeriod) : 'morning';
       map[dbPeriod].push(t);
     });
     // Sort within each period: pending first, done last, each group by position
@@ -660,7 +661,7 @@ export function MyDayView({
       map[period] = [...pending, ...done];
     });
     return map;
-  }, [todayTasks]);
+  }, [todayTasks, viewingToday]);
 
   // ── Sistema 1: Promoção automática por horário ──
   // Ao meio-dia: pendentes da Manhã → Tarde. Às 18h: pendentes da Tarde → Noite.
@@ -688,26 +689,41 @@ export function MyDayView({
     }
   }, [todayTasks, viewingToday, currentPeriod, currentPeriodOrder, onUpdateTask]);
 
-  // ── Midnight reset: limpa manually_moved de todas as tarefas ──
+  // ── Midnight reset: limpa manually_moved e day_period de todas as tarefas ──
+  // Roda IMEDIATAMENTE ao montar (se ainda não rodou hoje) + agenda para próxima meia-noite
   useEffect(() => {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    if (midnightResetDoneRef.current === todayStr) return;
+    const runReset = async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      // Reset manually_moved + day_period for all pending tasks
+      await supabase.from('tasks').update({ manually_moved: false, day_period: 'morning' } as any).eq('manually_moved', true);
+      await supabase.from('tasks').update({ day_period: 'morning' } as any).neq('status', 'done').neq('day_period', 'morning');
+      midnightResetDoneRef.current = format(new Date(), 'yyyy-MM-dd');
+      promotedIdsRef.current.clear();
+      // Also update local state so UI reflects immediately
+      todayTasks.forEach(t => {
+        if (t.status !== 'done' && (t.dayPeriod !== 'morning' || t.manuallyMoved)) {
+          onUpdateTask({ ...t, dayPeriod: 'morning', manuallyMoved: false });
+        }
+      });
+    };
 
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+    // Run immediately on mount if not done today
+    if (midnightResetDoneRef.current !== todayStr) {
+      runReset();
+    }
+
+    // Schedule for next midnight
     const now = new Date();
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
-
-    const timer = setTimeout(async () => {
-      // Reset all manually_moved AND day_period for the new day
-      const { supabase } = await import('@/integrations/supabase/client');
-      await supabase.from('tasks').update({ manually_moved: false, day_period: 'morning' } as any).eq('manually_moved', true);
-      // Also reset day_period for all non-done tasks so they start fresh in the morning
-      await supabase.from('tasks').update({ day_period: 'morning' } as any).neq('status', 'done').neq('day_period', 'morning');
-      midnightResetDoneRef.current = format(addDays(new Date(), 0), 'yyyy-MM-dd');
-      promotedIdsRef.current.clear();
+    const timer = setTimeout(() => {
+      midnightResetDoneRef.current = null; // Force re-run
+      runReset();
     }, msUntilMidnight);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const allDone = useMemo(() => todayTasks.length > 0 && todayTasks.every(t => t.status === 'done'), [todayTasks]);
 
   const handleStatusChangeWrapped = useCallback((taskId: string, status: TaskStatus) => {
