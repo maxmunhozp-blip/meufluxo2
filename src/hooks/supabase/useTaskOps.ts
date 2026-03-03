@@ -146,9 +146,8 @@ export function useTaskOps(deps: SharedState) {
       workspace_id: activeWorkspaceId,
     }).select().single();
     if (error) throw error;
-    const newTask = { ...mapDbTask(data), members: [], subtasks: [] };
-    setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [...prev, newTask]);
 
+    const duplicatedSubtasks: Subtask[] = [];
     for (const sub of (task.subtasks || [])) {
       const { data: newSub } = await supabase.from('tasks').insert({
         title: sub.name, parent_task_id: data.id, section_id: task.section,
@@ -157,18 +156,38 @@ export function useTaskOps(deps: SharedState) {
         position: (task.subtasks || []).indexOf(sub), workspace_id: activeWorkspaceId,
       }).select().single();
       if (!newSub) continue;
+      const level2Subs: Subtask[] = [];
       for (const sub2 of (sub.subtasks || [])) {
-        await supabase.from('tasks').insert({
+        const { data: newSub2 } = await supabase.from('tasks').insert({
           title: sub2.name, parent_task_id: newSub.id, section_id: task.section,
           project_id: task.projectId, status: sub2.status, priority: sub2.priority || 'low',
           description: sub2.description || null, due_date: sub2.dueDate || null,
           position: (sub.subtasks || []).indexOf(sub2), workspace_id: activeWorkspaceId,
-        });
+        }).select().single();
+        if (newSub2) {
+          level2Subs.push({
+            id: newSub2.id, name: newSub2.title, status: newSub2.status as TaskStatus,
+            priority: newSub2.priority as Priority | undefined,
+            description: newSub2.description || undefined, dueDate: newSub2.due_date || undefined,
+            section: newSub2.section_id, projectId: newSub2.project_id, parentTaskId: newSub2.parent_task_id,
+            subtasks: [],
+          });
+        }
       }
+      duplicatedSubtasks.push({
+        id: newSub.id, name: newSub.title, status: newSub.status as TaskStatus,
+        priority: newSub.priority as Priority | undefined,
+        description: newSub.description || undefined, dueDate: newSub.due_date || undefined,
+        section: newSub.section_id, projectId: newSub.project_id, parentTaskId: newSub.parent_task_id,
+        subtasks: level2Subs,
+      });
     }
+
+    const newTask = { ...mapDbTask(data), members: [], subtasks: duplicatedSubtasks };
+    setTasksState(prev => prev.some(x => x.id === newTask.id) ? prev : [...prev, newTask]);
     toast.success(`Tarefa duplicada com sucesso!`);
     return data.id;
-  }, [tasksState, session]);
+  }, [tasksState, session, activeWorkspaceId]);
 
   // Task member operations
   const addTaskMember = useCallback(async (taskId: string, userId: string) => {
