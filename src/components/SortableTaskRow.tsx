@@ -37,6 +37,7 @@ interface SortableTaskRowProps {
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   isFadingOut?: boolean;
   onScheduleToday?: (taskId: string) => void;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
 }
 
 function formatDate(dateStr?: string): string {
@@ -71,7 +72,7 @@ const DEPTH_STYLES = {
   3: { paddingLeft: 80, checkboxSize: 12, fontSize: 12, fontWeight: 400, color: 'var(--text-tertiary)' },
 } as const;
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, sectionType, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, sectionType, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday, onScheduleSubtask }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -392,6 +393,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
             onDeleteSubtask={onDeleteSubtask}
             onConvertToTask={onConvertSubtaskToTask}
             onMoveSubtaskToSection={(subtaskId, sectionId) => onMoveToSection?.(subtaskId, sectionId)}
+            onScheduleSubtask={onScheduleSubtask}
             onAddSubtask={onAddSubtask}
             onNestAsSubtask={onNestAsSubtask}
           />

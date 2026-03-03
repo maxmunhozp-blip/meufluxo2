@@ -68,6 +68,7 @@ interface TaskSectionProps {
   onMoveSectionToMonth?: (sectionId: string, year: number, month: number) => void;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   onScheduleToday?: (taskId: string) => void;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
   onMoveCompletedToSection?: (fromSectionId: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
@@ -200,6 +201,7 @@ export function TaskSection({
   onMoveSectionToMonth,
   onNestAsSubtask,
   onScheduleToday,
+  onScheduleSubtask,
   onMoveCompletedToSection,
   onExpandAll,
   onCollapseAll,
@@ -402,6 +404,7 @@ export function TaskSection({
                 onNestAsSubtask={onNestAsSubtask}
                 isFadingOut={fadingOutTaskId === task.id}
                 onScheduleToday={onScheduleToday}
+                onScheduleSubtask={onScheduleSubtask}
               />
             ))}
           </SortableContext>

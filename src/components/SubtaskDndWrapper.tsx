@@ -18,6 +18,7 @@ interface SubtaskDndWrapperProps {
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertToTask?: (subtaskId: string) => void;
   onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
   onAddSubtask?: (parentTaskId: string, name: string) => Promise<void>;
   onNestAsSubtask?: (draggedTaskId: string, targetTaskId: string) => void;
   depth?: number;
@@ -27,7 +28,7 @@ export function SubtaskDndWrapper({
   subtasks, taskId, parentProjectId, parentSectionId, selectedSubtaskId,
   onSelectSubtask, onSubtaskStatusChange, onReorderSubtasks, onRenameSubtask,
   sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection,
-  onAddSubtask, onNestAsSubtask, depth = 1,
+  onScheduleSubtask, onAddSubtask, onNestAsSubtask, depth = 1,
 }: SubtaskDndWrapperProps) {
   const subtaskIds = subtasks.map(s => s.id);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
@@ -122,6 +123,7 @@ export function SubtaskDndWrapper({
               onDeleteSubtask={onDeleteSubtask}
               onConvertToTask={onConvertToTask}
               onMoveSubtaskToSection={onMoveSubtaskToSection}
+              onScheduleSubtask={onScheduleSubtask}
               onNativeDragOver={handleDragOver}
               onNativeDrop={handleDrop}
               onNativeDragLeave={handleDragLeave}
@@ -152,6 +154,7 @@ export function SubtaskDndWrapper({
                   onDeleteSubtask={onDeleteSubtask}
                   onConvertToTask={onConvertToTask}
                   onMoveSubtaskToSection={onMoveSubtaskToSection}
+                  onScheduleSubtask={onScheduleSubtask}
                   onAddSubtask={onAddSubtask}
                   onNestAsSubtask={onNestAsSubtask}
                   depth={childDepth}
