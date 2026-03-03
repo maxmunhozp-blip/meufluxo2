@@ -516,7 +516,7 @@ function TempoVivoLayout({
           rolloverMap={rolloverMap} overItemId={overItemId}
           dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
           isDragActive={!!activeDragId}
-          alwaysShow={viewingToday}
+          alwaysShow
         />
       ))}
 
@@ -538,6 +538,7 @@ function TempoVivoLayout({
                 rolloverMap={rolloverMap} overItemId={overItemId}
                 dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
                 isDragActive={!!activeDragId}
+                alwaysShow
               />
             );
           })}
