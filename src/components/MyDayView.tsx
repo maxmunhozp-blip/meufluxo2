@@ -523,7 +523,7 @@ export function MyDayView({
   const [groupMode, setGroupMode] = useState<GroupMode>('period');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const promotedIdsRef = useRef<Set<string>>(new Set());
-  const midnightResetDoneRef = useRef<string | null>(null);
+  
   const todayTasksRef = useRef<Task[]>([]);
   const onUpdateTaskRef = useRef(onUpdateTask);
   onUpdateTaskRef.current = onUpdateTask;
@@ -727,7 +727,12 @@ export function MyDayView({
     const now = new Date();
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
 
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      // Reset manually_moved no banco para o novo dia
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.from('tasks').update({ manually_moved: false } as any).eq('manually_moved', true);
+
+      // Limpar localStorage para que o startup reset rode no próximo mount
       const todayStr = new Date().toISOString().slice(0, 10);
       const resetKey = `meufluxo-day-reset-${todayStr}`;
       localStorage.removeItem(resetKey);
