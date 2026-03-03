@@ -684,8 +684,9 @@ export function MyDayView({
 
   const tasksByPeriod = useMemo(() => {
     const map: Record<DayPeriod, Task[]> = { morning: [], afternoon: [], evening: [] };
+    const isPastDay = isBefore(startOfDay(selectedDate), startOfDay(new Date()));
     todayTasks.forEach(t => {
-      if (!viewingToday) {
+      if (isPastDay) {
         map['morning'].push(t);
         return;
       }
