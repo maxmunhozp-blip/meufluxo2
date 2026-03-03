@@ -436,6 +436,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           assignee: row.assignee || undefined, dayPeriod: row.day_period || t.dayPeriod || 'morning',
           recurrenceType: row.recurrence_type || null, recurrenceConfig: row.recurrence_config || undefined,
           section: row.section_id, projectId: row.project_id, serviceTagId: row.service_tag_id || undefined,
+          manuallyMoved: row.manually_moved ?? false, completedAt: row.completed_at || undefined,
         } : t));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, (payload) => {
