@@ -1920,6 +1920,7 @@ const Index = () => {
                         action: <ToastAction altText="Desfazer" onClick={() => updateTask({ ...t, scheduledDate: originalDate })}>Desfazer</ToastAction>,
                       });
                     }}
+                    onScheduleSubtask={scheduleSubtask}
                     onMoveSectionToMonth={async (sectionId, year, month) => {
                       const newMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
                       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];

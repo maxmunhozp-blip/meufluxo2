@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { GripVertical, CalendarDays, ArrowUpFromLine, FolderInput, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { GripVertical, CalendarDays, CalendarCheck, CalendarPlus, ArrowUpFromLine, FolderInput, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 import { Subtask, TaskStatus, Section } from '@/types/task';
 import { StatusCheckbox } from './StatusCheckbox';
@@ -29,6 +30,7 @@ interface SortableSubtaskRowProps {
   onDeleteSubtask?: (parentTaskId: string, subtaskId: string) => void;
   onConvertToTask?: (subtaskId: string) => void;
   onMoveSubtaskToSection?: (subtaskId: string, sectionId: string) => void;
+  onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
   onNativeDragOver?: (e: React.DragEvent, subtaskId: string) => void;
   onNativeDrop?: (e: React.DragEvent, subtaskId: string) => void;
   onNativeDragLeave?: (e: React.DragEvent) => void;
@@ -37,7 +39,7 @@ interface SortableSubtaskRowProps {
   onToggleCollapse?: () => void;
 }
 
-export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, depth: depthProp, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onNativeDragOver, onNativeDrop, onNativeDragLeave, hasChildren, isCollapsed, onToggleCollapse }: SortableSubtaskRowProps) {
+export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, parentSectionId, depth: depthProp, isSelected, isDragging: isParentDragging, dropIndicator, onSelect, onStatusChange, onRename, sections, onDeleteSubtask, onConvertToTask, onMoveSubtaskToSection, onScheduleSubtask, onNativeDragOver, onNativeDrop, onNativeDragLeave, hasChildren, isCollapsed, onToggleCollapse }: SortableSubtaskRowProps) {
   const depth = Math.min(depthProp ?? (subtask.depth ?? 1), 3) as 0 | 1 | 2 | 3;
   const dStyle = DEPTH_STYLES[depth];
   const [isRenaming, setIsRenaming] = useState(false);
@@ -104,7 +106,23 @@ export function SortableSubtaskRow({ subtask, parentTaskId, parentProjectId, par
   };
 
   // Build context menu items
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const tomorrow = addDays(new Date(), 1);
+  const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const tomorrowLabel = `Agendar Amanhã (${dayNames[tomorrow.getDay()]})`;
+
   const contextMenuItems = [
+    ...(onScheduleSubtask ? [{
+      label: 'Agendar Hoje',
+      icon: <CalendarCheck style={{ width: 15, height: 15 }} />,
+      onClick: () => onScheduleSubtask(subtask.id, todayStr),
+    }] : []),
+    ...(onScheduleSubtask ? [{
+      label: tomorrowLabel,
+      icon: <CalendarPlus style={{ width: 15, height: 15 }} />,
+      onClick: () => onScheduleSubtask(subtask.id, tomorrowStr),
+    }] : []),
     {
       label: 'Converter em tarefa',
       icon: <ArrowUpFromLine style={{ width: 15, height: 15 }} />,
