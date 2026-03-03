@@ -214,10 +214,22 @@ export function useTaskOps(deps: SharedState) {
     if (!section || !projectId) { console.error('[addSubtask] Could not find parent task:', parentTaskId); return; }
 
     const position = existingSubtasks.length;
+    let parentDepth = 0;
+    if (topLevel) {
+      parentDepth = topLevel.depth ?? 0;
+    } else {
+      for (const t of tasksState) {
+        const sub = (t.subtasks || []).find(s => s.id === parentTaskId);
+        if (sub) { parentDepth = sub.depth ?? 1; break; }
+      }
+    }
+    const newDepth = parentDepth + 1;
+    if (newDepth > 3) { toast.error('Profundidade máxima atingida (4 níveis)'); return; }
     try {
       const { data, error } = await supabase.from('tasks').insert({
         title: name, parent_task_id: parentTaskId, section_id: section,
         project_id: projectId, status: 'pending', priority: 'low', position, workspace_id: activeWorkspaceId,
+        depth: newDepth,
       }).select().single();
       if (error) { console.error('[addSubtask] Insert error:', error.message); return; }
       const sub: Subtask = {
