@@ -287,7 +287,11 @@ function CollapsedPeriodSummary({
             {doneCount}✓
           </span>
         )}
-        {/* Pending tasks are promoted to active period, so no arrow badge needed here */}
+        {pendingCount > 0 && (
+          <span style={{ fontSize: 11, color: 'var(--text-placeholder)', fontWeight: 400 }}>
+            {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+          </span>
+        )}
         <ChevronDown
           className="flex-shrink-0 transition-transform duration-200"
           style={{
@@ -442,11 +446,11 @@ function TempoVivoLayout({
   rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null;
   justDroppedId?: string | null; activeDragId?: string | null; onNavigateToWeek: () => void; allDone: boolean; allEmpty: boolean;
 }) {
-  const [expandedPast, setExpandedPast] = useState<Set<DayPeriod>>(new Set());
+  const [expandedPeriods, setExpandedPeriods] = useState<Set<DayPeriod>>(new Set());
   const currentPeriodOrder = getPeriodOrder(currentPeriod);
 
-  const togglePastExpanded = useCallback((period: DayPeriod) => {
-    setExpandedPast(prev => {
+  const togglePeriodExpanded = useCallback((period: DayPeriod) => {
+    setExpandedPeriods(prev => {
       const next = new Set(prev);
       if (next.has(period)) next.delete(period); else next.add(period);
       return next;
@@ -493,12 +497,15 @@ function TempoVivoLayout({
         />
       ))}
 
-      {/* Future periods — normal rendering */}
+      {/* Future periods — collapsible, starting collapsed */}
       {futurePeriods.map(period => (
-        <PeriodSection
-          key={period.key} period={period} tasks={tasksByPeriod[period.key]}
-          allTasks={allTasks} projects={projects} sections={sections}
-          periodState="future"
+        <CollapsedPeriodSummary
+          key={period.key}
+          period={period}
+          tasks={tasksByPeriod[period.key]}
+          isExpanded={expandedPeriods.has(period.key)}
+          onToggle={() => togglePeriodExpanded(period.key)}
+          projects={projects} sections={sections} allTasks={allTasks}
           selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
           onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
           rolloverMap={rolloverMap} overItemId={overItemId}
@@ -517,8 +524,8 @@ function TempoVivoLayout({
                 key={period.key}
                 period={period}
                 tasks={pastTasks}
-                isExpanded={expandedPast.has(period.key)}
-                onToggle={() => togglePastExpanded(period.key)}
+                isExpanded={expandedPeriods.has(period.key)}
+                onToggle={() => togglePeriodExpanded(period.key)}
                 projects={projects} sections={sections} allTasks={allTasks}
                 selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
                 onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
