@@ -215,6 +215,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         membersByTask[m.task_id].push(member);
       }
 
+      // Build flat map of all subtasks by their parent_task_id
+      const allSubsFlat: Record<string, Subtask> = {};
       const subtasksByParent: Record<string, Subtask[]> = {};
       for (const row of (subtasksRes.data || [])) {
         const sub: Subtask = {
@@ -225,15 +227,28 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           section: row.section_id, projectId: row.project_id, parentTaskId: row.parent_task_id,
           serviceTagId: row.service_tag_id || undefined, dayPeriod: row.day_period || 'morning',
           members: membersByTask[row.id] || [], position: row.position ?? 0,
+          depth: row.depth ?? 1,
         };
+        allSubsFlat[sub.id] = sub;
         if (!subtasksByParent[row.parent_task_id]) subtasksByParent[row.parent_task_id] = [];
         subtasksByParent[row.parent_task_id].push(sub);
       }
 
+      // Recursively build subtask tree bottom-up (supports up to 4 levels)
+      const buildSubtaskTree = (parentId: string): Subtask[] => {
+        const children = subtasksByParent[parentId] || [];
+        return children
+          .map(sub => ({ ...sub, subtasks: buildSubtaskTree(sub.id) }))
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      };
+
+      // Build nested tree for each top-level parent
+      const nestedSubtasksByParent: Record<string, Subtask[]> = {};
       for (const parentId of Object.keys(subtasksByParent)) {
-        subtasksByParent[parentId] = subtasksByParent[parentId].map(sub => ({
-          ...sub, subtasks: subtasksByParent[sub.id] || [],
-        }));
+        // Only process direct children of top-level tasks (not sub-sub-tasks)
+        if (!allSubsFlat[parentId]) {
+          nestedSubtasksByParent[parentId] = buildSubtaskTree(parentId);
+        }
       }
 
       const dbComments: Comment[] = (commentsRes.data || []).map((c: any) => {
@@ -279,7 +294,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       }
       if (tasksRes.data) {
         setTasksState(tasksRes.data.map((row: any) => ({
-          ...mapDbTask(row), members: membersByTask[row.id] || [], subtasks: subtasksByParent[row.id] || [],
+          ...mapDbTask(row), members: membersByTask[row.id] || [], subtasks: nestedSubtasksByParent[row.id] || [],
         })));
       }
       setLoading(false);
