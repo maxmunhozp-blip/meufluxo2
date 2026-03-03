@@ -801,7 +801,27 @@ export function MyDayView({
           }
         }
       } else {
-        onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod, manuallyMoved: true });
+        // Cross-period drag: change period AND insert at correct position
+        const targetPeriodTasks = [...(tasksByPeriod[targetDisplayPeriod] || [])];
+        const targetIdx = targetPeriodTasks.findIndex(t => t.id === targetTask.id);
+        const insertIdx = dropLinePosition === 'top' ? targetIdx : targetIdx + 1;
+
+        // Remove dragged task if it was somehow in target list, then insert at position
+        const filtered = targetPeriodTasks.filter(t => t.id !== draggedTask.id);
+        const reordered = [...filtered.slice(0, insertIdx > filtered.length ? filtered.length : insertIdx),
+          { ...draggedTask, dayPeriod: targetDisplayPeriod, manuallyMoved: true },
+          ...filtered.slice(insertIdx > filtered.length ? filtered.length : insertIdx)];
+
+        const positionUpdates = reordered.map((t, i) => ({ id: t.id, position: i }));
+
+        // Update the moved task with new period + position
+        const movedPosition = reordered.findIndex(t => t.id === draggedTask.id);
+        onUpdateTask({ ...draggedTask, dayPeriod: targetDisplayPeriod, manuallyMoved: true, position: movedPosition });
+
+        // Batch update all positions in the target period
+        if (onBatchUpdatePositions) {
+          onBatchUpdatePositions(positionUpdates);
+        }
       }
     }
   };
