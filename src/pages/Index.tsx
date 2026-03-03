@@ -328,6 +328,10 @@ const Index = () => {
 
     // Auto-move logic for top-level tasks marked as done
     if (newStatus === 'done' && !isSubtask && task) {
+      // In Meu Dia view, don't auto-move — just visual flip like inbox/recurring
+      if (isMyDayView) {
+        // no auto-move
+      } else {
       const section = sectionList.find(s => s.id === task!.section);
       const sectionType = section?.sectionType || 'custom';
 
@@ -372,6 +376,7 @@ const Index = () => {
         }
       }
       // inbox and recurring: no auto-move, just visual flip
+      } // end else (not isMyDayView)
     }
 
     pushUndo({
@@ -384,7 +389,7 @@ const Index = () => {
         }
       },
     });
-  }, [updateTaskStatus, updateSubtask, taskList, sectionList, pushUndo, toast, moveTaskToSection]);
+  }, [updateTaskStatus, updateSubtask, taskList, sectionList, pushUndo, toast, moveTaskToSection, isMyDayView]);
 
   const handleUpdateTask = useCallback((updated: Task) => {
     const prev = taskList.find(t => t.id === updated.id);
