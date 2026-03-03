@@ -244,12 +244,13 @@ function DayTaskCard({
 function CollapsedPeriodSummary({
   period, tasks, isExpanded, onToggle,
   projects, sections, allTasks, selectedTaskId, onSelectTask, onStatusChange, onUpdateTask, rolloverMap,
-  overItemId, dropLinePosition, justDroppedId, isDragActive,
+  overItemId, dropLinePosition, justDroppedId, isDragActive, alwaysShow,
 }: {
   period: typeof PERIODS[number]; tasks: Task[]; isExpanded: boolean; onToggle: () => void;
   projects: Project[]; sections: Section[]; allTasks: Task[];
   selectedTaskId?: string; onSelectTask: (t: Task) => void; onStatusChange: (id: string, s: TaskStatus) => void; onUpdateTask: (task: Task) => void;
   rolloverMap: Map<string, number>; overItemId?: string | null; dropLinePosition?: 'top' | 'bottom' | null; justDroppedId?: string | null; isDragActive?: boolean;
+  alwaysShow?: boolean;
 }) {
   const PeriodIcon = period.icon;
   const doneCount = tasks.filter(t => t.status === 'done').length;
@@ -257,7 +258,7 @@ function CollapsedPeriodSummary({
   const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `period-${period.key}`, data: { type: 'period-drop', period: period.key } });
 
-  if (tasks.length === 0 && !isDragActive) return null;
+  if (tasks.length === 0 && !isDragActive && !alwaysShow) return null;
 
   return (
     <div ref={setDropRef} style={{
@@ -515,6 +516,7 @@ function TempoVivoLayout({
           rolloverMap={rolloverMap} overItemId={overItemId}
           dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
           isDragActive={!!activeDragId}
+          alwaysShow={viewingToday}
         />
       ))}
 
