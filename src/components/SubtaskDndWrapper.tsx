@@ -33,12 +33,21 @@ export function SubtaskDndWrapper({
   const subtaskIds = subtasks.map(s => s.id);
   const [overSubtaskId, setOverSubtaskId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<'top' | 'bottom' | 'center' | null>(null);
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const STORAGE_KEY = 'meufluxo_subtasks_collapsed';
+
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return new Set(JSON.parse(stored) as string[]);
+    } catch {}
+    return new Set();
+  });
 
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])); } catch {}
       return next;
     });
   }, []);
