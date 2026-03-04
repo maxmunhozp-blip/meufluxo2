@@ -548,15 +548,12 @@ export function ProjectSidebar({
     </button>
   );
 
-  // SVG favicon inline — two flowing lines forming abstract "F"
-  const MeuFluxoIcon = () => (
+  // Logo SVG — full brand mark with typography
+  const MeuFluxoLogo = () => (
     <img
-      src="/favicon.png"
+      src="/meufluxo-logo.svg"
       alt="MeuFluxo"
-      width={22}
-      height={22}
-      className="meufluxo-icon rounded-[4px]"
-      style={{ objectFit: 'contain' }}
+      style={{ height: 18, objectFit: 'contain', filter: 'var(--sidebar-logo-filter, none)' }}
     />
   );
 
@@ -581,9 +578,8 @@ export function ProjectSidebar({
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Expandir menu"
           >
-            <MeuFluxoIcon />
+            <MeuFluxoLogo />
           </button>
-
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
 
           {/* Nav icons */}
@@ -670,17 +666,8 @@ export function ProjectSidebar({
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
       <div style={{ flexShrink: 0, padding: '20px 16px 0 16px' }}>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <MeuFluxoIcon />
-            <span style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: 17,
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              color: 'var(--sidebar-text-primary, hsl(var(--sidebar-foreground)))',
-            }}>
-              MeuFluxo
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <MeuFluxoLogo />
           </div>
           {onToggleCollapse && (
             <button
