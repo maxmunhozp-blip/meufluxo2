@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Play } from 'lucide-react';
 
-interface LinkPreviewProps {
-  url: string;
-}
-
-interface OGData {
+export interface OGData {
   title: string;
   description: string;
   image: string;
@@ -15,11 +11,18 @@ interface OGData {
   videoId?: string;
 }
 
-export function LinkPreview({ url }: LinkPreviewProps) {
-  const [data, setData] = useState<OGData | null>(null);
-  const [loading, setLoading] = useState(true);
+interface LinkPreviewProps {
+  url: string;
+  cachedData?: OGData | null;
+  onDataLoaded?: (url: string, data: OGData) => void;
+}
+
+export function LinkPreview({ url, cachedData, onDataLoaded }: LinkPreviewProps) {
+  const [data, setData] = useState<OGData | null>(cachedData || null);
+  const [loading, setLoading] = useState(!cachedData);
 
   useEffect(() => {
+    if (cachedData) { setData(cachedData); setLoading(false); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -27,7 +30,9 @@ export function LinkPreview({ url }: LinkPreviewProps) {
           body: { url },
         });
         if (!cancelled && !error && result && !result.error) {
-          setData(result as OGData);
+          const ogData = result as OGData;
+          setData(ogData);
+          onDataLoaded?.(url, ogData);
         }
       } catch {
         // ignore
@@ -36,7 +41,7 @@ export function LinkPreview({ url }: LinkPreviewProps) {
       }
     })();
     return () => { cancelled = true; };
-  }, [url]);
+  }, [url, cachedData]);
 
   if (loading || !data) return null;
 
