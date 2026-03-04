@@ -548,6 +548,24 @@ export function ProjectSidebar({
     </button>
   );
 
+  // Shine triggers on view/project changes and on mount
+  const [shineKey, setShineKey] = useState(0);
+  const viewSignature = `${activeProjectId}-${isMyDayView}-${isMyWeekView}-${isMyTasksView}-${isNotesView}`;
+  const prevViewRef = useRef(viewSignature);
+
+  useEffect(() => {
+    if (prevViewRef.current !== viewSignature) {
+      prevViewRef.current = viewSignature;
+      setShineKey(k => k + 1);
+    }
+  }, [viewSignature]);
+
+  // Also trigger on mount (reload)
+  useEffect(() => {
+    const timer = setTimeout(() => setShineKey(k => k + 1), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Logo SVG — full brand mark with typography
   // Uses blue-bg variant for light-contrast theme (dark sidebar), default for others
   const MeuFluxoLogo = () => {
@@ -557,14 +575,15 @@ export function ProjectSidebar({
         ? '/meufluxo-logo-dark.svg'
         : '/meufluxo-logo.svg';
     return (
-      <div className="logo-shine-wrapper" style={{ height: 22 }}>
+      <div className="logo-shine-wrapper" style={{ height: 18 }}>
         <img
           src={logoSrc}
           alt="MeuFluxo"
-          style={{ height: 22, objectFit: 'contain' }}
+          style={{ height: 18, objectFit: 'contain' }}
         />
         <div
-          className="logo-shine-overlay"
+          key={shineKey}
+          className={`logo-shine-overlay ${shineKey > 0 ? 'shine-active' : ''}`}
           style={{
             maskImage: `url(${logoSrc})`,
             WebkitMaskImage: `url(${logoSrc})`,
