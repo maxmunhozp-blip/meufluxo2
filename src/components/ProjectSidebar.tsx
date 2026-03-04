@@ -579,8 +579,23 @@ export function ProjectSidebar({
       ? '/meufluxo-logo-dark.svg'
       : '/meufluxo-logo.svg';
 
+  // Fade-in on mount
+  const [logoReady, setLogoReady] = useState(false);
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setLogoReady(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
+
   const MeuFluxoLogo = () => (
-    <div className="logo-shine-wrapper" style={{ height: 20, position: 'relative' }}>
+    <div
+      className="logo-shine-wrapper"
+      style={{
+        height: 20,
+        position: 'relative',
+        opacity: logoReady ? 1 : 0,
+        transition: 'opacity 400ms ease-out',
+      }}
+    >
       {LOGO_VARIANTS.map(v => (
         <img
           key={v.theme}
@@ -594,7 +609,7 @@ export function ProjectSidebar({
             left: 0,
             opacity: v.src === activeLogoSrc ? 1 : 0,
             pointerEvents: v.src === activeLogoSrc ? 'auto' : 'none',
-            transition: 'opacity 200ms ease-out',
+            transition: 'opacity 300ms ease-out',
           }}
         />
       ))}
