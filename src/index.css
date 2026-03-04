@@ -160,6 +160,7 @@
 
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+    --sidebar-logo-filter: brightness(0) invert(1);
     --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(240 4% 16% / 0.5);
 
@@ -328,6 +329,7 @@
 
     /* Sidebar hover — tone-on-tone (light) */
     --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
+    --sidebar-logo-filter: none;
     --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(240 5% 89% / 0.5);
 
@@ -485,6 +487,7 @@
 
     /* Sidebar hover — tone-on-tone (NOT white) */
     --sidebar-hover-bg: hsla(232, 22%, 20%, 1);
+    --sidebar-logo-filter: brightness(0) invert(1);
 
     /* Sidebar container borders — rounded ALL corners */
     --sidebar-border-top: hsl(235 25% 12%);

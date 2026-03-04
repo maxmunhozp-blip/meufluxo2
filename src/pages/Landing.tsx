@@ -271,7 +271,7 @@ const Landing = () => {
       {/* NAV */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, transition: "all 0.3s", background: sc || mobileMenu ? "rgba(250,250,249,0.95)" : "transparent", backdropFilter: sc || mobileMenu ? "blur(20px) saturate(180%)" : "none", borderBottom: sc ? "1px solid rgba(0,0,0,0.05)" : "1px solid transparent" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontFamily: pf, fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>MeuFluxo</span>
+          <img src="/meufluxo-logo.svg" alt="MeuFluxo" style={{ height: 22, cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} />
           {/* Desktop nav */}
           <div className="hidden sm:flex" style={{ alignItems: "center", gap: 16 }}>
             {[["A Ciência", "stories"], ["Planos", "pricing"], ["FAQ", "faq"]].map(([l, id]) => (
