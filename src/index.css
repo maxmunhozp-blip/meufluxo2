@@ -821,7 +821,7 @@ aside ~ div {
 }
 
 .logo-shine-wrapper:hover .logo-shine-overlay::after {
-  animation: logo-shine-sweep 800ms ease-out forwards;
+  animation: logo-shine-sweep 1500ms ease-in-out forwards;
 }
 
 @keyframes logo-shine-sweep {
