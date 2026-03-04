@@ -550,23 +550,14 @@ export function ProjectSidebar({
 
   // SVG favicon inline — two flowing lines forming abstract "F"
   const MeuFluxoIcon = () => (
-    <svg
-      width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
-      className="meufluxo-icon"
-    >
-      <path d="M8 26C8 26 10 18 16 14C22 10 26 6 26 6" stroke="url(#mf-grad-1)" strokeWidth="3" strokeLinecap="round" />
-      <path d="M6 20C6 20 12 16 18 16C24 16 26 12 26 12" stroke="url(#mf-grad-2)" strokeWidth="3" strokeLinecap="round" />
-      <defs>
-        <linearGradient id="mf-grad-1" x1="8" y1="26" x2="26" y2="6" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7C3AED" />
-          <stop offset="1" stopColor="#4F6DF5" />
-        </linearGradient>
-        <linearGradient id="mf-grad-2" x1="6" y1="20" x2="26" y2="12" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7C3AED" />
-          <stop offset="1" stopColor="#60A5FA" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <img
+      src="/favicon.png"
+      alt="MeuFluxo"
+      width={22}
+      height={22}
+      className="meufluxo-icon rounded-[4px]"
+      style={{ objectFit: 'contain' }}
+    />
   );
 
   // Collapsed mini sidebar
