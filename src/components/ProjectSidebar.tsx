@@ -163,7 +163,7 @@ function SortableProjectItem({
               ? '2px dashed var(--text-placeholder)'
               : '2px solid transparent',
           background: isDragOver ? 'var(--accent-subtle)' : undefined,
-          color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+          color: isActive ? 'var(--sidebar-text-primary, var(--text-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
           transition: 'all 150ms ease-out',
@@ -178,7 +178,7 @@ function SortableProjectItem({
           className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
           onClick={(e) => e.stopPropagation()}
         >
-          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
+          <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--sidebar-text-placeholder, var(--text-placeholder))' }} />
         </div>
         {/* Chevron — 24×24 touch target */}
         <button
@@ -191,7 +191,7 @@ function SortableProjectItem({
           <ChevronRight
             className="w-3 h-3"
             style={{
-              color: 'var(--text-tertiary)',
+              color: 'var(--sidebar-text-tertiary, var(--text-tertiary))',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
               transition: 'transform 150ms ease-out',
             }}
@@ -262,17 +262,17 @@ function SortableProjectItem({
                 fontSize: 12,
                 fontWeight: 400,
                 lineHeight: 1.5,
-                color: isSectionDragOver ? 'var(--accent-blue)' : isSectionActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                color: isSectionDragOver ? 'var(--accent-blue)' : isSectionActive ? 'var(--sidebar-text-primary, var(--text-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))',
                 border: isSectionDragOver
                   ? '2px solid var(--accent-blue)'
                   : showSectionHint
-                    ? '1px dashed var(--text-placeholder)'
+                    ? '1px dashed var(--sidebar-text-placeholder, var(--text-placeholder))'
                     : '2px solid transparent',
                 background: isSectionDragOver ? 'var(--accent-subtle)' : undefined,
                 transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; } }}
-              onMouseLeave={e => { if (!isSectionDragOver) { e.currentTarget.style.background = isSectionDragOver ? 'var(--accent-subtle)' : 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+              onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; if (!isSectionActive) e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+              onMouseLeave={e => { if (!isSectionDragOver) { e.currentTarget.style.background = isSectionDragOver ? 'var(--accent-subtle)' : 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
             </button>
@@ -533,17 +533,17 @@ export function ProjectSidebar({
         borderRadius: 'var(--radius-md)',
         fontSize: 14,
         fontWeight: 400,
-        color: active ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-secondary, var(--text-secondary))',
         background: active ? 'var(--accent-subtle)' : 'transparent',
         transition: 'all 150ms ease-out',
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'color 150ms ease-out' }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-secondary, var(--text-secondary))', transition: 'color 150ms ease-out' }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--text-tertiary)', fontWeight: 400 }}>{count}</span>
+        <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-tertiary, var(--text-tertiary))', fontWeight: 400 }}>{count}</span>
       )}
     </button>
   );
