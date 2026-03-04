@@ -551,13 +551,16 @@ export function ProjectSidebar({
   // Logo SVG — full brand mark with typography
   // Uses blue-bg variant for light-contrast theme (dark sidebar), default for others
   const MeuFluxoLogo = () => {
-    const logoSrc = themePreference === 'light-contrast' ? '/meufluxo-logo-blue-bg.svg' : '/meufluxo-logo.svg';
-    const needsFilter = themePreference === 'dark'; // invert for dark bg; light-contrast has dedicated SVG; light needs no filter
+    const logoSrc = themePreference === 'light-contrast'
+      ? '/meufluxo-logo-blue-bg.svg'
+      : themePreference === 'dark'
+        ? '/meufluxo-logo-dark.svg'
+        : '/meufluxo-logo.svg';
     return (
       <img
         src={logoSrc}
         alt="MeuFluxo"
-        style={{ height: 18, objectFit: 'contain', filter: needsFilter ? 'brightness(0) invert(1)' : 'none' }}
+        style={{ height: 18, objectFit: 'contain' }}
       />
     );
   };
