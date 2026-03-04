@@ -824,6 +824,17 @@ aside ~ div {
   animation: logo-shine-sweep 1500ms ease-in-out forwards;
 }
 
+[data-theme='dark'] .logo-shine-overlay::after {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(45, 70%, 75%, 0.5) 45%,
+    hsla(42, 80%, 88%, 0.75) 50%,
+    hsla(45, 70%, 75%, 0.5) 55%,
+    transparent 70%
+  );
+}
+
 @keyframes logo-shine-sweep {
   0% {
     left: -60%;
