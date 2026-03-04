@@ -816,30 +816,37 @@ aside ~ div {
   transform: skewX(-15deg);
 }
 
-.logo-shine-wrapper:hover .logo-shine-overlay {
+/* Shine activated via JS class, not :hover */
+.logo-shine-overlay.shine-active-ltr,
+.logo-shine-overlay.shine-active-rtl {
   opacity: 1;
 }
 
-.logo-shine-wrapper:hover .logo-shine-overlay::after {
-  animation: logo-shine-sweep 1500ms ease-in-out forwards;
+.logo-shine-overlay.shine-active-ltr::after {
+  animation: logo-shine-ltr 1500ms ease-in-out forwards;
+}
+
+.logo-shine-overlay.shine-active-rtl::after {
+  animation: logo-shine-rtl 1500ms ease-in-out forwards;
 }
 
 [data-theme='dark'] .logo-shine-overlay::after {
   background: linear-gradient(
     105deg,
     transparent 30%,
-    hsla(45, 30%, 75%, 0.35) 45%,
-    hsla(42, 35%, 85%, 0.55) 50%,
-    hsla(45, 30%, 75%, 0.35) 55%,
+    hsla(45, 15%, 75%, 0.25) 45%,
+    hsla(42, 18%, 85%, 0.4) 50%,
+    hsla(45, 15%, 75%, 0.25) 55%,
     transparent 70%
   );
 }
 
-@keyframes logo-shine-sweep {
-  0% {
-    left: -60%;
-  }
-  100% {
-    left: 140%;
-  }
+@keyframes logo-shine-ltr {
+  0% { left: -60%; }
+  100% { left: 140%; }
+}
+
+@keyframes logo-shine-rtl {
+  0% { left: 140%; }
+  100% { left: -60%; }
 }
