@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Pin, PinOff, Trash2, Bold, Italic, Underline, Strikethrough, List, ListOrdered, CheckSquare, Minus, Heading2, ImagePlus, Link2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { LinkPreview } from './LinkPreview';
+import { LinkPreview, OGData } from './LinkPreview';
 import { Project } from '@/types/task';
 
 interface NoteEditorProps {
@@ -32,6 +32,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<string[]>([]);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [ogCache, setOgCache] = useState<Record<string, OGData>>({});
 
   // Load note
   useEffect(() => {
@@ -54,6 +55,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
         const c = data.content as any;
         setContent(c?.text || '');
         setImages(c?.images || []);
+        setOgCache(c?.ogCache || {});
         setPinned(data.pinned);
         setLinkedProjectId(data.project_id);
         setCurrentNoteId(data.id);
@@ -68,15 +70,16 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     setUrls(found);
   }, [content]);
 
-  const save = useCallback(async (t: string, c: string, p: boolean, imgs: string[], projId: string | null) => {
+  const save = useCallback(async (t: string, c: string, p: boolean, imgs: string[], projId: string | null, og?: Record<string, OGData>) => {
     setSaveStatus('saving');
+    const cacheToSave = og || ogCache;
     try {
       if (currentNoteId) {
         await supabase
           .from('notes')
           .update({
             title: t,
-            content: { text: c, images: imgs },
+            content: { text: c, images: imgs, ogCache: cacheToSave } as any,
             pinned: p,
             project_id: projId,
           })
@@ -86,7 +89,7 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           .from('notes')
           .insert({
             title: t,
-            content: { text: c, images: imgs },
+            content: { text: c, images: imgs, ogCache: cacheToSave } as any,
             pinned: p,
             project_id: projId,
             workspace_id: workspaceId,
@@ -102,11 +105,11 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
     } catch {
       setSaveStatus('idle');
     }
-  }, [currentNoteId, workspaceId, userId, onSaved]);
+  }, [currentNoteId, workspaceId, userId, onSaved, ogCache]);
 
-  const triggerAutoSave = useCallback((t: string, c: string, p: boolean, imgs: string[], projId: string | null) => {
+  const triggerAutoSave = useCallback((t: string, c: string, p: boolean, imgs: string[], projId: string | null, og?: Record<string, OGData>) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => save(t, c, p, imgs, projId), 1000);
+    saveTimerRef.current = setTimeout(() => save(t, c, p, imgs, projId, og), 1000);
   }, [save]);
 
   const handleTitleChange = (val: string) => {
@@ -287,8 +290,8 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder="Comece a escrever..."
-          className="w-full bg-transparent outline-none resize-none min-h-[300px] text-sm leading-relaxed"
-          style={{ color: 'var(--text-primary)' }}
+          className="w-full bg-transparent outline-none resize-none min-h-[300px] leading-relaxed"
+          style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.8 }}
         />
 
         {/* Inline images */}
@@ -308,7 +311,18 @@ export function NoteEditor({ noteId, projectId, workspaceId, userId, onBack, onS
 
         {/* Link previews — PRO only */}
         {isPro && urls.map((url, i) => (
-          <LinkPreview key={`${url}-${i}`} url={url} />
+          <LinkPreview
+            key={`${url}-${i}`}
+            url={url}
+            cachedData={ogCache[url] || null}
+            onDataLoaded={(u, d) => {
+              setOgCache(prev => {
+                const next = { ...prev, [u]: d };
+                triggerAutoSave(title, content, pinned, images, linkedProjectId, next);
+                return next;
+              });
+            }}
+          />
         ))}
       </div>
 
