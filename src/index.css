@@ -780,3 +780,45 @@ aside ~ div {
 .workspace-name-trigger:active .workspace-name-label {
   transform: scale(0.88);
 }
+
+/* Logo shine sweep effect */
+.logo-shine-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo-shine-overlay {
+  position: absolute;
+  top: -20%;
+  left: -100%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(220, 80%, 80%, 0.35) 45%,
+    hsla(220, 90%, 95%, 0.5) 50%,
+    hsla(220, 80%, 80%, 0.35) 55%,
+    transparent 70%
+  );
+  transform: skewX(-15deg);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.logo-shine-wrapper:hover .logo-shine-overlay {
+  opacity: 1;
+  animation: logo-shine-sweep 800ms ease-out forwards;
+}
+
+@keyframes logo-shine-sweep {
+  0% {
+    left: -60%;
+  }
+  100% {
+    left: 140%;
+  }
+}
