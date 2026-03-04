@@ -548,16 +548,6 @@ export function ProjectSidebar({
     </button>
   );
 
-  // Shine only on initial page load / reload
-  const [shineActive, setShineActive] = useState(false);
-  const shineRanRef = useRef(false);
-  useEffect(() => {
-    if (shineRanRef.current) return;
-    shineRanRef.current = true;
-    const timer = setTimeout(() => setShineActive(true), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
   // All logo variants — preloaded, toggled by visibility (no flash on theme switch)
   const LOGO_VARIANTS = [
     { theme: 'light', src: '/meufluxo-logo.svg' },
@@ -571,22 +561,12 @@ export function ProjectSidebar({
       ? '/meufluxo-logo-dark.svg'
       : '/meufluxo-logo.svg';
 
-  // Fade-in on mount
-  const [logoReady, setLogoReady] = useState(false);
-  useEffect(() => {
-    const t = requestAnimationFrame(() => setLogoReady(true));
-    return () => cancelAnimationFrame(t);
-  }, []);
-
   const MeuFluxoLogo = () => (
     <div
-      className="logo-shine-wrapper"
       style={{
         height: 20,
         width: 120,
         position: 'relative',
-        opacity: logoReady ? 1 : 0,
-        transition: 'opacity 400ms ease-out',
       }}
     >
       {LOGO_VARIANTS.map(v => (
@@ -606,19 +586,6 @@ export function ProjectSidebar({
           }}
         />
       ))}
-      <div
-        className={`logo-shine-overlay ${shineActive ? 'shine-active' : ''}`}
-        style={{
-          maskImage: `url(${activeLogoSrc})`,
-          WebkitMaskImage: `url(${activeLogoSrc})`,
-          maskSize: 'contain',
-          WebkitMaskSize: 'contain',
-          maskRepeat: 'no-repeat',
-          WebkitMaskRepeat: 'no-repeat',
-          maskPosition: 'center',
-          WebkitMaskPosition: 'center',
-        }}
-      />
     </div>
   );
 
