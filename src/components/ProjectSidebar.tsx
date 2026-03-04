@@ -560,7 +560,7 @@ export function ProjectSidebar({
       <img
         src={logoSrc}
         alt="MeuFluxo"
-        style={{ height: 18, objectFit: 'contain' }}
+        style={{ height: 28, objectFit: 'contain' }}
       />
     );
   };
@@ -672,8 +672,8 @@ export function ProjectSidebar({
         onMouseDown={(e) => onResizeStart?.(e)}
       />
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
-      <div style={{ flexShrink: 0, padding: '20px 16px 0 16px' }}>
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ flexShrink: 0, padding: '24px 16px 0 16px' }}>
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <MeuFluxoLogo />
           </div>
