@@ -501,6 +501,17 @@
   }
 }
 
+/* MeuFluxo icon — subtle hover glow + rotation */
+.meufluxo-icon {
+  transition: transform 300ms cubic-bezier(0.25, 0.1, 0.25, 1), filter 300ms ease-out;
+  filter: drop-shadow(0 0 0px transparent);
+}
+*:hover > .meufluxo-icon,
+button:hover .meufluxo-icon {
+  transform: rotate(8deg) scale(1.08);
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.45));
+}
+
 /* Text selection */
 ::selection {
   background: var(--selection-bg);
