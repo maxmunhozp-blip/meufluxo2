@@ -1220,6 +1220,8 @@ const Index = () => {
       handleCreateSection();
     },
     onUpdateClientsLabel: updateClientsLabel,
+    sidebarWidth,
+    onResizeStart: (e: ReactMouseEvent) => handleResizeMouseDown('sidebar', e),
   };
 
   // Determine active view for bottom nav
@@ -1293,7 +1295,7 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:block flex-shrink-0" style={{ width: sidebarCollapsed ? 48 : 260, minWidth: sidebarCollapsed ? 48 : 260, maxWidth: sidebarCollapsed ? 48 : 260, transition: 'width 200ms ease-out, min-width 200ms ease-out, max-width 200ms ease-out' }}>
+        <div className="hidden lg:block flex-shrink-0" style={{ width: sidebarCollapsed ? 48 : sidebarWidth, minWidth: sidebarCollapsed ? 48 : sidebarWidth, maxWidth: sidebarCollapsed ? 48 : sidebarWidth, transition: 'width 200ms ease-out, min-width 200ms ease-out, max-width 200ms ease-out' }}>
           <ProjectSidebar {...sidebarProps} />
         </div>
       )}
