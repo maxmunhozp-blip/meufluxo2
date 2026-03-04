@@ -314,7 +314,7 @@ interface ProjectSidebarProps {
   workspaceMembers?: WorkspaceMember[];
   onSwitchWorkspace?: (id: string) => void;
   onInviteToWorkspace?: (email: string) => Promise<void>;
-  onCreateWorkspace?: (name: string) => Promise<string>;
+  onCreateWorkspace?: (name: string, clientsLabel?: string) => Promise<string>;
   onRenameWorkspace?: (id: string, name: string) => Promise<void>;
   onDeleteWorkspace?: (id: string) => Promise<void>;
   onAcceptInvite?: (workspaceId: string) => Promise<void>;
@@ -665,7 +665,7 @@ export function ProjectSidebar({
       <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '0 16px 16px 16px' }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
-            Clientes
+            {(workspaces.find(w => w.id === activeWorkspaceId) as any)?.clientsLabel || 'Clientes'}
           </span>
         </div>
 

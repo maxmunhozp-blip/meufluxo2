@@ -818,6 +818,7 @@ export type Database = {
       }
       workspaces: {
         Row: {
+          clients_label: string | null
           created_at: string
           id: string
           name: string
@@ -825,6 +826,7 @@ export type Database = {
           plan: Database["public"]["Enums"]["workspace_plan"]
         }
         Insert: {
+          clients_label?: string | null
           created_at?: string
           id?: string
           name: string
@@ -832,6 +834,7 @@ export type Database = {
           plan?: Database["public"]["Enums"]["workspace_plan"]
         }
         Update: {
+          clients_label?: string | null
           created_at?: string
           id?: string
           name?: string
