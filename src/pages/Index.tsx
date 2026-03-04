@@ -1146,7 +1146,22 @@ const Index = () => {
   if (loading || !session) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: 'hsl(var(--bg-app))' }}>
-        <p className="text-nd-text-secondary animate-pulse">Carregando...</p>
+        <div className="loading-logo-wrapper">
+          <img src="/meufluxo-icon.svg" alt="MeuFluxo" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+          <div
+            className="loading-logo-shine"
+            style={{
+              maskImage: 'url(/meufluxo-icon.svg)',
+              WebkitMaskImage: 'url(/meufluxo-icon.svg)',
+              maskSize: 'contain',
+              WebkitMaskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              WebkitMaskRepeat: 'no-repeat',
+              maskPosition: 'center',
+              WebkitMaskPosition: 'center',
+            }}
+          />
+        </div>
       </div>
     );
   }
