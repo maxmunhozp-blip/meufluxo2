@@ -449,18 +449,23 @@
     --project-7: 45 96% 38%;
 
     /* ★ DARK SIDEBAR — contrasts with light content */
-    --bg-sidebar: #1A1A2E;
-    --sidebar-background: 240 25% 14%;
-    --sidebar-foreground: 240 10% 85%;
+    --bg-sidebar: #1C1C30;
+    --sidebar-background: 240 25% 15%;
+    --sidebar-foreground: 240 8% 82%;
     --sidebar-primary: 231 88% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 20% 20%;
-    --sidebar-accent-foreground: 240 10% 85%;
-    --sidebar-border: 240 20% 18%;
+    --sidebar-accent: 240 18% 21%;
+    --sidebar-accent-foreground: 240 8% 82%;
+    --sidebar-border: 240 18% 20%;
     --sidebar-ring: 231 88% 58%;
-    --sidebar-active: 240 20% 22%;
-    --sidebar-separator: 240 20% 18%;
-    --sidebar-label: 240 10% 55%;
+    --sidebar-active: 240 18% 24%;
+    --sidebar-separator: 240 15% 22%;
+    --sidebar-label: 240 8% 52%;
+
+    /* Sidebar container borders — rounded corner with dark edge */
+    --sidebar-border-top: hsl(240 20% 12%);
+    --sidebar-border-left: hsl(240 18% 18%);
+    --sidebar-container-radius: 0 12px 0 0;
 
     --temporal-past-bg: rgba(217, 119, 6, 0.08);
     --temporal-past-text: #B45309;
