@@ -910,7 +910,7 @@ export function ProjectSidebar({
 
       {/* Clients label editor modal */}
       {showClientsLabelEditor && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
           <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
             <h3 className="text-[15px] font-semibold text-foreground mb-1">Título dos projetos</h3>
             <p className="text-[13px] text-muted-foreground mb-4">Como você quer chamar a lista de projetos na sidebar?</p>
@@ -946,7 +946,7 @@ export function ProjectSidebar({
       )}
       {/* Workspace rename modal */}
       {showWsRenameEditor && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
           <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
             <h3 className="text-[15px] font-semibold text-foreground mb-1">Renomear Workspace</h3>
             <p className="text-[13px] text-muted-foreground mb-4">Digite o novo nome para o workspace.</p>

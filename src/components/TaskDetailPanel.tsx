@@ -697,12 +697,12 @@ function AttachmentsSection({ attachments, uploadingFile, onUpload, onDelete }: 
                   <a href={url} target="_blank" rel="noopener noreferrer"
                     onClick={e => e.stopPropagation()}
                     className="w-5 h-5 flex items-center justify-center rounded"
-                    style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    style={{ color: 'var(--text-primary)' }}>
                     <Download className="w-3 h-3" />
                   </a>
                   <button onClick={e => { e.stopPropagation(); onDelete(att.id); }}
                     className="w-5 h-5 flex items-center justify-center rounded"
-                    style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    style={{ color: 'var(--text-primary)' }}>
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
