@@ -520,6 +520,16 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 300ms ease-out, color 300ms ease-out;
+  }
+
+  /* Smooth theme transition for all themed elements */
+  [data-theme] *,
+  [data-theme] *::before,
+  [data-theme] *::after {
+    transition: background-color 300ms ease-out, color 200ms ease-out,
+                border-color 200ms ease-out, box-shadow 200ms ease-out,
+                fill 200ms ease-out, stroke 200ms ease-out;
   }
 }
 
