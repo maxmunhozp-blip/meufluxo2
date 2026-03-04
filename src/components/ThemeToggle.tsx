@@ -1,16 +1,16 @@
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, PanelLeft } from 'lucide-react';
 import { useTheme, Theme } from '@/hooks/useTheme';
 
 const ICONS: Record<Theme, typeof Moon> = {
   dark: Moon,
   light: Sun,
-  system: Monitor,
+  'light-contrast': PanelLeft,
 };
 
 const LABELS: Record<Theme, string> = {
   dark: 'Escuro',
   light: 'Claro',
-  system: 'Sistema',
+  'light-contrast': 'Contraste',
 };
 
 export function ThemeToggle() {

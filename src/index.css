@@ -334,11 +334,10 @@
     --dropdown-border: 240 5% 89%;
     --dropdown-hover: 240 5% 95%;
   }
-}
 
-/* ---- SYSTEM PREFERENCE FALLBACK ---- */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
+  /* ---- LIGHT-CONTRAST: light content + dark sidebar ---- */
+  [data-theme="light-contrast"] {
+    /* Inherit all light mode tokens */
     --background: 240 5% 97%;
     --foreground: 240 10% 10%;
     --card: 0 0% 100%;
@@ -411,6 +410,7 @@
     --client-purple: #7C3AED;
     --client-teal: #0D9488;
     --client-olive: #A16207;
+
     --border-subtle: #E4E4E7;
     --border-default: #D4D4D8;
     --border-interactive: #A1A1AA;
@@ -418,9 +418,12 @@
     --border-focus: #4F6DF5;
     --border-subtle-hsl: 240 5% 89%;
     --border-input-hsl: 240 5% 84%;
+
     --selection-bg: rgba(79, 109, 245, 0.15);
     --accent-blue-muted: rgba(79, 109, 245, 0.08);
     --highlight-bg: rgba(217, 119, 6, 0.12);
+    --highlight-marker-bg: rgba(124, 58, 237, 0.25);
+    --highlight-marker-text: #18181B;
     --scrollbar-thumb: rgba(0, 0, 0, 0.10);
     --scrollbar-track: transparent;
 
@@ -445,22 +448,34 @@
     --project-6: 175 84% 32%;
     --project-7: 45 96% 38%;
 
-    --sidebar-background: 240 5% 93%;
-    --sidebar-foreground: 240 10% 10%;
-    --sidebar-primary: 231 88% 58%;
+    /* ★ DARK SIDEBAR — contrasts with light content */
+    --bg-sidebar: #1A1A2E;
+    --sidebar-background: 240 25% 14%;
+    --sidebar-foreground: 240 10% 85%;
+    --sidebar-primary: 231 88% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 90%;
-    --sidebar-accent-foreground: 240 10% 10%;
-    --sidebar-border: 240 5% 89%;
+    --sidebar-accent: 240 20% 20%;
+    --sidebar-accent-foreground: 240 10% 85%;
+    --sidebar-border: 240 20% 18%;
     --sidebar-ring: 231 88% 58%;
-    --sidebar-active: 240 5% 88%;
-    --sidebar-separator: 240 5% 89%;
-    --sidebar-label: 240 4% 46%;
+    --sidebar-active: 240 20% 22%;
+    --sidebar-separator: 240 20% 18%;
+    --sidebar-label: 240 10% 55%;
+
+    --temporal-past-bg: rgba(217, 119, 6, 0.08);
+    --temporal-past-text: #B45309;
+    --temporal-future-bg: rgba(79, 109, 245, 0.08);
+    --temporal-future-text: #3A52D9;
+    --temporal-today-bg: #4F6DF5;
+    --temporal-today-hover: #3A52D9;
+
     --dropdown-bg: 0 0% 100%;
     --dropdown-border: 240 5% 89%;
     --dropdown-hover: 240 5% 95%;
   }
 }
+
+/* System preference fallback removed — theme is always explicit */
 
 @layer base {
   * {

@@ -325,7 +325,7 @@ interface ProjectSidebarProps {
   isSuperAdmin?: boolean;
   serviceTags?: ServiceTag[];
   onCycleTheme?: () => void;
-  themePreference?: 'dark' | 'light' | 'system';
+  themePreference?: 'dark' | 'light' | 'light-contrast';
   onCreateServiceTag?: (name: string, icon: string) => Promise<void>;
   onRenameServiceTag?: (id: string, name: string) => Promise<void>;
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
@@ -826,7 +826,7 @@ export function ProjectSidebar({
             >
               {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
                themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
-               <Monitor className="w-4 h-4" strokeWidth={1.5} />}
+               <PanelLeft className="w-4 h-4" strokeWidth={1.5} />}
             </button>
           )}
 
