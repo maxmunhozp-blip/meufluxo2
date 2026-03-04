@@ -150,7 +150,7 @@ function SortableProjectItem({
       onDrop={handleNativeDrop}
     >
       <div
-        className="group w-full flex items-center gap-2 cursor-pointer relative select-none"
+       className="group w-full flex items-center gap-2 cursor-pointer relative select-none sidebar-hover-item"
         onContextMenu={onContextMenu}
         style={{
           height: 36,
@@ -169,7 +169,7 @@ function SortableProjectItem({
           transition: 'all 150ms ease-out',
           transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
         }}
-        onMouseEnter={e => { if (!isDragOver) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+        onMouseEnter={e => { if (!isDragOver) e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; }}
         onMouseLeave={e => { if (!isDragOver) e.currentTarget.style.background = isDragOver ? 'var(--accent-subtle)' : 'transparent'; }}
       >
         <div
@@ -271,7 +271,7 @@ function SortableProjectItem({
                 background: isSectionDragOver ? 'var(--accent-subtle)' : undefined,
                 transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--bg-elevated)'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; } }}
+              onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-primary)'; } }}
               onMouseLeave={e => { if (!isSectionDragOver) { e.currentTarget.style.background = isSectionDragOver ? 'var(--accent-subtle)' : 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--text-secondary)'; } }}
             >
               <span className="truncate flex-1 text-left">{section.title}</span>
@@ -534,7 +534,7 @@ export function ProjectSidebar({
         background: active ? 'var(--accent-subtle)' : 'transparent',
         transition: 'all 150ms ease-out',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
       <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'color 150ms ease-out' }} />
@@ -570,7 +570,7 @@ export function ProjectSidebar({
   if (collapsed) {
     return (
       <aside
-        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container"
+        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
         style={{
           width: 48, minWidth: 48, maxWidth: 48,
           transition: 'width 200ms ease-out',
@@ -579,6 +579,7 @@ export function ProjectSidebar({
           borderRadius: 'var(--sidebar-container-radius, 0)',
         }}
       >
+        <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
         <div className="flex flex-col items-center gap-1 pt-3 px-1">
           {/* Favicon icon */}
           <button
@@ -647,7 +648,7 @@ export function ProjectSidebar({
   // Golden ratio: φ ≈ 1.618 — brand header ~38.2% of top zone, nav ~61.8%
   return (
     <aside
-      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container"
+      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
       style={{
         width: 260, minWidth: 260, maxWidth: 260,
         transition: 'width 200ms ease-out',
@@ -666,6 +667,8 @@ export function ProjectSidebar({
         }
       }}
     >
+      {/* Resize handle — right edge */}
+      <div className="sidebar-resize-handle" title="Redimensionar" />
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
       <div style={{ flexShrink: 0, padding: '20px 16px 0 16px' }}>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

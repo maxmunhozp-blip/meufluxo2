@@ -158,6 +158,10 @@
     --sidebar-separator: 240 4% 16%;
     --sidebar-label: 240 2% 56%;
 
+    /* Sidebar hover — tone-on-tone (dark) */
+    --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+    --sidebar-container-radius: 0;
+
     /* Dropdown tokens */
     --dropdown-bg: 240 5% 8%;
     --dropdown-border: 240 4% 16%;
@@ -321,6 +325,10 @@
     --sidebar-separator: 240 5% 89%;
     --sidebar-label: 240 4% 46%;
 
+    /* Sidebar hover — tone-on-tone (light) */
+    --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
+    --sidebar-container-radius: 0;
+
     /* Temporal context — light mode */
     --temporal-past-bg: rgba(217, 119, 6, 0.08);
     --temporal-past-text: #B45309;
@@ -462,18 +470,21 @@
     --sidebar-separator: 232 18% 22%;
     --sidebar-label: 225 10% 48%;
 
-    /* Sidebar-scoped semantic text (cool blue-grey, no yellow) */
-    --sidebar-text-primary: #C8CCE0;
-    --sidebar-text-secondary: #8A8EA8;
-    --sidebar-text-tertiary: #5E6280;
-    --sidebar-text-placeholder: #44486A;
+    /* Sidebar-scoped semantic text — pure cool blue-grey, zero warm cast */
+    --sidebar-text-primary: #BFC4DC;
+    --sidebar-text-secondary: #7E84A4;
+    --sidebar-text-tertiary: #575D80;
+    --sidebar-text-placeholder: #3E4468;
 
     /* Sidebar search input — subtle tone-on-tone */
-    --sidebar-input-bg: hsla(232, 22%, 18%, 1);
-    --sidebar-input-border: hsla(232, 18%, 24%, 1);
-    --sidebar-input-text: #8A8EA8;
+    --sidebar-input-bg: hsla(232, 24%, 17%, 1);
+    --sidebar-input-border: hsla(232, 20%, 22%, 1);
+    --sidebar-input-text: #7E84A4;
 
-    /* Sidebar container borders — rounded all corners */
+    /* Sidebar hover — tone-on-tone (NOT white) */
+    --sidebar-hover-bg: hsla(232, 22%, 20%, 1);
+
+    /* Sidebar container borders — rounded ALL corners */
     --sidebar-border-top: hsl(235 25% 12%);
     --sidebar-border-left: hsl(235 20% 18%);
     --sidebar-container-radius: 12px;
@@ -629,7 +640,7 @@ mark, .highlight, [data-highlight] {
 }
 
 /* NUCLEAR: Remove all lines between sidebar and content */
-aside {
+aside:not(.sidebar-container) {
   border: none !important;
   border-right: none !important;
   box-shadow: none !important;
@@ -646,6 +657,33 @@ aside ~ div {
   width: 0 !important;
   background: transparent !important;
   border: none !important;
+}
+
+/* Sidebar resize handle — subtle edge affordance */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 40;
+  background: transparent;
+  transition: background 200ms ease-out;
+}
+.sidebar-resize-handle:hover {
+  background: hsl(var(--sidebar-primary) / 0.35);
+}
+.sidebar-resize-handle:active {
+  background: hsl(var(--sidebar-primary) / 0.55);
+}
+
+/* Sidebar hover — tone-on-tone for light-contrast */
+[data-theme="light-contrast"] .sidebar-container .sidebar-hover-item:hover {
+  background: hsla(232, 22%, 22%, 1) !important;
+}
+[data-theme="light-contrast"] .sidebar-container .sidebar-hover-item:active {
+  background: hsla(232, 22%, 25%, 1) !important;
 }
 
 /* Respect prefers-reduced-motion */
