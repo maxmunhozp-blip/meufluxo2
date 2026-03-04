@@ -149,7 +149,7 @@ const Auth = () => {
         {/* Brand */}
         <div style={{ position: "relative", maxWidth: 480, width: "100%", textAlign: "left", marginBottom: 48 }}>
           <a href="/" style={{ textDecoration: "none" }}>
-            <span style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#fff", letterSpacing: "-0.03em" }}>MeuFluxo</span>
+            <img src="/meufluxo-logo-dark.svg" alt="MeuFluxo" style={{ height: 22 }} />
           </a>
           <h2 style={{ fontFamily: pf, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 600, lineHeight: 1.15, color: "#fff", marginTop: 20, letterSpacing: "-0.02em" }}>
             Produtividade que<br />
@@ -220,7 +220,7 @@ const Auth = () => {
         {/* Mobile logo (hidden on desktop where left panel shows it) */}
         <div className="lg:hidden" style={{ marginBottom: 32, textAlign: "center" }}>
           <a href="/" style={{ textDecoration: "none" }}>
-            <span style={{ fontFamily: pf, fontSize: 28, fontWeight: 700, color: "#18181B", letterSpacing: "-0.03em" }}>MeuFluxo</span>
+            <img src="/meufluxo-logo.svg" alt="MeuFluxo" style={{ height: 22 }} />
           </a>
         </div>
 
