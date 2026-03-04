@@ -549,45 +549,11 @@ export function ProjectSidebar({
   );
 
   // All logo variants — preloaded, toggled by visibility (no flash on theme switch)
-  const LOGO_VARIANTS = [
-    { theme: 'light', src: '/meufluxo-logo.svg' },
-    { theme: 'dark', src: '/meufluxo-logo-dark.svg' },
-    { theme: 'light-contrast', src: '/meufluxo-logo-blue-bg.svg' },
-  ] as const;
-
   const activeLogoSrc = themePreference === 'light-contrast'
     ? '/meufluxo-logo-blue-bg.svg'
     : themePreference === 'dark'
       ? '/meufluxo-logo-dark.svg'
       : '/meufluxo-logo.svg';
-
-  const MeuFluxoLogo = () => (
-    <div
-      style={{
-        height: 20,
-        width: 120,
-        position: 'relative',
-      }}
-    >
-      {LOGO_VARIANTS.map(v => (
-        <img
-          key={v.theme}
-          src={v.src}
-          alt="MeuFluxo"
-          style={{
-            height: 20,
-            objectFit: 'contain',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            opacity: v.src === activeLogoSrc ? 1 : 0,
-            pointerEvents: v.src === activeLogoSrc ? 'auto' : 'none',
-            transition: 'opacity 250ms ease-out',
-          }}
-        />
-      ))}
-    </div>
-  );
 
   // Collapsed mini sidebar
   if (collapsed) {
@@ -699,7 +665,28 @@ export function ProjectSidebar({
       <div style={{ flexShrink: 0, padding: '24px 16px 0 16px' }}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <MeuFluxoLogo />
+            <div style={{ height: 20, width: 120, position: 'relative' }}>
+              {(['light', 'dark', 'light-contrast'] as const).map(t => {
+                const src = t === 'light-contrast' ? '/meufluxo-logo-blue-bg.svg' : t === 'dark' ? '/meufluxo-logo-dark.svg' : '/meufluxo-logo.svg';
+                return (
+                  <img
+                    key={t}
+                    src={src}
+                    alt="MeuFluxo"
+                    style={{
+                      height: 20,
+                      objectFit: 'contain',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      opacity: src === activeLogoSrc ? 1 : 0,
+                      pointerEvents: src === activeLogoSrc ? 'auto' : 'none',
+                      transition: 'opacity 250ms ease-out',
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
           {onToggleCollapse && (
             <button
