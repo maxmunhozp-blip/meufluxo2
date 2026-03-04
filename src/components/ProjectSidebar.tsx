@@ -340,6 +340,8 @@ interface ProjectSidebarProps {
   onOpenSearch?: () => void;
   onAddSection?: (projectId: string) => void;
   onUpdateClientsLabel?: (id: string, label: string) => Promise<void>;
+  sidebarWidth?: number;
+  onResizeStart?: (e: React.MouseEvent) => void;
 }
 
 export function ProjectSidebar({
@@ -355,6 +357,7 @@ export function ProjectSidebar({
   onCycleTheme, themePreference,
   onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
   collapsed, onToggleCollapse, onOpenSearch, onAddSection, onUpdateClientsLabel,
+  sidebarWidth = 260, onResizeStart,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -650,7 +653,7 @@ export function ProjectSidebar({
     <aside
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
       style={{
-        width: 260, minWidth: 260, maxWidth: 260,
+        width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth,
         transition: 'width 200ms ease-out',
         background: 'hsl(var(--sidebar-background))',
         border: '2px solid var(--sidebar-border-top, transparent)',
@@ -667,8 +670,12 @@ export function ProjectSidebar({
         }
       }}
     >
-      {/* Resize handle — right edge */}
-      <div className="sidebar-resize-handle" title="Redimensionar" />
+      {/* Resize handle — right edge, draggable */}
+      <div
+        className="sidebar-resize-handle"
+        title="Arrastar para redimensionar"
+        onMouseDown={(e) => onResizeStart?.(e)}
+      />
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
       <div style={{ flexShrink: 0, padding: '20px 16px 0 16px' }}>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -687,13 +694,18 @@ export function ProjectSidebar({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="w-6 h-6 flex items-center justify-center rounded-md"
+              className="w-7 h-7 flex items-center justify-center rounded-md group/collapse"
               title="Recolher menu"
               style={{ color: 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-primary, hsl(var(--sidebar-foreground)))'; e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))'; e.currentTarget.style.background = 'transparent'; }}
             >
-              <PanelLeftClose className="w-3.5 h-3.5" />
+              {/* Apple Finder-style sidebar toggle: 3 horizontal lines with varying widths */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="3.5" width="12" height="1.5" rx="0.75" fill="currentColor" />
+                <rect x="2" y="7.25" width="9" height="1.5" rx="0.75" fill="currentColor" />
+                <rect x="2" y="11" width="6" height="1.5" rx="0.75" fill="currentColor" />
+              </svg>
             </button>
           )}
         </div>

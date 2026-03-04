@@ -669,23 +669,38 @@ aside ~ div {
   border: none !important;
 }
 
-/* Sidebar resize handle — subtle edge affordance */
+/* Sidebar resize handle — right edge affordance (Apple-style) */
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: -4px;
+  width: 8px;
   height: 100%;
   cursor: col-resize;
   z-index: 40;
   background: transparent;
   transition: background 200ms ease-out;
 }
-.sidebar-resize-handle:hover {
-  background: hsl(var(--sidebar-primary) / 0.35);
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 28px;
+  border-radius: 3px;
+  background: transparent;
+  transition: background 200ms ease-out, opacity 200ms ease-out;
+  opacity: 0;
 }
-.sidebar-resize-handle:active {
-  background: hsl(var(--sidebar-primary) / 0.55);
+.sidebar-resize-handle:hover::after {
+  background: hsl(var(--sidebar-primary) / 0.5);
+  opacity: 1;
+}
+.sidebar-resize-handle:active::after {
+  background: hsl(var(--sidebar-primary) / 0.8);
+  opacity: 1;
 }
 
 /* Sidebar hover — tone-on-tone for light-contrast */
