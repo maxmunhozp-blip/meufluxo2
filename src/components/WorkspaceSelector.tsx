@@ -70,9 +70,9 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
       {/* Trigger — discrete, functional */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 group transition-colors"
+        className="flex items-center gap-1 group transition-colors workspace-name-trigger"
       >
-        <span className="text-[11px] font-medium truncate max-w-[90px]" style={{ color: 'var(--sidebar-text-tertiary, var(--text-secondary))', letterSpacing: '0.01em' }}>
+        <span className="workspace-name-label text-[11px] font-medium truncate max-w-[90px]" style={{ color: 'var(--sidebar-text-tertiary, var(--text-secondary))', letterSpacing: '0.01em' }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
