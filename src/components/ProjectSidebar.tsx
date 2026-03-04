@@ -557,11 +557,14 @@ export function ProjectSidebar({
         ? '/meufluxo-logo-dark.svg'
         : '/meufluxo-logo.svg';
     return (
-      <img
-        src={logoSrc}
-        alt="MeuFluxo"
-        style={{ height: 22, objectFit: 'contain' }}
-      />
+      <div className="logo-shine-wrapper">
+        <img
+          src={logoSrc}
+          alt="MeuFluxo"
+          style={{ height: 22, objectFit: 'contain' }}
+        />
+        <div className="logo-shine-overlay" />
+      </div>
     );
   };
 
