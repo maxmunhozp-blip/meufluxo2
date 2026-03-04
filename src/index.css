@@ -160,6 +160,7 @@
 
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+    --sidebar-text-tertiary: #636366;
     --sidebar-logo-filter: brightness(0) invert(1);
     --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(240 4% 16% / 0.5);
