@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { LoadingLogo } from '@/components/LoadingLogo';
 import { X, Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceTag } from '@/types/task';
@@ -426,7 +427,7 @@ export function DeliveryTemplateModal({
         >
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Carregando...</p>
+              <LoadingLogo size={32} />
             </div>
           ) : (
             <>

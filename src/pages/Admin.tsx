@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { LoadingLogo } from '@/components/LoadingLogo';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, LayoutDashboard, Building2, Search, ChevronLeft, ChevronRight, X, Shield, ShieldAlert, Ban, Crown } from 'lucide-react';
 import { useAdminData, AdminUser, AdminUserDetail } from '@/hooks/useAdminData';
@@ -135,7 +136,7 @@ const Admin = () => {
 };
 
 function DashboardTab({ data }: { data: any }) {
-  if (!data) return <div className="text-muted-foreground text-sm">Carregando...</div>;
+  if (!data) return <div className="flex items-center justify-center py-12"><LoadingLogo size={32} /></div>;
 
   const cards = [
     { label: 'Total Usuários', value: data.totalUsers, color: 'hsl(var(--primary))' },

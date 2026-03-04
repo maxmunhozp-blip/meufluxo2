@@ -32,6 +32,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { ensureFixedSections } from '@/utils/ensureFixedSections';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { GlobalSearch } from '@/components/GlobalSearch';
+import { LoadingLogo } from '@/components/LoadingLogo';
 const MONTH_NAMES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
 function generateSectionTitle(projectName: string): string {
@@ -1146,22 +1147,7 @@ const Index = () => {
   if (loading || !session) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: 'hsl(var(--bg-app))' }}>
-        <div className="loading-logo-wrapper">
-          <img src="/meufluxo-icon.svg" alt="MeuFluxo" style={{ width: 48, height: 48, objectFit: 'contain' }} />
-          <div
-            className="loading-logo-shine"
-            style={{
-              maskImage: 'url(/meufluxo-icon.svg)',
-              WebkitMaskImage: 'url(/meufluxo-icon.svg)',
-              maskSize: 'contain',
-              WebkitMaskSize: 'contain',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-              maskPosition: 'center',
-              WebkitMaskPosition: 'center',
-            }}
-          />
-        </div>
+        <LoadingLogo size={48} />
       </div>
     );
   }
