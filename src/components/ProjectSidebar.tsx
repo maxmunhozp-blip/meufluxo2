@@ -548,6 +548,17 @@ export function ProjectSidebar({
     </button>
   );
 
+  // Logo shine direction alternates each hover
+  const shineDirectionRef = useRef<'ltr' | 'rtl'>('ltr');
+  const [shineKey, setShineKey] = useState(0);
+  const [shineDir, setShineDir] = useState<'ltr' | 'rtl'>('ltr');
+
+  const handleLogoHover = () => {
+    setShineDir(shineDirectionRef.current);
+    setShineKey(k => k + 1);
+    shineDirectionRef.current = shineDirectionRef.current === 'ltr' ? 'rtl' : 'ltr';
+  };
+
   // Logo SVG — full brand mark with typography
   // Uses blue-bg variant for light-contrast theme (dark sidebar), default for others
   const MeuFluxoLogo = () => {
@@ -557,14 +568,15 @@ export function ProjectSidebar({
         ? '/meufluxo-logo-dark.svg'
         : '/meufluxo-logo.svg';
     return (
-      <div className="logo-shine-wrapper" style={{ height: 22 }}>
+      <div className="logo-shine-wrapper" style={{ height: 22 }} onMouseEnter={handleLogoHover}>
         <img
           src={logoSrc}
           alt="MeuFluxo"
           style={{ height: 22, objectFit: 'contain' }}
         />
         <div
-          className="logo-shine-overlay"
+          key={shineKey}
+          className={`logo-shine-overlay ${shineKey > 0 ? (shineDir === 'ltr' ? 'shine-active-ltr' : 'shine-active-rtl') : ''}`}
           style={{
             maskImage: `url(${logoSrc})`,
             WebkitMaskImage: `url(${logoSrc})`,
