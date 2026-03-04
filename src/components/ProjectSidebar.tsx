@@ -824,6 +824,7 @@ export function ProjectSidebar({
           onClick={onOpenSearch}
           className="w-full flex items-center gap-2 select-none"
           style={{
+            opacity: 'var(--search-btn-opacity, 1)' as any,
             height: 30,
             paddingLeft: 10,
             paddingRight: 10,
@@ -841,7 +842,6 @@ export function ProjectSidebar({
         >
           <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.5 }} />
           <span className="flex-1 text-left truncate">Buscar</span>
-          <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--sidebar-text-placeholder, var(--text-placeholder))', background: 'hsl(var(--sidebar-accent))', fontFamily: 'system-ui', opacity: 0.5 }}>⌘K</kbd>
         </button>
       </div>
 
