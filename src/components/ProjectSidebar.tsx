@@ -201,7 +201,7 @@ function SortableProjectItem({
         <button
           onClick={(e) => { e.stopPropagation(); onColorClick(e); }}
           className="flex-shrink-0 hover:scale-125 transition-transform"
-          style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4 }}
+          style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4, opacity: 'var(--project-dot-opacity, 1)' as any }}
         />
         <span className="truncate flex-1 text-left" style={{ lineHeight: 1.5 }} onClick={onSelect}>{project.name}</span>
         {/* Drop hint */}
@@ -635,7 +635,7 @@ export function ProjectSidebar({
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'var(--accent-subtle)' : 'transparent'; }}
             >
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
             </button>
           ))}
         </div>
@@ -723,7 +723,7 @@ export function ProjectSidebar({
               {projects.map((project) => (
                 renamingId === project.id ? (
                   <div key={project.id} className="flex items-center gap-2.5" style={{ height: 40, paddingLeft: 10, paddingRight: 10 }}>
-                    <span className="flex-shrink-0" style={{ width: 6, height: 6, borderRadius: '50%', background: project.color }} />
+                    <span className="flex-shrink-0" style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
                     <input
                       ref={renameRef}
                       value={renameValue}

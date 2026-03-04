@@ -178,6 +178,9 @@
     --temporal-today-bg: #2563EB;
     --temporal-today-hover: #1D4ED8;
 
+    /* Project dot opacity — softer in dark */
+    --project-dot-opacity: 0.45;
+
     /* Design system utilities */
     --radius-sm: 6px;
     --radius-md: 8px;
