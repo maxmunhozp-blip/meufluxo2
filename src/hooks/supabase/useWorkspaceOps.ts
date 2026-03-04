@@ -84,21 +84,22 @@ export function useWorkspaceOps(deps: SharedState) {
     switchWorkspace(workspaceId);
   }, [session, switchWorkspace]);
 
-  const createWorkspace = useCallback(async (name: string): Promise<string> => {
+  const createWorkspace = useCallback(async (name: string, clientsLabel?: string): Promise<string> => {
     if (!planLimits.canCreateWorkspace) {
       setShowUpgradeModal(true);
       throw new Error('Limite de workspaces atingido');
     }
     if (!session) throw new Error('Não autenticado');
-    const { data, error } = await supabase.from('workspaces').insert({ name, owner_id: session.user.id }).select().single();
+    const insertData: any = { name, owner_id: session.user.id };
+    if (clientsLabel !== undefined) insertData.clients_label = clientsLabel || 'Clientes';
+    const { data, error } = await supabase.from('workspaces').insert(insertData).select().single();
     if (error) { toast.error('Erro ao criar workspace'); throw error; }
     await supabase.from('workspace_members').insert({
       workspace_id: data.id, user_id: session.user.id, role: 'owner', accepted_at: new Date().toISOString(),
     });
-    const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id };
+    const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id, clientsLabel: (data as any).clients_label || 'Clientes' };
     setWorkspacesState(prev => [...prev, newWs]);
     toast.success('Workspace criado!');
-    // Switch to the new workspace to load its (empty) data properly
     switchWorkspace(data.id);
     return data.id;
   }, [session]);

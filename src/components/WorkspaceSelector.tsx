@@ -7,7 +7,7 @@ interface WorkspaceSelectorProps {
   activeWorkspaceId: string | null;
   onSwitch: (id: string) => void;
   onInvite: (email: string) => Promise<void>;
-  onCreate: (name: string) => Promise<string>;
+  onCreate: (name: string, clientsLabel?: string) => Promise<string>;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onGenerateInviteLink: () => Promise<string>;
@@ -21,6 +21,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   const [renameOpen, setRenameOpen] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [newName, setNewName] = useState('');
+  const [newClientsLabel, setNewClientsLabel] = useState('Clientes');
   const [creating, setCreating] = useState(false);
   const [menuWsId, setMenuWsId] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
   const handleCreate = async () => {
     if (!newName.trim()) return;
     setCreating(true);
-    try { await onCreate(newName.trim()); setNewName(''); setCreateOpen(false); } catch {}
+    try { await onCreate(newName.trim(), newClientsLabel.trim() || undefined); setNewName(''); setNewClientsLabel('Clientes'); setCreateOpen(false); } catch {}
     setCreating(false);
   };
 
@@ -242,8 +243,13 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
             <h3 className="text-[15px] font-semibold text-foreground mb-1">Novo Workspace</h3>
             <p className="text-[13px] text-muted-foreground mb-4">Crie um novo workspace para organizar seus projetos.</p>
             <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }} placeholder="Nome do workspace" autoFocus className="w-full h-10 px-3 text-[14px] text-foreground bg-input rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground mb-3" />
+            <div className="mb-3">
+              <label className="block text-[12px] text-muted-foreground mb-1.5">Título da lista de projetos</label>
+              <input type="text" value={newClientsLabel} onChange={(e) => setNewClientsLabel(e.target.value)} placeholder="Ex: Clientes, Projetos, Marcas..." className="w-full h-10 px-3 text-[14px] text-foreground bg-input rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground" />
+              <p className="text-[11px] text-muted-foreground mt-1">Aparece na sidebar. Deixe em branco para usar "Clientes".</p>
+            </div>
             <div className="flex gap-2">
-              <button onClick={() => { setCreateOpen(false); setNewName(''); }} className="flex-1 h-9 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors">Cancelar</button>
+              <button onClick={() => { setCreateOpen(false); setNewName(''); setNewClientsLabel('Clientes'); }} className="flex-1 h-9 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors">Cancelar</button>
               <button onClick={handleCreate} disabled={creating || !newName.trim()} className="flex-1 h-9 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">{creating ? 'Criando...' : 'Criar'}</button>
             </div>
           </div>

@@ -1,0 +1,1 @@
+ALTER TABLE public.workspaces ADD COLUMN clients_label text DEFAULT 'Clientes';
