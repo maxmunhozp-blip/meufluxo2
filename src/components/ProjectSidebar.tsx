@@ -557,13 +557,25 @@ export function ProjectSidebar({
         ? '/meufluxo-logo-dark.svg'
         : '/meufluxo-logo.svg';
     return (
-      <div className="logo-shine-wrapper">
+      <div className="logo-shine-wrapper" style={{ height: 22 }}>
         <img
           src={logoSrc}
           alt="MeuFluxo"
           style={{ height: 22, objectFit: 'contain' }}
         />
-        <div className="logo-shine-overlay" />
+        <div
+          className="logo-shine-overlay"
+          style={{
+            maskImage: `url(${logoSrc})`,
+            WebkitMaskImage: `url(${logoSrc})`,
+            maskSize: 'contain',
+            WebkitMaskSize: 'contain',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskPosition: 'center',
+            WebkitMaskPosition: 'center',
+          }}
+        />
       </div>
     );
   };

@@ -791,6 +791,16 @@ aside ~ div {
 
 .logo-shine-overlay {
   position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  overflow: hidden;
+}
+
+.logo-shine-overlay::after {
+  content: '';
+  position: absolute;
   top: -20%;
   left: -100%;
   width: 60%;
@@ -798,19 +808,19 @@ aside ~ div {
   background: linear-gradient(
     105deg,
     transparent 30%,
-    hsla(220, 80%, 80%, 0.35) 45%,
-    hsla(220, 90%, 95%, 0.5) 50%,
-    hsla(220, 80%, 80%, 0.35) 55%,
+    hsla(220, 80%, 80%, 0.6) 45%,
+    hsla(220, 90%, 95%, 0.9) 50%,
+    hsla(220, 80%, 80%, 0.6) 55%,
     transparent 70%
   );
   transform: skewX(-15deg);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 200ms ease;
 }
 
 .logo-shine-wrapper:hover .logo-shine-overlay {
   opacity: 1;
+}
+
+.logo-shine-wrapper:hover .logo-shine-overlay::after {
   animation: logo-shine-sweep 800ms ease-out forwards;
 }
 
