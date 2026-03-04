@@ -292,7 +292,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                 />
               ) : (
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 max-w-[65%]">
-                  <span className={`truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontSize: dStyle.fontSize, fontWeight: dStyle.fontWeight, lineHeight: 1.5, color: isDone ? undefined : dStyle.color, opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'rgba(255,255,255,0.15)' }}>
+                  <span className={`truncate transition-[color,opacity] duration-200 ease-out ${isDone ? 'text-muted-foreground' : ''}`} style={{ fontSize: dStyle.fontSize, fontWeight: dStyle.fontWeight, lineHeight: 1.5, color: isDone ? undefined : dStyle.color, opacity: isDone ? 0.35 : 1, textDecoration: isDone ? 'line-through' : 'none', textDecorationColor: 'var(--text-placeholder)' }}>
                     {task.name}
                   </span>
                   {agingBadge}

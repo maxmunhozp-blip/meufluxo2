@@ -177,11 +177,11 @@ function DayTaskCard({
           <span className="flex-shrink-0 max-w-[40%] text-[14px] leading-tight truncate transition-all duration-200"
             style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.35 : 1, fontWeight: 400 }}>{task.name}</span>
           {ancestorTrail && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {ancestorTrail && <span className="truncate text-[11px] max-w-[160px] px-1 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', opacity: isDone ? 0.25 : 1 }}>{ancestorTrail}</span>}
+          {ancestorTrail && <span className="truncate text-[11px] max-w-[160px] px-1 py-0.5 rounded" style={{ color: 'var(--text-tertiary)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'var(--bg-hover)', opacity: isDone ? 0.25 : 1 }}>{ancestorTrail}</span>}
         </div>
         {rolloverDays && rolloverDays > 0 && (
           <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
-            style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 400, background: 'rgba(255,255,255,0.06)' }}>
+            style={{ fontSize: 10, color: 'var(--text-tertiary)', fontWeight: 400, background: 'var(--bg-hover)' }}>
             ← {rolloverDays === 1 ? 'ontem' : `${rolloverDays} dias`}
           </span>
         )}
@@ -989,9 +989,9 @@ export function MyDayView({
             <button
               onClick={() => setSelectedDate(d => subDays(d, 1))}
               className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg cursor-pointer"
-              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out' }}
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Dia anterior"
             >
               <ChevronLeft className="w-[18px] h-[18px]" />
@@ -1007,7 +1007,7 @@ export function MyDayView({
                       fontSize: 16,
                       fontWeight: 600,
                       lineHeight: 1.5,
-                      color: 'rgba(255,255,255,0.85)',
+                      color: 'var(--text-primary)',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
@@ -1041,9 +1041,9 @@ export function MyDayView({
             <button
               onClick={() => setSelectedDate(d => addDays(d, 1))}
               className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg cursor-pointer"
-              style={{ color: 'rgba(255,255,255,0.5)', transition: 'all 150ms ease-out' }}
+              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
               aria-label="Próximo dia"
             >
               <ChevronRight className="w-[18px] h-[18px]" />
@@ -1059,8 +1059,8 @@ export function MyDayView({
                 fontSize: 11,
                 fontWeight: 500,
                 lineHeight: 1.5,
-                background: 'rgba(255,255,255,0.06)',
-                color: 'rgba(255,255,255,0.35)',
+                background: 'var(--bg-hover)',
+                color: 'var(--text-tertiary)',
                 whiteSpace: 'nowrap',
               }}
             >
