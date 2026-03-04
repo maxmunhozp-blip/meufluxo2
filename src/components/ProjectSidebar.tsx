@@ -575,8 +575,7 @@ export function ProjectSidebar({
           width: 48, minWidth: 48, maxWidth: 48,
           transition: 'width 200ms ease-out',
           background: 'hsl(var(--sidebar-background))',
-          borderTop: '2px solid var(--sidebar-border-top, transparent)',
-          borderLeft: '2px solid var(--sidebar-border-left, transparent)',
+          border: '2px solid var(--sidebar-border-top, transparent)',
           borderRadius: 'var(--sidebar-container-radius, 0)',
         }}
       >
@@ -645,7 +644,7 @@ export function ProjectSidebar({
     );
   }
 
-
+  // Golden ratio: φ ≈ 1.618 — brand header ~38.2% of top zone, nav ~61.8%
   return (
     <aside
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container"
@@ -653,8 +652,7 @@ export function ProjectSidebar({
         width: 260, minWidth: 260, maxWidth: 260,
         transition: 'width 200ms ease-out',
         background: 'hsl(var(--sidebar-background))',
-        borderTop: '2px solid var(--sidebar-border-top, transparent)',
-        borderLeft: '2px solid var(--sidebar-border-left, transparent)',
+        border: '2px solid var(--sidebar-border-top, transparent)',
         borderRadius: 'var(--sidebar-container-radius, 0)',
       }}
       onDragOver={(e) => e.preventDefault()}
@@ -668,17 +666,17 @@ export function ProjectSidebar({
         }
       }}
     >
-      {/* BRAND HEADER */}
-      <div style={{ flexShrink: 0, padding: '14px 16px 0 16px' }}>
-        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
+      <div style={{ flexShrink: 0, padding: '20px 16px 0 16px' }}>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <MeuFluxoIcon />
             <span style={{
               fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               letterSpacing: '-0.02em',
-              color: 'hsl(var(--sidebar-foreground))',
+              color: 'var(--sidebar-text-primary, hsl(var(--sidebar-foreground)))',
             }}>
               MeuFluxo
             </span>
@@ -688,30 +686,32 @@ export function ProjectSidebar({
               onClick={onToggleCollapse}
               className="w-6 h-6 flex items-center justify-center rounded-md"
               title="Recolher menu"
-              style={{ color: 'hsl(var(--sidebar-label))', transition: 'all 150ms ease-out' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--sidebar-foreground))'; e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'hsl(var(--sidebar-label))'; e.currentTarget.style.background = 'transparent'; }}
+              style={{ color: 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-primary, hsl(var(--sidebar-foreground)))'; e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))'; e.currentTarget.style.background = 'transparent'; }}
             >
               <PanelLeftClose className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
+
+        {/* NAV — φ proportion: 26px gap after brand (16 × φ ≈ 26) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
-        {/* Separator */}
-        <div style={{ margin: '20px 0' }}>
+        {/* Separator — 16px above, 12px below */}
+        <div style={{ margin: '16px 0 12px 0' }}>
           <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))' }} />
         </div>
       </div>
 
       {/* CLIENTES — flex: 1, overflow-y: auto */}
-      <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '0 16px 16px 16px' }}>
+      <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '0 16px 8px 16px' }}>
         <div style={{ marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             {(workspaces.find(w => w.id === activeWorkspaceId) as any)?.clientsLabel || 'Clientes'}
           </span>
         </div>
@@ -779,8 +779,8 @@ export function ProjectSidebar({
 
       </div>
 
-      {/* "+ Novo Cliente" sticky bottom */}
-      <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-subtle)', padding: '0 16px' }}>
+      {/* BOTTOM ZONE — sticky, with proper padding */}
+      <div style={{ flexShrink: 0, borderTop: '1px solid hsl(var(--sidebar-separator))', padding: '8px 16px' }}>
         {creatingProject ? (
           <div className="flex items-center" style={{ height: 36 }}>
             <input
@@ -792,7 +792,7 @@ export function ProjectSidebar({
               autoFocus
               placeholder="Nome do cliente..."
               className="w-full h-7 px-2 text-[14px] rounded-md border focus:outline-none"
-              style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border-focus)' }}
+              style={{ background: 'var(--sidebar-input-bg, var(--bg-input))', color: 'var(--sidebar-text-primary, var(--text-primary))', borderColor: 'var(--sidebar-input-border, var(--border-focus))' }}
             />
           </div>
         ) : (
@@ -800,19 +800,19 @@ export function ProjectSidebar({
             onClick={() => { setCreatingProject(true); setTimeout(() => inputRef.current?.focus(), 0); }}
             className="w-full flex items-center select-none"
             style={{
-              height: 36,
-              fontSize: 14,
-              color: 'var(--text-tertiary)',
+              height: 32,
+              fontSize: 13,
+              color: 'var(--sidebar-text-tertiary, var(--text-tertiary))',
               fontWeight: 400,
               transition: 'all 150ms ease-out',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-tertiary))'; }}
           >
             + Novo Cliente
           </button>
         )}
-        {/* Search — quiet affordance below client list */}
+        {/* Search — tone-on-tone with sidebar */}
         <button
           onClick={onOpenSearch}
           className="w-full flex items-center gap-2 select-none"
@@ -820,29 +820,30 @@ export function ProjectSidebar({
             height: 30,
             paddingLeft: 10,
             paddingRight: 10,
-            marginTop: 6,
+            marginTop: 4,
             borderRadius: 8,
             fontSize: 12,
             fontWeight: 400,
-            color: 'var(--text-placeholder)',
-            background: 'var(--bg-elevated)',
-            border: '1px solid transparent',
+            color: 'var(--sidebar-input-text, var(--text-placeholder))',
+            background: 'var(--sidebar-input-bg, var(--bg-elevated))',
+            border: '1px solid var(--sidebar-input-border, transparent)',
             transition: 'all 150ms ease-out',
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--sidebar-accent))'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-tertiary))'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--sidebar-input-border, transparent)'; e.currentTarget.style.color = 'var(--sidebar-input-text, var(--text-placeholder))'; }}
         >
-          <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.6 }} />
+          <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.5 }} />
           <span className="flex-1 text-left truncate">Buscar</span>
-          <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--text-placeholder)', background: 'var(--bg-surface)', fontFamily: 'system-ui', opacity: 0.6 }}>⌘K</kbd>
+          <kbd className="hidden md:inline text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--sidebar-text-placeholder, var(--text-placeholder))', background: 'hsl(var(--sidebar-accent))', fontFamily: 'system-ui', opacity: 0.5 }}>⌘K</kbd>
         </button>
       </div>
 
-      <div className="relative" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-        <div className="px-3 py-2 flex items-center gap-1" style={{ opacity: 1 }}>
-          <div style={{ opacity: 0.4, transition: 'opacity 150ms ease-out' }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
+      {/* FOOTER — workspace & actions */}
+      <div className="relative" style={{ flexShrink: 0, borderTop: '1px solid hsl(var(--sidebar-separator))', padding: '0 4px' }}>
+        <div className="px-2 py-2.5 flex items-center gap-1">
+          <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}
           >
             <WorkspaceSelector
               workspaces={workspaces}
@@ -863,10 +864,10 @@ export function ProjectSidebar({
             <button
               onClick={onCycleTheme}
               className="w-7 h-7 flex items-center justify-center rounded-md"
-              title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Sistema'}
-              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
+              style={{ color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-tertiary))'; }}
             >
               {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
                themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
@@ -876,23 +877,23 @@ export function ProjectSidebar({
 
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
-              style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
+              style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
             ><Shield className="w-3.5 h-3.5" /></a>
           )}
           <button onClick={() => navigate('/profile')} className="w-7 h-7 flex items-center justify-center rounded-md" title="Perfil"
-            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><User className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowSettings(!showSettings)} className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><Settings className="w-3.5 h-3.5" /></button>
           <button onClick={onLogout} className="w-7 h-7 flex items-center justify-center rounded-md" title="Sair da conta"
-            style={{ opacity: 0.4, color: 'var(--text-primary)', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><LogOut className="w-3.5 h-3.5" /></button>
