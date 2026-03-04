@@ -160,7 +160,7 @@
 
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-    --sidebar-container-radius: 0;
+    --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(240 4% 16%);
 
     /* Dropdown tokens */
@@ -328,7 +328,7 @@
 
     /* Sidebar hover — tone-on-tone (light) */
     --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
-    --sidebar-container-radius: 0;
+    --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(240 5% 89%);
 
     /* Temporal context — light mode */
@@ -489,7 +489,7 @@
     /* Sidebar container borders — rounded ALL corners */
     --sidebar-border-top: hsl(235 25% 12%);
     --sidebar-border-left: hsl(235 20% 18%);
-    --sidebar-container-radius: 12px;
+    --sidebar-container-radius: 16px;
     --sidebar-right-border: hsl(235 20% 18%);
 
     --temporal-past-bg: rgba(217, 119, 6, 0.08);

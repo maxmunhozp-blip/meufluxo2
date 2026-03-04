@@ -786,7 +786,8 @@ export function ProjectSidebar({
       </div>
 
       {/* BOTTOM ZONE — sticky, with proper padding */}
-      <div style={{ flexShrink: 0, borderTop: '1px solid hsl(var(--sidebar-separator))', padding: '8px 16px' }}>
+      <div style={{ flexShrink: 0, padding: '0 16px 8px 16px' }}>
+        <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', marginBottom: 8 }} />
         {creatingProject ? (
           <div className="flex items-center" style={{ height: 36 }}>
             <input
@@ -850,7 +851,8 @@ export function ProjectSidebar({
       </div>
 
       {/* FOOTER — workspace & actions */}
-      <div className="relative" style={{ flexShrink: 0, borderTop: '1px solid hsl(var(--sidebar-separator))', padding: '0 4px' }}>
+      <div className="relative" style={{ flexShrink: 0, padding: '0 4px' }}>
+        <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', margin: '0 12px' }} />
         <div className="px-2 py-2.5 flex items-center gap-1">
           <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
