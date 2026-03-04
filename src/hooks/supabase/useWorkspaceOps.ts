@@ -111,6 +111,13 @@ export function useWorkspaceOps(deps: SharedState) {
     toast.success('Workspace renomeado!');
   }, []);
 
+  const updateClientsLabel = useCallback(async (id: string, label: string) => {
+    const { error } = await supabase.from('workspaces').update({ clients_label: label || 'Clientes' } as any).eq('id', id);
+    if (error) { toast.error('Erro ao atualizar rótulo'); throw error; }
+    setWorkspacesState(prev => prev.map(w => w.id === id ? { ...w, clientsLabel: label || 'Clientes' } : w));
+    toast.success('Rótulo atualizado!');
+  }, []);
+
   const deleteWorkspace = useCallback(async (id: string) => {
     if (workspacesState.length <= 1) { toast.error('Você precisa ter ao menos um workspace.'); return; }
     const { error } = await supabase.from('workspaces').delete().eq('id', id);
@@ -130,6 +137,7 @@ export function useWorkspaceOps(deps: SharedState) {
     acceptWorkspaceInvite,
     createWorkspace,
     renameWorkspace,
+    updateClientsLabel,
     deleteWorkspace,
   };
 }

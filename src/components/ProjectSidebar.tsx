@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
-import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft, Type } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -339,6 +339,7 @@ interface ProjectSidebarProps {
   onToggleCollapse?: () => void;
   onOpenSearch?: () => void;
   onAddSection?: (projectId: string) => void;
+  onUpdateClientsLabel?: (id: string, label: string) => Promise<void>;
 }
 
 export function ProjectSidebar({
@@ -353,7 +354,7 @@ export function ProjectSidebar({
   isSuperAdmin, serviceTags = [], onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag,
   onCycleTheme, themePreference,
   onRenameSection, onDeleteSection, onMoveTaskToProject, onMoveTaskToSection, isPro,
-  collapsed, onToggleCollapse, onOpenSearch, onAddSection,
+  collapsed, onToggleCollapse, onOpenSearch, onAddSection, onUpdateClientsLabel,
 }: ProjectSidebarProps) {
   const navigate = useNavigate();
   const [projectMembersModal, setProjectMembersModal] = useState<string | null>(null);
@@ -367,6 +368,8 @@ export function ProjectSidebar({
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
   const [showServiceTags, setShowServiceTags] = useState(false);
+  const [showClientsLabelEditor, setShowClientsLabelEditor] = useState(false);
+  const [editingClientsLabel, setEditingClientsLabel] = useState('');
   const [sectionContextMenu, setSectionContextMenu] = useState<{ sectionId: string; x: number; y: number } | null>(null);
   const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
   const [renameSectionValue, setRenameSectionValue] = useState('');
@@ -633,9 +636,7 @@ export function ProjectSidebar({
       {/* NAVEGAÇÃO — flex-shrink-0 */}
       <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
-            Navegação
-          </span>
+          <span style={{ width: 1, height: 1 }} />
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
@@ -876,6 +877,16 @@ export function ProjectSidebar({
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <HelpCircle className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Como usar
             </button>
+            <div className="h-px mx-2 my-1" style={{ background: 'var(--border-subtle)' }} />
+            <button onClick={() => {
+              const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
+              setEditingClientsLabel((activeWs as any)?.clientsLabel || 'Clientes');
+              setShowClientsLabelEditor(true);
+              setShowSettings(false);
+            }} className="w-full h-8 px-3 text-left text-[13px] rounded transition-colors flex items-center gap-2" style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <Type className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} /> Título dos projetos
+            </button>
           </div>
         )}
 
@@ -886,7 +897,42 @@ export function ProjectSidebar({
         }} />
       </div>
 
-      {/* Context menu */}
+      {/* Clients label editor modal */}
+      {showClientsLabelEditor && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+            <h3 className="text-[15px] font-semibold text-foreground mb-1">Título dos projetos</h3>
+            <p className="text-[13px] text-muted-foreground mb-4">Como você quer chamar a lista de projetos na sidebar?</p>
+            <input
+              type="text"
+              value={editingClientsLabel}
+              onChange={(e) => setEditingClientsLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && activeWorkspaceId && onUpdateClientsLabel) {
+                  onUpdateClientsLabel(activeWorkspaceId, editingClientsLabel.trim());
+                  setShowClientsLabelEditor(false);
+                }
+              }}
+              placeholder="Ex: Clientes, Projetos, Marcas..."
+              autoFocus
+              className="w-full h-10 px-3 text-[14px] text-foreground bg-input rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground mb-1"
+            />
+            <p className="text-[11px] text-muted-foreground mb-3">Deixe em branco para usar "Clientes".</p>
+            <div className="flex gap-2">
+              <button onClick={() => setShowClientsLabelEditor(false)} className="flex-1 h-9 text-[13px] text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors">Cancelar</button>
+              <button
+                onClick={() => {
+                  if (activeWorkspaceId && onUpdateClientsLabel) {
+                    onUpdateClientsLabel(activeWorkspaceId, editingClientsLabel.trim());
+                  }
+                  setShowClientsLabelEditor(false);
+                }}
+                className="flex-1 h-9 text-[13px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {contextMenu && (
         <ContextMenu
           position={{ x: contextMenu.x, y: contextMenu.y }}
