@@ -786,7 +786,7 @@ export function ProjectSidebar({
       </div>
 
       {/* BOTTOM ZONE — sticky, with proper padding */}
-      <div style={{ flexShrink: 0, padding: '0 16px 8px 16px' }}>
+      <div style={{ flexShrink: 0, padding: '0 16px 16px 16px' }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', marginBottom: 8 }} />
         {creatingProject ? (
           <div className="flex items-center" style={{ height: 36 }}>

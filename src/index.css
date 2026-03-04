@@ -161,7 +161,7 @@
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
     --sidebar-container-radius: 16px;
-    --sidebar-right-border: hsl(240 4% 16%);
+    --sidebar-right-border: hsl(240 4% 16% / 0.5);
 
     /* Dropdown tokens */
     --dropdown-bg: 240 5% 8%;
@@ -329,7 +329,7 @@
     /* Sidebar hover — tone-on-tone (light) */
     --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
     --sidebar-container-radius: 16px;
-    --sidebar-right-border: hsl(240 5% 89%);
+    --sidebar-right-border: hsl(240 5% 89% / 0.5);
 
     /* Temporal context — light mode */
     --temporal-past-bg: rgba(217, 119, 6, 0.08);
@@ -490,7 +490,7 @@
     --sidebar-border-top: hsl(235 25% 12%);
     --sidebar-border-left: hsl(235 20% 18%);
     --sidebar-container-radius: 16px;
-    --sidebar-right-border: hsl(235 20% 18%);
+    --sidebar-right-border: hsl(235 20% 18% / 0.5);
 
     --temporal-past-bg: rgba(217, 119, 6, 0.08);
     --temporal-past-text: #B45309;
