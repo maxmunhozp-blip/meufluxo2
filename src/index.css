@@ -160,6 +160,18 @@
 
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+
+    /* Sidebar-scoped semantic text — blue-grey tinted */
+    --sidebar-text-primary: #D4D8EC;
+    --sidebar-text-secondary: #9499B8;
+    --sidebar-text-tertiary: #6B7091;
+    --sidebar-text-placeholder: #484D6A;
+
+    /* Sidebar search input — tone-on-tone */
+    --sidebar-input-bg: hsla(230, 10%, 8%, 1);
+    --sidebar-input-border: hsla(230, 8%, 14%, 1);
+    --sidebar-input-text: #6B7091;
+
     --sidebar-container-radius: 0;
 
     /* Dropdown tokens */
@@ -327,6 +339,18 @@
 
     /* Sidebar hover — tone-on-tone (light) */
     --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
+
+    /* Sidebar-scoped semantic text — blue-grey tinted */
+    --sidebar-text-primary: #2A2D3E;
+    --sidebar-text-secondary: #5E6380;
+    --sidebar-text-tertiary: #8B90A8;
+    --sidebar-text-placeholder: #B0B4C8;
+
+    /* Sidebar search input — tone-on-tone */
+    --sidebar-input-bg: hsla(225, 10%, 90%, 1);
+    --sidebar-input-border: hsla(225, 8%, 86%, 1);
+    --sidebar-input-text: #8B90A8;
+
     --sidebar-container-radius: 0;
 
     /* Temporal context — light mode */
