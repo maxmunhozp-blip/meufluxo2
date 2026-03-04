@@ -591,6 +591,7 @@ export function ProjectSidebar({
       className="logo-shine-wrapper"
       style={{
         height: 20,
+        width: 120,
         position: 'relative',
         opacity: logoReady ? 1 : 0,
         transition: 'opacity 400ms ease-out',
@@ -604,12 +605,12 @@ export function ProjectSidebar({
           style={{
             height: 20,
             objectFit: 'contain',
-            position: v.src === activeLogoSrc ? 'relative' : 'absolute',
+            position: 'absolute',
             top: 0,
             left: 0,
             opacity: v.src === activeLogoSrc ? 1 : 0,
             pointerEvents: v.src === activeLogoSrc ? 'auto' : 'none',
-            transition: 'opacity 300ms ease-out',
+            transition: 'opacity 250ms ease-out',
           }}
         />
       ))}
