@@ -816,13 +816,11 @@ aside ~ div {
   transform: skewX(-15deg);
 }
 
-/* Shine activated on hover OR via JS class */
-.logo-shine-wrapper:hover .logo-shine-overlay,
+/* Shine activated only via JS class (page load) */
 .logo-shine-overlay.shine-active {
   opacity: 1;
 }
 
-.logo-shine-wrapper:hover .logo-shine-overlay::after,
 .logo-shine-overlay.shine-active::after {
   animation: logo-shine-sweep 1500ms ease-in-out forwards;
 }
