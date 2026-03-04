@@ -450,22 +450,33 @@
 
     /* ★ DARK SIDEBAR — contrasts with light content */
     --bg-sidebar: #1C1C30;
-    --sidebar-background: 240 25% 15%;
-    --sidebar-foreground: 240 8% 82%;
+    --sidebar-background: 235 28% 15%;
+    --sidebar-foreground: 225 15% 80%;
     --sidebar-primary: 231 88% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 18% 21%;
-    --sidebar-accent-foreground: 240 8% 82%;
-    --sidebar-border: 240 18% 20%;
+    --sidebar-accent: 232 22% 20%;
+    --sidebar-accent-foreground: 225 15% 80%;
+    --sidebar-border: 232 20% 20%;
     --sidebar-ring: 231 88% 58%;
-    --sidebar-active: 240 18% 24%;
-    --sidebar-separator: 240 15% 22%;
-    --sidebar-label: 240 8% 52%;
+    --sidebar-active: 232 22% 23%;
+    --sidebar-separator: 232 18% 22%;
+    --sidebar-label: 225 10% 48%;
 
-    /* Sidebar container borders — rounded corner with dark edge */
-    --sidebar-border-top: hsl(240 20% 12%);
-    --sidebar-border-left: hsl(240 18% 18%);
-    --sidebar-container-radius: 0 12px 0 0;
+    /* Sidebar-scoped semantic text (cool blue-grey, no yellow) */
+    --sidebar-text-primary: #C8CCE0;
+    --sidebar-text-secondary: #8A8EA8;
+    --sidebar-text-tertiary: #5E6280;
+    --sidebar-text-placeholder: #44486A;
+
+    /* Sidebar search input — subtle tone-on-tone */
+    --sidebar-input-bg: hsla(232, 22%, 18%, 1);
+    --sidebar-input-border: hsla(232, 18%, 24%, 1);
+    --sidebar-input-text: #8A8EA8;
+
+    /* Sidebar container borders — rounded all corners */
+    --sidebar-border-top: hsl(235 25% 12%);
+    --sidebar-border-left: hsl(235 20% 18%);
+    --sidebar-container-radius: 12px;
 
     --temporal-past-bg: rgba(217, 119, 6, 0.08);
     --temporal-past-text: #B45309;
