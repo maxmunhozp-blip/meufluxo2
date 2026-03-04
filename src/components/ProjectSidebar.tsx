@@ -548,21 +548,13 @@ export function ProjectSidebar({
     </button>
   );
 
-  // Shine triggers on view/project changes and on mount
-  const [shineKey, setShineKey] = useState(0);
-  const viewSignature = `${activeProjectId}-${isMyDayView}-${isMyWeekView}-${isMyTasksView}-${isNotesView}`;
-  const prevViewRef = useRef(viewSignature);
-
+  // Shine only on initial page load / reload
+  const [shineActive, setShineActive] = useState(false);
+  const shineRanRef = useRef(false);
   useEffect(() => {
-    if (prevViewRef.current !== viewSignature) {
-      prevViewRef.current = viewSignature;
-      setShineKey(k => k + 1);
-    }
-  }, [viewSignature]);
-
-  // Also trigger on mount (reload)
-  useEffect(() => {
-    const timer = setTimeout(() => setShineKey(k => k + 1), 300);
+    if (shineRanRef.current) return;
+    shineRanRef.current = true;
+    const timer = setTimeout(() => setShineActive(true), 400);
     return () => clearTimeout(timer);
   }, []);
 
@@ -615,8 +607,7 @@ export function ProjectSidebar({
         />
       ))}
       <div
-        key={shineKey}
-        className={`logo-shine-overlay ${shineKey > 0 ? 'shine-active' : ''}`}
+        className={`logo-shine-overlay ${shineActive ? 'shine-active' : ''}`}
         style={{
           maskImage: `url(${activeLogoSrc})`,
           WebkitMaskImage: `url(${activeLogoSrc})`,
