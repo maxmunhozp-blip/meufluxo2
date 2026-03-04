@@ -569,7 +569,7 @@ export function ProjectSidebar({
           width: 48, minWidth: 48, maxWidth: 48,
           transition: 'width 200ms ease-out',
           background: 'hsl(var(--sidebar-background))',
-          border: '2px solid var(--sidebar-border-top, transparent)',
+          borderRight: '1px solid var(--sidebar-right-border, transparent)',
           borderRadius: 'var(--sidebar-container-radius, 0)',
         }}
       >
@@ -647,7 +647,7 @@ export function ProjectSidebar({
         width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth,
         transition: 'width 200ms ease-out',
         background: 'hsl(var(--sidebar-background))',
-        border: '2px solid var(--sidebar-border-top, transparent)',
+        borderRight: '1px solid var(--sidebar-right-border, transparent)',
         borderRadius: 'var(--sidebar-container-radius, 0)',
       }}
       onDragOver={(e) => e.preventDefault()}
