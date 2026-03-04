@@ -848,7 +848,7 @@ export function ProjectSidebar({
       {/* FOOTER — workspace & actions */}
       <div className="relative" style={{ flexShrink: 0, padding: '0 4px' }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', margin: '0 12px' }} />
-        <div className="px-2 py-2.5 flex items-center gap-1">
+        <div className="py-2.5 flex items-center gap-1" style={{ paddingLeft: 12, paddingRight: 8 }}>
           <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}

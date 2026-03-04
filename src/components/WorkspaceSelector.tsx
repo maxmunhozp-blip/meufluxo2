@@ -72,7 +72,7 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId, onSwitch, onI
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 group transition-colors"
       >
-        <span className="text-[12px] font-medium truncate max-w-[100px]" style={{ color: 'var(--sidebar-text-tertiary, var(--text-secondary))' }}>
+        <span className="text-[11px] font-medium truncate max-w-[90px]" style={{ color: 'var(--sidebar-text-tertiary, var(--text-secondary))', letterSpacing: '0.01em' }}>
           {activeWs?.name || 'Workspace'}
         </span>
         <ChevronDown
