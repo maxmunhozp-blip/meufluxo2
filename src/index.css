@@ -147,16 +147,16 @@
     /* Sidebar */
     --bg-sidebar: 240 7% 4%;
     --sidebar-background: 240 7% 4%;
-    --sidebar-foreground: 240 5% 92%;
+    --sidebar-foreground: 225 12% 90%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 12%;
-    --sidebar-accent-foreground: 240 5% 92%;
-    --sidebar-border: 240 4% 16%;
+    --sidebar-accent: 230 8% 12%;
+    --sidebar-accent-foreground: 225 12% 90%;
+    --sidebar-border: 230 8% 16%;
     --sidebar-ring: 217 91% 60%;
-    --sidebar-active: 240 3% 14%;
-    --sidebar-separator: 240 4% 16%;
-    --sidebar-label: 240 2% 56%;
+    --sidebar-active: 230 8% 14%;
+    --sidebar-separator: 230 8% 16%;
+    --sidebar-label: 225 10% 52%;
 
     /* Sidebar hover — tone-on-tone (dark) */
     --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
@@ -313,17 +313,17 @@
     --project-7: 45 96% 38%;
 
     /* Sidebar */
-    --sidebar-background: 240 5% 93%;
-    --sidebar-foreground: 240 10% 10%;
+    --sidebar-background: 225 8% 93%;
+    --sidebar-foreground: 225 15% 15%;
     --sidebar-primary: 231 88% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 90%;
-    --sidebar-accent-foreground: 240 10% 10%;
-    --sidebar-border: 240 5% 89%;
+    --sidebar-accent: 225 8% 90%;
+    --sidebar-accent-foreground: 225 15% 15%;
+    --sidebar-border: 225 8% 89%;
     --sidebar-ring: 231 88% 58%;
-    --sidebar-active: 240 5% 88%;
-    --sidebar-separator: 240 5% 89%;
-    --sidebar-label: 240 4% 46%;
+    --sidebar-active: 225 8% 88%;
+    --sidebar-separator: 225 8% 89%;
+    --sidebar-label: 225 10% 44%;
 
     /* Sidebar hover — tone-on-tone (light) */
     --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
