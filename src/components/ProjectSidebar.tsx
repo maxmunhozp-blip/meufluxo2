@@ -545,27 +545,49 @@ export function ProjectSidebar({
     </button>
   );
 
+  // SVG favicon inline — two flowing lines forming abstract "F"
+  const MeuFluxoIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 26C8 26 10 18 16 14C22 10 26 6 26 6" stroke="url(#mf-grad-1)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M6 20C6 20 12 16 18 16C24 16 26 12 26 12" stroke="url(#mf-grad-2)" strokeWidth="3" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="mf-grad-1" x1="8" y1="26" x2="26" y2="6" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#7C3AED" />
+          <stop offset="1" stopColor="#4F6DF5" />
+        </linearGradient>
+        <linearGradient id="mf-grad-2" x1="6" y1="20" x2="26" y2="12" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#7C3AED" />
+          <stop offset="1" stopColor="#60A5FA" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+
   // Collapsed mini sidebar
   if (collapsed) {
     return (
       <aside
-        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden"
-        style={{ width: 48, minWidth: 48, maxWidth: 48, transition: 'width 200ms ease-out', background: 'hsl(var(--sidebar-background))' }}
+        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container"
+        style={{
+          width: 48, minWidth: 48, maxWidth: 48,
+          transition: 'width 200ms ease-out',
+          background: 'hsl(var(--sidebar-background))',
+          borderTop: '2px solid var(--sidebar-border-top, transparent)',
+          borderLeft: '2px solid var(--sidebar-border-left, transparent)',
+          borderRadius: 'var(--sidebar-container-radius, 0)',
+        }}
       >
         <div className="flex flex-col items-center gap-1 pt-3 px-1">
-          {/* Expand button */}
+          {/* Favicon icon */}
           <button
             onClick={onToggleCollapse}
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Expandir menu"
-            style={{ color: 'var(--text-secondary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
-            <PanelLeft className="w-4 h-4" />
+            <MeuFluxoIcon />
           </button>
 
-          <div className="w-5 h-px my-1" style={{ background: 'var(--border-subtle)' }} />
+          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
 
           {/* Nav icons */}
           <button
@@ -620,10 +642,18 @@ export function ProjectSidebar({
     );
   }
 
+
   return (
     <aside
-      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden"
-      style={{ width: 260, minWidth: 260, maxWidth: 260, transition: 'width 200ms ease-out', background: 'hsl(var(--sidebar-background))' }}
+      className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container"
+      style={{
+        width: 260, minWidth: 260, maxWidth: 260,
+        transition: 'width 200ms ease-out',
+        background: 'hsl(var(--sidebar-background))',
+        borderTop: '2px solid var(--sidebar-border-top, transparent)',
+        borderLeft: '2px solid var(--sidebar-border-left, transparent)',
+        borderRadius: 'var(--sidebar-container-radius, 0)',
+      }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -635,18 +665,29 @@ export function ProjectSidebar({
         }
       }}
     >
-      {/* NAVEGAÇÃO — flex-shrink-0 */}
-      <div style={{ flexShrink: 0, padding: 16, paddingBottom: 0 }}>
-        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ width: 1, height: 1 }} />
+      {/* BRAND HEADER */}
+      <div style={{ flexShrink: 0, padding: '14px 16px 0 16px' }}>
+        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MeuFluxoIcon />
+            <span style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              color: 'hsl(var(--sidebar-foreground))',
+            }}>
+              MeuFluxo
+            </span>
+          </div>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
               className="w-6 h-6 flex items-center justify-center rounded-md"
               title="Recolher menu"
-              style={{ color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+              style={{ color: 'hsl(var(--sidebar-label))', transition: 'all 150ms ease-out' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'hsl(var(--sidebar-foreground))'; e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'hsl(var(--sidebar-label))'; e.currentTarget.style.background = 'transparent'; }}
             >
               <PanelLeftClose className="w-3.5 h-3.5" />
             </button>
@@ -658,9 +699,9 @@ export function ProjectSidebar({
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
-        {/* Separator — 24px gap above and below */}
-        <div style={{ margin: '24px 0' }}>
-          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+        {/* Separator */}
+        <div style={{ margin: '20px 0' }}>
+          <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))' }} />
         </div>
       </div>
 
