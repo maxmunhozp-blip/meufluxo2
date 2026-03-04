@@ -97,8 +97,9 @@ export function useWorkspaceOps(deps: SharedState) {
     });
     const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id };
     setWorkspacesState(prev => [...prev, newWs]);
-    setActiveWorkspaceId(data.id);
     toast.success('Workspace criado!');
+    // Switch to the new workspace to load its (empty) data properly
+    switchWorkspace(data.id);
     return data.id;
   }, [session]);
 
