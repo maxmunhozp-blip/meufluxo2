@@ -547,7 +547,10 @@ export function ProjectSidebar({
 
   // SVG favicon inline — two flowing lines forming abstract "F"
   const MeuFluxoIcon = () => (
-    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+      className="meufluxo-icon"
+    >
       <path d="M8 26C8 26 10 18 16 14C22 10 26 6 26 6" stroke="url(#mf-grad-1)" strokeWidth="3" strokeLinecap="round" />
       <path d="M6 20C6 20 12 16 18 16C24 16 26 12 26 12" stroke="url(#mf-grad-2)" strokeWidth="3" strokeLinecap="round" />
       <defs>
