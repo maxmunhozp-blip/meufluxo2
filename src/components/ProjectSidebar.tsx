@@ -586,7 +586,7 @@ export function ProjectSidebar({
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Expandir menu"
           >
-            <MeuFluxoLogo />
+            <img src="/meufluxo-icon.svg" alt="MeuFluxo" style={{ width: 22, height: 22, objectFit: 'contain' }} />
           </button>
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
 
