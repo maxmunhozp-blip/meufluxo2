@@ -566,38 +566,54 @@ export function ProjectSidebar({
     return () => clearTimeout(timer);
   }, []);
 
-  // Logo SVG — full brand mark with typography
-  // Uses blue-bg variant for light-contrast theme (dark sidebar), default for others
-  const MeuFluxoLogo = () => {
-    const logoSrc = themePreference === 'light-contrast'
-      ? '/meufluxo-logo-blue-bg.svg'
-      : themePreference === 'dark'
-        ? '/meufluxo-logo-dark.svg'
-        : '/meufluxo-logo.svg';
-    return (
-      <div className="logo-shine-wrapper" style={{ height: 20 }}>
+  // All logo variants — preloaded, toggled by visibility (no flash on theme switch)
+  const LOGO_VARIANTS = [
+    { theme: 'light', src: '/meufluxo-logo.svg' },
+    { theme: 'dark', src: '/meufluxo-logo-dark.svg' },
+    { theme: 'light-contrast', src: '/meufluxo-logo-blue-bg.svg' },
+  ] as const;
+
+  const activeLogoSrc = themePreference === 'light-contrast'
+    ? '/meufluxo-logo-blue-bg.svg'
+    : themePreference === 'dark'
+      ? '/meufluxo-logo-dark.svg'
+      : '/meufluxo-logo.svg';
+
+  const MeuFluxoLogo = () => (
+    <div className="logo-shine-wrapper" style={{ height: 20, position: 'relative' }}>
+      {LOGO_VARIANTS.map(v => (
         <img
-          src={logoSrc}
+          key={v.theme}
+          src={v.src}
           alt="MeuFluxo"
-          style={{ height: 20, objectFit: 'contain' }}
-        />
-        <div
-          key={shineKey}
-          className={`logo-shine-overlay ${shineKey > 0 ? 'shine-active' : ''}`}
           style={{
-            maskImage: `url(${logoSrc})`,
-            WebkitMaskImage: `url(${logoSrc})`,
-            maskSize: 'contain',
-            WebkitMaskSize: 'contain',
-            maskRepeat: 'no-repeat',
-            WebkitMaskRepeat: 'no-repeat',
-            maskPosition: 'center',
-            WebkitMaskPosition: 'center',
+            height: 20,
+            objectFit: 'contain',
+            position: v.src === activeLogoSrc ? 'relative' : 'absolute',
+            top: 0,
+            left: 0,
+            opacity: v.src === activeLogoSrc ? 1 : 0,
+            pointerEvents: v.src === activeLogoSrc ? 'auto' : 'none',
+            transition: 'opacity 200ms ease-out',
           }}
         />
-      </div>
-    );
-  };
+      ))}
+      <div
+        key={shineKey}
+        className={`logo-shine-overlay ${shineKey > 0 ? 'shine-active' : ''}`}
+        style={{
+          maskImage: `url(${activeLogoSrc})`,
+          WebkitMaskImage: `url(${activeLogoSrc})`,
+          maskSize: 'contain',
+          WebkitMaskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          WebkitMaskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskPosition: 'center',
+        }}
+      />
+    </div>
+  );
 
   // Collapsed mini sidebar
   if (collapsed) {
