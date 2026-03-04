@@ -37,8 +37,9 @@ interface UseSupabaseDataReturn {
   switchWorkspace: (workspaceId: string) => void;
   inviteToWorkspace: (email: string) => Promise<void>;
   generateInviteLink: () => Promise<string>;
-  createWorkspace: (name: string) => Promise<string>;
+  createWorkspace: (name: string, clientsLabel?: string) => Promise<string>;
   renameWorkspace: (id: string, name: string) => Promise<void>;
+  updateClientsLabel: (id: string, label: string) => Promise<void>;
   deleteWorkspace: (id: string) => Promise<void>;
   acceptWorkspaceInvite: (workspaceId: string) => Promise<void>;
   addProjectMember: (projectId: string, userId: string) => Promise<void>;
