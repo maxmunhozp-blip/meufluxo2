@@ -815,7 +815,12 @@ export function ProjectSidebar({
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-tertiary))'; }}
           >
-            + Novo Cliente
+            + {(() => {
+              const label = (workspaces.find(w => w.id === activeWorkspaceId) as any)?.clientsLabel || 'Clientes';
+              // Singularize: remove trailing 's' for Portuguese plural, or use as-is
+              const singular = label.endsWith('s') && label.length > 1 ? label.slice(0, -1) : label;
+              return `Nov${singular.match(/[aã]$/i) ? 'a' : 'o'} ${singular}`;
+            })()}
           </button>
         )}
         {/* Search — tone-on-tone with sidebar */}
