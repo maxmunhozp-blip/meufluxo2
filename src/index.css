@@ -842,3 +842,57 @@ aside ~ div {
   0% { left: -60%; }
   100% { left: 140%; }
 }
+
+/* Loading screen logo shine */
+.loading-logo-wrapper {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.loading-logo-shine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.8;
+}
+
+.loading-logo-shine::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(220, 80%, 80%, 0.6) 45%,
+    hsla(220, 90%, 95%, 0.9) 50%,
+    hsla(220, 80%, 80%, 0.6) 55%,
+    transparent 70%
+  );
+  transform: skewX(-15deg);
+  animation: loading-shine-pingpong 2s ease-in-out infinite;
+}
+
+[data-theme='dark'] .loading-logo-shine::after {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(45, 15%, 75%, 0.25) 45%,
+    hsla(42, 18%, 85%, 0.4) 50%,
+    hsla(45, 15%, 75%, 0.25) 55%,
+    transparent 70%
+  );
+}
+
+@keyframes loading-shine-pingpong {
+  0% { left: -60%; }
+  50% { left: 140%; }
+  100% { left: -60%; }
+}
