@@ -360,42 +360,42 @@
   /* ---- LIGHT-CONTRAST: light content + dark sidebar ---- */
   [data-theme="light-contrast"] {
     /* Inherit all light mode tokens */
-    --background: 240 5% 82%;
+    --background: 240 5% 88%;
     --foreground: 240 10% 10%;
-    --card: 240 4% 88%;
+    --card: 240 4% 92%;
     --card-foreground: 240 10% 10%;
-    --popover: 240 4% 88%;
+    --popover: 240 4% 92%;
     --popover-foreground: 240 10% 10%;
     --primary: 231 88% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 80%;
+    --secondary: 240 5% 86%;
     --secondary-foreground: 240 10% 10%;
-    --muted: 240 5% 82%;
-    --muted-foreground: 240 4% 40%;
+    --muted: 240 5% 88%;
+    --muted-foreground: 240 4% 42%;
     --accent: 263 70% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 76%;
-    --input: 240 5% 78%;
+    --border: 240 5% 82%;
+    --input: 240 5% 84%;
     --ring: 231 88% 58%;
 
-    --bg-base: #CCCCD0;
-    --bg-surface: #D4D4D8;
-    --bg-elevated: #DCDCE0;
-    --bg-overlay: #DCDCE0;
-    --bg-input: #D0D0D5;
-    --bg-focus: #D8D8DC;
-    --bg-hover: #C4C4C8;
-    --bg-active: #BBBBC0;
-    --bg-app: 240 5% 82%;
-    --bg-surface-hsl: 240 4% 84%;
-    --bg-surface-alt: 240 5% 82%;
-    --bg-elevated-hsl: 240 4% 87%;
-    --bg-active-hsl: 240 5% 74%;
-    --bg-hover-hsl: 240 5% 78%;
-    --bg-subtask: 240 5% 82%;
-    --bg-input-hsl: 240 5% 80%;
+    --bg-base: #DDDDE0;
+    --bg-surface: #E2E2E5;
+    --bg-elevated: #EAEAED;
+    --bg-overlay: #EAEAED;
+    --bg-input: #E0E0E4;
+    --bg-focus: #E6E6E9;
+    --bg-hover: #D4D4D8;
+    --bg-active: #CCCCD0;
+    --bg-app: 240 5% 88%;
+    --bg-surface-hsl: 240 4% 89%;
+    --bg-surface-alt: 240 5% 88%;
+    --bg-elevated-hsl: 240 4% 92%;
+    --bg-active-hsl: 240 5% 80%;
+    --bg-hover-hsl: 240 5% 84%;
+    --bg-subtask: 240 5% 88%;
+    --bg-input-hsl: 240 5% 86%;
     --bg-overlay-hsl: 240 10% 10% / 0.4;
 
     --text-primary: #18181B;
@@ -433,13 +433,13 @@
     --client-teal: #0D9488;
     --client-olive: #A16207;
 
-    --border-subtle: #B8B8BD;
-    --border-default: #ACACB2;
-    --border-interactive: #8A8A92;
-    --border-input: #ACACB2;
+    --border-subtle: #CCCCD0;
+    --border-default: #C0C0C5;
+    --border-interactive: #9A9AA2;
+    --border-input: #C0C0C5;
     --border-focus: #4F6DF5;
-    --border-subtle-hsl: 240 5% 74%;
-    --border-input-hsl: 240 5% 68%;
+    --border-subtle-hsl: 240 5% 80%;
+    --border-input-hsl: 240 5% 76%;
 
     --selection-bg: rgba(79, 109, 245, 0.15);
     --accent-blue-muted: rgba(79, 109, 245, 0.08);
