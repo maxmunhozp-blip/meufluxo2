@@ -589,6 +589,7 @@ export function ProjectSidebar({
   }, [themePreference, triggerShine]);
 
   // Track collapse transition — delay switching to collapsed JSX so the logo "slides under" the closing sidebar
+  const justExpandedRef = useRef(false);
   const [renderCollapsed, setRenderCollapsed] = useState(collapsed);
   const [showXIcon, setShowXIcon] = useState(collapsed);
   const [isCollapsing, setIsCollapsing] = useState(false);
@@ -606,11 +607,14 @@ export function ProjectSidebar({
         setTimeout(() => setShowXIcon(true), 50);
       }, 370); // match the 350ms CSS transition
     } else {
-      // Expanding: immediately switch to expanded JSX
+      // Expanding: immediately switch to expanded JSX, skip logo fade
       setRenderCollapsed(false);
       setShowXIcon(false);
       setIsCollapsing(false);
+      justExpandedRef.current = true;
       if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+      // Clear the "just expanded" flag after a frame so future theme changes still animate
+      requestAnimationFrame(() => { justExpandedRef.current = false; });
     }
     return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
   }, [collapsed]);
@@ -817,7 +821,7 @@ export function ProjectSidebar({
                       left: 0,
                       opacity: src === activeLogoSrc ? 1 : 0,
                       pointerEvents: src === activeLogoSrc ? 'auto' : 'none',
-                      transition: 'opacity 250ms ease-out',
+                      transition: justExpandedRef.current ? 'none' : 'opacity 250ms ease-out',
                     }}
                   />
                 );
