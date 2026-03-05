@@ -633,8 +633,8 @@ export function ProjectSidebar({
         onMouseDown={(e) => onResizeStart?.(e)}
       />
       {/* BRAND HEADER — unified: both X icon and full logo always in DOM */}
-      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 20px 0 35px', transition: `padding ${dur} ${EASE}` }}>
-        <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: collapsed ? 0 : 12, transition: `margin-bottom ${dur} ${EASE}, padding-left ${dur} ${EASE}` }}>
+      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 20px 0 30px', transition: `padding ${dur} ${EASE}` }}>
+        <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: collapsed ? 0 : 5, transition: `margin-bottom ${dur} ${EASE}, padding-left ${dur} ${EASE}` }}>
           {/* X icon — visible when collapsed */}
           <button
             onClick={collapsed ? onToggleCollapse : () => { triggerShine(); onToggleMyDay?.(); }}
