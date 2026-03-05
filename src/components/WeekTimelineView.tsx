@@ -153,16 +153,6 @@ function TimelineDayColumn({
         }}>
           {format(dayDate, 'dd')}
         </span>
-        {overloadCount && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: 'var(--warning)' }} />
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs">{overloadCount} clientes neste dia</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
       </div>
 
       {/* Tasks */}
