@@ -774,10 +774,8 @@ export function MyWeekView({
   // Date range label
   const dateRangeLabel = useMemo(() => {
     const first = visibleDates[0];
-    const last = visibleDates[visibleDates.length - 1];
-    const fStr = format(first, 'dd MMM', { locale: ptBR });
-    const lStr = format(last, "dd MMM yyyy", { locale: ptBR });
-    return `${fStr} — ${lStr}`;
+    const monthName = format(first, 'MMMM', { locale: ptBR });
+    return monthName.charAt(0).toUpperCase() + monthName.slice(1);
   }, [visibleDates]);
 
   // Is "today" visible?
@@ -1117,7 +1115,7 @@ export function MyWeekView({
           </button>
 
           {/* Date range */}
-          <span className="hidden md:inline text-[13px] ml-1" style={{ color: 'var(--text-secondary)' }}>
+          <span className="hidden md:inline text-[13px] ml-1 font-bold" style={{ color: 'var(--text-secondary)' }}>
             {dateRangeLabel}
           </span>
 
@@ -1131,7 +1129,7 @@ export function MyWeekView({
                 color: effectiveView === '3days' ? 'var(--bg-base)' : 'var(--text-secondary)',
               }}
             >
-              3 dias
+              3 Dias
             </button>
             {windowWidth >= 1200 && (
               <button
@@ -1153,8 +1151,7 @@ export function MyWeekView({
                 color: effectiveView === 'timeline' ? 'var(--bg-base)' : 'var(--text-secondary)',
               }}
             >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Timeline</span>
+              <span>7 Dias</span>
               {!isPro && <ProBadge className="ml-1" />}
             </button>
           </div>
