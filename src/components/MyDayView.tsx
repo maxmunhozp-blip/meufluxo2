@@ -503,22 +503,23 @@ function TempoVivoLayout({
   return (
     <div className="max-w-[640px] mx-auto">
       {/* Active period(s) — collapsible, starting expanded */}
-      {activePeriods.map(period => (
-        <CollapsedPeriodSummary
-          key={period.key}
-          period={period}
-          tasks={tasksByPeriod[period.key]}
-          isExpanded={expandedPeriods.has(period.key)}
-          onToggle={() => togglePeriodExpanded(period.key)}
-          projects={projects} sections={sections} allTasks={allTasks}
-          selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
-          onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
-          rolloverMap={rolloverMap} overItemId={overItemId}
-          dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
-          isDragActive={!!activeDragId}
-          alwaysShow
-          periodState="current"
-        />
+      {activePeriods.map((period, index) => (
+        <div key={period.key} style={index > 0 ? { paddingTop: 12, borderTop: '1px solid var(--border-subtle)' } : undefined}>
+          <CollapsedPeriodSummary
+            period={period}
+            tasks={tasksByPeriod[period.key]}
+            isExpanded={expandedPeriods.has(period.key)}
+            onToggle={() => togglePeriodExpanded(period.key)}
+            projects={projects} sections={sections} allTasks={allTasks}
+            selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+            onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+            rolloverMap={rolloverMap} overItemId={overItemId}
+            dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+            isDragActive={!!activeDragId}
+            alwaysShow
+            periodState="current"
+          />
+        </div>
       ))}
 
       {/* Future periods — collapsible, starting collapsed */}
@@ -546,7 +547,7 @@ function TempoVivoLayout({
           {pastPeriods.map(period => {
             const pastTasks = tasksByPeriod[period.key];
             return (
-              <div key={period.key} style={{ paddingTop: 12 }}>
+              <div key={period.key} style={{ paddingTop: 12, borderTop: viewingToday ? '1px solid var(--border-subtle)' : undefined }}>
                 <CollapsedPeriodSummary
                   period={period}
                   tasks={pastTasks}
