@@ -707,18 +707,40 @@ aside ~ div {
   border: none !important;
 }
 
-/* Sidebar resize handle — right edge affordance (Apple-style) */
+/* Sidebar resize handle — right edge affordance (Apple HIG + neuroinclusive) */
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -4px;
-  width: 8px;
+  right: -8px;
+  width: 16px;
   height: 100%;
   cursor: col-resize;
   z-index: 40;
   background: transparent;
-  transition: background 200ms ease-out;
+  transition: background 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
+/* Soft gradient glow on hover — centered on the border edge */
+.sidebar-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    hsl(var(--sidebar-primary) / 0.12) 15%,
+    hsl(var(--sidebar-primary) / 0.18) 50%,
+    hsl(var(--sidebar-primary) / 0.12) 85%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  pointer-events: none;
+}
+/* Pill indicator — subtle centered bar */
 .sidebar-resize-handle::after {
   content: '';
   position: absolute;
@@ -726,19 +748,31 @@ aside ~ div {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 3px;
-  height: 28px;
+  height: 32px;
   border-radius: 3px;
-  background: transparent;
-  transition: background 200ms ease-out, opacity 200ms ease-out;
+  background: hsl(var(--sidebar-primary) / 0.35);
   opacity: 0;
+  transition: opacity 250ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              height 250ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              background 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  pointer-events: none;
+}
+.sidebar-resize-handle:hover::before {
+  opacity: 1;
 }
 .sidebar-resize-handle:hover::after {
-  background: hsl(var(--sidebar-primary) / 0.5);
   opacity: 1;
+  height: 40px;
+  background: hsl(var(--sidebar-primary) / 0.5);
+}
+.sidebar-resize-handle:active::before {
+  opacity: 1;
+  width: 8px;
 }
 .sidebar-resize-handle:active::after {
-  background: hsl(var(--sidebar-primary) / 0.8);
   opacity: 1;
+  height: 48px;
+  background: hsl(var(--sidebar-primary) / 0.7);
 }
 
 /* Sidebar hover — tone-on-tone for light-contrast */
