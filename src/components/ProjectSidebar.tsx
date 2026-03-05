@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft, Type, Pencil } from 'lucide-react';
@@ -588,191 +588,13 @@ export function ProjectSidebar({
     }
   }, [themePreference, triggerShine]);
 
-  // Track collapse transition — delay switching to collapsed JSX so the logo "slides under" the closing sidebar
-  const [suppressLogoTransition, setSuppressLogoTransition] = useState(false);
-  const [renderCollapsed, setRenderCollapsed] = useState(collapsed);
-  const [showXIcon, setShowXIcon] = useState(collapsed);
-  const collapseTimerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  useEffect(() => {
-    if (collapsed) {
-      // Collapsing: keep expanded JSX but animate width to 48px, then switch JSX
-      setShowXIcon(false);
-      collapseTimerRef.current = setTimeout(() => {
-        setRenderCollapsed(true);
-        setTimeout(() => setShowXIcon(true), 50);
-      }, 370);
-    } else {
-      // Expanding: immediately switch to expanded JSX, suppress logo opacity transition
-      setSuppressLogoTransition(true);
-      setRenderCollapsed(false);
-      setShowXIcon(false);
-      if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
-    }
-    return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
-  }, [collapsed]);
-
-  // The actual visual width — drives both the sidebar AND wrapper in sync
+  // Unified sidebar — no mount/unmount, just CSS transitions
   const visualWidth = collapsed ? 48 : sidebarWidth;
   const widthTransition = 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+  const contentTransition = 'opacity 250ms ease-out, transform 250ms ease-out';
 
-  // Re-enable logo transition AFTER React has painted the expanded state.
-  // useLayoutEffect + double rAF ensures we wait for the browser to commit the first paint.
-  useLayoutEffect(() => {
-    if (suppressLogoTransition) {
-      // Double rAF: first rAF runs before paint, second runs after paint is committed
-      const raf1 = requestAnimationFrame(() => {
-        const raf2 = requestAnimationFrame(() => {
-          setSuppressLogoTransition(false);
-        });
-        return () => cancelAnimationFrame(raf2);
-      });
-      return () => cancelAnimationFrame(raf1);
-    }
-  }, [suppressLogoTransition]);
 
-  // Collapsed mini sidebar — only render after transition completes
-  if (renderCollapsed) {
-    return (
-      <aside
-        className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
-        style={{
-          width: 48, minWidth: 48, maxWidth: 48,
-          transition: widthTransition,
-          background: 'hsl(var(--sidebar-background))',
-          borderRight: '1px solid var(--sidebar-right-border, transparent)',
-          borderRadius: 'var(--sidebar-container-radius, 0)',
-        }}
-      >
-        {/* Preload expanded logo images — keeps them decoded in browser memory for instant paint on expand */}
-        <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          <img src="/meufluxo-logo.svg" alt="" />
-          <img src="/meufluxo-logo-dark.svg" alt="" />
-          <img src="/meufluxo-logo-blue-bg.svg" alt="" />
-        </div>
-        <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
-        <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
-          {/* X icon — fade in after collapse transition */}
-          <button
-            onClick={onToggleCollapse}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            title="Expandir menu"
-          >
-            <img
-              src={themePreference === 'dark' ? meufluxoXDark : themePreference === 'light' ? '/meufluxo-x-light.png' : '/meufluxo-icon.svg'}
-              alt="MeuFluxo"
-              style={{
-                width: 22, height: 22, objectFit: 'contain',
-                opacity: showXIcon ? 1 : 0,
-                transform: showXIcon ? 'scale(1)' : 'scale(0.85)',
-                transition: 'opacity 250ms ease-out, transform 250ms ease-out',
-              }}
-            />
-          </button>
-          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
-
-          {/* Nav icons */}
-          <button
-            onClick={onToggleMyDay}
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-            title="Meu Dia"
-            style={{ color: isMyDayView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyDayView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
-            onMouseEnter={e => { if (!isMyDayView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
-            onMouseLeave={e => { if (!isMyDayView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
-          >
-            <Sun className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onToggleMyWeek}
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-            title="Minha Semana"
-            style={{ color: isMyWeekView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyWeekView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
-            onMouseEnter={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
-            onMouseLeave={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
-          >
-            <CalendarDays className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onToggleNotes}
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-            title="Notas"
-            style={{ color: isNotesView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
-            onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
-            onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
-          >
-            <StickyNote className="w-4 h-4" />
-          </button>
-
-          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
-
-          {/* Project dots */}
-          <TooltipProvider delayDuration={200}>
-            {projects.map(p => {
-              const isActive = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView;
-              return (
-                <Tooltip key={p.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => onSelectProject(p.id)}
-                      className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-                      style={{ background: isActive ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'hsl(var(--sidebar-accent))' : 'transparent'; }}
-                    >
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    sideOffset={8}
-                    className="border-0 px-3 py-1.5 rounded-lg"
-                    style={{
-                      background: 'var(--bg-elevated, hsl(var(--popover)))',
-                      color: 'var(--text-primary, hsl(var(--popover-foreground)))',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                      borderLeft: `3px solid ${p.color}`,
-                    }}
-                  >
-                    {p.name}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
-        </div>
-
-        {/* Bottom icons: theme + expand */}
-        <div className="mt-auto flex flex-col items-center gap-1 px-1 pb-4">
-          {onCycleTheme && (
-            <button
-              onClick={onCycleTheme}
-              className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-              title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
-              style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
-            >
-              {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
-               themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
-               <Type className="w-4 h-4" strokeWidth={1.5} />}
-            </button>
-          )}
-          <button
-            onClick={onToggleCollapse}
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-            title="Expandir menu"
-            style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
-          >
-            <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-        </div>
-      </aside>
-    );
-  }
+  // No early return for collapsed — unified sidebar below
 
   // Golden ratio: φ ≈ 1.618 — brand header ~38.2% of top zone, nav ~61.8%
   return (
@@ -802,12 +624,47 @@ export function ProjectSidebar({
         title="Arrastar para redimensionar"
         onMouseDown={(e) => onResizeStart?.(e)}
       />
-      {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
-      <div style={{ flexShrink: 0, padding: '28px 16px 0 16px' }}>
-        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 12 }}>
+      {/* BRAND HEADER — unified: both X icon and full logo always in DOM */}
+      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 16px 0 16px', transition: 'padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+        <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', paddingLeft: collapsed ? 0 : 12, transition: 'margin-bottom 350ms cubic-bezier(0.25, 0.1, 0.25, 1), padding-left 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+          {/* X icon — visible when collapsed */}
+          <button
+            onClick={collapsed ? onToggleCollapse : () => { triggerShine(); onToggleMyDay?.(); }}
+            className="flex items-center justify-center"
+            title={collapsed ? 'Expandir menu' : 'Meu Dia'}
+            style={{ 
+              width: collapsed ? 36 : 0, 
+              height: collapsed ? 36 : 0,
+              overflow: 'hidden',
+              opacity: collapsed ? 1 : 0,
+              transform: collapsed ? 'scale(1)' : 'scale(0)',
+              transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity 300ms ease-out, transform 300ms ease-out',
+              borderRadius: 8,
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src={themePreference === 'dark' ? meufluxoXDark : themePreference === 'light' ? '/meufluxo-x-light.png' : '/meufluxo-icon.svg'}
+              alt="MeuFluxo"
+              style={{ width: 22, height: 22, objectFit: 'contain' }}
+            />
+          </button>
+          {/* Full logo — visible when expanded */}
           <div
             className="logo-shine-wrapper"
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer',
+              opacity: collapsed ? 0 : 1,
+              width: collapsed ? 0 : 120,
+              height: collapsed ? 0 : 20,
+              overflow: 'hidden',
+              transform: collapsed ? 'scale(0.5)' : 'scale(1)',
+              transformOrigin: 'left center',
+              transition: 'opacity 300ms ease-out, width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 300ms ease-out',
+              flexShrink: 0,
+            }}
             onClick={() => { triggerShine(); onToggleMyDay?.(); }}
           >
             <div style={{ height: 20, width: 120, position: 'relative' }}>
@@ -826,7 +683,7 @@ export function ProjectSidebar({
                       left: 0,
                       opacity: src === activeLogoSrc ? 1 : 0,
                       pointerEvents: src === activeLogoSrc ? 'auto' : 'none',
-                      transition: suppressLogoTransition ? 'none' : 'opacity 250ms ease-out',
+                      transition: 'opacity 250ms ease-out',
                     }}
                   />
                 );
@@ -846,7 +703,8 @@ export function ProjectSidebar({
               />
             </div>
           </div>
-          {onToggleCollapse && (
+          {/* Collapse button — only when expanded */}
+          {onToggleCollapse && !collapsed && (
             <button
               onClick={onToggleCollapse}
               className="w-7 h-7 flex items-center justify-center rounded-md group/collapse"
@@ -865,21 +723,82 @@ export function ProjectSidebar({
           )}
         </div>
 
-        {/* NAV — φ proportion: 26px gap after brand (16 × φ ≈ 26) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* NAV — hidden when collapsed via overflow + height */}
+        <div style={{ 
+          display: 'flex', flexDirection: 'column', gap: 4,
+          opacity: collapsed ? 0 : 1,
+          maxHeight: collapsed ? 0 : 200,
+          overflow: 'hidden',
+          transition: 'opacity 200ms ease-out, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+        }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
           <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
-        {/* Separator — 16px above, 12px below */}
-        <div style={{ margin: '16px 0 12px 0' }}>
+        {/* Separator */}
+        <div style={{ margin: collapsed ? '0' : '16px 0 12px 0', height: collapsed ? 0 : 'auto', overflow: 'hidden', transition: 'margin 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
           <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))' }} />
+        </div>
+
+        {/* Collapsed nav icons — only visible when collapsed */}
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+          opacity: collapsed ? 1 : 0,
+          maxHeight: collapsed ? 500 : 0,
+          overflow: 'hidden',
+          transition: 'opacity 250ms ease-out 100ms, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          padding: collapsed ? '0 2px' : '0',
+        }}>
+          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
+          <button onClick={onToggleMyDay} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors" title="Meu Dia"
+            style={{ color: isMyDayView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyDayView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyDayView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isMyDayView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
+          ><Sun className="w-4 h-4" /></button>
+          <button onClick={onToggleMyWeek} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors" title="Minha Semana"
+            style={{ color: isMyWeekView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyWeekView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
+          ><CalendarDays className="w-4 h-4" /></button>
+          <button onClick={onToggleNotes} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors" title="Notas"
+            style={{ color: isNotesView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
+          ><StickyNote className="w-4 h-4" /></button>
+          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
+          {/* Project dots */}
+          <TooltipProvider delayDuration={200}>
+            {projects.map(p => {
+              const isActive = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView;
+              return (
+                <Tooltip key={p.id}>
+                  <TooltipTrigger asChild>
+                    <button onClick={() => onSelectProject(p.id)} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+                      style={{ background: isActive ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'hsl(var(--sidebar-accent))' : 'transparent'; }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8} className="border-0 px-3 py-1.5 rounded-lg"
+                    style={{ background: 'var(--bg-elevated, hsl(var(--popover)))', color: 'var(--text-primary, hsl(var(--popover-foreground)))', fontSize: 13, fontWeight: 500, boxShadow: '0 4px 16px rgba(0,0,0,0.2)', borderLeft: `3px solid ${p.color}` }}
+                  >{p.name}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </TooltipProvider>
         </div>
       </div>
 
-      {/* CLIENTES — flex: 1, overflow-y: auto */}
-      <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '0 16px 8px 16px' }}>
+      {/* CLIENTES — flex: 1, hidden when collapsed */}
+      <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ 
+        padding: collapsed ? '0' : '0 16px 8px 16px',
+        opacity: collapsed ? 0 : 1,
+        pointerEvents: collapsed ? 'none' : 'auto',
+        transition: 'opacity 200ms ease-out, padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+      }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
             {(workspaces.find(w => w.id === activeWorkspaceId) as any)?.clientsLabel || 'Clientes'}
@@ -1014,8 +933,8 @@ export function ProjectSidebar({
         </button>
       </div>
 
-      {/* FOOTER — workspace & actions */}
-      <div className="relative" style={{ flexShrink: 0, padding: '0 4px' }}>
+      {/* FOOTER — workspace & actions (hidden when collapsed) */}
+      <div className="relative" style={{ flexShrink: 0, padding: '0 4px', opacity: collapsed ? 0 : 1, maxHeight: collapsed ? 0 : 200, overflow: collapsed ? 'hidden' : 'visible', pointerEvents: collapsed ? 'none' : 'auto', transition: 'opacity 200ms ease-out, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', margin: '0 12px' }} />
         <div className="py-2.5 flex items-center gap-1" style={{ paddingLeft: 12, paddingRight: 8 }}>
           <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
@@ -1130,7 +1049,37 @@ export function ProjectSidebar({
         }} />
       </div>
 
-      {/* Clients label editor modal */}
+      {/* Collapsed footer — theme + expand (only visible when collapsed) */}
+      <div style={{
+        marginTop: 'auto', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '0 4px 16px',
+        opacity: collapsed ? 1 : 0,
+        maxHeight: collapsed ? 100 : 0,
+        overflow: 'hidden',
+        pointerEvents: collapsed ? 'auto' : 'none',
+        transition: 'opacity 250ms ease-out 100ms, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+      }}>
+        {onCycleTheme && (
+          <button onClick={onCycleTheme} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
+            style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
+          >
+            {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
+             themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
+             <Type className="w-4 h-4" strokeWidth={1.5} />}
+          </button>
+        )}
+        <button onClick={onToggleCollapse} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+          title="Expandir menu"
+          style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
+        >
+          <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
+        </button>
+      </div>
+
       {showClientsLabelEditor && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'var(--overlay-bg)' }}>
           <div className="rounded-xl border border-border p-5 w-[360px]" style={{ background: 'hsl(var(--bg-surface))', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
