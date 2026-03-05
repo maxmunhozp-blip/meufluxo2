@@ -332,24 +332,32 @@ function SortableTemplateSection({
           <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
         </button>
 
-        {/* Icon — clickable to open picker */}
+        {/* Icon — fixed sections show icon but no picker */}
         <div className="relative">
-          <button
-            onClick={() => setShowIconPicker(!showIconPicker)}
-            className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ color: 'var(--text-secondary)', transition: 'all 150ms ease-out' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            title="Trocar ícone"
-          >
-            <SectionIcon className="w-4 h-4" style={{ opacity: 0.7 }} />
-          </button>
-          {showIconPicker && (
-            <IconPickerPopover
-              currentIcon={section.icon}
-              onSelect={(icon) => onChangeIcon(sIdx, icon)}
-              onClose={() => setShowIconPicker(false)}
-            />
+          {section.is_fixed ? (
+            <div className="w-7 h-7 flex items-center justify-center rounded-md" style={{ color: 'var(--text-secondary)' }}>
+              <SectionIcon className="w-4 h-4" style={{ opacity: 0.7 }} />
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowIconPicker(!showIconPicker)}
+                className="w-7 h-7 flex items-center justify-center rounded-md"
+                style={{ color: 'var(--text-secondary)', transition: 'all 150ms ease-out' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                title="Trocar ícone"
+              >
+                <SectionIcon className="w-4 h-4" style={{ opacity: 0.7 }} />
+              </button>
+              {showIconPicker && (
+                <IconPickerPopover
+                  currentIcon={section.icon}
+                  onSelect={(icon) => onChangeIcon(sIdx, icon)}
+                  onClose={() => setShowIconPicker(false)}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -458,18 +466,43 @@ export function DeliveryTemplateModal({
       }
 
       if (data && data.length > 0) {
-        setTemplates(data.map((t: any) => ({
-          id: t.id,
-          name: t.name,
-          icon: t.recurrence === 'monthly' ? getDefaultIcon(t.name) : (t.recurrence || 'Folder'),
-          position: t.position,
-          is_active: t.is_active,
-          is_fixed: isFixedSection(t.name),
-          tasks_template: t.tasks_template || [],
-        })));
-        const expanded: Record<number, boolean> = {};
-        data.forEach((_: any, i: number) => { expanded[i] = true; });
-        setExpandedSections(expanded);
+        // Build loaded sections, enforcing correct icons for fixed ones
+        const loaded: TemplateSection[] = data.map((t: any) => {
+          const fixed = isFixedSection(t.name);
+          return {
+            id: t.id,
+            name: t.name,
+            icon: fixed ? getDefaultIcon(t.name) : (t.recurrence && t.recurrence !== 'monthly' ? t.recurrence : 'Folder'),
+            position: t.position,
+            is_active: t.is_active,
+            is_fixed: fixed,
+            tasks_template: t.tasks_template || [],
+          };
+        });
+
+        // Ensure all 4 fixed sections exist (add missing ones)
+        const existingFixedNames = new Set(loaded.filter(s => s.is_fixed).map(s => s.name.toLowerCase()));
+        const missing = FIXED_SECTIONS.filter(fs => !existingFixedNames.has(fs.name.toLowerCase()));
+        if (missing.length > 0) {
+          // Insert missing fixed sections at the beginning
+          const combined = [...missing.map(s => ({ ...s })), ...loaded];
+          // Re-sort: fixed first by their standard order, then custom
+          combined.sort((a, b) => {
+            if (a.is_fixed && b.is_fixed) return getFixedOrder(a.name) - getFixedOrder(b.name);
+            if (a.is_fixed) return -1;
+            if (b.is_fixed) return 1;
+            return a.position - b.position;
+          });
+          setTemplates(combined);
+          const expanded: Record<number, boolean> = {};
+          combined.forEach((_: any, i: number) => { expanded[i] = true; });
+          setExpandedSections(expanded);
+        } else {
+          setTemplates(loaded);
+          const expanded: Record<number, boolean> = {};
+          loaded.forEach((_: any, i: number) => { expanded[i] = true; });
+          setExpandedSections(expanded);
+        }
       } else {
         // Pre-populate with 4 fixed sections
         setTemplates(FIXED_SECTIONS.map(s => ({ ...s })));
@@ -497,6 +530,11 @@ export function DeliveryTemplateModal({
   };
 
   const updateSection = (index: number, field: keyof TemplateSection, value: any) => {
+    // Prevent renaming a custom section to a fixed section name
+    if (field === 'name' && typeof value === 'string' && isFixedSection(value)) {
+      toast.error('Esse nome é reservado para seções fixas');
+      return;
+    }
     setTemplates(prev => prev.map((t, i) => i === index ? { ...t, [field]: value } : t));
   };
 
@@ -505,7 +543,11 @@ export function DeliveryTemplateModal({
   };
 
   const changeIcon = (index: number, icon: string) => {
-    setTemplates(prev => prev.map((t, i) => i === index ? { ...t, icon } : t));
+    // Don't allow changing icons of fixed sections
+    setTemplates(prev => prev.map((t, i) => {
+      if (i !== index || t.is_fixed) return t;
+      return { ...t, icon };
+    }));
   };
 
   const addTask = (sectionIndex: number) => {
@@ -697,6 +739,14 @@ export function DeliveryTemplateModal({
 }
 
 /* ── Helpers ── */
+const FIXED_ORDER: Record<string, number> = {
+  entrada: 0, recorrente: 1, pontual: 2, 'concluído': 3, concluido: 3,
+};
+
+function getFixedOrder(name: string): number {
+  return FIXED_ORDER[name.toLowerCase()] ?? 99;
+}
+
 function getDefaultIcon(name: string): string {
   const lower = name.toLowerCase();
   if (lower.includes('entrada') || lower.includes('inbox')) return 'Inbox';
