@@ -193,10 +193,18 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       }
 
       const [projectsRes, sectionsRes, tasksRes, subtasksRes, profilesRes, membersRes, commentsRes, attachmentsRes] = await Promise.all([
-        supabase.from('projects').select('*').eq('archived', false).order('position').order('created_at'),
-        supabase.from('sections').select('*').order('position'),
-        supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
-        supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
+        wsId
+          ? supabase.from('projects').select('*').eq('workspace_id', wsId).eq('archived', false).order('position').order('created_at')
+          : supabase.from('projects').select('*').eq('archived', false).order('position').order('created_at'),
+        wsId
+          ? supabase.from('sections').select('*').eq('workspace_id', wsId).order('position')
+          : supabase.from('sections').select('*').order('position'),
+        wsId
+          ? supabase.from('tasks').select('*').eq('workspace_id', wsId).is('parent_task_id', null).order('position')
+          : supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
+        wsId
+          ? supabase.from('tasks').select('*').eq('workspace_id', wsId).not('parent_task_id', 'is', null).order('position')
+          : supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
         supabase.from('profiles').select('*'),
         supabase.from('task_members').select('*'),
         supabase.from('comments').select('*').order('created_at', { ascending: true }),
