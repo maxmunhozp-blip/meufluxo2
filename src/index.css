@@ -974,3 +974,7 @@ aside ~ div {
   50% { left: 140%; }
   100% { left: -60%; }
 }
+
+[data-theme='dark'] .section-title-label {
+  opacity: 0.65;
+}
