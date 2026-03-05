@@ -734,7 +734,17 @@ aside ~ div {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Section month-change staggered entrance */
+.section-month-enter {
+  animation: section-slide-in 350ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
 
+@keyframes section-slide-in {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Sidebar resize handle — right edge affordance (Apple HIG + neuroinclusive) */
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
