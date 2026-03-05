@@ -1359,7 +1359,8 @@ const Index = () => {
               />
             </div>
             <div style={{ height: 24 }} />
-            <div className="flex items-center" style={{ padding: '0 32px', borderBottom: '1px solid var(--border-subtle)', gap: 16 }}>
+            <div className="flex items-center" style={{ padding: '0 32px', gap: 16 }}>
+              <div className="flex items-center" style={{ borderBottom: '1px solid var(--border-subtle)', gap: 16 }}>
               <button
                 onClick={() => setProjectViewTab('tasks')}
                 className="relative"
@@ -1392,6 +1393,7 @@ const Index = () => {
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
+              </div>
               {/* Spacer + actions */}
               <div className="flex-1" />
               <GenerateMonthlyTasksButton
