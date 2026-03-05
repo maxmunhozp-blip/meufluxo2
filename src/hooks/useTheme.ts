@@ -11,7 +11,11 @@ function resolveTheme(preference: Theme): 'dark' | 'light' | 'light-contrast' {
 
 function applyTheme(theme: 'dark' | 'light' | 'light-contrast') {
   const root = document.documentElement;
-  root.style.setProperty('transition', 'background-color 150ms ease, color 150ms ease');
+
+  // Apple-style: temporarily force smooth transitions on ALL elements
+  // to prevent harsh color flashes that cause sensory discomfort
+  // (W3C COGA O4P01 + WCAG 2.3.3 Animation from Interactions)
+  root.classList.add('theme-transitioning');
   root.setAttribute('data-theme', theme);
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
@@ -19,7 +23,9 @@ function applyTheme(theme: 'dark' | 'light' | 'light-contrast') {
     metaTheme.setAttribute('content', theme === 'dark' ? '#0A0A0C' : '#FAFAF9');
   }
 
-  setTimeout(() => root.style.removeProperty('transition'), 200);
+  // Remove transition override after animation completes
+  // 450ms = transition duration (350ms) + small buffer for paint
+  setTimeout(() => root.classList.remove('theme-transitioning'), 450);
 }
 
 async function syncThemeToProfile(preference: Theme) {
