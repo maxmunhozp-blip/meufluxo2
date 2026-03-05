@@ -1561,7 +1561,7 @@ const Index = () => {
         <div className="flex-1 overflow-y-auto sidebar-scroll section-list" style={{ padding: '16px 32px 32px 32px' }} ref={listRef}>
           <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
-              {projectSections.map(section => {
+              {projectSections.map((section, index) => {
                 const allSectionTasks = taskList.filter(t => t.section === section.id && t.projectId === activeProjectId);
                 const filteredSectionTasks = filterTasks(allSectionTasks);
                 // Sort completed section by completedAt DESC
@@ -1573,6 +1573,11 @@ const Index = () => {
                     })
                   : filteredSectionTasks;
                 return (
+                  <div
+                    key={`${section.id}-${activeMonthKey}`}
+                    className="section-month-enter"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
                   <TaskSection
                     key={section.id}
                     section={section}
@@ -2037,6 +2042,7 @@ const Index = () => {
                     }}
                     fadingOutTaskId={fadingOutTaskId}
                   />
+                  </div>
                 );
               })}
             </SortableContext>
