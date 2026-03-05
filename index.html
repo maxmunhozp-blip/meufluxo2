@@ -51,7 +51,7 @@
     <script>
       (function() {
         var stored = localStorage.getItem('meufluxo-theme');
-        var theme = stored || 'dark';
+        var theme = stored || 'light-contrast';
         if (theme === 'system') {
           theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         }

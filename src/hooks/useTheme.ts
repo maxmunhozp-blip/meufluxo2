@@ -41,7 +41,7 @@ async function syncThemeToProfile(preference: Theme) {
 }
 
 // Apply theme synchronously on module load (before any React render)
-const _initialPref = (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark';
+const _initialPref = (localStorage.getItem(STORAGE_KEY) as Theme) || 'light-contrast';
 // Migrate old 'system' preference to 'dark'
 const _migrated: Theme = _initialPref === 'system' as any ? 'dark' : _initialPref;
 if (_migrated !== _initialPref) localStorage.setItem(STORAGE_KEY, _migrated);
