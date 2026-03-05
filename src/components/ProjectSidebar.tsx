@@ -530,7 +530,7 @@ export function ProjectSidebar({
       className="w-full flex items-center gap-2.5 cursor-pointer select-none"
       style={{
         height: 36,
-        paddingLeft: 12,
+        paddingLeft: 7,
         paddingRight: 12,
         borderRadius: 'var(--radius-md)',
         fontSize: 14,
