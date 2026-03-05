@@ -962,9 +962,9 @@ aside ~ div {
   background: linear-gradient(
     105deg,
     transparent 30%,
-    hsla(45, 15%, 75%, 0.25) 45%,
-    hsla(42, 18%, 85%, 0.4) 50%,
-    hsla(45, 15%, 75%, 0.25) 55%,
+    hsla(0, 0%, 100%, 0.3) 45%,
+    hsla(0, 0%, 100%, 0.55) 50%,
+    hsla(0, 0%, 100%, 0.3) 55%,
     transparent 70%
   );
 }
