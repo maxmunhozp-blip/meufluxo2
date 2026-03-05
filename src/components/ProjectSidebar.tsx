@@ -664,7 +664,7 @@ export function ProjectSidebar({
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
       <div style={{ flexShrink: 0, padding: '24px 16px 0 16px' }}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={onToggleMyDay}>
             <div style={{ height: 20, width: 120, position: 'relative' }}>
               {(['light', 'dark', 'light-contrast'] as const).map(t => {
                 const src = t === 'light-contrast' ? '/meufluxo-logo-blue-bg.svg' : t === 'dark' ? '/meufluxo-logo-dark.svg' : '/meufluxo-logo.svg';
