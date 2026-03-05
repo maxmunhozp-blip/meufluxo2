@@ -1144,7 +1144,7 @@ export function MyDayView({
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem tipo';
               return (
-                <div key={tagId} style={{ marginBottom: 24 }}>
+                <div key={tagId} style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
                     {TagIcon && <TagIcon style={{ width: 14, height: 14, color: 'var(--text-tertiary)' }} />}
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>{label}</span>
