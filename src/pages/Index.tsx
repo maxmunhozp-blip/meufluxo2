@@ -1557,7 +1557,7 @@ const Index = () => {
               />
             ) : (
             <>
-            <ColumnHeader />
+            
         <div className="flex-1 overflow-y-auto sidebar-scroll section-list" style={{ padding: '16px 32px 32px 32px' }} ref={listRef}>
           <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>

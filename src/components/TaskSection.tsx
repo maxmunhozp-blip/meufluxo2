@@ -265,7 +265,7 @@ export function TaskSection({
           paddingRight: 16,
           borderRadius: 8,
           background: nativeDragOver ? 'var(--bg-active)' : 'var(--bg-elevated)',
-          marginBottom: 8,
+          marginBottom: 0,
           transition: 'all 150ms ease-out',
         }}
         onMouseEnter={e => { if (!nativeDragOver) e.currentTarget.style.background = 'var(--bg-overlay)'; }}
@@ -334,7 +334,7 @@ export function TaskSection({
                 style={{ color: 'var(--text-tertiary)' }}
               />
             </span>
-            <span className="truncate" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
+            <span className="truncate section-title-label" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-primary)' }}>
               {section.title}
             </span>
             {tasks.length > 0 && (() => {
