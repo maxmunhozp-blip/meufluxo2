@@ -478,7 +478,10 @@ function TempoVivoLayout({
   // Compute period ordering: Active → Future → Past
   const { activePeriods, futurePeriods, pastPeriods } = useMemo(() => {
     if (!viewingToday) {
-      // Past & future days: all periods use CollapsedPeriodSummary but start expanded
+      // Past days: all periods shown without separators; future days: with separators
+      if (isPastDay) {
+        return { activePeriods: [] as typeof PERIODS, futurePeriods: [] as typeof PERIODS, pastPeriods: [...PERIODS] };
+      }
       return { activePeriods: [] as typeof PERIODS, futurePeriods: [...PERIODS], pastPeriods: [] as typeof PERIODS };
     }
     const active: typeof PERIODS = [];
@@ -520,7 +523,7 @@ function TempoVivoLayout({
 
       {/* Future periods — collapsible, starting collapsed */}
       {futurePeriods.map(period => (
-        <div key={period.key} style={{ paddingTop: 12 }}>
+        <div key={period.key} style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
           <CollapsedPeriodSummary
             period={period}
             tasks={tasksByPeriod[period.key]}
