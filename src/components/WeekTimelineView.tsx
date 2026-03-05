@@ -84,7 +84,7 @@ function TimelineTaskCard({
       >
         {/* Line 1: Task name */}
         <span
-          className={`text-[11px] leading-[1.4] truncate ${isDone ? 'line-through opacity-40' : ''}`}
+          className={`text-[11px] leading-[1.4] truncate ${isDone ? 'opacity-40' : ''}`}
           style={{ color: 'var(--text-primary)', fontWeight: 400 }}
         >
           {task.name}
