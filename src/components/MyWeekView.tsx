@@ -187,7 +187,7 @@ function DayColumn({
       ref={setNodeRef}
       className="flex flex-col flex-1 min-w-0 transition-colors"
       style={{
-        background: highlight ? 'var(--accent-subtle)' : isCurrentDay ? 'var(--accent-subtle)' : 'transparent',
+        background: highlight ? 'var(--accent-subtle)' : isCurrentDay ? 'var(--bg-surface)' : 'transparent',
         borderTop: highlight ? '1px dashed var(--accent-blue)' : undefined,
         borderBottom: highlight ? '1px dashed var(--accent-blue)' : undefined,
         borderLeft: highlight ? '1px dashed var(--accent-blue)' : undefined,
@@ -350,7 +350,7 @@ function WeekSourceSidebar({
 
   if (collapsed) {
     return (
-      <div className="hidden md:flex w-10 flex-shrink-0 flex-col items-center pt-3 gap-2" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
+      <div className="hidden md:flex w-10 flex-shrink-0 flex-col items-center pt-3 gap-2" style={{ background: 'var(--accent-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
         <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded transition-colors" style={{ color: 'var(--text-secondary)' }}
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
