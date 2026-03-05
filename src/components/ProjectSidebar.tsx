@@ -632,7 +632,7 @@ export function ProjectSidebar({
         onMouseDown={(e) => onResizeStart?.(e)}
       />
       {/* BRAND HEADER — unified: both X icon and full logo always in DOM */}
-      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 20px 0 20px', transition: `padding ${dur} ${EASE}` }}>
+      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 25px 0 25px', transition: `padding ${dur} ${EASE}` }}>
         <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', paddingLeft: 0, transition: `margin-bottom ${dur} ${EASE}` }}>
           {/* X icon — visible when collapsed */}
           <button
