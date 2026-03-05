@@ -590,9 +590,15 @@ export function ProjectSidebar({
 
   // Unified sidebar — no mount/unmount, just CSS transitions
   const visualWidth = collapsed ? 48 : sidebarWidth;
-  const dur = collapsed ? '350ms' : '200ms';
-  const widthTransition = `width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1), min-width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1), max-width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1)`;
-  const contentTransition = `opacity ${collapsed ? '250ms' : '150ms'} ease-out, transform ${collapsed ? '250ms' : '150ms'} ease-out`;
+  const EASE = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+  const expandDur = '400ms';
+  const collapseDur = '450ms';
+  const dur = collapsed ? collapseDur : expandDur;
+  const widthTransition = `width ${dur} ${EASE}, min-width ${dur} ${EASE}, max-width ${dur} ${EASE}`;
+  // Fade timing: when collapsing, fade out quickly first; when expanding, fade in after width starts
+  const fadeOut = `opacity 200ms ease-out, transform 200ms ease-out`; // fast disappear
+  const fadeIn = `opacity 300ms ease-out 120ms, transform 300ms ease-out 120ms`; // delayed appear
+  const contentTransition = collapsed ? fadeOut : fadeIn;
 
 
   // No early return for collapsed — unified sidebar below
@@ -626,8 +632,8 @@ export function ProjectSidebar({
         onMouseDown={(e) => onResizeStart?.(e)}
       />
       {/* BRAND HEADER — unified: both X icon and full logo always in DOM */}
-      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 12px 0 12px', transition: 'padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
-        <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', paddingLeft: 0, transition: 'margin-bottom 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+      <div style={{ flexShrink: 0, padding: collapsed ? '28px 4px 0 4px' : '28px 12px 0 12px', transition: `padding ${dur} ${EASE}` }}>
+        <div style={{ marginBottom: collapsed ? 8 : 24, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', paddingLeft: 0, transition: `margin-bottom ${dur} ${EASE}` }}>
           {/* X icon — visible when collapsed */}
           <button
             onClick={collapsed ? onToggleCollapse : () => { triggerShine(); onToggleMyDay?.(); }}
@@ -639,7 +645,9 @@ export function ProjectSidebar({
               overflow: 'hidden',
               opacity: collapsed ? 1 : 0,
               transform: collapsed ? 'scale(1)' : 'scale(0)',
-              transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity 300ms ease-out, transform 300ms ease-out',
+              transition: collapsed
+                ? `width ${collapseDur} ${EASE}, height ${collapseDur} ${EASE}, opacity 300ms ease-out 150ms, transform 300ms ease-out 150ms`
+                : `width ${expandDur} ${EASE}, height ${expandDur} ${EASE}, opacity 200ms ease-out, transform 200ms ease-out`,
               borderRadius: 8,
               flexShrink: 0,
             }}
@@ -663,7 +671,9 @@ export function ProjectSidebar({
               overflow: 'hidden',
               transform: collapsed ? 'scale(0.5)' : 'scale(1)',
               transformOrigin: 'left center',
-              transition: 'opacity 300ms ease-out, width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), height 350ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 300ms ease-out',
+              transition: collapsed
+                ? `opacity 180ms ease-out, width ${collapseDur} ${EASE}, height ${collapseDur} ${EASE}, transform 180ms ease-out`
+                : `opacity 300ms ease-out 100ms, width ${expandDur} ${EASE}, height ${expandDur} ${EASE}, transform 300ms ease-out 100ms`,
               flexShrink: 0,
             }}
             onClick={() => { triggerShine(); onToggleMyDay?.(); }}
@@ -730,7 +740,9 @@ export function ProjectSidebar({
           opacity: collapsed ? 0 : 1,
           maxHeight: collapsed ? 0 : 200,
           overflow: 'hidden',
-          transition: 'opacity 200ms ease-out, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          transition: collapsed
+            ? `opacity 180ms ease-out, max-height ${collapseDur} ${EASE}`
+            : `opacity 300ms ease-out 150ms, max-height ${expandDur} ${EASE}`,
         }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
@@ -738,7 +750,7 @@ export function ProjectSidebar({
         </div>
 
         {/* Separator */}
-        <div style={{ margin: collapsed ? '0' : '16px 0 12px 0', height: collapsed ? 0 : 'auto', overflow: 'hidden', transition: 'margin 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+        <div style={{ margin: collapsed ? '0' : '16px 0 12px 0', height: collapsed ? 0 : 'auto', overflow: 'hidden', transition: `margin ${dur} ${EASE}` }}>
           <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))' }} />
         </div>
 
@@ -748,7 +760,9 @@ export function ProjectSidebar({
           opacity: collapsed ? 1 : 0,
           maxHeight: collapsed ? 500 : 0,
           overflow: 'hidden',
-          transition: 'opacity 250ms ease-out 100ms, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          transition: collapsed
+            ? `opacity 300ms ease-out 200ms, max-height ${collapseDur} ${EASE}`
+            : `opacity 180ms ease-out, max-height ${expandDur} ${EASE}`,
           padding: collapsed ? '0 2px' : '0',
         }}>
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
@@ -798,7 +812,9 @@ export function ProjectSidebar({
         padding: collapsed ? '0' : '0 16px 8px 16px',
         opacity: collapsed ? 0 : 1,
         pointerEvents: collapsed ? 'none' : 'auto',
-        transition: 'opacity 200ms ease-out, padding 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+        transition: collapsed
+          ? `opacity 180ms ease-out, padding ${collapseDur} ${EASE}`
+          : `opacity 350ms ease-out 180ms, padding ${expandDur} ${EASE}`,
       }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', letterSpacing: 1, lineHeight: 1.3, textTransform: 'uppercase' as const }}>
@@ -935,7 +951,7 @@ export function ProjectSidebar({
       </div>
 
       {/* FOOTER — workspace & actions (hidden when collapsed) */}
-      <div className="relative" style={{ flexShrink: 0, padding: '0 4px', opacity: collapsed ? 0 : 1, maxHeight: collapsed ? 0 : 200, overflow: collapsed ? 'hidden' : 'visible', pointerEvents: collapsed ? 'none' : 'auto', transition: 'opacity 200ms ease-out, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+      <div className="relative" style={{ flexShrink: 0, padding: '0 4px', opacity: collapsed ? 0 : 1, maxHeight: collapsed ? 0 : 200, overflow: collapsed ? 'hidden' : 'visible', pointerEvents: collapsed ? 'none' : 'auto', transition: collapsed ? `opacity 180ms ease-out, max-height ${collapseDur} ${EASE}` : `opacity 350ms ease-out 200ms, max-height ${expandDur} ${EASE}` }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', margin: '0 12px' }} />
         <div className="py-2.5 flex items-center gap-1" style={{ paddingLeft: 12, paddingRight: 8 }}>
           <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
@@ -1057,7 +1073,9 @@ export function ProjectSidebar({
         maxHeight: collapsed ? 100 : 0,
         overflow: 'hidden',
         pointerEvents: collapsed ? 'auto' : 'none',
-        transition: 'opacity 250ms ease-out 100ms, max-height 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+        transition: collapsed
+          ? `opacity 300ms ease-out 250ms, max-height ${collapseDur} ${EASE}`
+          : `opacity 180ms ease-out, max-height ${expandDur} ${EASE}`,
       }}>
         {onCycleTheme && (
           <button onClick={onCycleTheme} className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
