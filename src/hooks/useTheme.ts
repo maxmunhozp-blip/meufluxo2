@@ -12,20 +12,26 @@ function resolveTheme(preference: Theme): 'dark' | 'light' | 'light-contrast' {
 function applyTheme(theme: 'dark' | 'light' | 'light-contrast') {
   const root = document.documentElement;
 
-  // Apple-style: temporarily force smooth transitions on ALL elements
-  // to prevent harsh color flashes that cause sensory discomfort
-  // (W3C COGA O4P01 + WCAG 2.3.3 Animation from Interactions)
+  // Step 1: Enable transition class BEFORE changing theme
   root.classList.add('theme-transitioning');
-  root.setAttribute('data-theme', theme);
 
-  const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if (metaTheme) {
-    metaTheme.setAttribute('content', theme === 'dark' ? '#0A0A0C' : '#FAFAF9');
-  }
+  // Step 2: Wait one frame so the browser applies the transition rules,
+  // THEN change the data-theme attribute. This ensures all elements
+  // start their transitions in the same paint frame — no desync flash.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      root.setAttribute('data-theme', theme);
 
-  // Remove transition override after animation completes
-  // 450ms = transition duration (350ms) + small buffer for paint
-  setTimeout(() => root.classList.remove('theme-transitioning'), 450);
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'dark' ? '#0A0A0C' : '#FAFAF9');
+      }
+
+      // Remove transition override after animation completes
+      // 300ms (transition) + 50ms buffer
+      setTimeout(() => root.classList.remove('theme-transitioning'), 350);
+    });
+  });
 }
 
 async function syncThemeToProfile(preference: Theme) {

@@ -554,21 +554,28 @@
    - Duration: 350ms ease-out — perceptibly smooth but not sluggish
    - Uses !important to override inline transition styles on components
    - Automatically removed after switch completes (no perf impact)
+   - CRITICAL: All properties MUST share the same duration + easing
+     to prevent desynchronized color shifts (flash effect)
    ================================================================ */
+
+.theme-transitioning {
+  /* Force GPU layer promotion on root to batch all repaints */
+  will-change: contents;
+}
 
 .theme-transitioning,
 .theme-transitioning *,
 .theme-transitioning *::before,
 .theme-transitioning *::after {
   transition:
-    background-color 350ms ease-out,
-    background 350ms ease-out,
-    color 300ms ease-out,
-    border-color 300ms ease-out,
-    box-shadow 300ms ease-out,
-    fill 300ms ease-out,
-    stroke 300ms ease-out,
-    opacity 300ms ease-out !important;
+    background-color 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    background 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    color 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    border-color 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    box-shadow 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    fill 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    stroke 300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 300ms cubic-bezier(0.25, 0.1, 0.25, 1) !important;
 }
 
 /* MeuFluxo icon — subtle hover glow + rotation */
