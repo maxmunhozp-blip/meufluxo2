@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CalendarCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export type FilterMode = 'all' | 'pending' | 'done';
 
@@ -14,37 +14,6 @@ interface TaskListHeaderProps {
   onMonthChange?: (month: Date) => void;
 }
 
-/**
- * TaskListHeader — Temporal navigation with spatial stability
- *
- * Design rationale (neurodivergent-inclusive):
- * ─────────────────────────────────────────────
- * 1. W3C COGA O4P01 — "Controls and content do not move unexpectedly."
- *    The arrow zone occupies a FIXED 220px regardless of temporal state.
- *    The temporal badge area is always reserved (fixed height) so adding/
- *    removing it causes zero layout shift (CLS = 0).
- *
- * 2. Sweller's Cognitive Load Theory — Layout shifts create extraneous
- *    cognitive load. By reserving space and using opacity-only transitions,
- *    the user's spatial memory of control positions is never disrupted.
- *
- * 3. Apple HIG Motion — "Prefer subtle, purposeful animation."
- *    The temporal badge fades in/out with a 200ms ease-out curve.
- *    No positional movement, no scaling — pure opacity change.
- *    This respects prefers-reduced-motion via CSS.
- *
- * 4. Fitts's Law — Arrow buttons maintain consistent click targets.
- *    The "Hoje" button sits adjacent to the left arrow for quick
- *    temporal reset without hunting.
- *
- * Layout (non-current month):
- *   [ProjectName]  [Hoje]          [temporal badge centered]
- *                              [< Mês Ano >]
- *
- * Layout (current month — no shift):
- *   [ProjectName]              [badge area: invisible, same height]
- *                              [< Mês Ano >]
- */
 export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
   const now = activeMonth || new Date();
   const currentMonth = now.getMonth();
@@ -52,7 +21,6 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
   const today = new Date();
   const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
 
-  // Temporal distance calculation
   const todayStart = new Date(today.getFullYear(), today.getMonth(), 1);
   const viewingStart = new Date(currentYear, currentMonth, 1);
   const monthsDiff = (viewingStart.getFullYear() - todayStart.getFullYear()) * 12 + (viewingStart.getMonth() - todayStart.getMonth());
@@ -77,67 +45,27 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
     onMonthChange?.(next);
   };
 
-  const goToToday = () => {
-    onMonthChange?.(new Date());
-  };
-
   const showTemporal = onMonthChange && !isCurrentMonth;
 
   return (
     <div className="flex items-center justify-between w-full">
-      {/* Left: Project name + Hoje button */}
+      {/* Left: Project name */}
       <div className="flex items-center gap-3 min-w-0">
         <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>
           {projectName}
         </h1>
-        {/* "Hoje" button — fades in/out, no layout shift */}
-        <div
-          style={{
-            opacity: showTemporal ? 1 : 0,
-            pointerEvents: showTemporal ? 'auto' : 'none',
-            transition: 'opacity 200ms ease-out',
-          }}
-        >
-          <button
-            onClick={goToToday}
-            className="flex items-center gap-1.5 flex-shrink-0"
-            style={{
-              padding: '4px 12px',
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              background: 'var(--temporal-today-bg)',
-              color: '#FFFFFF',
-              transition: 'background 150ms ease-out',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
-            aria-label="Voltar para o mês atual"
-            tabIndex={showTemporal ? 0 : -1}
-          >
-            <CalendarCheck className="w-3.5 h-3.5" />
-            <span>Hoje</span>
-          </button>
-        </div>
       </div>
 
-      {/* Right: Temporal badge (always-reserved height) + Arrow zone */}
+      {/* Right: [temporal badge] < Mês Ano > — all inline, single row */}
       {onMonthChange && (
-        <div className="flex flex-col items-center flex-shrink-0">
-          {/*
-           * Temporal badge container — ALWAYS rendered with fixed height
-           * to prevent any vertical layout shift (W3C COGA O4P01).
-           * Only opacity changes on state transition.
-           */}
+        <div className="flex items-center flex-shrink-0">
+          {/* Temporal badge — fades in/out next to left arrow, no layout shift */}
           <div
             style={{
-              height: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               opacity: showTemporal ? 1 : 0,
+              pointerEvents: showTemporal ? 'auto' : 'none',
               transition: 'opacity 200ms ease-out',
+              marginRight: 8,
             }}
             aria-hidden={!showTemporal}
           >
@@ -158,7 +86,7 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
             </span>
           </div>
 
-          {/* Arrow zone — fixed 220px width (Fitts's Law) */}
+          {/* Arrow zone — fixed 220px width */}
           <div className="flex items-center" style={{ width: 220 }}>
             <button
               onClick={goToPrev}
