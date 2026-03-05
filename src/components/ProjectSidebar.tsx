@@ -666,6 +666,34 @@ export function ProjectSidebar({
             </button>
           ))}
         </div>
+
+        {/* Bottom icons: theme + expand */}
+        <div className="mt-auto flex flex-col items-center gap-1 px-1 pb-4">
+          {onCycleTheme && (
+            <button
+              onClick={onCycleTheme}
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+              title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
+               themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
+               <Type className="w-4 h-4" strokeWidth={1.5} />}
+            </button>
+          )}
+          <button
+            onClick={onToggleCollapse}
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            title="Expandir menu"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
+          </button>
+        </div>
       </aside>
     );
   }
