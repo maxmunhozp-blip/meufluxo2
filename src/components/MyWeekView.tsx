@@ -1088,7 +1088,7 @@ export function MyWeekView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
-      <div className="px-3 md:px-4 flex items-center justify-between flex-shrink-0" style={{ paddingTop: 28, paddingBottom: 8, borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="px-3 md:px-4 flex items-center justify-between flex-shrink-0" style={{ paddingTop: 28, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
         <h1 style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }} className="whitespace-nowrap">
           Minha Semana
         </h1>
