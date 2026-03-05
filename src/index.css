@@ -357,6 +357,8 @@
     --temporal-today-bg: #4F6DF5;
     --temporal-today-hover: #3A52D9;
 
+    --project-dot-opacity: 0.85;
+
     /* Dropdown tokens */
     --dropdown-bg: 0 0% 100%;
     --dropdown-border: 240 5% 89%;
