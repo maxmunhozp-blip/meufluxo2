@@ -83,7 +83,7 @@ export function GlobalNotesView({ workspaceId, userId, projects, isPro = false, 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="h-14 px-6 flex items-center" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
+      <div className="px-6 flex items-center" style={{ paddingTop: 28, paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
         <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>Notas</h1>
       </div>
 

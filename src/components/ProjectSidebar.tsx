@@ -600,7 +600,7 @@ export function ProjectSidebar({
         }}
       >
         <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
-        <div className="flex flex-col items-center gap-1 pt-3 px-1">
+        <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
           {/* Favicon icon */}
           <button
             onClick={onToggleCollapse}
@@ -693,7 +693,7 @@ export function ProjectSidebar({
         onMouseDown={(e) => onResizeStart?.(e)}
       />
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
-      <div style={{ flexShrink: 0, padding: '24px 16px 0 16px' }}>
+      <div style={{ flexShrink: 0, padding: '28px 16px 0 16px' }}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 12 }}>
           <div
             className="logo-shine-wrapper"

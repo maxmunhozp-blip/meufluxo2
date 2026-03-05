@@ -1257,7 +1257,7 @@ const Index = () => {
       {/* Desktop sidebar — collapses to mini mode during timeline */}
       {isMyWeekView && isTimelineActive ? (
          <div className="hidden lg:flex flex-shrink-0 flex-col h-screen" style={{ width: 48, background: 'var(--bg-sidebar)', transition: 'width 250ms ease-out' }}>
-          <div className="flex flex-col items-center gap-1 pt-3 px-1">
+          <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
             {/* Meu Dia */}
             <button
               onClick={sidebarProps.onToggleMyDay}
@@ -1347,7 +1347,7 @@ const Index = () => {
         ) : activeProject ? (
           <>
             {/* Tabs: Tarefas / Notas */}
-             <div style={{ padding: '32px 32px 0 32px' }}>
+             <div style={{ padding: '28px 32px 0 32px' }}>
               <TaskListHeader
                 projectName={activeProject.name}
                 pendingCount={pendingCount}
