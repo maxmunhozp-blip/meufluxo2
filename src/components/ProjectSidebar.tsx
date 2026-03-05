@@ -596,23 +596,27 @@ export function ProjectSidebar({
 
   useEffect(() => {
     if (collapsed) {
-      // Collapsing: switch to collapsed JSX after width transition completes
+      // Collapsing: keep expanded JSX but animate width to 48px, then switch JSX
       setShowXIcon(false);
       collapseTimerRef.current = setTimeout(() => {
         setRenderCollapsed(true);
-        // Small extra delay for X icon fade-in after collapsed JSX mounts
         setTimeout(() => setShowXIcon(true), 50);
-      }, 370); // match the 350ms CSS transition
+      }, 370);
     } else {
       // Expanding: immediately switch to expanded JSX, suppress logo opacity transition
       setSuppressLogoTransition(true);
       setRenderCollapsed(false);
       setShowXIcon(false);
-      
       if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
     }
     return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
   }, [collapsed]);
+
+  // The actual visual width — drives both the sidebar AND wrapper in sync
+  const visualWidth = collapsed ? 48 : sidebarWidth;
+  const widthTransition = suppressLogoTransition
+    ? 'none'
+    : 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)';
 
   // Re-enable logo transition AFTER React has painted the expanded state.
   // useLayoutEffect + double rAF ensures we wait for the browser to commit the first paint.
@@ -636,7 +640,7 @@ export function ProjectSidebar({
         className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
         style={{
           width: 48, minWidth: 48, maxWidth: 48,
-          transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          transition: widthTransition,
           background: 'hsl(var(--sidebar-background))',
           borderRight: '1px solid var(--sidebar-right-border, transparent)',
           borderRadius: 'var(--sidebar-container-radius, 0)',
@@ -777,8 +781,8 @@ export function ProjectSidebar({
     <aside
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
       style={{
-        width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth,
-        transition: suppressLogoTransition ? 'none' : 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+        width: visualWidth, minWidth: visualWidth, maxWidth: visualWidth,
+        transition: widthTransition,
         background: 'hsl(var(--sidebar-background))',
         borderRight: '1px solid var(--sidebar-right-border, transparent)',
         borderRadius: 'var(--sidebar-container-radius, 0)',

@@ -1296,7 +1296,7 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:block flex-shrink-0" style={{ width: sidebarCollapsed ? 48 : sidebarWidth, minWidth: sidebarCollapsed ? 48 : sidebarWidth, maxWidth: sidebarCollapsed ? 48 : sidebarWidth, transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+        <div className="hidden lg:block flex-shrink-0">
           <ProjectSidebar {...sidebarProps} />
         </div>
       )}
