@@ -984,6 +984,48 @@ export function MyDayView({
           the arrow zone so they never shift arrow positions.
         */}
         <div className="flex items-center gap-3 mt-3 justify-end">
+          {/* "Hoje" button — left of arrows */}
+          {!viewingToday && (
+            <button
+              onClick={() => setSelectedDate(new Date())}
+              className="flex items-center gap-1.5 flex-shrink-0"
+              style={{
+                padding: '4px 12px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                background: 'var(--temporal-today-bg)',
+                color: '#FFFFFF',
+                transition: 'background 150ms ease-out',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
+              aria-label="Voltar para hoje"
+            >
+              <CalendarCheck className="w-3.5 h-3.5" />
+              <span>Hoje</span>
+            </button>
+          )}
+
+          {/* Temporal badge — left of arrows */}
+          {!viewingToday && temporalLabel && (
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                background: 'var(--bg-hover)',
+                color: 'var(--text-tertiary)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {temporalLabel}
+            </span>
+          )}
+
           {/* Arrow zone — fixed width, arrows never move */}
           <div className="flex items-center" style={{ width: 310 }}>
             <button
@@ -1020,7 +1062,7 @@ export function MyDayView({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.18, ease: 'easeOut' }}
                       >
-                        <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>{format(selectedDate, "EEEE", { locale: ptBR }).replace(/\b\w/g, c => c.toUpperCase())},</span>
+                        <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>{format(selectedDate, "EEEE", { locale: ptBR }).split('-').map((p, i) => i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p.charAt(0).toUpperCase() + p.slice(1)).join('-')},</span>
                         {' '}
                         <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>{format(selectedDate, "dd", { locale: ptBR })}</span>
                         {' '}
@@ -1053,48 +1095,6 @@ export function MyDayView({
               <ChevronRight className="w-[18px] h-[18px]" />
             </button>
           </div>
-
-          {/* Temporal badge — outside arrow zone, never affects arrow positions */}
-          {!viewingToday && temporalLabel && (
-            <span
-              style={{
-                padding: '2px 8px',
-                borderRadius: 9999,
-                fontSize: 11,
-                fontWeight: 500,
-                lineHeight: 1.5,
-                background: 'var(--bg-hover)',
-                color: 'var(--text-tertiary)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {temporalLabel}
-            </span>
-          )}
-
-          {/* "Hoje" button — outside arrow zone */}
-          {!viewingToday && (
-            <button
-              onClick={() => setSelectedDate(new Date())}
-              className="flex items-center gap-1.5 flex-shrink-0"
-              style={{
-                padding: '4px 12px',
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 500,
-                background: 'var(--temporal-today-bg)',
-                color: '#FFFFFF',
-                transition: 'background 150ms ease-out',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
-              aria-label="Voltar para hoje"
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              <span>Hoje</span>
-            </button>
-          )}
         </div>
       </div>
 
