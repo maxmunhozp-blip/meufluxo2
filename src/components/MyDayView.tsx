@@ -520,7 +520,7 @@ function TempoVivoLayout({
 
       {/* Future periods — collapsible, starting collapsed */}
       {futurePeriods.map(period => (
-        <div key={period.key} style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+        <div key={period.key} style={{ paddingTop: 12 }}>
           <CollapsedPeriodSummary
             period={period}
             tasks={tasksByPeriod[period.key]}
