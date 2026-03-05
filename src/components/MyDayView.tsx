@@ -538,24 +538,25 @@ function TempoVivoLayout({
 
       {/* Past periods — collapsible with full drag & drop when expanded */}
       {pastPeriods.length > 0 && (
-        <div style={{ marginTop: viewingToday ? 8 : 0, paddingTop: viewingToday ? 12 : 0, borderTop: viewingToday ? '1px solid var(--border-subtle)' : 'none' }}>
+        <div style={{ marginTop: viewingToday ? 8 : 0 }}>
           {pastPeriods.map(period => {
             const pastTasks = tasksByPeriod[period.key];
             return (
-              <CollapsedPeriodSummary
-                key={period.key}
-                period={period}
-                tasks={pastTasks}
-                isExpanded={expandedPeriods.has(period.key)}
-                onToggle={() => togglePeriodExpanded(period.key)}
-                projects={projects} sections={sections} allTasks={allTasks}
-                selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
-                onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
-                rolloverMap={rolloverMap} overItemId={overItemId}
-                dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
-                isDragActive={!!activeDragId}
-                alwaysShow
-              />
+              <div key={period.key} style={{ paddingTop: viewingToday ? 12 : 0, borderTop: viewingToday ? '1px solid var(--border-subtle)' : 'none' }}>
+                <CollapsedPeriodSummary
+                  period={period}
+                  tasks={pastTasks}
+                  isExpanded={expandedPeriods.has(period.key)}
+                  onToggle={() => togglePeriodExpanded(period.key)}
+                  projects={projects} sections={sections} allTasks={allTasks}
+                  selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+                  onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+                  rolloverMap={rolloverMap} overItemId={overItemId}
+                  dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+                  isDragActive={!!activeDragId}
+                  alwaysShow
+                />
+              </div>
             );
           })}
         </div>
