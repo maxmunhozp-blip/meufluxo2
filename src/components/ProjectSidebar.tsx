@@ -592,17 +592,14 @@ export function ProjectSidebar({
   const [suppressLogoTransition, setSuppressLogoTransition] = useState(false);
   const [renderCollapsed, setRenderCollapsed] = useState(collapsed);
   const [showXIcon, setShowXIcon] = useState(collapsed);
-  const [isCollapsing, setIsCollapsing] = useState(false);
   const collapseTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (collapsed) {
-      // Collapsing: keep expanded JSX visible during transition, show gradient mask
-      setIsCollapsing(true);
+      // Collapsing: switch to collapsed JSX after width transition completes
       setShowXIcon(false);
       collapseTimerRef.current = setTimeout(() => {
         setRenderCollapsed(true);
-        setIsCollapsing(false);
         // Small extra delay for X icon fade-in after collapsed JSX mounts
         setTimeout(() => setShowXIcon(true), 50);
       }, 370); // match the 350ms CSS transition
@@ -611,7 +608,7 @@ export function ProjectSidebar({
       setSuppressLogoTransition(true);
       setRenderCollapsed(false);
       setShowXIcon(false);
-      setIsCollapsing(false);
+      
       if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
     }
     return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
@@ -791,19 +788,6 @@ export function ProjectSidebar({
         }
       }}
     >
-      {/* Gradient overlay during collapse — slides over the logo */}
-      {isCollapsing && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 10,
-            pointerEvents: 'none',
-            background: `linear-gradient(to left, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-background)) 60%, transparent 100%)`,
-            animation: 'sidebar-gradient-cover 350ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
-          }}
-        />
-      )}
       {/* Resize handle — right edge, draggable */}
       <div
         className="sidebar-resize-handle"
