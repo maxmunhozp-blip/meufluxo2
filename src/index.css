@@ -942,26 +942,24 @@ aside ~ div {
 .loading-logo-shine::after {
   content: '';
   position: absolute;
-  top: -20%;
-  left: -60%;
-  width: 60%;
-  height: 140%;
+  top: 0;
+  left: -80%;
+  width: 80%;
+  height: 100%;
   background: linear-gradient(
-    105deg,
-    transparent 30%,
-    hsla(0, 0%, 100%, 0.5) 45%,
-    hsla(0, 0%, 100%, 0.85) 50%,
-    hsla(0, 0%, 100%, 0.5) 55%,
-    transparent 70%
+    90deg,
+    transparent 20%,
+    hsla(0, 0%, 100%, 0.35) 40%,
+    hsla(0, 0%, 100%, 0.6) 50%,
+    hsla(0, 0%, 100%, 0.35) 60%,
+    transparent 80%
   );
-  transform: skewX(-15deg);
-  animation: loading-shine-pingpong 2s ease-in-out infinite;
+  animation: loading-shine-ltr 2s ease-in-out infinite;
 }
 
-@keyframes loading-shine-pingpong {
-  0% { left: -60%; }
-  50% { left: 140%; }
-  100% { left: -60%; }
+@keyframes loading-shine-ltr {
+  0% { left: -80%; }
+  100% { left: 180%; }
 }
 
 [data-theme='dark'] .section-title-label {
