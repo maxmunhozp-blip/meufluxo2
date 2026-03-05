@@ -983,7 +983,7 @@ export function MyDayView({
           Date text is centered within it. Badge and "Hoje" live OUTSIDE 
           the arrow zone so they never shift arrow positions.
         */}
-        <div className="flex items-center gap-3 mt-3">
+        <div className="flex items-center gap-3 mt-3 justify-end">
           {/* Arrow zone — fixed width, arrows never move */}
           <div className="flex items-center" style={{ width: 310 }}>
             <button
