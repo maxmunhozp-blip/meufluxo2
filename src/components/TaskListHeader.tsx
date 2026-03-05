@@ -56,52 +56,51 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
         <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>
           {projectName}
         </h1>
-
-        {/* Temporal badge + "Hoje" — left side to avoid pushing arrow zone */}
-        {onMonthChange && !isCurrentMonth && (
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span
-              style={{
-                padding: '2px 8px',
-                borderRadius: 9999,
-                fontSize: 11,
-                fontWeight: 500,
-                lineHeight: 1.5,
-                background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
-                color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
-                whiteSpace: 'nowrap',
-              }}
-              aria-label={`Você está visualizando ${getTemporalLabel()}`}
-            >
-              {getTemporalLabel()}
-            </span>
-            <button
-              onClick={goToToday}
-              className="flex items-center gap-1.5 flex-shrink-0"
-              style={{
-                padding: '4px 12px',
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 500,
-                background: 'var(--temporal-today-bg)',
-                color: '#FFFFFF',
-                transition: 'background 150ms ease-out',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
-              aria-label="Voltar para o mês atual"
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              <span>Hoje</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {onMonthChange && (
-        <div className="flex items-center flex-shrink-0">
-          {/* Arrow zone — fixed width (Fitts's Law + W3C COGA O4P01) */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Temporal badge + "Hoje" — next to the arrow zone */}
+          {!isCurrentMonth && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: 9999,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  lineHeight: 1.5,
+                  background: isPast ? 'var(--temporal-past-bg)' : 'var(--temporal-future-bg)',
+                  color: isPast ? 'var(--temporal-past-text)' : 'var(--temporal-future-text)',
+                  whiteSpace: 'nowrap',
+                }}
+                aria-label={`Você está visualizando ${getTemporalLabel()}`}
+              >
+                {getTemporalLabel()}
+              </span>
+              <button
+                onClick={goToToday}
+                className="flex items-center gap-1.5 flex-shrink-0"
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  background: 'var(--temporal-today-bg)',
+                  color: '#FFFFFF',
+                  transition: 'background 150ms ease-out',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
+                aria-label="Voltar para o mês atual"
+              >
+                <CalendarCheck className="w-3.5 h-3.5" />
+                <span>Hoje</span>
+              </button>
+            </div>
+          )}
+          {/* Arrow zone — fixed width */}
           <div className="flex items-center" style={{ width: 220 }}>
             <button
               onClick={goToPrev}
