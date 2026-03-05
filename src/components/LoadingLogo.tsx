@@ -2,7 +2,7 @@ interface LoadingLogoProps {
   size?: number;
 }
 
-export function LoadingLogo({ size = 146 }: LoadingLogoProps) {
+export function LoadingLogo({ size = 120 }: LoadingLogoProps) {
   const theme = document.documentElement.getAttribute('data-theme');
   const isDark = theme === 'dark';
   const iconSrc = isDark ? '/meufluxo-loading-dark.svg' : '/meufluxo-loading-light.svg';
