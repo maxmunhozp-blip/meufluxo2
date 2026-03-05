@@ -706,7 +706,7 @@ export function ProjectSidebar({
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
             onClick={() => { triggerShine(); onToggleMyDay?.(); }}
           >
-            <div style={{ height: 20, width: 120, position: 'relative' }}>
+            <div className="sidebar-collapsed-icon" style={{ height: 20, width: 120, position: 'relative' }}>
               {(['light', 'dark', 'light-contrast'] as const).map(t => {
                 const src = t === 'light-contrast' ? '/meufluxo-logo-blue-bg.svg' : t === 'dark' ? '/meufluxo-logo-dark.svg' : '/meufluxo-logo.svg';
                 return (
