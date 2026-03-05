@@ -932,7 +932,7 @@ export function MyDayView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
-      <div className="px-6 flex-shrink-0" style={{ paddingTop: 28 }}>
+      <div className="px-10 flex-shrink-0" style={{ paddingTop: 28 }}>
         <div className="flex items-start justify-between">
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
