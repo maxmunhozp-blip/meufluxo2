@@ -68,7 +68,7 @@ function WeekTaskCard({
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: task.id, data: { type: 'week-task', task } });
 
-  const isDone = task.status === 'done';
+  const isDone = task.status === 'done' || sectionName?.toLowerCase().includes('conclu');
 
   // Build context line: ● ProjectName · SectionName (or · ParentTaskName)
   const contextParts: string[] = [];
