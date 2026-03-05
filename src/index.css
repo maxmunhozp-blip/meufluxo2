@@ -949,24 +949,13 @@ aside ~ div {
   background: linear-gradient(
     105deg,
     transparent 30%,
-    hsla(220, 80%, 80%, 0.6) 45%,
-    hsla(220, 90%, 95%, 0.9) 50%,
-    hsla(220, 80%, 80%, 0.6) 55%,
+    hsla(0, 0%, 100%, 0.5) 45%,
+    hsla(0, 0%, 100%, 0.85) 50%,
+    hsla(0, 0%, 100%, 0.5) 55%,
     transparent 70%
   );
   transform: skewX(-15deg);
   animation: loading-shine-pingpong 2s ease-in-out infinite;
-}
-
-[data-theme='dark'] .loading-logo-shine::after {
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    hsla(0, 0%, 100%, 0.3) 45%,
-    hsla(0, 0%, 100%, 0.55) 50%,
-    hsla(0, 0%, 100%, 0.3) 55%,
-    transparent 70%
-  );
 }
 
 @keyframes loading-shine-pingpong {

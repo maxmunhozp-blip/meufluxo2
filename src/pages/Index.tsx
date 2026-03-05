@@ -1147,7 +1147,7 @@ const Index = () => {
   if (loading || !session) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: 'hsl(var(--bg-app))' }}>
-        <LoadingLogo size={48} />
+        <LoadingLogo />
       </div>
     );
   }
