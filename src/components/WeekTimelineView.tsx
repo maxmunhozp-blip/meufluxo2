@@ -131,7 +131,7 @@ function TimelineDayColumn({
       className="flex flex-col flex-1 min-w-0"
       style={{
         borderRight: '1px solid var(--border-subtle)',
-        background: isOver ? 'var(--accent-subtle)' : current ? 'var(--accent-subtle)' : undefined,
+        background: isOver ? 'var(--accent-subtle)' : undefined,
         transition: 'background 120ms ease-out',
       }}
     >
