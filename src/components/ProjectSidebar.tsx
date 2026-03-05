@@ -614,9 +614,7 @@ export function ProjectSidebar({
 
   // The actual visual width — drives both the sidebar AND wrapper in sync
   const visualWidth = collapsed ? 48 : sidebarWidth;
-  const widthTransition = suppressLogoTransition
-    ? 'none'
-    : 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+  const widthTransition = 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)';
 
   // Re-enable logo transition AFTER React has painted the expanded state.
   // useLayoutEffect + double rAF ensures we wait for the browser to commit the first paint.
