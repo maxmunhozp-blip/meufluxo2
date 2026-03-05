@@ -1999,7 +1999,7 @@ const Index = () => {
             </div>
           ) : (
             <p style={{ fontSize: 11, color: 'var(--text-quaternary)', opacity: 0.5, paddingLeft: 32, marginTop: 12 }}>
-              Clique com botão direito no cliente para opções avançadas
+              Clique com botão direito em {activeProject?.name || 'o projeto'} para opções avançadas
             </p>
           )}
 
