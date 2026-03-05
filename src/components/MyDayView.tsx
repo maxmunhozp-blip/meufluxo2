@@ -543,7 +543,7 @@ function TempoVivoLayout({
           {pastPeriods.map(period => {
             const pastTasks = tasksByPeriod[period.key];
             return (
-              <div key={period.key} style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+              <div key={period.key} style={{ paddingTop: 12 }}>
                 <CollapsedPeriodSummary
                   period={period}
                   tasks={pastTasks}
