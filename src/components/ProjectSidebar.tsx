@@ -168,7 +168,7 @@ function SortableProjectItem({
           color: isActive ? 'var(--sidebar-text-primary, var(--text-primary))' : 'var(--sidebar-text-tertiary, var(--text-secondary))',
           fontWeight: isActive ? 500 : 400,
           fontSize: 14,
-          transition: 'all 150ms ease-out',
+          transition: 'all 200ms ease-out',
           transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
         }}
         onMouseEnter={e => { if (!isDragOver) e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; }}
@@ -195,7 +195,7 @@ function SortableProjectItem({
             style={{
               color: 'var(--sidebar-text-tertiary, var(--text-tertiary))',
               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: 'transform 150ms ease-out',
+              transition: 'transform 200ms ease-out',
             }}
           />
         </button>
@@ -220,7 +220,7 @@ function SortableProjectItem({
           overflow: 'hidden',
           maxHeight: isExpanded ? `${sections.length * 32 + 4}px` : '0px',
           opacity: isExpanded ? 1 : 0,
-          transition: 'max-height 150ms ease-out, opacity 150ms ease-out',
+          transition: 'max-height 200ms ease-out, opacity 200ms ease-out',
           display: 'flex',
           flexDirection: 'column',
           gap: 4,
@@ -271,7 +271,7 @@ function SortableProjectItem({
                     ? '1px dashed var(--sidebar-text-placeholder, var(--text-placeholder))'
                     : '2px solid transparent',
                 background: isSectionDragOver ? 'var(--accent-subtle)' : undefined,
-                transition: 'all 150ms ease-out',
+                transition: 'all 200ms ease-out',
               }}
               onMouseEnter={e => { if (!isSectionDragOver) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; if (!isSectionActive) e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
               onMouseLeave={e => { if (!isSectionDragOver) { e.currentTarget.style.background = isSectionDragOver ? 'var(--accent-subtle)' : 'transparent'; if (!isSectionActive) e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-secondary))'; } }}
@@ -537,12 +537,12 @@ export function ProjectSidebar({
         fontWeight: 400,
         color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-tertiary, var(--text-secondary))',
         background: active ? 'var(--accent-subtle)' : 'transparent',
-        transition: 'all 150ms ease-out',
+        transition: 'all 200ms ease-out',
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-elevated))'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-tertiary, var(--text-secondary))', transition: 'color 150ms ease-out' }} />
+      <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-tertiary, var(--text-secondary))', transition: 'color 200ms ease-out' }} />
       <span className="truncate flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
         <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: active ? 'var(--accent-blue)' : 'var(--sidebar-text-tertiary, var(--text-tertiary))', fontWeight: 400 }}>{count}</span>
@@ -591,9 +591,10 @@ export function ProjectSidebar({
   // Unified sidebar — no mount/unmount, just CSS transitions
   const visualWidth = collapsed ? 48 : sidebarWidth;
   const EASE = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
-  const expandDur = '400ms';
-  const collapseDur = '450ms';
+  const expandDur = '450ms';
+  const collapseDur = '500ms';
   const dur = collapsed ? collapseDur : expandDur;
+  const microDur = '200ms'; // micro-interactions (hover, icons, chevrons)
   const widthTransition = `width ${dur} ${EASE}, min-width ${dur} ${EASE}, max-width ${dur} ${EASE}`;
   // Fade timing: when collapsing, fade out quickly first; when expanding, fade in after width starts
   const fadeOut = `opacity 200ms ease-out, transform 200ms ease-out`; // fast disappear
@@ -722,7 +723,7 @@ export function ProjectSidebar({
               onClick={onToggleCollapse}
               className="w-7 h-7 flex items-center justify-center rounded-md group/collapse"
               title="Recolher menu"
-              style={{ color: 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))', transition: 'all 150ms ease-out' }}
+              style={{ color: 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))', transition: 'all 200ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-primary, hsl(var(--sidebar-foreground)))'; e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, hsl(var(--sidebar-label)))'; e.currentTarget.style.background = 'transparent'; }}
             >
@@ -922,7 +923,7 @@ export function ProjectSidebar({
               fontSize: 13,
               color: 'var(--sidebar-text-tertiary, var(--text-tertiary))',
               fontWeight: 400,
-              transition: 'all 150ms ease-out',
+              transition: 'all 200ms ease-out',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-tertiary))'; }}
@@ -951,7 +952,7 @@ export function ProjectSidebar({
             color: 'var(--sidebar-input-text, var(--text-placeholder))',
             background: 'var(--sidebar-input-bg, var(--bg-elevated))',
             border: '1px solid var(--sidebar-input-border, transparent)',
-            transition: 'all 150ms ease-out',
+            transition: 'all 200ms ease-out',
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--sidebar-accent))'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-tertiary))'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--sidebar-input-border, transparent)'; e.currentTarget.style.color = 'var(--sidebar-input-text, var(--text-placeholder))'; }}
@@ -965,7 +966,7 @@ export function ProjectSidebar({
       <div className="relative" style={{ flexShrink: 0, padding: '0 4px', opacity: collapsed ? 0 : 1, maxHeight: collapsed ? 0 : 200, overflow: collapsed ? 'hidden' : 'visible', pointerEvents: collapsed ? 'none' : 'auto', transition: collapsed ? `opacity 180ms ease-out, max-height ${collapseDur} ${EASE}` : `opacity 350ms ease-out 200ms, max-height ${expandDur} ${EASE}` }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', margin: '0 12px' }} />
         <div className="py-2.5 flex items-center gap-1" style={{ paddingLeft: 12, paddingRight: 8 }}>
-          <div style={{ opacity: 0.5, transition: 'opacity 150ms ease-out' }}
+          <div style={{ opacity: 0.5, transition: 'opacity 200ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; }}
           >
@@ -989,7 +990,7 @@ export function ProjectSidebar({
               onClick={onCycleTheme}
               className="w-7 h-7 flex items-center justify-center rounded-md"
               title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
-              style={{ color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', transition: 'all 150ms ease-out' }}
+              style={{ color: 'var(--sidebar-text-tertiary, var(--text-tertiary))', transition: 'all 200ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--sidebar-text-tertiary, var(--text-tertiary))'; }}
             >
@@ -1001,23 +1002,23 @@ export function ProjectSidebar({
 
           {isSuperAdmin && (
             <a href="/admin" className="w-7 h-7 flex items-center justify-center rounded-md" title="Admin"
-              style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
+              style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 200ms ease-out' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
             ><Shield className="w-3.5 h-3.5" /></a>
           )}
           <button onClick={() => navigate('/profile')} className="w-7 h-7 flex items-center justify-center rounded-md" title="Perfil"
-            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 200ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><User className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowSettings(!showSettings)} className="w-7 h-7 flex items-center justify-center rounded-md"
-            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 200ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><Settings className="w-3.5 h-3.5" /></button>
           <button onClick={onLogout} className="w-7 h-7 flex items-center justify-center rounded-md" title="Sair da conta"
-            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 150ms ease-out' }}
+            style={{ opacity: 0.4, color: 'var(--sidebar-text-primary, var(--text-primary))', transition: 'opacity 200ms ease-out' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; }}
           ><LogOut className="w-3.5 h-3.5" /></button>
