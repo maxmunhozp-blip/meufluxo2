@@ -90,7 +90,7 @@ const Index = () => {
   const [isMyTasksView, setIsMyTasksView] = useState(false);
   const [isMyWeekView, setIsMyWeekView] = useState(false);
   const [isMyDayView, setIsMyDayView] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 200);
+  const [sidebarWidth, setSidebarWidth] = useState(() => Number(localStorage.getItem('meufluxo-sidebar-width')) || 260);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('meufluxo-sidebar-collapsed') === 'true');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
