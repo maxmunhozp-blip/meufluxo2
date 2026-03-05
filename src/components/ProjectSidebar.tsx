@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft, Type, Pencil } from 'lucide-react';
@@ -555,17 +555,36 @@ export function ProjectSidebar({
       ? '/meufluxo-logo-dark.svg'
       : '/meufluxo-logo.svg';
 
-  // Shine on click
+  // Shine on click, theme change, and page load
   const [shineActive, setShineActive] = useState(false);
   const shineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const triggerShine = () => {
+  const triggerShine = useCallback(() => {
     setShineActive(false);
     if (shineTimerRef.current) clearTimeout(shineTimerRef.current);
     requestAnimationFrame(() => {
       setShineActive(true);
       shineTimerRef.current = setTimeout(() => setShineActive(false), 1600);
     });
-  };
+  }, []);
+
+  // Trigger on page load
+  const shineLoadedRef = useRef(false);
+  useEffect(() => {
+    if (shineLoadedRef.current) return;
+    shineLoadedRef.current = true;
+    const t = setTimeout(triggerShine, 500);
+    return () => clearTimeout(t);
+  }, [triggerShine]);
+
+  // Trigger on theme change
+  const prevThemeRef = useRef(themePreference);
+  useEffect(() => {
+    if (prevThemeRef.current !== themePreference) {
+      prevThemeRef.current = themePreference;
+      const t = setTimeout(triggerShine, 400);
+      return () => clearTimeout(t);
+    }
+  }, [themePreference, triggerShine]);
 
   // Collapsed mini sidebar
   if (collapsed) {
