@@ -590,8 +590,9 @@ export function ProjectSidebar({
 
   // Unified sidebar — no mount/unmount, just CSS transitions
   const visualWidth = collapsed ? 48 : sidebarWidth;
-  const widthTransition = 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-  const contentTransition = 'opacity 250ms ease-out, transform 250ms ease-out';
+  const dur = collapsed ? '350ms' : '150ms';
+  const widthTransition = `width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1), min-width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1), max-width ${dur} cubic-bezier(0.25, 0.1, 0.25, 1)`;
+  const contentTransition = `opacity ${collapsed ? '250ms' : '120ms'} ease-out, transform ${collapsed ? '250ms' : '120ms'} ease-out`;
 
 
   // No early return for collapsed — unified sidebar below
