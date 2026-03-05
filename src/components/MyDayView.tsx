@@ -520,20 +520,21 @@ function TempoVivoLayout({
 
       {/* Future periods — collapsible, starting collapsed */}
       {futurePeriods.map(period => (
-        <CollapsedPeriodSummary
-          key={period.key}
-          period={period}
-          tasks={tasksByPeriod[period.key]}
-          isExpanded={expandedPeriods.has(period.key)}
-          onToggle={() => togglePeriodExpanded(period.key)}
-          projects={projects} sections={sections} allTasks={allTasks}
-          selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
-          onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
-          rolloverMap={rolloverMap} overItemId={overItemId}
-          dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
-          isDragActive={!!activeDragId}
-          alwaysShow
-        />
+        <div key={period.key} style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+          <CollapsedPeriodSummary
+            period={period}
+            tasks={tasksByPeriod[period.key]}
+            isExpanded={expandedPeriods.has(period.key)}
+            onToggle={() => togglePeriodExpanded(period.key)}
+            projects={projects} sections={sections} allTasks={allTasks}
+            selectedTaskId={selectedTaskId} onSelectTask={onSelectTask}
+            onStatusChange={onStatusChange} onUpdateTask={onUpdateTask}
+            rolloverMap={rolloverMap} overItemId={overItemId}
+            dropLinePosition={dropLinePosition} justDroppedId={justDroppedId}
+            isDragActive={!!activeDragId}
+            alwaysShow
+          />
+        </div>
       ))}
 
       {/* Past periods — collapsible with full drag & drop when expanded */}
@@ -542,7 +543,7 @@ function TempoVivoLayout({
           {pastPeriods.map(period => {
             const pastTasks = tasksByPeriod[period.key];
             return (
-              <div key={period.key} style={{ paddingTop: viewingToday ? 12 : 0, borderTop: viewingToday ? '1px solid var(--border-subtle)' : 'none' }}>
+              <div key={period.key} style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
                 <CollapsedPeriodSummary
                   period={period}
                   tasks={pastTasks}
