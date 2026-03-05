@@ -605,11 +605,8 @@ export function ProjectSidebar({
           {/* Favicon icon */}
           <button
             onClick={onToggleCollapse}
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-150"
+            className="w-9 h-9 flex items-center justify-center rounded-lg"
             title="Expandir menu"
-            style={{ background: 'transparent' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'hsl(var(--sidebar-accent))'; e.currentTarget.style.transform = 'scale(1.08)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
           >
             <img
               src={themePreference === 'dark' ? meufluxoXDark : '/meufluxo-icon.svg'}
