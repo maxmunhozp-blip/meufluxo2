@@ -135,7 +135,7 @@ function WeekTaskCard({
         {/* Line 2: Task title */}
         <span
           className={`text-[12px] leading-[1.4] block ${isDone || isRolledOverOrigin ? 'opacity-40' : ''} ${truncate ? 'truncate' : 'line-clamp-2'}`}
-          style={{ color: 'var(--text-primary)', fontWeight: 400 }}
+          style={{ color: 'var(--text-primary)', fontWeight: 400, textDecoration: isDone ? 'none' : undefined }}
         >
           {task.name}
         </span>
