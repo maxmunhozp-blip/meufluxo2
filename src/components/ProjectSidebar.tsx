@@ -588,8 +588,35 @@ export function ProjectSidebar({
     }
   }, [themePreference, triggerShine]);
 
-  // Collapsed mini sidebar
-  if (collapsed) {
+  // Track collapse transition — delay switching to collapsed JSX so the logo "slides under" the closing sidebar
+  const [renderCollapsed, setRenderCollapsed] = useState(collapsed);
+  const [showXIcon, setShowXIcon] = useState(collapsed);
+  const [isCollapsing, setIsCollapsing] = useState(false);
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (collapsed) {
+      // Collapsing: keep expanded JSX visible during transition, show gradient mask
+      setIsCollapsing(true);
+      setShowXIcon(false);
+      collapseTimerRef.current = setTimeout(() => {
+        setRenderCollapsed(true);
+        setIsCollapsing(false);
+        // Small extra delay for X icon fade-in after collapsed JSX mounts
+        setTimeout(() => setShowXIcon(true), 50);
+      }, 370); // match the 350ms CSS transition
+    } else {
+      // Expanding: immediately switch to expanded JSX
+      setRenderCollapsed(false);
+      setShowXIcon(false);
+      setIsCollapsing(false);
+      if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+    }
+    return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
+  }, [collapsed]);
+
+  // Collapsed mini sidebar — only render after transition completes
+  if (renderCollapsed) {
     return (
       <aside
         className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
@@ -602,8 +629,8 @@ export function ProjectSidebar({
         }}
       >
         <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
-        <div className="flex flex-col items-center gap-1 px-1 sidebar-content-fade-in" style={{ paddingTop: 28 }}>
-          {/* Favicon icon */}
+        <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
+          {/* X icon — fade in after collapse transition */}
           <button
             onClick={onToggleCollapse}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -612,8 +639,12 @@ export function ProjectSidebar({
             <img
               src={themePreference === 'dark' ? meufluxoXDark : '/meufluxo-icon.svg'}
               alt="MeuFluxo"
-              className="sidebar-collapsed-icon"
-              style={{ width: 22, height: 22, objectFit: 'contain' }}
+              style={{
+                width: 22, height: 22, objectFit: 'contain',
+                opacity: showXIcon ? 1 : 0,
+                transform: showXIcon ? 'scale(1)' : 'scale(0.85)',
+                transition: 'opacity 250ms ease-out, transform 250ms ease-out',
+              }}
             />
           </button>
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
@@ -743,6 +774,19 @@ export function ProjectSidebar({
         }
       }}
     >
+      {/* Gradient overlay during collapse — slides over the logo */}
+      {isCollapsing && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 10,
+            pointerEvents: 'none',
+            background: `linear-gradient(to left, hsl(var(--sidebar-background)) 0%, hsl(var(--sidebar-background)) 60%, transparent 100%)`,
+            animation: 'sidebar-gradient-cover 350ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
+          }}
+        />
+      )}
       {/* Resize handle — right edge, draggable */}
       <div
         className="sidebar-resize-handle"
