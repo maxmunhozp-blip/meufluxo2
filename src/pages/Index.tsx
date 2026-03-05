@@ -1396,75 +1396,154 @@ const Index = () => {
               </div>
               {/* Spacer + actions */}
               <div className="flex-1" />
-              <GenerateMonthlyTasksButton
-                projectId={activeProjectId}
-                workspaceId={activeWorkspaceId || ''}
-                activeMonth={activeMonth}
-                onTasksGenerated={async () => {
-                  // Refresh sections and tasks from DB
-                  const { data: secData } = await supabase
-                    .from('sections')
-                    .select('*')
-                    .eq('project_id', activeProjectId)
-                    .order('position');
-                  if (secData) {
-                    const newSecs = secData.map((s: any) => ({
-                      id: s.id, title: s.name, projectId: s.project_id, workspaceId: s.workspace_id
-                    }));
-                    setSections(prev => {
-                      const others = prev.filter(s => s.projectId !== activeProjectId);
-                      return [...others, ...newSecs];
-                    });
-                  }
-                  const { data: taskData } = await supabase
-                    .from('tasks')
-                    .select('*, task_members(*)')
-                    .eq('project_id', activeProjectId)
-                    .is('parent_task_id', null)
-                    .order('position');
-                  if (taskData) {
-                    const newTasks = taskData.map((row: any) => ({
-                      id: row.id,
-                      name: row.title,
-                      status: row.status as any,
-                      priority: row.priority,
-                      section: row.section_id,
-                      projectId: row.project_id,
-                      workspaceId: row.workspace_id,
-                      dueDate: row.due_date || undefined,
-                      scheduledDate: row.scheduled_date || undefined,
-                      description: row.description || '',
-                      assignee: row.assignee || undefined,
-                      createdBy: row.created_by || undefined,
-                      dayPeriod: (row.day_period as any) || 'morning',
-                      recurrenceType: row.recurrence_type || undefined,
-                      recurrenceConfig: row.recurrence_config || undefined,
-                      serviceTagId: row.service_tag_id || undefined,
-                      rolloverCount: row.rollover_count || 0,
-                      originalDueDate: row.original_due_date || undefined,
-                      position: row.position ?? 0,
-                      subtasks: [],
-                      members: (row.task_members || []).map((m: any) => ({
-                        id: m.id, taskId: m.task_id, userId: m.user_id
-                      })),
-                    }));
-                    setTasks(prev => {
-                      const others = prev.filter(t => t.projectId !== activeProjectId);
-                      return [...others, ...newTasks];
-                    });
-                  }
-                }}
-              />
-              <button
-                onClick={() => setShowTemplateModal(true)}
-                className="flex items-center justify-center"
-                style={{ width: 36, height: 36, borderRadius: 8, color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
-                title="Configurar template de entregas"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
+              {/* "Hoje" button — visible only when viewing a non-current month */}
+              {(() => {
+                const todayDate = new Date();
+                const isCurrentMonthView = activeMonth.getMonth() === todayDate.getMonth() && activeMonth.getFullYear() === todayDate.getFullYear();
+                return (
+                  <div
+                    style={{
+                      opacity: isCurrentMonthView ? 0 : 1,
+                      pointerEvents: isCurrentMonthView ? 'none' : 'auto',
+                      transition: 'opacity 200ms ease-out',
+                    }}
+                  >
+                    <button
+                      onClick={() => setActiveMonth(new Date())}
+                      className="flex items-center gap-1.5"
+                      style={{
+                        padding: '6px 16px',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 500,
+                        background: 'var(--temporal-today-bg)',
+                        color: '#FFFFFF',
+                        transition: 'background 150ms ease-out',
+                        whiteSpace: 'nowrap',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
+                      aria-label="Voltar para o mês atual"
+                    >
+                      <CalendarDays className="w-4 h-4" />
+                      <span>Hoje</span>
+                    </button>
+                  </div>
+                );
+              })()}
+              {/* Settings dropdown — includes Gerar Mês and Template config */}
+              <div className="relative" ref={(el) => { if (el) el.dataset.settingsMenu = 'true'; }}>
+                <button
+                  onClick={() => {
+                    const menu = document.getElementById('project-settings-menu');
+                    if (menu) menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+                  }}
+                  className="flex items-center justify-center"
+                  style={{ width: 36, height: 36, borderRadius: 8, color: 'var(--text-tertiary)', transition: 'all 150ms ease-out' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
+                  title="Configurações do projeto"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+                <div
+                  id="project-settings-menu"
+                  style={{
+                    display: 'none',
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: 4,
+                    flexDirection: 'column',
+                    minWidth: 200,
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 10,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    zIndex: 100,
+                    overflow: 'hidden',
+                  }}
+                  onMouseLeave={() => {
+                    const menu = document.getElementById('project-settings-menu');
+                    if (menu) menu.style.display = 'none';
+                  }}
+                >
+                  <GenerateMonthlyTasksButton
+                    projectId={activeProjectId}
+                    workspaceId={activeWorkspaceId || ''}
+                    activeMonth={activeMonth}
+                    onTasksGenerated={async () => {
+                      const menu = document.getElementById('project-settings-menu');
+                      if (menu) menu.style.display = 'none';
+                      const { data: secData } = await supabase
+                        .from('sections')
+                        .select('*')
+                        .eq('project_id', activeProjectId)
+                        .order('position');
+                      if (secData) {
+                        const newSecs = secData.map((s: any) => ({
+                          id: s.id, title: s.name, projectId: s.project_id, workspaceId: s.workspace_id
+                        }));
+                        setSections(prev => {
+                          const others = prev.filter(s => s.projectId !== activeProjectId);
+                          return [...others, ...newSecs];
+                        });
+                      }
+                      const { data: taskData } = await supabase
+                        .from('tasks')
+                        .select('*, task_members(*)')
+                        .eq('project_id', activeProjectId)
+                        .is('parent_task_id', null)
+                        .order('position');
+                      if (taskData) {
+                        const newTasks = taskData.map((row: any) => ({
+                          id: row.id,
+                          name: row.title,
+                          status: row.status as any,
+                          priority: row.priority,
+                          section: row.section_id,
+                          projectId: row.project_id,
+                          workspaceId: row.workspace_id,
+                          dueDate: row.due_date || undefined,
+                          scheduledDate: row.scheduled_date || undefined,
+                          description: row.description || '',
+                          assignee: row.assignee || undefined,
+                          createdBy: row.created_by || undefined,
+                          dayPeriod: (row.day_period as any) || 'morning',
+                          recurrenceType: row.recurrence_type || undefined,
+                          recurrenceConfig: row.recurrence_config || undefined,
+                          serviceTagId: row.service_tag_id || undefined,
+                          rolloverCount: row.rollover_count || 0,
+                          originalDueDate: row.original_due_date || undefined,
+                          position: row.position ?? 0,
+                          subtasks: [],
+                          members: (row.task_members || []).map((m: any) => ({
+                            id: m.id, taskId: m.task_id, userId: m.user_id
+                          })),
+                        }));
+                        setTasks(prev => {
+                          const others = prev.filter(t => t.projectId !== activeProjectId);
+                          return [...others, ...newTasks];
+                        });
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const menu = document.getElementById('project-settings-menu');
+                      if (menu) menu.style.display = 'none';
+                      setShowTemplateModal(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 text-[13px] w-full text-left"
+                    style={{ color: 'var(--text-secondary)', transition: 'all 100ms ease-out' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Configurar Templates
+                  </button>
+                </div>
+              </div>
             </div>
 
             {projectViewTab === 'notes' ? (
