@@ -455,7 +455,12 @@ function TempoVivoLayout({
   // Today: only the active period starts expanded; other days: all expanded
   useEffect(() => {
     if (viewingToday) {
-      setExpandedPeriods(new Set([currentPeriod]));
+      // At night, expand all periods so user can see promoted tasks + past work
+      if (currentPeriod === 'evening') {
+        setExpandedPeriods(new Set(['morning', 'afternoon', 'evening'] as DayPeriod[]));
+      } else {
+        setExpandedPeriods(new Set([currentPeriod]));
+      }
     } else {
       setExpandedPeriods(new Set(['morning', 'afternoon', 'evening'] as DayPeriod[]));
     }
