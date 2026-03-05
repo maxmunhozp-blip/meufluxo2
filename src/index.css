@@ -723,7 +723,18 @@ aside ~ div {
   border: none !important;
 }
 
-/* Sidebar resize handle — right edge affordance (Apple HIG + neuroinclusive) */
+/* Sidebar collapse/expand content fade */
+.sidebar-content-fade-in {
+  animation: sidebar-fade-in 300ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  animation-delay: 150ms;
+}
+
+@keyframes sidebar-fade-in {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
