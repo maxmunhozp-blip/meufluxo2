@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   addDays, addMonths, format, isToday, isBefore, startOfDay, parseISO, subDays, differenceInCalendarDays,
-  startOfWeek, startOfMonth,
+  startOfWeek, startOfMonth, setMonth, setYear, getMonth, getYear,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -16,6 +16,7 @@ import { Task, TaskStatus, Project, Section, Subtask } from '@/types/task';
 import { WeekTimelineView } from './WeekTimelineView';
 import { ProBadge } from '@/components/ProBadge';
 import { DropIndicatorLine } from '@/components/DropIndicatorLine';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 interface MyWeekViewProps {
@@ -118,16 +119,18 @@ function WeekTaskCard({
         }}
         whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
       >
-        {/* Line 1: Context — ● Project · Section */}
-        <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
-          <span
-            className="flex-shrink-0 rounded-full"
-            style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }}
-          />
-          {projectName && <span>{projectName}</span>}
-          {projectName && contextSuffix && <span>·</span>}
-          {contextSuffix && <span className="truncate">{contextSuffix}</span>}
-        </span>
+        {/* Line 1: Context — ● Project · Section (hidden for done tasks) */}
+        {!isDone && (
+          <span className="truncate flex items-center gap-1" style={{ fontSize: 10, color: 'var(--text-placeholder)', fontWeight: 400, lineHeight: 1.3 }}>
+            <span
+              className="flex-shrink-0 rounded-full"
+              style={{ width: 6, height: 6, background: projectColor, opacity: 0.4 }}
+            />
+            {projectName && <span>{projectName}</span>}
+            {projectName && contextSuffix && <span>·</span>}
+            {contextSuffix && <span className="truncate">{contextSuffix}</span>}
+          </span>
+        )}
 
         {/* Line 2: Task title */}
         <span
@@ -187,7 +190,7 @@ function DayColumn({
       ref={setNodeRef}
       className="flex flex-col flex-1 min-w-0 transition-colors"
       style={{
-        background: highlight ? 'var(--accent-subtle)' : isCurrentDay ? 'var(--bg-surface)' : 'transparent',
+        background: highlight ? 'var(--accent-subtle)' : 'transparent',
         borderTop: highlight ? '1px dashed var(--accent-blue)' : undefined,
         borderBottom: highlight ? '1px dashed var(--accent-blue)' : undefined,
         borderLeft: highlight ? '1px dashed var(--accent-blue)' : undefined,
@@ -713,6 +716,7 @@ export function MyWeekView({
   const [mobileOverlay, setMobileOverlay] = useState(false);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
   const pointerYRef = useRef(0);
+  const [monthPopoverOpen, setMonthPopoverOpen] = useState(false);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     try {
@@ -872,6 +876,19 @@ export function MyWeekView({
     else setDayOffset(p => p + 1);
   };
   const goToToday = () => setDayOffset(0);
+
+  const navigateToMonth = (monthIndex: number) => {
+    const today = new Date();
+    const target = startOfMonth(setMonth(today, monthIndex));
+    const diff = differenceInCalendarDays(target, startOfDay(today));
+    setDayOffset(diff);
+    setMonthPopoverOpen(false);
+  };
+
+  const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => {
+    const name = format(setMonth(new Date(), i), 'MMMM', { locale: ptBR });
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  });
 
   // DnD handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -1077,15 +1094,6 @@ export function MyWeekView({
         </h1>
 
         <div className="flex items-center gap-1 md:gap-2">
-          {/* Nav arrows */}
-          <button onClick={navigateBack} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: 'var(--text-secondary)' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
           {/* Hoje button */}
           <button
             onClick={goToToday}
@@ -1106,6 +1114,51 @@ export function MyWeekView({
             Hoje
           </button>
 
+          {/* Month nav: < Março > */}
+          <button onClick={navigateBack} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <Popover open={monthPopoverOpen} onOpenChange={setMonthPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="hidden md:inline text-[13px] font-bold px-1 rounded transition-colors cursor-pointer min-w-[70px] text-center"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              >
+                {dateRangeLabel}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="center">
+              <div className="grid grid-cols-3 gap-1">
+                {MONTH_NAMES.map((name, i) => {
+                  const currentMonth = getMonth(visibleDates[0]);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => navigateToMonth(i)}
+                      className="px-2 py-1.5 text-[12px] rounded-md transition-colors text-center"
+                      style={{
+                        background: i === currentMonth ? 'var(--accent-blue)' : 'transparent',
+                        color: i === currentMonth ? 'var(--bg-base)' : 'var(--text-secondary)',
+                        fontWeight: i === currentMonth ? 600 : 400,
+                      }}
+                      onMouseEnter={e => { if (i !== currentMonth) { e.currentTarget.style.background = 'var(--bg-hover)'; } }}
+                      onMouseLeave={e => { if (i !== currentMonth) { e.currentTarget.style.background = 'transparent'; } }}
+                    >
+                      {name.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <button onClick={navigateForward} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
             style={{ color: 'var(--text-secondary)' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
@@ -1113,11 +1166,6 @@ export function MyWeekView({
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-
-          {/* Date range */}
-          <span className="hidden md:inline text-[13px] ml-1 font-bold" style={{ color: 'var(--text-secondary)' }}>
-            {dateRangeLabel}
-          </span>
 
           {/* View toggle */}
           <div className="ml-1 md:ml-3 flex items-center rounded-md overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
