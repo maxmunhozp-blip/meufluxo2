@@ -934,29 +934,71 @@ export function MyDayView({
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            {/* "Hoje" button — in header when not viewing today */}
+            {!viewingToday && (
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className="flex items-center gap-1.5 flex-shrink-0"
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  background: 'var(--temporal-today-bg)',
+                  color: '#FFFFFF',
+                  transition: 'background 150ms ease-out',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
+                aria-label="Voltar para hoje"
+              >
+                <CalendarCheck className="w-3.5 h-3.5" />
+                <span>Hoje</span>
+              </button>
+            )}
+
+            {/* Mode toggle — Período | Trabalho */}
             {serviceTags.length > 0 && (
-              <div className="relative">
-                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-1 h-8 px-2 transition-colors"
-                  style={{ color: 'var(--text-tertiary)', fontSize: 12 }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  onMouseLeave={e => { if (!dropdownOpen) e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
-                  {groupMode === 'period' ? 'Por seção' : 'Por tipo de trabalho'}
-                  <ChevronDown className="w-3 h-3" />
+              <div
+                className="relative flex items-center h-8 rounded-lg overflow-hidden"
+                style={{
+                  background: 'var(--bg-hover)',
+                  padding: 2,
+                }}
+              >
+                {/* Sliding indicator */}
+                <div
+                  className="absolute rounded-md transition-all duration-200 ease-out"
+                  style={{
+                    width: 'calc(50% - 2px)',
+                    height: 'calc(100% - 4px)',
+                    top: 2,
+                    left: groupMode === 'period' ? 2 : 'calc(50%)',
+                    background: 'var(--bg-surface)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  }}
+                />
+                <button
+                  onClick={() => setGroupMode('period')}
+                  className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
+                  style={{
+                    color: groupMode === 'period' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                    minWidth: 72,
+                  }}
+                >
+                  Período
                 </button>
-                {dropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
-                    <div className="absolute right-0 top-9 z-50 w-32 rounded-lg border overflow-hidden py-1"
-                      style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-md)' }}>
-                      <button onClick={() => { setGroupMode('period'); setDropdownOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-nd-hover"
-                        style={{ color: groupMode === 'period' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Por seção</button>
-                      <button onClick={() => { setGroupMode('service'); setDropdownOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-nd-hover"
-                        style={{ color: groupMode === 'service' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Por tipo de trabalho</button>
-                    </div>
-                  </>
-                )}
+                <button
+                  onClick={() => setGroupMode('service')}
+                  className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
+                  style={{
+                    color: groupMode === 'service' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                    minWidth: 72,
+                  }}
+                >
+                  Trabalho
+                </button>
               </div>
             )}
 
@@ -989,30 +1031,6 @@ export function MyDayView({
           the arrow zone so they never shift arrow positions.
         */}
         <div className="flex items-center gap-3 mt-3 justify-end">
-          {/* "Hoje" button — left of arrows */}
-          {!viewingToday && (
-            <button
-              onClick={() => setSelectedDate(new Date())}
-              className="flex items-center gap-1.5 flex-shrink-0"
-              style={{
-                padding: '4px 12px',
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 500,
-                background: 'var(--temporal-today-bg)',
-                color: '#FFFFFF',
-                transition: 'background 150ms ease-out',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--temporal-today-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--temporal-today-bg)'; }}
-              aria-label="Voltar para hoje"
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              <span>Hoje</span>
-            </button>
-          )}
-
           {/* Temporal badge — left of arrows */}
           {!viewingToday && temporalLabel && (
             <span
