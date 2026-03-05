@@ -555,6 +555,18 @@ export function ProjectSidebar({
       ? '/meufluxo-logo-dark.svg'
       : '/meufluxo-logo.svg';
 
+  // Shine on click
+  const [shineActive, setShineActive] = useState(false);
+  const shineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerShine = () => {
+    setShineActive(false);
+    if (shineTimerRef.current) clearTimeout(shineTimerRef.current);
+    requestAnimationFrame(() => {
+      setShineActive(true);
+      shineTimerRef.current = setTimeout(() => setShineActive(false), 1600);
+    });
+  };
+
   // Collapsed mini sidebar
   if (collapsed) {
     return (
@@ -664,7 +676,11 @@ export function ProjectSidebar({
       {/* BRAND HEADER — φ proportion: 20px top padding for breathing room */}
       <div style={{ flexShrink: 0, padding: '24px 16px 0 16px' }}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={onToggleMyDay}>
+          <div
+            className="logo-shine-wrapper"
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => { triggerShine(); onToggleMyDay?.(); }}
+          >
             <div style={{ height: 20, width: 120, position: 'relative' }}>
               {(['light', 'dark', 'light-contrast'] as const).map(t => {
                 const src = t === 'light-contrast' ? '/meufluxo-logo-blue-bg.svg' : t === 'dark' ? '/meufluxo-logo-dark.svg' : '/meufluxo-logo.svg';
@@ -686,6 +702,19 @@ export function ProjectSidebar({
                   />
                 );
               })}
+              <div
+                className={`logo-shine-overlay ${shineActive ? 'shine-active' : ''}`}
+                style={{
+                  maskImage: `url(${activeLogoSrc})`,
+                  WebkitMaskImage: `url(${activeLogoSrc})`,
+                  maskSize: 'contain',
+                  WebkitMaskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'left center',
+                  WebkitMaskPosition: 'left center',
+                }}
+              />
             </div>
           </div>
           {onToggleCollapse && (
