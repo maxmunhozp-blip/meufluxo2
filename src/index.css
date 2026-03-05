@@ -360,7 +360,7 @@
   /* ---- LIGHT-CONTRAST: light content + dark sidebar ---- */
   [data-theme="light-contrast"] {
     /* Inherit all light mode tokens */
-    --background: 240 5% 97%;
+    --background: 240 5% 93%;
     --foreground: 240 10% 10%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 10%;
