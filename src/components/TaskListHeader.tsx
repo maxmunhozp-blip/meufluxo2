@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { MonthYearPicker } from '@/components/MonthYearPicker';
 
 export type FilterMode = 'all' | 'pending' | 'done';
 
@@ -15,6 +18,7 @@ interface TaskListHeaderProps {
 }
 
 export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
+  const [pickerOpen, setPickerOpen] = useState(false);
   const now = activeMonth || new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
@@ -100,12 +104,24 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
             </button>
             
             <div className="flex-1 flex items-center justify-center overflow-hidden">
-              <span
-                className="tabular-nums text-center truncate"
-                style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-              >
-                {MONTH_NAMES[currentMonth]} {currentYear}
-              </span>
+              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="tabular-nums text-center truncate cursor-pointer rounded-md px-2 py-1 transition-colors"
+                    style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {MONTH_NAMES[currentMonth]} {currentYear}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="center">
+                  <MonthYearPicker onSelect={(year, month) => {
+                    onMonthChange?.(new Date(year, month, 1));
+                    setPickerOpen(false);
+                  }} />
+                </PopoverContent>
+              </Popover>
             </div>
             
             <button
