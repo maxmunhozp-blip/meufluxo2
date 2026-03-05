@@ -595,14 +595,14 @@ export function ProjectSidebar({
         className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
         style={{
           width: 48, minWidth: 48, maxWidth: 48,
-          transition: 'width 200ms ease-out',
+          transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
           background: 'hsl(var(--sidebar-background))',
           borderRight: '1px solid var(--sidebar-right-border, transparent)',
           borderRadius: 'var(--sidebar-container-radius, 0)',
         }}
       >
         <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
-        <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
+        <div className="flex flex-col items-center gap-1 px-1 sidebar-content-fade-in" style={{ paddingTop: 28 }}>
           {/* Favicon icon */}
           <button
             onClick={onToggleCollapse}
@@ -727,7 +727,7 @@ export function ProjectSidebar({
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
       style={{
         width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth,
-        transition: 'width 200ms ease-out',
+        transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
         background: 'hsl(var(--sidebar-background))',
         borderRight: '1px solid var(--sidebar-right-border, transparent)',
         borderRadius: 'var(--sidebar-container-radius, 0)',
