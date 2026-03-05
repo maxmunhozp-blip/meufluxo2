@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft, Type, Pencil } from 'lucide-react';
@@ -589,7 +589,7 @@ export function ProjectSidebar({
   }, [themePreference, triggerShine]);
 
   // Track collapse transition — delay switching to collapsed JSX so the logo "slides under" the closing sidebar
-  const justExpandedRef = useRef(false);
+  const [suppressLogoTransition, setSuppressLogoTransition] = useState(false);
   const [renderCollapsed, setRenderCollapsed] = useState(collapsed);
   const [showXIcon, setShowXIcon] = useState(collapsed);
   const [isCollapsing, setIsCollapsing] = useState(false);
@@ -607,17 +607,30 @@ export function ProjectSidebar({
         setTimeout(() => setShowXIcon(true), 50);
       }, 370); // match the 350ms CSS transition
     } else {
-      // Expanding: immediately switch to expanded JSX, skip logo fade
+      // Expanding: immediately switch to expanded JSX, suppress logo opacity transition
+      setSuppressLogoTransition(true);
       setRenderCollapsed(false);
       setShowXIcon(false);
       setIsCollapsing(false);
-      justExpandedRef.current = true;
       if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
-      // Clear the "just expanded" flag after a frame so future theme changes still animate
-      requestAnimationFrame(() => { justExpandedRef.current = false; });
     }
     return () => { if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current); };
   }, [collapsed]);
+
+  // Re-enable logo transition AFTER React has painted the expanded state.
+  // useLayoutEffect + double rAF ensures we wait for the browser to commit the first paint.
+  useLayoutEffect(() => {
+    if (suppressLogoTransition) {
+      // Double rAF: first rAF runs before paint, second runs after paint is committed
+      const raf1 = requestAnimationFrame(() => {
+        const raf2 = requestAnimationFrame(() => {
+          setSuppressLogoTransition(false);
+        });
+        return () => cancelAnimationFrame(raf2);
+      });
+      return () => cancelAnimationFrame(raf1);
+    }
+  }, [suppressLogoTransition]);
 
   // Collapsed mini sidebar — only render after transition completes
   if (renderCollapsed) {
@@ -821,7 +834,7 @@ export function ProjectSidebar({
                       left: 0,
                       opacity: src === activeLogoSrc ? 1 : 0,
                       pointerEvents: src === activeLogoSrc ? 'auto' : 'none',
-                      transition: justExpandedRef.current ? 'none' : 'opacity 250ms ease-out',
+                      transition: suppressLogoTransition ? 'none' : 'opacity 250ms ease-out',
                     }}
                   />
                 );
