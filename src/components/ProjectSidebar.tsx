@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
 import { GripVertical, Settings, LogOut, Sun, Moon, Monitor, CalendarDays, Users, Shield, HelpCircle, Tag, CreditCard, User, ChevronRight, StickyNote, PanelLeftClose, PanelLeft, Type, Pencil } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -652,19 +653,41 @@ export function ProjectSidebar({
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
 
           {/* Project dots */}
-          {projects.map(p => (
-            <button
-              key={p.id}
-              onClick={() => onSelectProject(p.id)}
-              title={p.name}
-              className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-              style={{ background: activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent'; }}
-            >
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
-            </button>
-          ))}
+          <TooltipProvider delayDuration={200}>
+            {projects.map(p => {
+              const isActive = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView;
+              return (
+                <Tooltip key={p.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => onSelectProject(p.id)}
+                      className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+                      style={{ background: isActive ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'hsl(var(--sidebar-accent))' : 'transparent'; }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    sideOffset={8}
+                    className="border-0 px-3 py-1.5 rounded-lg"
+                    style={{
+                      background: 'var(--bg-elevated, hsl(var(--popover)))',
+                      color: 'var(--text-primary, hsl(var(--popover-foreground)))',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                      borderLeft: `3px solid ${p.color}`,
+                    }}
+                  >
+                    {p.name}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </TooltipProvider>
         </div>
 
         {/* Bottom icons: theme + expand */}
