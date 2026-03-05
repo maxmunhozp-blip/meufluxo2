@@ -611,6 +611,7 @@ export function ProjectSidebar({
             <img
               src={themePreference === 'dark' ? meufluxoXDark : '/meufluxo-icon.svg'}
               alt="MeuFluxo"
+              className="sidebar-collapsed-icon"
               style={{ width: 22, height: 22, objectFit: 'contain' }}
             />
           </button>
