@@ -1347,7 +1347,7 @@ const Index = () => {
         ) : activeProject ? (
           <>
             {/* Tabs: Tarefas / Notas */}
-             <div style={{ padding: '28px 32px 0 32px' }}>
+             <div style={{ padding: '36px 32px 0 32px' }}>
               <TaskListHeader
                 projectName={activeProject.name}
                 pendingCount={pendingCount}
