@@ -622,9 +622,9 @@ export function ProjectSidebar({
             onClick={onToggleMyDay}
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Meu Dia"
-            style={{ color: isMyDayView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isMyDayView ? 'var(--accent-subtle)' : 'transparent' }}
-            onMouseEnter={e => { if (!isMyDayView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-            onMouseLeave={e => { if (!isMyDayView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+            style={{ color: isMyDayView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyDayView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyDayView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isMyDayView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
           >
             <Sun className="w-4 h-4" />
           </button>
@@ -632,9 +632,9 @@ export function ProjectSidebar({
             onClick={onToggleMyWeek}
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Minha Semana"
-            style={{ color: isMyWeekView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isMyWeekView ? 'var(--accent-subtle)' : 'transparent' }}
-            onMouseEnter={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-            onMouseLeave={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+            style={{ color: isMyWeekView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isMyWeekView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isMyWeekView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
           >
             <CalendarDays className="w-4 h-4" />
           </button>
@@ -642,14 +642,14 @@ export function ProjectSidebar({
             onClick={onToggleNotes}
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Notas"
-            style={{ color: isNotesView ? 'var(--accent-blue)' : 'var(--text-secondary)', background: isNotesView ? 'var(--accent-subtle)' : 'transparent' }}
-            onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-            onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+            style={{ color: isNotesView ? 'hsl(var(--sidebar-primary))' : 'var(--sidebar-text-secondary, var(--text-secondary))', background: isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+            onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
+            onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
           >
             <StickyNote className="w-4 h-4" />
           </button>
 
-          <div className="w-5 h-px my-1" style={{ background: 'var(--border-subtle)' }} />
+          <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
 
           {/* Project dots */}
           {projects.map(p => (
@@ -658,9 +658,9 @@ export function ProjectSidebar({
               onClick={() => onSelectProject(p.id)}
               title={p.name}
               className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
-              style={{ background: activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'var(--accent-subtle)' : 'transparent' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'var(--accent-subtle)' : 'transparent'; }}
+              style={{ background: activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = activeProjectId === p.id && !isMyDayView && !isMyWeekView && !isMyTasksView && !isNotesView ? 'hsl(var(--sidebar-accent))' : 'transparent'; }}
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, opacity: 'var(--project-dot-opacity, 1)' as any }} />
             </button>
@@ -674,9 +674,9 @@ export function ProjectSidebar({
               onClick={onCycleTheme}
               className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
               title={themePreference === 'dark' ? 'Escuro' : themePreference === 'light' ? 'Claro' : 'Contraste'}
-              style={{ color: 'var(--text-secondary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
             >
               {themePreference === 'dark' ? <Moon className="w-4 h-4" strokeWidth={1.5} /> :
                themePreference === 'light' ? <Sun className="w-4 h-4" strokeWidth={1.5} /> :
@@ -687,9 +687,9 @@ export function ProjectSidebar({
             onClick={onToggleCollapse}
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Expandir menu"
-            style={{ color: 'var(--text-secondary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            style={{ color: 'var(--sidebar-text-secondary, var(--text-secondary))' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; }}
           >
             <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
           </button>
