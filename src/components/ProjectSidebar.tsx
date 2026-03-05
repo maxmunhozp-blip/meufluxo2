@@ -642,6 +642,12 @@ export function ProjectSidebar({
           borderRadius: 'var(--sidebar-container-radius, 0)',
         }}
       >
+        {/* Preload expanded logo images — keeps them decoded in browser memory for instant paint on expand */}
+        <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          <img src="/meufluxo-logo.svg" alt="" />
+          <img src="/meufluxo-logo-dark.svg" alt="" />
+          <img src="/meufluxo-logo-blue-bg.svg" alt="" />
+        </div>
         <div className="sidebar-resize-handle" title="Expandir" onClick={onToggleCollapse} style={{ cursor: 'pointer' }} />
         <div className="flex flex-col items-center gap-1 px-1" style={{ paddingTop: 28 }}>
           {/* X icon — fade in after collapse transition */}
@@ -772,7 +778,7 @@ export function ProjectSidebar({
       className="h-screen flex flex-col z-30 sticky top-0 overflow-hidden sidebar-container relative"
       style={{
         width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth,
-        transition: 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+        transition: suppressLogoTransition ? 'none' : 'width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), min-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1), max-width 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
         background: 'hsl(var(--sidebar-background))',
         borderRight: '1px solid var(--sidebar-right-border, transparent)',
         borderRadius: 'var(--sidebar-container-radius, 0)',
