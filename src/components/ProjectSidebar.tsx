@@ -14,6 +14,7 @@ import { ProjectMembersModal } from './ProjectMembersModal';
 import type { Workspace, WorkspaceMember } from '@/hooks/useSupabaseData';
 import { HowToUseModal } from './HowToUseModal';
 import { ServiceTagsManager } from './ServiceTagsManager';
+import meufluxoXDark from '@/assets/meufluxo-x-dark.svg';
 
 export const PROJECT_COLORS = ['#6C9CFC', '#FFB86C', '#FF79C6', '#50FA7B', '#BD93F9', '#8BE9FD', '#F1FA8C'];
 
@@ -607,7 +608,11 @@ export function ProjectSidebar({
             className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             title="Expandir menu"
           >
-            <img src="/meufluxo-icon.svg" alt="MeuFluxo" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+            <img
+              src={themePreference === 'dark' ? meufluxoXDark : '/meufluxo-icon.svg'}
+              alt="MeuFluxo"
+              style={{ width: 22, height: 22, objectFit: 'contain' }}
+            />
           </button>
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator))' }} />
 
