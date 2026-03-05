@@ -15,19 +15,15 @@ export function useWorkspaceOps(deps: SharedState) {
     setActiveWorkspaceId(workspaceId);
     setLoading(true);
     Promise.all([
-      supabase.from('projects').select('*').eq('archived', false).order('position').order('created_at'),
-      supabase.from('sections').select('*').order('position'),
-      supabase.from('tasks').select('*').is('parent_task_id', null).order('position'),
-      supabase.from('tasks').select('*').not('parent_task_id', 'is', null).order('position'),
+      supabase.from('projects').select('*').eq('workspace_id', workspaceId).eq('archived', false).order('position').order('created_at'),
+      supabase.from('sections').select('*').eq('workspace_id', workspaceId).order('position'),
+      supabase.from('tasks').select('*').eq('workspace_id', workspaceId).is('parent_task_id', null).order('position'),
+      supabase.from('tasks').select('*').eq('workspace_id', workspaceId).not('parent_task_id', 'is', null).order('position'),
     ]).then(([projectsRes, sectionsRes, tasksRes, subtasksRes]) => {
-      const wsProjects = (projectsRes.data || []).filter((p: any) => p.workspace_id === workspaceId);
-      setProjectsState(wsProjects.map(mapDbProject));
-      const wsSections = (sectionsRes.data || []).filter((s: any) => s.workspace_id === workspaceId);
-      setSectionsState(wsSections.map(mapDbSection));
-      const wsTasks = (tasksRes.data || []).filter((t: any) => t.workspace_id === workspaceId);
-      const wsSubtasks = (subtasksRes.data || []).filter((t: any) => t.workspace_id === workspaceId);
-      const mappedTasks = wsTasks.map(mapDbTask);
-      const mappedSubtasks = wsSubtasks.map(mapDbTask);
+      setProjectsState((projectsRes.data || []).map(mapDbProject));
+      setSectionsState((sectionsRes.data || []).map(mapDbSection));
+      const mappedTasks = (tasksRes.data || []).map(mapDbTask);
+      const mappedSubtasks = (subtasksRes.data || []).map(mapDbTask);
       const taskMap = new Map<string, Task>();
       mappedTasks.forEach(t => taskMap.set(t.id, { ...t, subtasks: [], members: [] }));
       mappedSubtasks.forEach(sub => {
