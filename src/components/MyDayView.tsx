@@ -1020,11 +1020,11 @@ export function MyDayView({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.18, ease: 'easeOut' }}
                       >
-                        <span style={{ opacity: 0.425 }}>{format(selectedDate, "EEEE", { locale: ptBR })},</span>
+                        <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>{format(selectedDate, "EEEE", { locale: ptBR })},</span>
                         {' '}
-                        <span style={{ opacity: 0.425 }}>{format(selectedDate, "dd", { locale: ptBR })}</span>
+                        <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>{format(selectedDate, "dd", { locale: ptBR })}</span>
                         {' '}
-                        <span style={{ opacity: 0.425 }}>de {format(selectedDate, "MMMM", { locale: ptBR }).replace(/^\w/, c => c.toUpperCase())}</span>
+                        <span style={{ opacity: 'var(--date-nav-opacity)' as any }}>de {format(selectedDate, "MMMM", { locale: ptBR }).replace(/^\w/, c => c.toUpperCase())}</span>
                       </motion.span>
                     </AnimatePresence>
                   </button>

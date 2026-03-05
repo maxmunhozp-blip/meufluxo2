@@ -98,6 +98,9 @@
     --client-teal: #5EEAD4;
     --client-olive: #FDE047;
 
+    /* Date navigation opacity */
+    --date-nav-opacity: 0.32;
+
     /* Borders */
     --border-subtle: #1E1E21;
     --border-default: #3A3A3F;
@@ -248,6 +251,9 @@
     --text-muted: 240 4% 46%;
     --text-completed: 240 3% 60%;
 
+    /* Date navigation opacity */
+    --date-nav-opacity: 0.425;
+
     /* Accent */
     --accent-blue: #4F6DF5;
     --accent-hover: #6B84F7;
@@ -360,6 +366,7 @@
   /* ---- LIGHT-CONTRAST: light content + dark sidebar ---- */
   [data-theme="light-contrast"] {
     /* Inherit all light mode tokens */
+    --date-nav-opacity: 0.425;
     --background: 240 5% 95%;
     --foreground: 240 10% 10%;
     --card: 240 4% 98%;
