@@ -654,7 +654,7 @@ export function ProjectSidebar({
             title="Expandir menu"
           >
             <img
-              src={themePreference === 'dark' ? meufluxoXDark : '/meufluxo-icon.svg'}
+              src={themePreference === 'dark' ? meufluxoXDark : themePreference === 'light' ? '/meufluxo-x-light.png' : '/meufluxo-icon.svg'}
               alt="MeuFluxo"
               style={{
                 width: 22, height: 22, objectFit: 'contain',
