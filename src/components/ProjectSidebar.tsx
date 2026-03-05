@@ -886,7 +886,16 @@ export function ProjectSidebar({
       </div>
 
       {/* BOTTOM ZONE — sticky, with proper padding */}
-      <div style={{ flexShrink: 0, padding: '0 16px 16px 16px' }}>
+      <div style={{
+        flexShrink: 0, padding: collapsed ? '0' : '0 16px 16px 16px',
+        opacity: collapsed ? 0 : 1,
+        maxHeight: collapsed ? 0 : 200,
+        overflow: 'hidden',
+        pointerEvents: collapsed ? 'none' : 'auto',
+        transition: collapsed
+          ? `opacity 180ms ease-out, max-height ${collapseDur} ${EASE}, padding ${collapseDur} ${EASE}`
+          : `opacity 350ms ease-out 180ms, max-height ${expandDur} ${EASE}, padding ${expandDur} ${EASE}`,
+      }}>
         <div style={{ height: 1, background: 'hsl(var(--sidebar-separator))', marginBottom: 8 }} />
         {creatingProject ? (
           <div className="flex items-center" style={{ height: 36 }}>
