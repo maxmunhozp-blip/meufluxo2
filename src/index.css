@@ -745,9 +745,9 @@ aside ~ div {
   background: linear-gradient(
     180deg,
     transparent 0%,
-    hsl(var(--sidebar-primary) / 0.12) 15%,
-    hsl(var(--sidebar-primary) / 0.18) 50%,
-    hsl(var(--sidebar-primary) / 0.12) 85%,
+    hsl(var(--sidebar-primary) / 0.25) 15%,
+    hsl(var(--sidebar-primary) / 0.4) 50%,
+    hsl(var(--sidebar-primary) / 0.25) 85%,
     transparent 100%
   );
   opacity: 0;
@@ -764,7 +764,7 @@ aside ~ div {
   width: 3px;
   height: 32px;
   border-radius: 3px;
-  background: hsl(var(--sidebar-primary) / 0.35);
+  background: hsl(var(--sidebar-primary) / 0.5);
   opacity: 0;
   transition: opacity 250ms cubic-bezier(0.25, 0.1, 0.25, 1),
               height 250ms cubic-bezier(0.25, 0.1, 0.25, 1),
@@ -777,7 +777,7 @@ aside ~ div {
 .sidebar-resize-handle:hover::after {
   opacity: 1;
   height: 40px;
-  background: hsl(var(--sidebar-primary) / 0.5);
+  background: hsl(var(--sidebar-primary) / 0.7);
 }
 .sidebar-resize-handle:active::before {
   opacity: 1;
