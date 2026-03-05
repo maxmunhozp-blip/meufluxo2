@@ -278,7 +278,7 @@ const Landing = () => {
               <button key={id} onClick={() => go(id)} style={{ fontSize: 14, fontWeight: 500, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>{l}</button>
             ))}
             <a href="/auth" style={{ fontSize: 14, fontWeight: 500, color: C.muted, textDecoration: "none", cursor: "pointer" }}>Login</a>
-            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar grátis</a>
+            <a href="/auth" style={{ height: 40, padding: "0 22px", borderRadius: 999, fontSize: 14, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(79,109,245,0.3)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Começar agora</a>
           </div>
           {/* Mobile hamburger */}
           <div className="flex sm:hidden" style={{ alignItems: "center", gap: 12 }}>
@@ -310,7 +310,7 @@ const Landing = () => {
           </h1>
           <p className="mf-r text-[15px] sm:text-[18px]" style={{ lineHeight: 1.6, color: C.muted, maxWidth: 520, margin: "0 auto 40px" }}>Cada feature nasceu de um estudo científico.<br />Cada estudo nasceu de uma dor real.</p>
           <div className="mf-r flex gap-3 sm:gap-[14px] justify-center flex-wrap">
-            <a href="/auth" className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 8px 32px rgba(79,109,245,0.35)", display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>Começar grátis <span style={{ color: "rgba(255,255,255,0.6)" }}>→</span></a>
+            <a href="/auth" className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 600, color: "#fff", background: `linear-gradient(135deg,${C.accent},${C.accentP})`, border: "none", cursor: "pointer", boxShadow: "0 8px 32px rgba(79,109,245,0.35)", display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>Começar agora <span style={{ color: "rgba(255,255,255,0.6)" }}>→</span></a>
             <button onClick={() => go("stories")} className="h-12 sm:h-14 px-6 sm:px-9 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 500, color: C.muted, background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(0,0,0,0.08)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>Ver a ciência <span style={{ color: C.mutedL }}>↓</span></button>
           </div>
         </RevealGroup>
@@ -470,7 +470,7 @@ const Landing = () => {
               {["1 Workspace", "3 Projetos", "20 Tarefas/projeto", "Dark & Light mode"].map(f => (
                 <div key={f} className="flex items-center gap-2 mb-2 text-[13px]" style={{ color: "rgba(255,255,255,0.5)" }}><span style={{ color: C.mono }}>✓</span>{f}</div>
               ))}
-              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>Criar conta grátis</a>
+              <a href="/auth" className="block w-full h-[42px] mt-4 text-[13px] font-semibold text-center leading-[42px]" style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>Criar conta</a>
             </div>
             <div className="mf-sr p-5 sm:p-7 relative mt-6 sm:mt-0" style={{ borderRadius: 20, background: "rgba(79,109,245,0.08)", border: "2px solid rgba(79,109,245,0.3)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1" style={{ borderRadius: 999, background: `linear-gradient(135deg,${C.accent},${C.accentP})`, fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#fff", whiteSpace: "nowrap" }}>Recomendado</div>
@@ -502,7 +502,7 @@ const Landing = () => {
         <RevealGroup style={{ maxWidth: 560, margin: "0 auto", position: "relative" }}>
           <h2 className="mf-r" style={{ fontFamily: pf, fontSize: "clamp(1.8rem,5vw,3.2rem)", fontWeight: 700, lineHeight: 1.08, color: "#fff", marginBottom: 16 }}>Seu cérebro merece<br />ferramentas melhores.</h2>
           <p className="mf-r text-sm sm:text-[15px]" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 36 }}>Cada feature nasceu de um estudo. Cada estudo nasceu de uma dor.<br />O MeuFluxo foi construído por quem vive isso.</p>
-          <div className="mf-r"><a href="/auth" className="h-12 sm:h-14 px-8 sm:px-10 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 700, color: C.dark, background: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 24px rgba(0,0,0,0.2)", display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>Começar grátis agora <span style={{ color: C.mutedL }}>→</span></a></div>
+          <div className="mf-r"><a href="/auth" className="h-12 sm:h-14 px-8 sm:px-10 text-[14px] sm:text-[15px]" style={{ borderRadius: 999, fontWeight: 700, color: C.dark, background: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 24px rgba(0,0,0,0.2)", display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>Começar agora <span style={{ color: C.mutedL }}>→</span></a></div>
         </RevealGroup>
       </section>
 
