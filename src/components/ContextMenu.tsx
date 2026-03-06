@@ -36,7 +36,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="fixed"
@@ -174,6 +174,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
           )}
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }
