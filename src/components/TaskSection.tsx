@@ -455,9 +455,20 @@ export function TaskSection({
             ...(onExpandAll ? [{ label: 'Expandir todas', onClick: onExpandAll }] : []),
             ...(onCollapseAll ? [{ label: 'Colapsar todas', onClick: onCollapseAll }] : []),
             ...(!section.isFixed ? [{
-              label: 'Excluir',
+              label: 'Excluir seção',
               danger: true,
-              onClick: () => { onDeleteSection(section.id); },
+              onClick: async () => {
+                const taskCount = tasks.length;
+                if (taskCount > 0) {
+                  const confirmed = await confirm(
+                    `Excluir "${section.title}"?`,
+                    `Esta seção contém ${taskCount} tarefa${taskCount > 1 ? 's' : ''}. Todas serão removidas permanentemente.`,
+                    'Excluir seção'
+                  );
+                  if (!confirmed) return;
+                }
+                onDeleteSection(section.id);
+              },
             }] : []),
           ]}
         />
