@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
+import { useConfirmAction } from './ConfirmAction';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
