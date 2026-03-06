@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
+import { useConfirmAction } from './ConfirmAction';
 import { MonthYearPicker } from './MonthYearPicker';
 import { SortableTaskRow } from './SortableTaskRow';
 import { SectionProgressBar } from './SectionProgressBar';
@@ -210,6 +211,7 @@ export function TaskSection({
   const [renameValue, setRenameValue] = useState(section.title);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [nativeDragOver, setNativeDragOver] = useState(false);
+  const [confirmDialog, confirm] = useConfirmAction();
   const renameRef = useRef<HTMLInputElement>(null);
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
 
@@ -453,13 +455,25 @@ export function TaskSection({
             ...(onExpandAll ? [{ label: 'Expandir todas', onClick: onExpandAll }] : []),
             ...(onCollapseAll ? [{ label: 'Colapsar todas', onClick: onCollapseAll }] : []),
             ...(!section.isFixed ? [{
-              label: 'Excluir',
+              label: 'Excluir seção',
               danger: true,
-              onClick: () => { onDeleteSection(section.id); },
+              onClick: async () => {
+                const taskCount = tasks.length;
+                if (taskCount > 0) {
+                  const confirmed = await confirm(
+                    `Excluir "${section.title}"?`,
+                    `Esta seção contém ${taskCount} tarefa${taskCount > 1 ? 's' : ''}. Todas serão removidas permanentemente.`,
+                    'Excluir seção'
+                  );
+                  if (!confirmed) return;
+                }
+                onDeleteSection(section.id);
+              },
             }] : []),
           ]}
         />
       )}
+      {confirmDialog}
     </div>
   );
 }
