@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronRight } from 'lucide-react';
 
 export interface ContextMenuItem {
@@ -35,7 +36,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="fixed"
@@ -173,6 +174,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
           )}
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }
