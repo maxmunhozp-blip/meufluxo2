@@ -370,17 +370,17 @@
     /* Inherit all light mode tokens */
     --date-nav-opacity: 0.425;
     --background: 240 5% 95%;
-    --foreground: 240 10% 10%;
+    --foreground: 240 10% 7%;
     --card: 240 4% 98%;
-    --card-foreground: 240 10% 10%;
+    --card-foreground: 240 10% 7%;
     --popover: 240 4% 98%;
-    --popover-foreground: 240 10% 10%;
+    --popover-foreground: 240 10% 7%;
     --primary: 231 88% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 5% 93%;
-    --secondary-foreground: 240 10% 10%;
+    --secondary-foreground: 240 10% 7%;
     --muted: 240 5% 95%;
-    --muted-foreground: 240 4% 45%;
+    --muted-foreground: 240 4% 36%;
     --accent: 263 70% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 50%;
@@ -407,14 +407,14 @@
     --bg-input-hsl: 240 5% 93%;
     --bg-overlay-hsl: 240 10% 10% / 0.4;
 
-    --text-primary: #18181B;
-    --text-secondary: #71717A;
-    --text-tertiary: #A1A1AA;
-    --text-placeholder: #C4C4CC;
-    --text-primary-hsl: 240 10% 10%;
-    --text-secondary-hsl: 240 4% 46%;
-    --text-muted: 240 4% 46%;
-    --text-completed: 240 3% 60%;
+    --text-primary: #0f0f12;
+    --text-secondary: #52525B;
+    --text-tertiary: #71717A;
+    --text-placeholder: #A1A1AA;
+    --text-primary-hsl: 240 10% 7%;
+    --text-secondary-hsl: 240 4% 34%;
+    --text-muted: 240 4% 34%;
+    --text-completed: 240 3% 50%;
 
     --accent-blue: #4F6DF5;
     --accent-hover: #6B84F7;
