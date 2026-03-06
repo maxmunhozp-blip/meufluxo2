@@ -473,6 +473,7 @@ export function TaskSection({
           ]}
         />
       )}
+      {confirmDialog}
     </div>
   );
 }
