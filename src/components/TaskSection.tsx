@@ -211,6 +211,7 @@ export function TaskSection({
   const [renameValue, setRenameValue] = useState(section.title);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [nativeDragOver, setNativeDragOver] = useState(false);
+  const [confirmDialog, confirm] = useConfirmAction();
   const renameRef = useRef<HTMLInputElement>(null);
   const pendingCount = tasks.filter(t => t.status !== 'done').length;
 
