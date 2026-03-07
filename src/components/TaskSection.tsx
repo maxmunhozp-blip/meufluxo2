@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder, MoreHorizontal } from 'lucide-react';
+import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder, MoreHorizontal, Pencil, CalendarArrowDown, ChevronsDownUp, ChevronsUpDown, ArrowRightToLine, Trash2 } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { useConfirmAction } from './ConfirmAction';
 import { MonthYearPicker } from './MonthYearPicker';
