@@ -453,14 +453,16 @@ export function TaskSection({
           position={contextMenu}
           onClose={() => setContextMenu(null)}
           items={[
-            ...(!section.isFixed ? [{ label: 'Renomear', onClick: startRename }] : []),
-            { label: 'Adicionar tarefa', onClick: () => onAddTaskInSection(section.id) },
+            ...(!section.isFixed ? [{ label: 'Renomear', icon: <Pencil className="w-4 h-4" />, onClick: startRename }] : []),
+            { label: 'Adicionar tarefa', icon: <Plus className="w-4 h-4" />, onClick: () => onAddTaskInSection(section.id) },
             ...(onMoveCompletedToSection && section.sectionType !== 'completed' ? [{
               label: 'Mover concluídas → Concluído',
+              icon: <ArrowRightToLine className="w-4 h-4" />,
               onClick: () => onMoveCompletedToSection(section.id),
             }] : []),
             ...(onMoveSectionToMonth && !section.isFixed ? [{
               label: 'Mover para mês',
+              icon: <CalendarArrowDown className="w-4 h-4" />,
               customContent: (
                 <MonthYearPicker onSelect={(year, month) => {
                   onMoveSectionToMonth(section.id, year, month);
@@ -468,10 +470,11 @@ export function TaskSection({
                 }} />
               ),
             }] : []),
-            ...(onExpandAll ? [{ label: 'Expandir todas', onClick: onExpandAll }] : []),
-            ...(onCollapseAll ? [{ label: 'Colapsar todas', onClick: onCollapseAll }] : []),
+            ...(onExpandAll ? [{ label: 'Expandir todas', icon: <ChevronsUpDown className="w-4 h-4" />, onClick: onExpandAll }] : []),
+            ...(onCollapseAll ? [{ label: 'Colapsar todas', icon: <ChevronsDownUp className="w-4 h-4" />, onClick: onCollapseAll }] : []),
             ...(!section.isFixed ? [{
               label: 'Excluir seção',
+              icon: <Trash2 className="w-4 h-4" />,
               danger: true,
               onClick: async () => {
                 const taskCount = tasks.length;
