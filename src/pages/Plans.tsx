@@ -81,6 +81,11 @@ const PLANS = [
 export default function Plans() {
   const navigate = useNavigate();
 
+  const handleUpgrade = (planName: string) => {
+    // TODO: integrate with payment provider
+    alert(`Em breve! O plano ${planName} estará disponível para assinatura.`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'hsl(var(--bg-app))' }}>
       {/* Header */}
@@ -178,6 +183,7 @@ export default function Plans() {
                 {/* CTA */}
                 <button
                   disabled={plan.ctaDisabled}
+                  onClick={() => !plan.ctaDisabled && handleUpgrade(plan.name)}
                   className="w-full h-11 rounded-xl text-[13px] font-bold transition-all mb-6"
                   style={{
                     ...(plan.ctaDisabled

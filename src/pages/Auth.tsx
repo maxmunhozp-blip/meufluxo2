@@ -108,7 +108,7 @@ const Auth = () => {
     setGoogleLoading(true);
     setMessage(null);
     const { error } = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.origin + '/auth',
     });
     if (error) {
       setMessage({ type: 'error', text: error.message || 'Erro ao fazer login com Google.' });
