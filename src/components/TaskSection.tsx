@@ -260,7 +260,7 @@ export function TaskSection({
   return (
     <div ref={mergedRef} style={{ ...sectionStyle }} className={`group/section ${isDropTarget || isOver || nativeDragOver ? 'ring-1 ring-primary/40 rounded' : ''}`} data-section-id={section.id} >
       <div
-        className="group w-full flex items-center gap-2 transition-colors relative"
+        className="group w-full flex items-center gap-2 transition-colors relative overflow-visible"
         style={{
           height: 44,
           paddingLeft: 16,
@@ -377,10 +377,10 @@ export function TaskSection({
           onClick={(e) => {
             e.stopPropagation();
             const rect = e.currentTarget.getBoundingClientRect();
-            setContextMenu({ x: rect.right, y: rect.bottom + 4 });
+            setContextMenu({ x: rect.left, y: rect.bottom + 4 });
           }}
           className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ color: 'var(--text-tertiary)' }}
+          style={{ color: 'var(--text-tertiary)', marginRight: -4 }}
           onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-active)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
           title="Opções da seção"
