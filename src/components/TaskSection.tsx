@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder } from 'lucide-react';
+import { GripVertical, Play, Plus, Inbox, Repeat, MapPin, CheckCircle, Folder, MoreHorizontal } from 'lucide-react';
 import { Task, Section, TaskStatus, Subtask } from '@/types/task';
 import { useConfirmAction } from './ConfirmAction';
 import { MonthYearPicker } from './MonthYearPicker';
@@ -371,6 +371,22 @@ export function TaskSection({
             })()}
           </button>
         )}
+
+        {/* Three-dots menu button — visible on hover */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const rect = e.currentTarget.getBoundingClientRect();
+            setContextMenu({ x: rect.right, y: rect.bottom + 4 });
+          }}
+          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ color: 'var(--text-tertiary)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-active)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+          title="Opções da seção"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
       </div>
 
       {isExpanded && (
