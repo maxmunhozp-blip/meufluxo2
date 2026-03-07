@@ -377,7 +377,7 @@ export function TaskSection({
           onClick={(e) => {
             e.stopPropagation();
             const rect = e.currentTarget.getBoundingClientRect();
-            setContextMenu({ x: rect.left, y: rect.bottom + 4 });
+            setContextMenu({ x: rect.right - 160, y: rect.bottom + 4 });
           }}
           className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ color: 'var(--text-tertiary)', marginRight: -4 }}
