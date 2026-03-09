@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
 
 // ─── Domain Hooks ──────────────────────────────────────────
-import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, SharedState } from './supabase/types';
+import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDocument, SharedState } from './supabase/types';
 import { useAuth } from './supabase/useAuth';
 import { useWorkspaceOps } from './supabase/useWorkspaceOps';
 import { useProjectOps } from './supabase/useProjectOps';
