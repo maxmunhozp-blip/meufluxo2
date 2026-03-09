@@ -67,6 +67,7 @@ const Index = () => {
     uploadAttachment, deleteAttachment,
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
     planLimits, showUpgradeModal, setShowUpgradeModal, autoTagTask,
+    createDocument, updateDocument, deleteDocument, reorderDocuments,
   } = useSupabaseData();
 
   const { preference, cycleTheme } = useTheme();
