@@ -19,6 +19,7 @@ import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { ViewRouter } from '@/components/ViewRouter';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
+import { ProjectDocsList } from '@/components/ProjectDocsList';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { SingleFocusMode } from '@/components/SingleFocusMode';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
