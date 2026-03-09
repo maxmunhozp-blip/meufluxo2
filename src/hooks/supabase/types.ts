@@ -73,6 +73,21 @@ export function mapDbTask(row: any): Task {
   };
 }
 
+export function mapDbDocument(row: any): ProjectDocument {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    workspaceId: row.workspace_id,
+    createdBy: row.created_by,
+    title: row.title,
+    content: row.content || {},
+    pinned: row.pinned ?? false,
+    position: row.position ?? 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 // ─── Shared State Deps (passed to domain hooks) ────────────
 
 export interface SharedState {
