@@ -425,6 +425,7 @@ export function TaskSection({
                 isFadingOut={fadingOutTaskId === task.id}
                 onScheduleToday={onScheduleToday}
                 onScheduleSubtask={onScheduleSubtask}
+                timeByTask={timeByTask}
               />
             ))}
           </SortableContext>
