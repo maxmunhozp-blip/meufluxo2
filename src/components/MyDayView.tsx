@@ -1209,38 +1209,37 @@ export function MyDayView({
           >
         {groupMode === 'service' ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleServiceDragEnd}>
+          <SortableContext items={todayTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <div className="max-w-[640px] lg:max-w-3xl mx-auto">
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem tipo';
-              const tagTaskIds = tagTasks.map(t => t.id);
               return (
-                <div key={tagId} style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
+                <ServiceGroupDropZone key={tagId} tagId={tagId} activeDragId={activeDragId}>
                   <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
                     {TagIcon && <TagIcon style={{ width: 14, height: 14, color: 'var(--text-tertiary)' }} />}
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>{label}</span>
                   </div>
-                  <SortableContext items={tagTaskIds} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-0.5">
-                      {tagTasks.map(task => {
-                        const project = projects.find(p => p.id === task.projectId);
-                        return (
-                          <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                            onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} projectName={project?.name}
-                            rolloverDays={rolloverMap.get(task.id)}
-                            ancestorTrail={buildAncestorTrail(task, tasks)}
-                            dropIndicator={overItemId === task.id ? dropLinePosition : null}
-                            justDropped={justDroppedId === task.id} />
-                        );
-                      })}
-                    </div>
-                  </SortableContext>
-                </div>
+                  <div className="space-y-0.5">
+                    {tagTasks.map(task => {
+                      const project = projects.find(p => p.id === task.projectId);
+                      return (
+                        <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
+                          onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} projectName={project?.name}
+                          rolloverDays={rolloverMap.get(task.id)}
+                          ancestorTrail={buildAncestorTrail(task, tasks)}
+                          dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                          justDropped={justDroppedId === task.id} />
+                      );
+                    })}
+                  </div>
+                </ServiceGroupDropZone>
               );
             })}
             {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
           </div>
+          </SortableContext>
             <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
               {activeDragTask ? (() => {
                 const dragProject = projects.find(p => p.id === activeDragTask.projectId);
