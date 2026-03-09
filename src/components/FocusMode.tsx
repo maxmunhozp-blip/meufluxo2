@@ -110,9 +110,16 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
     }
   }, [focusState?.type === 'task' ? (focusState as any).task?.id : null]);
 
+  const handleClose = useCallback(() => {
+    if (focusState?.type === 'task') {
+      saveTimeEntry(focusState.task, elapsedRef.current);
+    }
+    onClose();
+  }, [focusState, saveTimeEntry, onClose]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Escape') { handleClose(); return; }
       if (focusState?.type === 'task') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDone(); }
         if (e.key === 'Tab' || e.key === 'ArrowRight') { e.preventDefault(); handleNext(); }
@@ -120,7 +127,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [focusState]);
+  }, [focusState, handleClose]);
 
   const advanceToNext = useCallback((currentPeriod: DayPeriod) => {
     const pending = getTasksByPeriod(currentPeriod);
