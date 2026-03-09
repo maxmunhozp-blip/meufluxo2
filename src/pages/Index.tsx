@@ -134,6 +134,17 @@ const Index = () => {
     });
   }, [activeProjectId]);
 
+  // Restore focus mode after reload
+  useEffect(() => {
+    if (loading || !taskList.length) return;
+    const savedId = sessionStorage.getItem('meufluxo-focus-task-id');
+    if (savedId && !singleFocusTask) {
+      const found = taskList.find(t => t.id === savedId);
+      if (found) _setSingleFocusTask(found);
+      else sessionStorage.removeItem('meufluxo-focus-task-id');
+    }
+  }, [loading, taskList]);
+
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
   // Check super_admin role
