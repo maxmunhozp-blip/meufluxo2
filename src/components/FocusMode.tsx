@@ -174,6 +174,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
   const handleNext = useCallback(() => {
     if (focusState?.type !== 'task') return;
     const { task, periodKey } = focusState;
+    saveTimeEntry(task, elapsedRef.current);
     setSkippedIds(prev => new Set(prev).add(task.id));
     setSlideOut(true);
     setTimeout(() => {
@@ -187,7 +188,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
       }
       setTimeout(() => setSlideIn(false), 300);
     }, 300);
-  }, [focusState, getTasksByPeriod, advanceToNext]);
+  }, [focusState, getTasksByPeriod, advanceToNext, saveTimeEntry]);
 
   const handleSubtaskToggle = useCallback((subtask: Subtask) => {
     if (focusState?.type !== 'task' || !onUpdateTask) return;
