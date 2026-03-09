@@ -616,6 +616,25 @@ export function MyDayView({
     localStorage.setItem('meufluxo_myday_group_mode', mode);
   };
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // ── Service group collapse state (localStorage, expanded by default) ──
+  const [collapsedServiceGroups, setCollapsedServiceGroups] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('meufluxo_myday_service_collapsed') || '{}'); } catch { return {}; }
+  });
+  const toggleServiceGroupCollapse = useCallback((tagId: string) => {
+    setCollapsedServiceGroups(prev => {
+      const next = { ...prev };
+      if (next[tagId]) { delete next[tagId]; } else { next[tagId] = true; }
+      localStorage.setItem('meufluxo_myday_service_collapsed', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  // ── Service group ordering (localStorage) ──
+  const [serviceGroupOrder, setServiceGroupOrder] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('meufluxo_myday_service_order') || '[]'); } catch { return []; }
+  });
+  const draggedGroupRef = useRef<string | null>(null);
   const promotedIdsRef = useRef<Set<string>>(new Set());
   
   const todayTasksRef = useRef<Task[]>([]);
