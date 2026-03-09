@@ -19,7 +19,7 @@ interface TaskListHeaderProps {
   totalFocusedSeconds?: number;
 }
 
-export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
+export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange, totalFocusedSeconds }: TaskListHeaderProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const now = activeMonth || new Date();
   const currentMonth = now.getMonth();
