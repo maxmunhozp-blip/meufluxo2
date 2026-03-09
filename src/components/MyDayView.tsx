@@ -923,6 +923,12 @@ export function MyDayView({
   const tasksByService = useMemo(() => {
     const map: Record<string, Task[]> = {};
     todayTasks.forEach(t => { const key = t.serviceTagId || '__none__'; if (!map[key]) map[key] = []; map[key].push(t); });
+    // Sort each group by position
+    Object.keys(map).forEach(key => {
+      const pending = map[key].filter(t => t.status !== 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const done = map[key].filter(t => t.status === 'done').sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      map[key] = [...pending, ...done];
+    });
     return map;
   }, [todayTasks]);
 
