@@ -520,7 +520,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
               Nenhuma tarefa para focar. Agende tarefas no Meu Dia.
             </p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',

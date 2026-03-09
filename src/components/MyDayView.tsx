@@ -1427,7 +1427,7 @@ export function MyDayView({
       </div>
 
       {focusModeOpen && (
-        <FocusMode tasks={todayTasks} projects={projects} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
+        <FocusMode tasks={todayTasks} projects={projects} workspaceId={workspaceId} userId={userId} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
       )}
     </div>
   );
