@@ -26,6 +26,8 @@ interface MyDayViewProps {
   serviceTags?: ServiceTag[];
   userName: string;
   isPro?: boolean;
+  workspaceId: string;
+  userId: string;
   onUpdateTask: (task: Task) => void;
   onBatchUpdatePositions?: (updates: { id: string; position: number }[]) => Promise<void>;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
