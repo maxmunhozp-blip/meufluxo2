@@ -46,6 +46,8 @@ function ViewRouterInner({
         serviceTags={serviceTags}
         userName={userName}
         isPro={isPro}
+        workspaceId={activeWorkspaceId || ''}
+        userId={session?.user?.id || ''}
         onUpdateTask={onUpdateTask}
         onBatchUpdatePositions={onBatchUpdatePositions}
         onStatusChange={onStatusChange}

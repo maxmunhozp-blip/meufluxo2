@@ -600,7 +600,7 @@ function TempoVivoLayout({
 
 
 export function MyDayView({
-  tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
+  tasks, projects, sections, serviceTags = [], userName, isPro = false, workspaceId, userId, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
 }: MyDayViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
