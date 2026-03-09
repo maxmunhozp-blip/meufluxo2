@@ -177,7 +177,7 @@ export function SingleFocusMode({ task, project, onStatusChange, onUpdateTask, o
                 style={{ background: 'var(--accent-blue)', color: 'var(--btn-text)', borderRadius: 10, height: 44, padding: '0 24px', fontSize: 14 }}>
                 ✓ Feito
               </button>
-              <button onClick={onClose}
+              <button onClick={handleClose}
                 className="flex items-center gap-2 transition-all"
                 style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: 10, height: 44, padding: '0 24px', fontSize: 14, color: 'var(--text-secondary)' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
