@@ -1174,33 +1174,57 @@ export function MyDayView({
             transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
           >
         {groupMode === 'service' ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleServiceDragEnd}>
           <div className="max-w-[640px] lg:max-w-3xl mx-auto">
             {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem tipo';
+              const tagTaskIds = tagTasks.map(t => t.id);
               return (
                 <div key={tagId} style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
                     {TagIcon && <TagIcon style={{ width: 14, height: 14, color: 'var(--text-tertiary)' }} />}
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>{label}</span>
                   </div>
-                  <div className="space-y-0.5">
-                    {tagTasks.map(task => {
-                      const project = projects.find(p => p.id === task.projectId);
-                      return (
-                        <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                          onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
-                          rolloverDays={rolloverMap.get(task.id)}
-                          ancestorTrail={buildAncestorTrail(task, tasks)} />
-                      );
-                    })}
-                  </div>
+                  <SortableContext items={tagTaskIds} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-0.5">
+                      {tagTasks.map(task => {
+                        const project = projects.find(p => p.id === task.projectId);
+                        return (
+                          <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
+                            onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
+                            rolloverDays={rolloverMap.get(task.id)}
+                            ancestorTrail={buildAncestorTrail(task, tasks)}
+                            dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                            justDropped={justDroppedId === task.id} />
+                        );
+                      })}
+                    </div>
+                  </SortableContext>
                 </div>
               );
             })}
             {allEmpty && <EmptyState onNavigateToWeek={onNavigateToWeek} viewingToday={viewingToday} />}
           </div>
+            <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
+              {activeDragTask ? (() => {
+                const dragProject = projects.find(p => p.id === activeDragTask.projectId);
+                return (
+                  <div className="h-[44px] flex items-center gap-2 px-3 rounded-lg"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.1)',
+                      transform: 'scale(1.015)',
+                      maxWidth: 480,
+                    }}>
+                    <span className="flex-shrink-0 rounded-full" style={{ width: 6, height: 6, background: dragProject?.color || 'var(--accent-blue)', opacity: 0.75 }} />
+                    <span className="text-[14px] truncate" style={{ color: 'var(--text-primary)', fontWeight: 400 }}>{activeDragTask.name}</span>
+                  </div>
+                );
+              })() : null}
+            </DragOverlay>
+          </DndContext>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
           <TempoVivoLayout
