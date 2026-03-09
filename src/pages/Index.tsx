@@ -1125,23 +1125,16 @@ const Index = () => {
     }
   };
 
-  // Redirect to auth if no session — with timeout failsafe
+  // Redirect to auth if no session — debounced to avoid race conditions during token refresh
   useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth', { replace: true });
-    }
-  }, [loading, session, navigate]);
-
-  // Failsafe: if loading takes more than 5 seconds, redirect to auth
-  useEffect(() => {
+    if (loading || session) return;
     const timeout = setTimeout(() => {
       if (!session) {
-        console.warn('Loading timeout — redirecting to /auth');
         navigate('/auth', { replace: true });
       }
-    }, 5000);
+    }, 1500);
     return () => clearTimeout(timeout);
-  }, [session, navigate]);
+  }, [loading, session, navigate]);
 
   if (loading || !session) {
     return (
