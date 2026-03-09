@@ -56,7 +56,49 @@ const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; labe
   done: { icon: CircleCheckBig, color: 'hsl(var(--status-done))', label: 'Concluída' },
 };
 
-function formatCommentDate(dateStr: string): string {
+function TimeSessionsList({ taskId }: { taskId: string }) {
+  const [sessions, setSessions] = useState<{ id: string; duration_seconds: number; started_at: string; ended_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    supabase
+      .from('time_entries')
+      .select('id, duration_seconds, started_at, ended_at')
+      .eq('task_id', taskId)
+      .order('started_at', { ascending: false })
+      .then(({ data }) => {
+        setSessions((data as any[]) || []);
+        setLoading(false);
+      });
+  }, [taskId]);
+
+  if (loading) return <div className="text-[11px] py-1" style={{ color: 'var(--text-placeholder)' }}>Carregando…</div>;
+  if (sessions.length === 0) return null;
+
+  return (
+    <div className="mt-1 mb-1 space-y-0.5">
+      {sessions.map(s => {
+        const d = new Date(s.started_at);
+        const day = String(d.getDate()).padStart(2, '0');
+        const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        const timeStart = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const endD = new Date(s.ended_at);
+        const timeEnd = `${String(endD.getHours()).padStart(2,'0')}:${String(endD.getMinutes()).padStart(2,'0')}`;
+        const dur = s.duration_seconds;
+        const durStr = dur < 60 ? `${dur}s` : dur < 3600 ? `${Math.floor(dur/60)}min` : `${Math.floor(dur/3600)}h ${Math.floor((dur%3600)/60)}min`;
+        return (
+          <div key={s.id} className="flex items-center gap-2 text-[11px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>
+            <span>{day} {months[d.getMonth()]}</span>
+            <span>{timeStart}→{timeEnd}</span>
+            <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>{durStr}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
   const date = new Date(dateStr);
   const day = date.getDate();
   const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
