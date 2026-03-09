@@ -489,7 +489,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
               Bom trabalho.
             </p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',
