@@ -1080,7 +1080,7 @@ export function MyDayView({
                   }}
                 />
                 <button
-                  onClick={() => handleSetGroupMode('period')}
+                  onClick={() => handleSandleSetGroupMode('period')}
                   className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
                   style={{
                     color: groupMode === 'period' ? 'var(--text-primary)' : 'var(--text-tertiary)',
@@ -1090,7 +1090,7 @@ export function MyDayView({
                   Período
                 </button>
                 <button
-                  onClick={() => setGroupMode('service')}
+                  onClick={handleS) => setGroupMode('service')}
                   className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
                   style={{
                     color: groupMode === 'service' ? 'var(--text-primary)' : 'var(--text-tertiary)',
