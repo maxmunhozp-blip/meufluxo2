@@ -83,7 +83,15 @@ const Index = () => {
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
-  const [singleFocusTask, setSingleFocusTask] = useState<Task | null>(null);
+  const [singleFocusTask, _setSingleFocusTask] = useState<Task | null>(null);
+  const setSingleFocusTask = useCallback((task: Task | null) => {
+    _setSingleFocusTask(task);
+    if (task) {
+      sessionStorage.setItem('meufluxo-focus-task-id', task.id);
+    } else {
+      sessionStorage.removeItem('meufluxo-focus-task-id');
+    }
+  }, []);
   const { expandedSections, toggleSection, expandSection, isSectionExpanded } = useSectionPreferences(session?.user?.id);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [activeTaskDragId, setActiveTaskDragId] = useState<string | null>(null);
@@ -125,6 +133,17 @@ const Index = () => {
       return next;
     });
   }, [activeProjectId]);
+
+  // Restore focus mode after reload
+  useEffect(() => {
+    if (loading || !taskList.length) return;
+    const savedId = sessionStorage.getItem('meufluxo-focus-task-id');
+    if (savedId && !singleFocusTask) {
+      const found = taskList.find(t => t.id === savedId);
+      if (found) _setSingleFocusTask(found);
+      else sessionStorage.removeItem('meufluxo-focus-task-id');
+    }
+  }, [loading, taskList]);
 
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
@@ -191,12 +210,7 @@ const Index = () => {
     window.addEventListener('mouseup', onMouseUp);
   }, [sidebarWidth, detailWidth]);
 
-  // Auth guard
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth', { replace: true });
-    }
-  }, [loading, session, navigate]);
+  // Auth guard (single instance — see line ~1133)
 
   // Failsafe timeout
   useEffect(() => {
@@ -418,7 +432,6 @@ const Index = () => {
     setFocusedTaskId(null);
     setMobileSidebarOpen(false);
   };
-
 
   const handleDeleteTask = useCallback((taskId: string) => {
     // Find task — could be top-level or a subtask nested inside a parent
@@ -1130,23 +1143,16 @@ const Index = () => {
     }
   };
 
-  // Redirect to auth if no session — with timeout failsafe
+  // Redirect to auth if no session — debounced to avoid race conditions during token refresh
   useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth', { replace: true });
-    }
-  }, [loading, session, navigate]);
-
-  // Failsafe: if loading takes more than 5 seconds, redirect to auth
-  useEffect(() => {
+    if (loading || session) return;
     const timeout = setTimeout(() => {
       if (!session) {
-        console.warn('Loading timeout — redirecting to /auth');
         navigate('/auth', { replace: true });
       }
-    }, 5000);
+    }, 1500);
     return () => clearTimeout(timeout);
-  }, [session, navigate]);
+  }, [loading, session, navigate]);
 
   if (loading || !session) {
     return (
