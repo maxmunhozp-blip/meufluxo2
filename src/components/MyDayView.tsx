@@ -240,6 +240,23 @@ function DayTaskCard({
   );
 }
 
+/* ── Service Group Drop Zone ── */
+function ServiceGroupDropZone({ tagId, activeDragId, children }: { tagId: string; activeDragId: string | null; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `service-group-${tagId}`, data: { type: 'service-group-drop', tagId } });
+  return (
+    <div ref={setNodeRef} style={{
+      marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)',
+      borderRadius: 10,
+      padding: isOver ? '6px 8px' : undefined,
+      background: isOver ? 'var(--accent-subtle)' : 'transparent',
+      border: isOver ? '1px dashed var(--accent-blue)' : undefined,
+      transition: 'all 200ms ease',
+    }}>
+      {children}
+    </div>
+  );
+}
+
 /* ── Collapsed Past Period Summary ── */
 function CollapsedPeriodSummary({
   period, tasks, isExpanded, onToggle,
