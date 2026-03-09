@@ -607,7 +607,14 @@ export function MyDayView({
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [overItemId, setOverItemId] = useState<string | null>(null);
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
-  const [groupMode, setGroupMode] = useState<GroupMode>('period');
+  const [groupMode, setGroupMode] = useState<GroupMode>(() => {
+    const saved = localStorage.getItem('meufluxo_myday_group_mode');
+    return saved === 'service' ? 'service' : 'period';
+  });
+  const handleSetGroupMode = (mode: GroupMode) => {
+    setGroupMode(mode);
+    localStorage.setItem('meufluxo_myday_group_mode', mode);
+  };
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const promotedIdsRef = useRef<Set<string>>(new Set());
   
@@ -1073,7 +1080,7 @@ export function MyDayView({
                   }}
                 />
                 <button
-                  onClick={() => setGroupMode('period')}
+                  onClick={() => handleSetGroupMode('period')}
                   className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
                   style={{
                     color: groupMode === 'period' ? 'var(--text-primary)' : 'var(--text-tertiary)',
@@ -1083,7 +1090,7 @@ export function MyDayView({
                   Período
                 </button>
                 <button
-                  onClick={() => setGroupMode('service')}
+                  onClick={() => handleSetGroupMode('service')}
                   className="relative z-10 flex items-center justify-center px-3 h-full text-[12px] font-medium transition-colors duration-150"
                   style={{
                     color: groupMode === 'service' ? 'var(--text-primary)' : 'var(--text-tertiary)',
