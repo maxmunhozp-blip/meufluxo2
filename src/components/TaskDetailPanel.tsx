@@ -99,6 +99,7 @@ function TimeSessionsList({ taskId }: { taskId: string }) {
   );
 }
 
+function formatCommentDate(dateStr: string): string {
   const date = new Date(dateStr);
   const day = date.getDate();
   const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
