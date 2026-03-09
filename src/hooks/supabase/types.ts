@@ -89,6 +89,20 @@ export function mapDbDocument(row: any): ProjectDocument {
   };
 }
 
+export function mapDbTimeEntry(row: any): TimeEntry {
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    projectId: row.project_id,
+    workspaceId: row.workspace_id,
+    userId: row.user_id,
+    durationSeconds: row.duration_seconds,
+    startedAt: row.started_at,
+    endedAt: row.ended_at,
+    createdAt: row.created_at,
+  };
+}
+
 // ─── Shared State Deps (passed to domain hooks) ────────────
 
 export interface SharedState {
