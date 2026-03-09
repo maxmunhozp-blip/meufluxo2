@@ -44,7 +44,7 @@ type FocusState =
 
 const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClose }: FocusModeProps) {
+export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange, onUpdateTask, onClose }: FocusModeProps) {
   const [focusState, setFocusState] = useState<FocusState | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [showCheck, setShowCheck] = useState(false);
@@ -53,6 +53,26 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const [slideIn, setSlideIn] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  const startedAtRef = useRef<Date>(new Date());
+  const elapsedRef = useRef(0);
+
+  // Keep elapsedRef in sync
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
+
+  const saveTimeEntry = useCallback((task: Task, seconds: number) => {
+    if (seconds < 5) return;
+    const startedAt = startedAtRef.current.toISOString();
+    const endedAt = new Date().toISOString();
+    supabase.from('time_entries').insert({
+      task_id: task.id,
+      project_id: task.projectId,
+      workspace_id: workspaceId,
+      user_id: userId,
+      duration_seconds: seconds,
+      started_at: startedAt,
+      ended_at: endedAt,
+    }).then(() => {});
+  }, [workspaceId, userId]);
 
   // Tasks are already filtered by MyDayView — use them directly
   const todayTasks = useMemo(() => tasks, [tasks]);
