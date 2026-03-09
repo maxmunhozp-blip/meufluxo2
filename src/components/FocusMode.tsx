@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Sunrise, Sun, Moon } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Project, DayPeriod } from '@/types/task';
-
+import { supabase } from '@/integrations/supabase/client';
 
 const PERIODS: { key: DayPeriod; label: string; icon: typeof Sunrise }[] = [
   { key: 'morning', label: 'Manhã', icon: Sunrise },
@@ -29,6 +29,8 @@ function getPeriodInfo(p: DayPeriod) {
 interface FocusModeProps {
   tasks: Task[];
   projects: Project[];
+  workspaceId: string;
+  userId: string;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onUpdateTask?: (task: Task) => void;
   onClose: () => void;
@@ -42,7 +44,7 @@ type FocusState =
 
 const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClose }: FocusModeProps) {
+export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange, onUpdateTask, onClose }: FocusModeProps) {
   const [focusState, setFocusState] = useState<FocusState | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [showCheck, setShowCheck] = useState(false);
@@ -51,6 +53,26 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const [slideIn, setSlideIn] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  const startedAtRef = useRef<Date>(new Date());
+  const elapsedRef = useRef(0);
+
+  // Keep elapsedRef in sync
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
+
+  const saveTimeEntry = useCallback((task: Task, seconds: number) => {
+    if (seconds < 5) return;
+    const startedAt = startedAtRef.current.toISOString();
+    const endedAt = new Date().toISOString();
+    supabase.from('time_entries').insert({
+      task_id: task.id,
+      project_id: task.projectId,
+      workspace_id: workspaceId,
+      user_id: userId,
+      duration_seconds: seconds,
+      started_at: startedAt,
+      ended_at: endedAt,
+    }).then(() => {});
+  }, [workspaceId, userId]);
 
   // Tasks are already filtered by MyDayView — use them directly
   const todayTasks = useMemo(() => tasks, [tasks]);
@@ -82,14 +104,22 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   useEffect(() => {
     if (focusState?.type === 'task') {
       setElapsed(0);
+      startedAtRef.current = new Date();
       timerRef.current = setInterval(() => setElapsed(prev => prev + 1), 1000);
       return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }
   }, [focusState?.type === 'task' ? (focusState as any).task?.id : null]);
 
+  const handleClose = useCallback(() => {
+    if (focusState?.type === 'task') {
+      saveTimeEntry(focusState.task, elapsedRef.current);
+    }
+    onClose();
+  }, [focusState, saveTimeEntry, onClose]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Escape') { handleClose(); return; }
       if (focusState?.type === 'task') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDone(); }
         if (e.key === 'Tab' || e.key === 'ArrowRight') { e.preventDefault(); handleNext(); }
@@ -97,7 +127,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [focusState]);
+  }, [focusState, handleClose]);
 
   const advanceToNext = useCallback((currentPeriod: DayPeriod) => {
     const pending = getTasksByPeriod(currentPeriod);
@@ -132,17 +162,19 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
   const handleDone = useCallback(() => {
     if (focusState?.type !== 'task') return;
     const { task, periodKey } = focusState;
+    saveTimeEntry(task, elapsedRef.current);
     setShowCheck(true);
     onStatusChange(task.id, 'done');
     setTimeout(() => {
       setShowCheck(false);
       advanceToNext(periodKey);
     }, 900);
-  }, [focusState, onStatusChange, advanceToNext]);
+  }, [focusState, onStatusChange, advanceToNext, saveTimeEntry]);
 
   const handleNext = useCallback(() => {
     if (focusState?.type !== 'task') return;
     const { task, periodKey } = focusState;
+    saveTimeEntry(task, elapsedRef.current);
     setSkippedIds(prev => new Set(prev).add(task.id));
     setSlideOut(true);
     setTimeout(() => {
@@ -156,7 +188,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
       }
       setTimeout(() => setSlideIn(false), 300);
     }, 300);
-  }, [focusState, getTasksByPeriod, advanceToNext]);
+  }, [focusState, getTasksByPeriod, advanceToNext, saveTimeEntry]);
 
   const handleSubtaskToggle = useCallback((subtask: Subtask) => {
     if (focusState?.type !== 'task' || !onUpdateTask) return;
@@ -210,7 +242,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
     >
       {/* Close button */}
       <button
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute top-5 right-5 w-[44px] h-[44px] flex items-center justify-center transition-colors"
         style={{ color: 'var(--text-placeholder)' }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -423,7 +455,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
                   </button>
                 )}
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="flex items-center gap-2 font-medium transition-all"
                   style={{
                     background: 'transparent',
@@ -457,7 +489,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               Bom trabalho.
             </p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',
@@ -488,7 +520,7 @@ export function FocusMode({ tasks, projects, onStatusChange, onUpdateTask, onClo
               Nenhuma tarefa para focar. Agende tarefas no Meu Dia.
             </p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex items-center gap-2 font-medium transition-all"
               style={{
                 background: 'transparent',

@@ -26,6 +26,8 @@ interface MyDayViewProps {
   serviceTags?: ServiceTag[];
   userName: string;
   isPro?: boolean;
+  workspaceId: string;
+  userId: string;
   onUpdateTask: (task: Task) => void;
   onBatchUpdatePositions?: (updates: { id: string; position: number }[]) => Promise<void>;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
@@ -598,7 +600,7 @@ function TempoVivoLayout({
 
 
 export function MyDayView({
-  tasks, projects, sections, serviceTags = [], userName, isPro = false, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
+  tasks, projects, sections, serviceTags = [], userName, isPro = false, workspaceId, userId, onUpdateTask, onBatchUpdatePositions, onStatusChange, onSelectTask, selectedTaskId, onNavigateToWeek,
 }: MyDayViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -1425,7 +1427,7 @@ export function MyDayView({
       </div>
 
       {focusModeOpen && (
-        <FocusMode tasks={todayTasks} projects={projects} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
+        <FocusMode tasks={todayTasks} projects={projects} workspaceId={workspaceId} userId={userId} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} onClose={() => setFocusModeOpen(false)} />
       )}
     </div>
   );
