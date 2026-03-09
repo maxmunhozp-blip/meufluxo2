@@ -29,6 +29,8 @@ function getPeriodInfo(p: DayPeriod) {
 interface FocusModeProps {
   tasks: Task[];
   projects: Project[];
+  workspaceId: string;
+  userId: string;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onUpdateTask?: (task: Task) => void;
   onClose: () => void;
