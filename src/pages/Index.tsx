@@ -1367,6 +1367,11 @@ const Index = () => {
                 onFilterChange={setFilter}
                 activeMonth={activeMonth}
                 onMonthChange={setActiveMonth}
+                totalFocusedSeconds={
+                  tasks
+                    .filter(t => t.projectId === activeProject.id)
+                    .reduce((sum, t) => sum + (timeByTask.get(t.id) || 0), 0) || undefined
+                }
               />
             </div>
             <div style={{ height: 24 }} />
