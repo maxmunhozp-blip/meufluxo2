@@ -16,6 +16,7 @@ import { useTaskOps } from './supabase/useTaskOps';
 import { useCommentAttachmentOps } from './supabase/useCommentAttachmentOps';
 import { useServiceTagOps } from './supabase/useServiceTagOps';
 import { useDataExport } from './supabase/useDataExport';
+import { useDocumentOps } from './supabase/useDocumentOps';
 
 // Re-export types for consumers
 export type { Profile, WorkspaceMember, Workspace };
