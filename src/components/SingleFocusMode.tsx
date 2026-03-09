@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Project } from '@/types/task';
+import { supabase } from '@/integrations/supabase/client';
 
 const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
@@ -10,40 +11,69 @@ interface SingleFocusModeProps {
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onUpdateTask?: (task: Task) => void;
   onClose: () => void;
-  allTasks?: Task[]; // for fresh subtask sync
+  allTasks?: Task[];
+  workspaceId: string;
+  userId: string;
 }
 
-export function SingleFocusMode({ task, project, onStatusChange, onUpdateTask, onClose, allTasks }: SingleFocusModeProps) {
+export function SingleFocusMode({ task, project, onStatusChange, onUpdateTask, onClose, allTasks, workspaceId, userId }: SingleFocusModeProps) {
   const [elapsed, setElapsed] = useState(0);
+  const elapsedRef = useRef(0);
   const [showCheck, setShowCheck] = useState(false);
   const [fadeIn, setFadeIn] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedAtRef = useRef<Date>(new Date());
+
+  const saveTimeEntry = useCallback((t: Task, seconds: number) => {
+    if (seconds < 5) return;
+    supabase.from('time_entries').insert({
+      task_id: t.id,
+      project_id: t.projectId,
+      workspace_id: workspaceId,
+      user_id: userId,
+      duration_seconds: seconds,
+      started_at: startedAtRef.current.toISOString(),
+      ended_at: new Date().toISOString(),
+    }).then();
+  }, [workspaceId, userId]);
 
   useEffect(() => {
     requestAnimationFrame(() => setFadeIn(true));
-    timerRef.current = setInterval(() => setElapsed(prev => prev + 1), 1000);
+    timerRef.current = setInterval(() => {
+      setElapsed(prev => {
+        const next = prev + 1;
+        elapsedRef.current = next;
+        return next;
+      });
+    }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Escape') { handleClose(); return; }
       if (!isDone && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleDone(); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isDone]);
 
+  const handleClose = useCallback(() => {
+    saveTimeEntry(task, elapsedRef.current);
+    onClose();
+  }, [task, onClose, saveTimeEntry]);
+
   const handleDone = useCallback(() => {
     if (isDone) return;
+    saveTimeEntry(task, elapsedRef.current);
     setShowCheck(true);
     onStatusChange(task.id, 'done');
     setTimeout(() => {
       setShowCheck(false);
       setIsDone(true);
     }, 900);
-  }, [isDone, task.id, onStatusChange]);
+  }, [isDone, task, onStatusChange, saveTimeEntry]);
 
   const handleSubtaskToggle = useCallback((subtask: Subtask) => {
     if (!onUpdateTask) return;
