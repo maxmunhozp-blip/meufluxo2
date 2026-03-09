@@ -2078,6 +2078,7 @@ const Index = () => {
                       });
                     }}
                     fadingOutTaskId={fadingOutTaskId}
+                    timeByTask={timeByTask}
                   />
                   </div>
                 );
