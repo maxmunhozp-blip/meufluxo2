@@ -716,9 +716,42 @@ export function MyDayView({
     const rMap = new Map<string, number>();
     if (viewingToday) {
       // Overdue rollover only applies when viewing today
+      // Helper to check overdue subtasks — defined once outside loop
+      const findOverdueSubtasks = (subs: any[], parent: Task) => {
+        subs.forEach((sub, idx) => {
+          // Always recurse into nested subtasks first
+          if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
+          if (scheduledIds.has(sub.id)) return;
+          if (sub.status === 'done') {
+            const completedToday = sub.completedAt && isSameDay(parseISO(sub.completedAt), new Date());
+            if (!completedToday) return;
+          }
+          if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
+            const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
+            if (days > 0) {
+              const promoted = promoteSubtask(sub, parent, idx);
+              rMap.set(sub.id, days);
+              overdue.push({ ...promoted });
+            }
+          } else if (!sub.scheduledDate && sub.dueDate) {
+            const dueDate = parseISO(sub.dueDate);
+            if (isBefore(startOfDay(dueDate), todayStart)) {
+              const days = differenceInCalendarDays(todayStart, dueDate);
+              const promoted = promoteSubtask(sub, parent, idx);
+              rMap.set(sub.id, days);
+              overdue.push({ ...promoted });
+            }
+          }
+        });
+      };
+
       tasks.forEach(t => {
         if (t.parentTaskId) return;
-        // Keep completed tasks visible if they were completed today (rolled-over tasks stay on "Meu Dia")
+
+        // Always check subtasks for overdue BEFORE early-returning on parent
+        if (t.subtasks) findOverdueSubtasks(t.subtasks, t);
+
+        // Now handle parent task itself
         if (t.status === 'done') {
           const completedToday = t.completedAt && isSameDay(parseISO(t.completedAt), new Date());
           if (!completedToday) return;
@@ -728,7 +761,6 @@ export function MyDayView({
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
           if (days > 0) {
             rMap.set(t.id, days);
-            // Reset to morning — overdue tasks start fresh at the beginning of the day
             overdue.push(t);
           }
           return;
@@ -741,36 +773,7 @@ export function MyDayView({
             overdue.push(t);
           }
         }
-
-        // Check subtasks for overdue
-        const findOverdueSubtasks = (subs: any[], parent: Task) => {
-          subs.forEach((sub, idx) => {
-            if (scheduledIds.has(sub.id)) return;
-            // Keep completed subtasks visible if completed today
-            if (sub.status === 'done') {
-              const completedToday = sub.completedAt && isSameDay(parseISO(sub.completedAt), new Date());
-              if (!completedToday) return;
-            }
-            if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
-              const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
-              if (days > 0) {
-                const promoted = promoteSubtask(sub, parent, idx);
-                rMap.set(sub.id, days);
-                overdue.push({ ...promoted });
-              }
-            } else if (!sub.scheduledDate && sub.dueDate) {
-              const dueDate = parseISO(sub.dueDate);
-              if (isBefore(startOfDay(dueDate), todayStart)) {
-                const days = differenceInCalendarDays(todayStart, dueDate);
-                const promoted = promoteSubtask(sub, parent, idx);
-                rMap.set(sub.id, days);
-                overdue.push({ ...promoted });
-              }
-            }
-            if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
-          });
-        };
-        if (t.subtasks) findOverdueSubtasks(t.subtasks, t);
+      });
       });
     }
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
