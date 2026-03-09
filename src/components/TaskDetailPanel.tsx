@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck, Target } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -45,6 +45,7 @@ interface TaskDetailPanelProps {
   onRenameServiceTag?: (id: string, name: string) => Promise<void>;
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
   onDeleteServiceTag?: (id: string) => Promise<void>;
+  onFocusTask?: (task: Task) => void;
 }
 
 const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; label: string }> = {
@@ -814,7 +815,7 @@ function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelati
 }
 
 
-export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, isPro = true, onUpgrade, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag }: TaskDetailPanelProps) {
+export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, isPro = true, onUpgrade, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag, onFocusTask }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -896,11 +897,25 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </button>
           );
         })()}
-        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--text-secondary)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onFocusTask && (
+            <button
+              onClick={() => onFocusTask(localTask)}
+              title="Focar nesta tarefa"
+              className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--accent-blue)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              <Target className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Breadcrumb */}

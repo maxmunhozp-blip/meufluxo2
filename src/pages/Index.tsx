@@ -20,6 +20,7 @@ import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { ViewRouter } from '@/components/ViewRouter';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
+import { SingleFocusMode } from '@/components/SingleFocusMode';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
@@ -80,6 +81,7 @@ const Index = () => {
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
+  const [singleFocusTask, setSingleFocusTask] = useState<Task | null>(null);
   const { expandedSections, toggleSection, expandSection, isSectionExpanded } = useSectionPreferences(session?.user?.id);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [activeTaskDragId, setActiveTaskDragId] = useState<string | null>(null);
@@ -2181,6 +2183,7 @@ const Index = () => {
                 onRenameServiceTag={renameServiceTag}
                 onChangeServiceTagIcon={changeServiceTagIcon}
                 onDeleteServiceTag={deleteServiceTag}
+                onFocusTask={(task) => setSingleFocusTask(task)}
               />
             </div>
           </>
@@ -2240,6 +2243,16 @@ const Index = () => {
         }}
       />
       {confirmDialog}
+      {singleFocusTask && (
+        <SingleFocusMode
+          task={singleFocusTask}
+          project={projects.find(p => p.id === singleFocusTask.projectId)}
+          onStatusChange={handleStatusChange}
+          onUpdateTask={handleUpdateTask}
+          onClose={() => setSingleFocusTask(null)}
+          allTasks={taskList}
+        />
+      )}
     </div>
   );
 };
