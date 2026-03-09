@@ -298,6 +298,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                     {task.name}
                   </span>
                   {agingBadge}
+                  {(() => {
+                    const totalSec = timeByTask?.get(task.id) || 0;
+                    const formatted = formatFocusedTime(totalSec);
+                    if (!formatted) return null;
+                    return <span className="flex-shrink-0" style={{ fontSize: 10, color: 'var(--text-placeholder)' }}>{formatted}</span>;
+                  })()}
                   {task.scheduledDate && (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
