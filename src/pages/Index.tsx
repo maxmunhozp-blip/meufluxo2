@@ -1575,6 +1575,15 @@ const Index = () => {
                 isPro={planLimits.isPro}
                 onUpgrade={() => setShowUpgradeModal(true)}
               />
+            ) : projectViewTab === 'docs' ? (
+              <ProjectDocsList
+                projectId={activeProjectId}
+                documents={documents}
+                onCreateDocument={createDocument}
+                onUpdateDocument={updateDocument}
+                onDeleteDocument={deleteDocument}
+                workspaceId={activeWorkspaceId || ''}
+              />
             ) : (
             <>
             
