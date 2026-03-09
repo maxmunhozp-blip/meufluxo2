@@ -86,6 +86,10 @@ interface UseSupabaseDataReturn {
   renameServiceTag: (id: string, name: string) => Promise<void>;
   changeServiceTagIcon: (id: string, icon: string) => Promise<void>;
   deleteServiceTag: (id: string) => Promise<void>;
+  createDocument: (projectId: string, workspaceId: string) => Promise<ProjectDocument>;
+  updateDocument: (doc: Partial<ProjectDocument> & { id: string }) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  reorderDocuments: (updates: { id: string; position: number }[]) => Promise<void>;
   planLimits: {
     plan: PlanType;
     limits: PlanLimits;
