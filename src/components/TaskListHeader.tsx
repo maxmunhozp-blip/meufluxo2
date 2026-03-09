@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MonthYearPicker } from '@/components/MonthYearPicker';
+import { formatFocusedTime } from '@/types/time';
 
 export type FilterMode = 'all' | 'pending' | 'done';
 
@@ -15,6 +16,7 @@ interface TaskListHeaderProps {
   onFilterChange: (filter: FilterMode) => void;
   activeMonth?: Date;
   onMonthChange?: (month: Date) => void;
+  totalFocusedSeconds?: number;
 }
 
 export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
