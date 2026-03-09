@@ -1,5 +1,6 @@
 import { Project, Section, Task, TaskStatus, Priority, Subtask, TaskMember, Comment, Attachment, ServiceTag } from '@/types/task';
 import { ProjectDocument } from '@/types/document';
+import { TimeEntry } from '@/types/time';
 import type { Session } from '@supabase/supabase-js';
 import { PlanLimits, PlanType } from '../usePlanLimits';
 
