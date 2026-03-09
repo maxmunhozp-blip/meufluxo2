@@ -321,6 +321,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       if (wsId) {
         const docsRes = await supabase.from('project_documents').select('*').eq('workspace_id', wsId).order('position');
         if (docsRes.data) setDocumentsState((docsRes.data as any[]).map(mapDbDocument));
+
+        const timeRes = await supabase.from('time_entries').select('task_id, duration_seconds').eq('workspace_id', wsId);
+        if (timeRes.data) setTimeEntriesState(timeRes.data as any[]);
       }
 
       setLoading(false);
