@@ -2183,6 +2183,7 @@ const Index = () => {
                 onRenameServiceTag={renameServiceTag}
                 onChangeServiceTagIcon={changeServiceTagIcon}
                 onDeleteServiceTag={deleteServiceTag}
+                onFocusTask={(task) => setSingleFocusTask(task)}
               />
             </div>
           </>
