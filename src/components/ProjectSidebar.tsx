@@ -783,6 +783,7 @@ export function ProjectSidebar({
             onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
             onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
           ><StickyNote className="w-4 h-4" /></button>
+
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
           {/* Project dots */}
           <TooltipProvider delayDuration={200}>
