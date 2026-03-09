@@ -749,7 +749,6 @@ export function ProjectSidebar({
         }}>
           <NavButton active={!!isMyDayView} onClick={onToggleMyDay} icon={Sun} label="Meu Dia" count={dayCount} />
           <NavButton active={!!isMyWeekView} onClick={onToggleMyWeek} icon={CalendarDays} label="Minha Semana" />
-          <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
         </div>
 
         {/* Separator */}
@@ -784,6 +783,7 @@ export function ProjectSidebar({
             onMouseEnter={e => { if (!isNotesView) { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; e.currentTarget.style.color = 'var(--sidebar-text-primary, var(--text-primary))'; } }}
             onMouseLeave={e => { if (!isNotesView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--sidebar-text-secondary, var(--text-secondary))'; } }}
           ><StickyNote className="w-4 h-4" /></button>
+
           <div className="w-5 h-px my-1" style={{ background: 'hsl(var(--sidebar-separator, var(--border)))' }} />
           {/* Project dots */}
           <TooltipProvider delayDuration={200}>
@@ -960,6 +960,20 @@ export function ProjectSidebar({
           <Search style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.5 }} />
           <span className="flex-1 text-left truncate">Buscar</span>
         </button>
+      </div>
+
+      {/* NOTES — discrete, above footer (hidden when collapsed) */}
+      <div style={{
+        flexShrink: 0, padding: collapsed ? '0' : '0 16px 4px 16px',
+        opacity: collapsed ? 0 : 1,
+        maxHeight: collapsed ? 0 : 50,
+        overflow: 'hidden',
+        pointerEvents: collapsed ? 'none' : 'auto',
+        transition: collapsed
+          ? `opacity 180ms ease-out, max-height ${collapseDur} ${EASE}, padding ${collapseDur} ${EASE}`
+          : `opacity 350ms ease-out 180ms, max-height ${expandDur} ${EASE}, padding ${expandDur} ${EASE}`,
+      }}>
+        <NavButton active={!!isNotesView} onClick={onToggleNotes} icon={StickyNote} label="Notas" />
       </div>
 
       {/* FOOTER — workspace & actions (hidden when collapsed) */}
