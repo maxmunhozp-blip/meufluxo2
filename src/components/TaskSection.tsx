@@ -73,6 +73,7 @@ interface TaskSectionProps {
   onMoveCompletedToSection?: (fromSectionId: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
+  timeByTask?: Map<string, number>;
 }
 
 // Footer input with Tab-indent support

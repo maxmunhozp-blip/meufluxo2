@@ -38,6 +38,7 @@ interface SortableTaskRowProps {
   isFadingOut?: boolean;
   onScheduleToday?: (taskId: string) => void;
   onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
+  timeByTask?: Map<string, number>;
 }
 
 function formatDate(dateStr?: string): string {
