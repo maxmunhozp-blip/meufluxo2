@@ -191,12 +191,7 @@ const Index = () => {
     window.addEventListener('mouseup', onMouseUp);
   }, [sidebarWidth, detailWidth]);
 
-  // Auth guard
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth', { replace: true });
-    }
-  }, [loading, session, navigate]);
+  // Auth guard (single instance — see line ~1133)
 
   // Failsafe timeout
   useEffect(() => {
