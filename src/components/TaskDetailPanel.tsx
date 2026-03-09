@@ -1067,9 +1067,23 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               if (!formatted) return null;
               return (
                 <MetaRow label="Tempo focado">
-                  <div className="flex items-center gap-1.5 h-8 text-[13px]" style={{ color: 'var(--text-primary)' }}>
-                    <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
-                    {formatted}
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5 h-8 text-[13px]" style={{ color: 'var(--text-primary)' }}>
+                      <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
+                      {formatted}
+                      <button
+                        onClick={() => setShowTimeDetails(prev => !prev)}
+                        className="text-[11px] ml-1 transition-colors"
+                        style={{ color: 'var(--text-placeholder)' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-blue)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+                      >
+                        {showTimeDetails ? 'ocultar' : 'detalhes'}
+                      </button>
+                    </div>
+                    {showTimeDetails && (
+                      <TimeSessionsList taskId={task.id} />
+                    )}
                   </div>
                 </MetaRow>
               );
