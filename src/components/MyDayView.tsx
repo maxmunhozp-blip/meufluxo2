@@ -774,7 +774,6 @@ export function MyDayView({
           }
         }
       });
-      });
     }
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
   }, [tasks, selectedDateStr, viewingToday]);
