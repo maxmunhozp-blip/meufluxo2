@@ -83,7 +83,15 @@ const Index = () => {
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
-  const [singleFocusTask, setSingleFocusTask] = useState<Task | null>(null);
+  const [singleFocusTask, _setSingleFocusTask] = useState<Task | null>(null);
+  const setSingleFocusTask = useCallback((task: Task | null) => {
+    _setSingleFocusTask(task);
+    if (task) {
+      sessionStorage.setItem('meufluxo-focus-task-id', task.id);
+    } else {
+      sessionStorage.removeItem('meufluxo-focus-task-id');
+    }
+  }, []);
   const { expandedSections, toggleSection, expandSection, isSectionExpanded } = useSectionPreferences(session?.user?.id);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [activeTaskDragId, setActiveTaskDragId] = useState<string | null>(null);
