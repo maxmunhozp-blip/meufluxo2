@@ -309,6 +309,13 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           ...mapDbTask(row), members: membersByTask[row.id] || [], subtasks: nestedSubtasksByParent[row.id] || [],
         })));
       }
+
+      // Fetch project documents
+      if (wsId) {
+        const docsRes = await supabase.from('project_documents').select('*').eq('workspace_id', wsId).order('position');
+        if (docsRes.data) setDocumentsState((docsRes.data as any[]).map(mapDbDocument));
+      }
+
       setLoading(false);
     };
 
