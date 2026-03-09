@@ -630,5 +630,6 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     planLimits,
     showUpgradeModal,
     setShowUpgradeModal,
+    timeByTask,
   };
 }
