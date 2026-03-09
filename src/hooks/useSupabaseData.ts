@@ -151,6 +151,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const { exportData, importData } = useDataExport(projectsState, sectionsState, tasksState);
   const documentOps = useDocumentOps({ session, activeWorkspaceId, documentsState, setDocumentsState });
 
+  // ── Time by Task (aggregated) ──
+  const timeByTask = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const entry of timeEntriesState) {
+      map.set(entry.task_id, (map.get(entry.task_id) || 0) + entry.duration_seconds);
+    }
+    return map;
+  }, [timeEntriesState]);
+
   // ── Initial Data Fetch ──
   useEffect(() => {
     if (!sessionChecked) return;
