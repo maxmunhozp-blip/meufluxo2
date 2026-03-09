@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { formatFocusedTime } from '@/types/time';
 import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical, MessageSquare, Play, Repeat, CalendarDays, ListPlus, Copy, FolderInput, CalendarArrowDown, CalendarCheck, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
