@@ -47,6 +47,7 @@ interface TaskDetailPanelProps {
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
   onDeleteServiceTag?: (id: string) => Promise<void>;
   onFocusTask?: (task: Task) => void;
+  timeByTask?: Map<string, number>;
 }
 
 const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; label: string }> = {
