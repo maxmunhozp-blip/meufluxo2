@@ -1397,6 +1397,22 @@ const Index = () => {
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
+              <button
+                onClick={() => setProjectViewTab('docs')}
+                className="relative"
+                style={{
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: projectViewTab === 'docs' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+                  transition: 'color 150ms ease-out',
+                }}
+                onMouseEnter={e => { if (projectViewTab !== 'docs') e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (projectViewTab !== 'docs') e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              >
+                Docs
+                {projectViewTab === 'docs' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
+              </button>
               </div>
               {/* Spacer + actions */}
               <div className="flex-1" />
