@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X, Sunrise, Sun, Moon } from 'lucide-react';
 import { Task, TaskStatus, Subtask, Project, DayPeriod } from '@/types/task';
-
+import { supabase } from '@/integrations/supabase/client';
 
 const PERIODS: { key: DayPeriod; label: string; icon: typeof Sunrise }[] = [
   { key: 'morning', label: 'Manhã', icon: Sunrise },
