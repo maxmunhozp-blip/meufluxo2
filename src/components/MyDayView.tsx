@@ -1039,6 +1039,16 @@ export function MyDayView({
     return map;
   }, [todayTasks]);
 
+  // Sorted service group keys respecting user-defined order
+  const sortedServiceGroupKeys = useMemo(() => {
+    const allKeys = Object.keys(tasksByService);
+    if (serviceGroupOrder.length === 0) return allKeys;
+    const ordered: string[] = [];
+    serviceGroupOrder.forEach(k => { if (allKeys.includes(k)) ordered.push(k); });
+    allKeys.forEach(k => { if (!ordered.includes(k)) ordered.push(k); });
+    return ordered;
+  }, [tasksByService, serviceGroupOrder]);
+
   const temporalLabel = getTemporalLabel();
   const isPast = daysDiff < 0;
 
