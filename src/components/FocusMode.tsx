@@ -104,6 +104,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
   useEffect(() => {
     if (focusState?.type === 'task') {
       setElapsed(0);
+      startedAtRef.current = new Date();
       timerRef.current = setInterval(() => setElapsed(prev => prev + 1), 1000);
       return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }
