@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, ServiceTag } from '@/types/task';
 import { ProjectDocument } from '@/types/document';
