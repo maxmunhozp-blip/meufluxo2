@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, ServiceTag } from '@/types/task';
+import { ProjectDocument } from '@/types/document';
 import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
 
 // ─── Domain Hooks ──────────────────────────────────────────
-import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, SharedState } from './supabase/types';
+import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDocument, SharedState } from './supabase/types';
 import { useAuth } from './supabase/useAuth';
 import { useWorkspaceOps } from './supabase/useWorkspaceOps';
 import { useProjectOps } from './supabase/useProjectOps';
@@ -29,6 +30,7 @@ interface UseSupabaseDataReturn {
   comments: Comment[];
   attachments: Attachment[];
   serviceTags: ServiceTag[];
+  documents: ProjectDocument[];
   loading: boolean;
   session: Session | null;
   workspaces: Workspace[];
@@ -117,6 +119,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [projectMembersState, setProjectMembersState] = useState<{ projectId: string; userId: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [documentsState, setDocumentsState] = useState<ProjectDocument[]>([]);
 
   // ── Plan Limits ──
   const planLimits = usePlanLimits(workspacesState, activeWorkspaceId, projectsState, tasksState, workspaceMembersState, isSuperAdmin);
@@ -306,6 +309,13 @@ export function useSupabaseData(): UseSupabaseDataReturn {
           ...mapDbTask(row), members: membersByTask[row.id] || [], subtasks: nestedSubtasksByParent[row.id] || [],
         })));
       }
+
+      // Fetch project documents
+      if (wsId) {
+        const docsRes = await supabase.from('project_documents').select('*').eq('workspace_id', wsId).order('position');
+        if (docsRes.data) setDocumentsState((docsRes.data as any[]).map(mapDbDocument));
+      }
+
       setLoading(false);
     };
 
@@ -536,6 +546,18 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'task_attachments' }, (payload) => {
         setAttachmentsState(prev => prev.filter(a => a.id !== (payload.old as any).id));
       })
+      // Project Documents
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_documents' }, (payload) => {
+        const d = mapDbDocument(payload.new);
+        setDocumentsState(prev => prev.some(x => x.id === d.id) ? prev : [...prev, d]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_documents' }, (payload) => {
+        const d = mapDbDocument(payload.new);
+        setDocumentsState(prev => prev.map(x => x.id === d.id ? d : x));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'project_documents' }, (payload) => {
+        setDocumentsState(prev => prev.filter(x => x.id !== (payload.old as any).id));
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -555,6 +577,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     comments: commentsState,
     attachments: attachmentsState,
     serviceTags: serviceTagsState,
+    documents: documentsState,
     loading,
     session,
     workspaces: workspacesState,
