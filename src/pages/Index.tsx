@@ -22,6 +22,7 @@ import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { ProjectDocsList } from '@/components/ProjectDocsList';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { SingleFocusMode } from '@/components/SingleFocusMode';
+import { TimeReportView } from '@/components/TimeReportView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
@@ -81,7 +82,7 @@ const Index = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
-  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs'>('tasks');
+  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs' | 'hours'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [singleFocusTask, _setSingleFocusTask] = useState<Task | null>(null);
@@ -1425,6 +1426,22 @@ const Index = () => {
                 Docs
                 {projectViewTab === 'docs' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
+              <button
+                onClick={() => setProjectViewTab('hours')}
+                className="relative"
+                style={{
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: projectViewTab === 'hours' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+                  transition: 'color 150ms ease-out',
+                }}
+                onMouseEnter={e => { if (projectViewTab !== 'hours') e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (projectViewTab !== 'hours') e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              >
+                Horas
+                {projectViewTab === 'hours' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
+              </button>
               </div>
               {/* Spacer + actions */}
               <div className="flex-1" />
@@ -1596,6 +1613,12 @@ const Index = () => {
                 onDeleteDocument={deleteDocument}
                 onReorderDocuments={reorderDocuments}
                 workspaceId={activeWorkspaceId || ''}
+              />
+            ) : projectViewTab === 'hours' ? (
+              <TimeReportView
+                projectId={activeProjectId}
+                workspaceId={activeWorkspaceId || ''}
+                tasks={taskList}
               />
             ) : (
             <>
