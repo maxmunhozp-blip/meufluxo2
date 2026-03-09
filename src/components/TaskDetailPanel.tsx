@@ -896,12 +896,35 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               <Icon className="w-[18px] h-[18px]" />
             </button>
           );
+        {(() => {
+          const si = statusIcons[localTask.status]; const Icon = si.icon;
+          return (
+            <button onClick={cycleStatus} title={si.label} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: si.color }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <Icon className="w-[18px] h-[18px]" />
+            </button>
+          );
         })()}
-        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--text-secondary)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onFocusTask && (
+            <button
+              onClick={() => onFocusTask(localTask)}
+              title="Focar nesta tarefa"
+              className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--accent-blue)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              <Target className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Breadcrumb */}
