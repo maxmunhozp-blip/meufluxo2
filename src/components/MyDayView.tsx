@@ -1193,7 +1193,7 @@ export function MyDayView({
                         const project = projects.find(p => p.id === task.projectId);
                         return (
                           <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                            onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} showProjectBadge projectName={project?.name}
+                            onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} projectName={project?.name}
                             rolloverDays={rolloverMap.get(task.id)}
                             ancestorTrail={buildAncestorTrail(task, tasks)}
                             dropIndicator={overItemId === task.id ? dropLinePosition : null}
