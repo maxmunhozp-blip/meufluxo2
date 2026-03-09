@@ -102,6 +102,7 @@ interface UseSupabaseDataReturn {
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
   autoTagTask: (taskId: string, taskName: string, sectionId: string) => Promise<void>;
+  timeByTask: Map<string, number>;
 }
 
 // ─── Orchestrator ──────────────────────────────────────────
