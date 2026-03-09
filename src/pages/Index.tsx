@@ -22,6 +22,7 @@ import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { ProjectDocsList } from '@/components/ProjectDocsList';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { SingleFocusMode } from '@/components/SingleFocusMode';
+import { TimeReportView } from '@/components/TimeReportView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
