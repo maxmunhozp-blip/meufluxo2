@@ -242,7 +242,7 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
     >
       {/* Close button */}
       <button
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute top-5 right-5 w-[44px] h-[44px] flex items-center justify-center transition-colors"
         style={{ color: 'var(--text-placeholder)' }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
