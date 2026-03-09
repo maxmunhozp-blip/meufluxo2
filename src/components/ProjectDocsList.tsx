@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ProjectDocument } from '@/types/document';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
+import { DocumentEditor } from './DocumentEditor';
 
 interface ProjectDocsListProps {
   projectId: string;
@@ -33,6 +34,11 @@ export function ProjectDocsList({
     const unpinned = docs.filter(d => !d.pinned).sort((a, b) => a.position - b.position);
     return [...pinned, ...unpinned];
   }, [documents, projectId]);
+
+  const selectedDoc = useMemo(() => {
+    if (!selectedDocId) return null;
+    return documents.find(d => d.id === selectedDocId) || null;
+  }, [documents, selectedDocId]);
 
   const handleCreate = async () => {
     try {
@@ -108,6 +114,17 @@ export function ProjectDocsList({
     ];
   };
 
+  // If a document is selected, show the editor
+  if (selectedDoc) {
+    return (
+      <DocumentEditor
+        document={selectedDoc}
+        onUpdateDocument={onUpdateDocument}
+        onBack={() => setSelectedDocId(null)}
+      />
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto sidebar-scroll" style={{ padding: '16px 32px 32px 32px' }}>
       {/* Header with create button */}
@@ -148,7 +165,6 @@ export function ProjectDocsList({
       {/* Document list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {projectDocs.map(doc => {
-          const isSelected = selectedDocId === doc.id;
           const isRenaming = renamingId === doc.id;
 
           if (isRenaming) {
@@ -187,7 +203,7 @@ export function ProjectDocsList({
           return (
             <button
               key={doc.id}
-              onClick={() => setSelectedDocId(isSelected ? null : doc.id)}
+              onClick={() => setSelectedDocId(doc.id)}
               onContextMenu={e => handleContextMenu(e, doc.id)}
               className="w-full flex items-center gap-2.5 select-none group"
               style={{
@@ -195,15 +211,15 @@ export function ProjectDocsList({
                 padding: '0 12px',
                 borderRadius: 8,
                 fontSize: 14,
-                fontWeight: isSelected ? 500 : 400,
-                color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: isSelected ? 'var(--accent-subtle)' : 'transparent',
+                fontWeight: 400,
+                color: 'var(--text-secondary)',
+                background: 'transparent',
                 transition: 'all 150ms ease-out',
               }}
-              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <FileText className="w-4 h-4 flex-shrink-0" style={{ color: isSelected ? 'var(--accent-blue)' : 'var(--text-tertiary)', transition: 'color 150ms ease-out' }} />
+              <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)', transition: 'color 150ms ease-out' }} />
               {doc.pinned && (
                 <Pin className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--accent-blue)', opacity: 0.7 }} />
               )}
