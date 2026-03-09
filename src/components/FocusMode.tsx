@@ -162,13 +162,14 @@ export function FocusMode({ tasks, projects, workspaceId, userId, onStatusChange
   const handleDone = useCallback(() => {
     if (focusState?.type !== 'task') return;
     const { task, periodKey } = focusState;
+    saveTimeEntry(task, elapsedRef.current);
     setShowCheck(true);
     onStatusChange(task.id, 'done');
     setTimeout(() => {
       setShowCheck(false);
       advanceToNext(periodKey);
     }, 900);
-  }, [focusState, onStatusChange, advanceToNext]);
+  }, [focusState, onStatusChange, advanceToNext, saveTimeEntry]);
 
   const handleNext = useCallback(() => {
     if (focusState?.type !== 'task') return;
