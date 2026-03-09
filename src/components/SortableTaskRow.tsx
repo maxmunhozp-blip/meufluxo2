@@ -368,7 +368,7 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
 
               {/* Rollover badge */}
               {task.rolloverCount != null && task.rolloverCount > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive flex-shrink-0" title={`Adiada ${task.rolloverCount}x`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${task.status === 'done' ? 'bg-muted text-muted-foreground/50' : 'bg-destructive/15 text-destructive'}`} title={`Adiada ${task.rolloverCount}x`}>
                   ↻{task.rolloverCount}
                 </span>
               )}
