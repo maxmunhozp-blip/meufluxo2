@@ -433,17 +433,6 @@ const Index = () => {
     setMobileSidebarOpen(false);
   };
 
-  // Restore focus mode after reload
-  useEffect(() => {
-    if (loading || !taskList.length) return;
-    const savedId = sessionStorage.getItem('meufluxo-focus-task-id');
-    if (savedId && !singleFocusTask) {
-      const found = taskList.find(t => t.id === savedId);
-      if (found) _setSingleFocusTask(found);
-      else sessionStorage.removeItem('meufluxo-focus-task-id');
-    }
-  }, [loading, taskList]);
-
   const handleDeleteTask = useCallback((taskId: string) => {
     // Find task — could be top-level or a subtask nested inside a parent
     let task = taskList.find(t => t.id === taskId);
