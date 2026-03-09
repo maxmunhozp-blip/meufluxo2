@@ -607,7 +607,14 @@ export function MyDayView({
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [overItemId, setOverItemId] = useState<string | null>(null);
   const [dropLinePosition, setDropLinePosition] = useState<'top' | 'bottom' | null>(null);
-  const [groupMode, setGroupMode] = useState<GroupMode>('period');
+  const [groupMode, setGroupMode] = useState<GroupMode>(() => {
+    const saved = localStorage.getItem('meufluxo_myday_group_mode');
+    return saved === 'service' ? 'service' : 'period';
+  });
+  const handleSetGroupMode = (mode: GroupMode) => {
+    setGroupMode(mode);
+    localStorage.setItem('meufluxo_myday_group_mode', mode);
+  };
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const promotedIdsRef = useRef<Set<string>>(new Set());
   
