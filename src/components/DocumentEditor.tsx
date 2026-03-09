@@ -6,14 +6,16 @@ interface DocumentEditorProps {
   document: ProjectDocument;
   onUpdateDocument: (doc: Partial<ProjectDocument> & { id: string }) => Promise<void>;
   onBack: () => void;
+  isNew?: boolean;
 }
 
-export function DocumentEditor({ document: doc, onUpdateDocument, onBack }: DocumentEditorProps) {
+export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const editorRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isLoadingRef = useRef(false);
 
@@ -26,6 +28,14 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack }: Docu
     if (editorRef.current) editorRef.current.innerHTML = html;
     isLoadingRef.current = false;
   }, [doc.id]);
+
+  // Auto-focus title for new documents
+  useEffect(() => {
+    if (isNew && titleRef.current) {
+      titleRef.current.focus();
+      titleRef.current.select();
+    }
+  }, [doc.id, isNew]);
 
   const getEditorHtml = useCallback(() => editorRef.current?.innerHTML || '', []);
 
@@ -185,6 +195,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack }: Docu
       {/* Editor body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <input
+          ref={titleRef}
           type="text"
           value={title}
           onChange={e => handleTitleChange(e.target.value)}
