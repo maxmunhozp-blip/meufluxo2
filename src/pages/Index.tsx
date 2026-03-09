@@ -50,7 +50,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { push: pushUndo } = useUndoStack();
   const {
-    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments, serviceTags,
+    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments, serviceTags, documents,
     setProjects, setSections, setTasks,
     exportData, importData,
     loading, session,
