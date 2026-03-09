@@ -2293,6 +2293,8 @@ const Index = () => {
           onUpdateTask={handleUpdateTask}
           onClose={() => setSingleFocusTask(null)}
           allTasks={taskList}
+          workspaceId={activeWorkspaceId || ''}
+          userId={session?.user?.id || ''}
         />
       )}
     </div>
