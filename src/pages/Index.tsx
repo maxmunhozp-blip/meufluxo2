@@ -19,6 +19,7 @@ import { TaskSection } from '@/components/TaskSection';
 import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { ViewRouter } from '@/components/ViewRouter';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
+import { ProjectDocsList } from '@/components/ProjectDocsList';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
 import { SingleFocusMode } from '@/components/SingleFocusMode';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
@@ -49,7 +50,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { push: pushUndo } = useUndoStack();
   const {
-    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments, serviceTags,
+    projects, sections: sectionList, tasks: taskList, profiles, comments, attachments, serviceTags, documents,
     setProjects, setSections, setTasks,
     exportData, importData,
     loading, session,
@@ -66,6 +67,7 @@ const Index = () => {
     uploadAttachment, deleteAttachment,
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
     planLimits, showUpgradeModal, setShowUpgradeModal, autoTagTask,
+    createDocument, updateDocument, deleteDocument, reorderDocuments,
   } = useSupabaseData();
 
   const { preference, cycleTheme } = useTheme();
@@ -78,7 +80,7 @@ const Index = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
-  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
+  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [singleFocusTask, setSingleFocusTask] = useState<Task | null>(null);
@@ -1395,6 +1397,22 @@ const Index = () => {
                 Notas
                 {projectViewTab === 'notes' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
               </button>
+              <button
+                onClick={() => setProjectViewTab('docs')}
+                className="relative"
+                style={{
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: projectViewTab === 'docs' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
+                  transition: 'color 150ms ease-out',
+                }}
+                onMouseEnter={e => { if (projectViewTab !== 'docs') e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { if (projectViewTab !== 'docs') e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              >
+                Docs
+                {projectViewTab === 'docs' && <div className="absolute bottom-0 left-0 right-0" style={{ height: 2, background: 'var(--accent-blue)' }} />}
+              </button>
               </div>
               {/* Spacer + actions */}
               <div className="flex-1" />
@@ -1556,6 +1574,15 @@ const Index = () => {
                 projects={projects}
                 isPro={planLimits.isPro}
                 onUpgrade={() => setShowUpgradeModal(true)}
+              />
+            ) : projectViewTab === 'docs' ? (
+              <ProjectDocsList
+                projectId={activeProjectId}
+                documents={documents}
+                onCreateDocument={createDocument}
+                onUpdateDocument={updateDocument}
+                onDeleteDocument={deleteDocument}
+                workspaceId={activeWorkspaceId || ''}
               />
             ) : (
             <>

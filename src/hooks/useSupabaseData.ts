@@ -16,6 +16,7 @@ import { useTaskOps } from './supabase/useTaskOps';
 import { useCommentAttachmentOps } from './supabase/useCommentAttachmentOps';
 import { useServiceTagOps } from './supabase/useServiceTagOps';
 import { useDataExport } from './supabase/useDataExport';
+import { useDocumentOps } from './supabase/useDocumentOps';
 
 // Re-export types for consumers
 export type { Profile, WorkspaceMember, Workspace };
@@ -85,6 +86,10 @@ interface UseSupabaseDataReturn {
   renameServiceTag: (id: string, name: string) => Promise<void>;
   changeServiceTagIcon: (id: string, icon: string) => Promise<void>;
   deleteServiceTag: (id: string) => Promise<void>;
+  createDocument: (projectId: string, workspaceId: string) => Promise<ProjectDocument>;
+  updateDocument: (doc: Partial<ProjectDocument> & { id: string }) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  reorderDocuments: (updates: { id: string; position: number }[]) => Promise<void>;
   planLimits: {
     plan: PlanType;
     limits: PlanLimits;
@@ -143,6 +148,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const commentAttachmentOps = useCommentAttachmentOps(shared);
   const serviceTagOps = useServiceTagOps(shared);
   const { exportData, importData } = useDataExport(projectsState, sectionsState, tasksState);
+  const documentOps = useDocumentOps({ session, activeWorkspaceId, documentsState, setDocumentsState });
 
   // ── Initial Data Fetch ──
   useEffect(() => {
@@ -598,6 +604,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     deleteAttachment: commentAttachmentOps.deleteAttachment,
     // Service Tags
     ...serviceTagOps,
+    // Documents
+    ...documentOps,
     // Data
     setProjects,
     setSections,
