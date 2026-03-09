@@ -30,6 +30,7 @@ interface UseSupabaseDataReturn {
   comments: Comment[];
   attachments: Attachment[];
   serviceTags: ServiceTag[];
+  documents: ProjectDocument[];
   loading: boolean;
   session: Session | null;
   workspaces: Workspace[];
