@@ -1,4 +1,5 @@
 import { Project, Section, Task, TaskStatus, Priority, Subtask, TaskMember, Comment, Attachment, ServiceTag } from '@/types/task';
+import { ProjectDocument } from '@/types/document';
 import type { Session } from '@supabase/supabase-js';
 import { PlanLimits, PlanType } from '../usePlanLimits';
 
@@ -69,6 +70,21 @@ export function mapDbTask(row: any): Task {
     completedAt: row.completed_at || undefined,
     manuallyMoved: row.manually_moved ?? false,
     depth: row.depth ?? 0,
+  };
+}
+
+export function mapDbDocument(row: any): ProjectDocument {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    workspaceId: row.workspace_id,
+    createdBy: row.created_by,
+    title: row.title,
+    content: row.content || {},
+    pinned: row.pinned ?? false,
+    position: row.position ?? 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 

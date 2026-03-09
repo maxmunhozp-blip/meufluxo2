@@ -332,6 +332,60 @@ export type Database = {
         }
         Relationships: []
       }
+      project_documents: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          pinned: boolean | null
+          position: number | null
+          project_id: string
+          title: string
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          pinned?: boolean | null
+          position?: number | null
+          project_id: string
+          title?: string
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          pinned?: boolean | null
+          position?: number | null
+          project_id?: string
+          title?: string
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_members: {
         Row: {
           created_at: string
