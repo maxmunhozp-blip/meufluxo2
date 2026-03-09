@@ -45,6 +45,7 @@ interface TaskDetailPanelProps {
   onRenameServiceTag?: (id: string, name: string) => Promise<void>;
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
   onDeleteServiceTag?: (id: string) => Promise<void>;
+  onFocusTask?: (task: Task) => void;
 }
 
 const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; label: string }> = {
