@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck, Target } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck, Target, Clock } from 'lucide-react';
+import { formatFocusedTime } from '@/types/time';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -46,6 +47,7 @@ interface TaskDetailPanelProps {
   onChangeServiceTagIcon?: (id: string, icon: string) => Promise<void>;
   onDeleteServiceTag?: (id: string) => Promise<void>;
   onFocusTask?: (task: Task) => void;
+  timeByTask?: Map<string, number>;
 }
 
 const statusIcons: Record<TaskStatus, { icon: typeof Circle; color: string; label: string }> = {
@@ -815,7 +817,7 @@ function DatePickerInline({ value, onChange, placeholder, clearLabel, showRelati
 }
 
 
-export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, isPro = true, onUpgrade, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag, onFocusTask }: TaskDetailPanelProps) {
+export function TaskDetailPanel({ task, sections, profiles, comments: allComments, attachments, serviceTags = [], currentUserId, parentTaskName, isPro = true, onUpgrade, onClose, onUpdateTask, onAddMember, onRemoveMember, onAddComment, onDeleteComment, onAddSubtask, onUpdateSubtask, onDeleteSubtask, onReorderSubtasks, onNavigateToParent, onSelectSubtask, onUploadAttachment, onDeleteAttachment, onCreateServiceTag, onRenameServiceTag, onChangeServiceTagIcon, onDeleteServiceTag, onFocusTask, timeByTask }: TaskDetailPanelProps) {
   const [localTask, setLocalTask] = useState<Task>(task);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -1059,6 +1061,19 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                 </button>
               )}
             </MetaRow>
+            {(() => {
+              const totalSec = timeByTask?.get(task.id) || 0;
+              const formatted = formatFocusedTime(totalSec);
+              if (!formatted) return null;
+              return (
+                <MetaRow label="Tempo focado">
+                  <div className="flex items-center gap-1.5 h-8 text-[13px]" style={{ color: 'var(--text-primary)' }}>
+                    <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
+                    {formatted}
+                  </div>
+                </MetaRow>
+              );
+            })()}
           </div>
 
           {/* Tabs: Anexos | Atividade */}

@@ -68,6 +68,7 @@ const Index = () => {
     createServiceTag, renameServiceTag, changeServiceTagIcon, deleteServiceTag,
     planLimits, showUpgradeModal, setShowUpgradeModal, autoTagTask,
     createDocument, updateDocument, deleteDocument, reorderDocuments,
+    timeByTask,
   } = useSupabaseData();
 
   const { preference, cycleTheme } = useTheme();
@@ -2077,6 +2078,7 @@ const Index = () => {
                       });
                     }}
                     fadingOutTaskId={fadingOutTaskId}
+                    timeByTask={timeByTask}
                   />
                   </div>
                 );
@@ -2218,6 +2220,7 @@ const Index = () => {
                 onChangeServiceTagIcon={changeServiceTagIcon}
                 onDeleteServiceTag={deleteServiceTag}
                 onFocusTask={(task) => setSingleFocusTask(task)}
+                timeByTask={timeByTask}
               />
             </div>
           </>

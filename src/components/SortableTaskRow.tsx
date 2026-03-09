@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { formatFocusedTime } from '@/types/time';
 import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical, MessageSquare, Play, Repeat, CalendarDays, ListPlus, Copy, FolderInput, CalendarArrowDown, CalendarCheck, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
@@ -38,6 +39,7 @@ interface SortableTaskRowProps {
   isFadingOut?: boolean;
   onScheduleToday?: (taskId: string) => void;
   onScheduleSubtask?: (subtaskId: string, scheduledDate: string | null) => void;
+  timeByTask?: Map<string, number>;
 }
 
 function formatDate(dateStr?: string): string {
@@ -72,7 +74,7 @@ const DEPTH_STYLES = {
   3: { paddingLeft: 80, checkboxSize: 12, fontSize: 12, fontWeight: 400, color: 'var(--text-tertiary)' },
 } as const;
 
-export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, sectionType, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday, onScheduleSubtask }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId, isDragSource, dropIndicator, projectColor, sectionType, onSelect, onStatusChange, onSubtaskStatusChange, onSelectSubtask, onDeleteTask, onDuplicateTask, onReorderSubtasks, onRenameTask, onRenameSubtask, sections, onMoveToSection, onMoveToMonth, onAddSubtask, onDeleteSubtask, onConvertSubtaskToTask, onNestAsSubtask, isFadingOut, onScheduleToday, onScheduleSubtask, timeByTask }: SortableTaskRowProps) {
   // HTML5 drag for cross-area drag to sidebar
   const handleNativeDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -296,6 +298,12 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                     {task.name}
                   </span>
                   {agingBadge}
+                  {(() => {
+                    const totalSec = timeByTask?.get(task.id) || 0;
+                    const formatted = formatFocusedTime(totalSec);
+                    if (!formatted) return null;
+                    return <span className="flex-shrink-0" style={{ fontSize: 10, color: 'var(--text-placeholder)' }}>{formatted}</span>;
+                  })()}
                   {task.scheduledDate && (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>

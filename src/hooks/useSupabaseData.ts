@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, Section, Task, TaskStatus, Priority, TaskMember, Comment, Subtask, Attachment, ServiceTag } from '@/types/task';
 import { ProjectDocument } from '@/types/document';
@@ -102,6 +102,7 @@ interface UseSupabaseDataReturn {
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
   autoTagTask: (taskId: string, taskName: string, sectionId: string) => Promise<void>;
+  timeByTask: Map<string, number>;
 }
 
 // ─── Orchestrator ──────────────────────────────────────────
@@ -125,6 +126,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [loading, setLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [documentsState, setDocumentsState] = useState<ProjectDocument[]>([]);
+  const [timeEntriesState, setTimeEntriesState] = useState<{ task_id: string; duration_seconds: number }[]>([]);
 
   // ── Plan Limits ──
   const planLimits = usePlanLimits(workspacesState, activeWorkspaceId, projectsState, tasksState, workspaceMembersState, isSuperAdmin);
@@ -149,6 +151,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const serviceTagOps = useServiceTagOps(shared);
   const { exportData, importData } = useDataExport(projectsState, sectionsState, tasksState);
   const documentOps = useDocumentOps({ session, activeWorkspaceId, documentsState, setDocumentsState });
+
+  // ── Time by Task (aggregated) ──
+  const timeByTask = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const entry of timeEntriesState) {
+      map.set(entry.task_id, (map.get(entry.task_id) || 0) + entry.duration_seconds);
+    }
+    return map;
+  }, [timeEntriesState]);
 
   // ── Initial Data Fetch ──
   useEffect(() => {
@@ -320,6 +331,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       if (wsId) {
         const docsRes = await supabase.from('project_documents').select('*').eq('workspace_id', wsId).order('position');
         if (docsRes.data) setDocumentsState((docsRes.data as any[]).map(mapDbDocument));
+
+        const timeRes = await supabase.from('time_entries').select('task_id, duration_seconds').eq('workspace_id', wsId);
+        if (timeRes.data) setTimeEntriesState(timeRes.data as any[]);
       }
 
       setLoading(false);
@@ -616,5 +630,6 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     planLimits,
     showUpgradeModal,
     setShowUpgradeModal,
+    timeByTask,
   };
 }

@@ -73,6 +73,7 @@ interface TaskSectionProps {
   onMoveCompletedToSection?: (fromSectionId: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
+  timeByTask?: Map<string, number>;
 }
 
 // Footer input with Tab-indent support
@@ -206,6 +207,7 @@ export function TaskSection({
   onMoveCompletedToSection,
   onExpandAll,
   onCollapseAll,
+  timeByTask,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
@@ -423,6 +425,7 @@ export function TaskSection({
                 isFadingOut={fadingOutTaskId === task.id}
                 onScheduleToday={onScheduleToday}
                 onScheduleSubtask={onScheduleSubtask}
+                timeByTask={timeByTask}
               />
             ))}
           </SortableContext>
