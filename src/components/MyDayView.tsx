@@ -669,7 +669,7 @@ export function MyDayView({
 
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
-    if (isPro && viewingToday) {
+    if (viewingToday) {
       // Overdue rollover only applies when viewing today
       tasks.forEach(t => {
         if (t.parentTaskId) return;
