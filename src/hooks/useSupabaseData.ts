@@ -546,6 +546,18 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'task_attachments' }, (payload) => {
         setAttachmentsState(prev => prev.filter(a => a.id !== (payload.old as any).id));
       })
+      // Project Documents
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_documents' }, (payload) => {
+        const d = mapDbDocument(payload.new);
+        setDocumentsState(prev => prev.some(x => x.id === d.id) ? prev : [...prev, d]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_documents' }, (payload) => {
+        const d = mapDbDocument(payload.new);
+        setDocumentsState(prev => prev.map(x => x.id === d.id ? d : x));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'project_documents' }, (payload) => {
+        setDocumentsState(prev => prev.filter(x => x.id !== (payload.old as any).id));
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
