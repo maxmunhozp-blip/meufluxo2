@@ -2243,6 +2243,16 @@ const Index = () => {
         }}
       />
       {confirmDialog}
+      {singleFocusTask && (
+        <SingleFocusMode
+          task={singleFocusTask}
+          project={projects.find(p => p.id === singleFocusTask.projectId)}
+          onStatusChange={handleStatusChange}
+          onUpdateTask={handleUpdateTask}
+          onClose={() => setSingleFocusTask(null)}
+          allTasks={taskList}
+        />
+      )}
     </div>
   );
 };
