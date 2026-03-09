@@ -600,6 +600,8 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     deleteAttachment: commentAttachmentOps.deleteAttachment,
     // Service Tags
     ...serviceTagOps,
+    // Documents
+    ...documentOps,
     // Data
     setProjects,
     setSections,
