@@ -1582,6 +1582,7 @@ const Index = () => {
                 onCreateDocument={createDocument}
                 onUpdateDocument={updateDocument}
                 onDeleteDocument={deleteDocument}
+                onReorderDocuments={reorderDocuments}
                 workspaceId={activeWorkspaceId || ''}
               />
             ) : (
