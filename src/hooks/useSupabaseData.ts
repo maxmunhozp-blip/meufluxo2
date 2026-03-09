@@ -119,6 +119,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const [projectMembersState, setProjectMembersState] = useState<{ projectId: string; userId: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [documentsState, setDocumentsState] = useState<ProjectDocument[]>([]);
 
   // ── Plan Limits ──
   const planLimits = usePlanLimits(workspacesState, activeWorkspaceId, projectsState, tasksState, workspaceMembersState, isSuperAdmin);
