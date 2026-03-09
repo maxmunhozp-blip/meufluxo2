@@ -174,10 +174,10 @@ function DayTaskCard({
         <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
           {projectName && <span className="flex-shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)', fontWeight: 400, opacity: isDone ? 0.25 : 1 }}>{projectName}</span>}
           {projectName && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
+          {ancestorTrail && <span className="truncate text-[11px] max-w-[160px] lg:max-w-[280px]" style={{ color: 'var(--text-tertiary)', fontWeight: 400, flexShrink: 1, minWidth: 0, opacity: isDone ? 0.25 : 1 }}>{ancestorTrail}</span>}
+          {ancestorTrail && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>›</span>}
           <span className="flex-shrink-0 max-w-[40%] lg:max-w-[55%] text-[14px] leading-tight truncate transition-all duration-200"
             style={{ color: 'var(--text-primary)', opacity: isDone || completing ? 0.35 : 1, fontWeight: 400 }}>{task.name}</span>
-          {ancestorTrail && <span className="flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 9 }}>·</span>}
-          {ancestorTrail && <span className="truncate text-[11px] max-w-[160px] lg:max-w-[280px] px-1 py-0.5 rounded" style={{ color: 'var(--text-tertiary)', fontWeight: 400, flexShrink: 1, minWidth: 0, background: 'var(--bg-hover)', opacity: isDone ? 0.25 : 1 }}>{ancestorTrail}</span>}
         </div>
         {rolloverDays && rolloverDays > 0 && (
           <span className="flex-shrink-0 ml-2 whitespace-nowrap px-1.5 py-0.5 rounded"
