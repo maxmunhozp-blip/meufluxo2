@@ -105,7 +105,7 @@ export function SingleFocusMode({ task, project, onStatusChange, onUpdateTask, o
       style={{ background: 'var(--bg-focus)', transitionTimingFunction: EASING }}
     >
       <button
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute top-5 right-5 w-[44px] h-[44px] flex items-center justify-center transition-colors"
         style={{ color: 'var(--text-placeholder)' }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
