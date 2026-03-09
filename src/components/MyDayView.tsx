@@ -907,6 +907,36 @@ export function MyDayView({
     }
   };
 
+  // ── Service mode DnD handlers ──
+  const handleServiceDragEnd = (event: DragEndEvent) => {
+    const droppedId = activeDragId;
+    setActiveDragId(null); setOverItemId(null); setDropLinePosition(null);
+    const { active, over } = event;
+    if (!over) return;
+    if (droppedId) { setJustDroppedId(droppedId); setTimeout(() => setJustDroppedId(null), 450); }
+    const activeData = active.data.current; const overData = over.data.current;
+    if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
+      const draggedTask = activeData.task as Task;
+      const targetTask = overData.task as Task;
+      const draggedTag = draggedTask.serviceTagId || '__none__';
+      const targetTag = targetTask.serviceTagId || '__none__';
+      if (draggedTag === targetTag) {
+        const groupTasks = [...(tasksByService[draggedTag] || [])];
+        const oldIdx = groupTasks.findIndex(t => t.id === draggedTask.id);
+        const newIdx = groupTasks.findIndex(t => t.id === targetTask.id);
+        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+          const reordered = arrayMove(groupTasks, oldIdx, newIdx);
+          const updates = reordered.map((t, i) => ({ id: t.id, position: i }));
+          if (onBatchUpdatePositions) {
+            onBatchUpdatePositions(updates);
+          } else {
+            reordered.forEach((t, i) => onUpdateTask({ ...t, position: i }));
+          }
+        }
+      }
+    }
+  };
+
   // Find drag task — search top-level tasks first, then subtask pseudo-tasks in todayTasks
   const activeDragTask = useMemo(() => {
     if (!activeDragId) return null;
