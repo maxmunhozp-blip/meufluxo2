@@ -718,8 +718,11 @@ export function MyDayView({
       // Overdue rollover only applies when viewing today
       tasks.forEach(t => {
         if (t.parentTaskId) return;
-        // Never rollover completed tasks — they stay on their original day
-        if (t.status === 'done') return;
+        // Keep completed tasks visible if they were completed today (rolled-over tasks stay on "Meu Dia")
+        if (t.status === 'done') {
+          const completedToday = t.completedAt && isSameDay(parseISO(t.completedAt), new Date());
+          if (!completedToday) return;
+        }
         if (scheduledIds.has(t.id)) return;
         if (t.scheduledDate && t.scheduledDate < selectedDateStr) {
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
