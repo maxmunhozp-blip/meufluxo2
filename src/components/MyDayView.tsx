@@ -746,8 +746,11 @@ export function MyDayView({
         const findOverdueSubtasks = (subs: any[], parent: Task) => {
           subs.forEach((sub, idx) => {
             if (scheduledIds.has(sub.id)) return;
-            // Never rollover completed subtasks
-            if (sub.status === 'done') return;
+            // Keep completed subtasks visible if completed today
+            if (sub.status === 'done') {
+              const completedToday = sub.completedAt && isSameDay(parseISO(sub.completedAt), new Date());
+              if (!completedToday) return;
+            }
             if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
               const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
               if (days > 0) {
