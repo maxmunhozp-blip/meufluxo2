@@ -915,12 +915,30 @@ export function MyDayView({
     if (!over) return;
     if (droppedId) { setJustDroppedId(droppedId); setTimeout(() => setJustDroppedId(null), 450); }
     const activeData = active.data.current; const overData = over.data.current;
+
+    // Drop on a service group zone (header/empty area)
+    if (activeData?.type === 'day-task' && overData?.type === 'service-group-drop') {
+      const draggedTask = activeData.task as Task;
+      const targetTagId = overData.tagId as string;
+      const newServiceTagId = targetTagId === '__none__' ? undefined : targetTagId;
+      const draggedTag = draggedTask.serviceTagId || '__none__';
+      if (draggedTag !== targetTagId) {
+        // Move to end of target group
+        const targetTasks = tasksByService[targetTagId] || [];
+        const newPosition = targetTasks.length;
+        onUpdateTask({ ...draggedTask, serviceTagId: newServiceTagId, position: newPosition });
+      }
+      return;
+    }
+
     if (activeData?.type === 'day-task' && overData?.type === 'day-task') {
       const draggedTask = activeData.task as Task;
       const targetTask = overData.task as Task;
       const draggedTag = draggedTask.serviceTagId || '__none__';
       const targetTag = targetTask.serviceTagId || '__none__';
+
       if (draggedTag === targetTag) {
+        // Same group reorder
         const groupTasks = [...(tasksByService[draggedTag] || [])];
         const oldIdx = groupTasks.findIndex(t => t.id === draggedTask.id);
         const newIdx = groupTasks.findIndex(t => t.id === targetTask.id);
@@ -932,6 +950,22 @@ export function MyDayView({
           } else {
             reordered.forEach((t, i) => onUpdateTask({ ...t, position: i }));
           }
+        }
+      } else {
+        // Cross-group move: change serviceTagId and insert at target position
+        const newServiceTagId = targetTag === '__none__' ? undefined : targetTag;
+        const targetTasks = [...(tasksByService[targetTag] || [])].filter(t => t.id !== draggedTask.id);
+        const targetIdx = targetTasks.findIndex(t => t.id === targetTask.id);
+        const insertIdx = dropLinePosition === 'top' ? targetIdx : targetIdx + 1;
+        const reordered = [...targetTasks.slice(0, insertIdx), { ...draggedTask, serviceTagId: newServiceTagId }, ...targetTasks.slice(insertIdx)];
+        
+        // Update moved task with new tag
+        onUpdateTask({ ...draggedTask, serviceTagId: newServiceTagId, position: insertIdx });
+        
+        // Batch update positions in target group
+        const updates = reordered.map((t, i) => ({ id: t.id, position: i }));
+        if (onBatchUpdatePositions) {
+          onBatchUpdatePositions(updates);
         }
       }
     }
