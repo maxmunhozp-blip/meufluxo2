@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck, Target } from 'lucide-react';
+import { X, Trash2, Plus, GripVertical, ChevronRight, Check, Paperclip, Download, FileText, Image as ImageIcon, Circle, CircleDot, CircleCheckBig, Pencil, Bold, Highlighter, CalendarIcon, Sparkles, ImagePlus, BadgeCheck, Target, Clock } from 'lucide-react';
+import { formatFocusedTime } from '@/types/time';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
