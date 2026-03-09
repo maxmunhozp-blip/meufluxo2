@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MonthYearPicker } from '@/components/MonthYearPicker';
+import { formatFocusedTime } from '@/types/time';
 
 export type FilterMode = 'all' | 'pending' | 'done';
 
@@ -15,9 +16,10 @@ interface TaskListHeaderProps {
   onFilterChange: (filter: FilterMode) => void;
   activeMonth?: Date;
   onMonthChange?: (month: Date) => void;
+  totalFocusedSeconds?: number;
 }
 
-export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange }: TaskListHeaderProps) {
+export function TaskListHeader({ projectName, filter, onFilterChange, activeMonth, onMonthChange, totalFocusedSeconds }: TaskListHeaderProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const now = activeMonth || new Date();
   const currentMonth = now.getMonth();
@@ -58,6 +60,12 @@ export function TaskListHeader({ projectName, filter, onFilterChange, activeMont
         <h1 className="truncate" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>
           {projectName}
         </h1>
+        {totalFocusedSeconds != null && formatFocusedTime(totalFocusedSeconds) && (
+          <div className="flex items-center gap-1 flex-shrink-0" style={{ color: 'var(--text-placeholder)', fontSize: 12 }}>
+            <Clock className="w-3.5 h-3.5" />
+            <span>{formatFocusedTime(totalFocusedSeconds)}</span>
+          </div>
+        )}
       </div>
 
       {/* Right: [temporal badge] < Mês Ano > — all inline, single row */}
