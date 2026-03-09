@@ -207,6 +207,7 @@ export function TaskSection({
   onMoveCompletedToSection,
   onExpandAll,
   onCollapseAll,
+  timeByTask,
 }: TaskSectionProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(section.title);
