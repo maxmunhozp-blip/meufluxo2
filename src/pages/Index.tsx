@@ -20,6 +20,7 @@ import { TaskDetailPanel } from '@/components/TaskDetailPanel';
 import { ViewRouter } from '@/components/ViewRouter';
 import { ProjectNotesView } from '@/components/ProjectNotesView';
 import { QuickNoteModal } from '@/components/QuickNoteModal';
+import { SingleFocusMode } from '@/components/SingleFocusMode';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTheme } from '@/hooks/useTheme';
 import { useUndoStack } from '@/hooks/useUndoStack';
