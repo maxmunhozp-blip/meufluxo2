@@ -81,7 +81,7 @@ const Index = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
-  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs'>('tasks');
+  const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes' | 'docs' | 'hours'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [singleFocusTask, _setSingleFocusTask] = useState<Task | null>(null);
