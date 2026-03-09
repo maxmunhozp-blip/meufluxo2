@@ -577,6 +577,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     comments: commentsState,
     attachments: attachmentsState,
     serviceTags: serviceTagsState,
+    documents: documentsState,
     loading,
     session,
     workspaces: workspacesState,
