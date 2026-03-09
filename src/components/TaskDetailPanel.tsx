@@ -896,15 +896,6 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               <Icon className="w-[18px] h-[18px]" />
             </button>
           );
-        {(() => {
-          const si = statusIcons[localTask.status]; const Icon = si.icon;
-          return (
-            <button onClick={cycleStatus} title={si.label} className="w-7 h-7 flex items-center justify-center rounded-md transition-colors" style={{ color: si.color }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              <Icon className="w-[18px] h-[18px]" />
-            </button>
-          );
         })()}
         <div className="flex items-center gap-1">
           {onFocusTask && (
