@@ -824,6 +824,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const [newSubtaskName, setNewSubtaskName] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const [activeTab, setActiveTab] = useState<'attachments' | 'activity' | null>(null);
+  const [showTimeDetails, setShowTimeDetails] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const newSubRef = useRef<HTMLInputElement>(null);
