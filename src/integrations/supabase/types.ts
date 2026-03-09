@@ -752,6 +752,64 @@ export type Database = {
           },
         ]
       }
+      time_entries: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number
+          ended_at: string
+          id: string
+          project_id: string
+          started_at: string
+          task_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds: number
+          ended_at?: string
+          id?: string
+          project_id: string
+          started_at: string
+          task_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number
+          ended_at?: string
+          id?: string
+          project_id?: string
+          started_at?: string
+          task_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           collapsed_sections: Json
