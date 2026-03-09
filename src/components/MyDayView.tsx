@@ -1264,29 +1264,95 @@ export function MyDayView({
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleServiceDragEnd}>
           <SortableContext items={todayTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <div className="max-w-[640px] lg:max-w-3xl mx-auto">
-            {Object.entries(tasksByService).map(([tagId, tagTasks]) => {
+            {sortedServiceGroupKeys.map((tagId) => {
+              const tagTasks = tasksByService[tagId] || [];
               const tag = serviceTags.find(t => t.id === tagId);
               const TagIcon = tag ? getTagIcon(tag.icon) : null;
               const label = tag?.name || 'Sem tipo';
+              const isCollapsed = collapsedServiceGroups[tagId] === true;
+              const doneCount = tagTasks.filter(t => t.status === 'done').length;
+              const totalCount = tagTasks.length;
               return (
                 <ServiceGroupDropZone key={tagId} tagId={tagId} activeDragId={activeDragId}>
-                  <div className="flex items-center gap-1.5 mb-2" style={{ height: 20, opacity: 0.7 }}>
+                  <div
+                    draggable
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      draggedGroupRef.current = tagId;
+                      e.dataTransfer.setData('application/x-service-group', tagId);
+                      e.dataTransfer.effectAllowed = 'move';
+                      const ghost = document.createElement('div');
+                      ghost.textContent = label;
+                      ghost.style.cssText = 'position:fixed;top:-1000px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--text-primary);white-space:nowrap;z-index:9999;pointer-events:none;';
+                      document.body.appendChild(ghost);
+                      e.dataTransfer.setDragImage(ghost, 10, 14);
+                      setTimeout(() => document.body.removeChild(ghost), 0);
+                    }}
+                    onDragEnd={() => { draggedGroupRef.current = null; }}
+                    onDragOver={(e) => {
+                      if (!e.dataTransfer.types.includes('application/x-service-group')) return;
+                      e.preventDefault();
+                      e.currentTarget.style.borderTop = '2px solid hsl(var(--primary))';
+                    }}
+                    onDragLeave={(e) => { e.currentTarget.style.borderTop = ''; }}
+                    onDrop={(e) => {
+                      e.currentTarget.style.borderTop = '';
+                      const fromId = e.dataTransfer.getData('application/x-service-group');
+                      if (!fromId || fromId === tagId) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setServiceGroupOrder(prev => {
+                        const currentOrder = prev.length > 0
+                          ? prev.filter(k => sortedServiceGroupKeys.includes(k))
+                          : [...sortedServiceGroupKeys];
+                        // Ensure all keys present
+                        sortedServiceGroupKeys.forEach(k => { if (!currentOrder.includes(k)) currentOrder.push(k); });
+                        const fromIdx = currentOrder.indexOf(fromId);
+                        const toIdx = currentOrder.indexOf(tagId);
+                        if (fromIdx === -1 || toIdx === -1) return prev;
+                        const reordered = [...currentOrder];
+                        reordered.splice(fromIdx, 1);
+                        reordered.splice(toIdx, 0, fromId);
+                        localStorage.setItem('meufluxo_myday_service_order', JSON.stringify(reordered));
+                        return reordered;
+                      });
+                    }}
+                    className="flex items-center gap-1.5 mb-1 cursor-pointer select-none group/header rounded-md px-1 -mx-1 transition-colors hover:bg-[var(--bg-hover)]"
+                    style={{ height: 28 }}
+                    onClick={() => toggleServiceGroupCollapse(tagId)}
+                  >
+                    <div className="flex-shrink-0 opacity-0 group-hover/header:opacity-40 transition-opacity cursor-grab active:cursor-grabbing hidden md:block"
+                      onPointerDown={(e) => e.stopPropagation()}>
+                      <GripVertical className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                    <ChevronDown
+                      className="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200"
+                      style={{
+                        color: 'var(--text-tertiary)',
+                        transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      }}
+                    />
                     {TagIcon && <TagIcon style={{ width: 14, height: 14, color: 'var(--text-tertiary)' }} />}
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>{label}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-placeholder)', marginLeft: 4 }}>
+                      {doneCount}/{totalCount}
+                    </span>
                   </div>
-                  <div className="space-y-0.5">
-                    {tagTasks.map(task => {
-                      const project = projects.find(p => p.id === task.projectId);
-                      return (
-                        <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
-                          onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} projectName={project?.name}
-                          rolloverDays={rolloverMap.get(task.id)}
-                          ancestorTrail={buildAncestorTrail(task, tasks)}
-                          dropIndicator={overItemId === task.id ? dropLinePosition : null}
-                          justDropped={justDroppedId === task.id} />
-                      );
-                    })}
-                  </div>
+                  {!isCollapsed && (
+                    <div className="space-y-0.5">
+                      {tagTasks.map(task => {
+                        const project = projects.find(p => p.id === task.projectId);
+                        return (
+                          <DayTaskCard key={task.id} task={task} projectColor={project?.color || 'var(--accent-blue)'} isSelected={selectedTaskId === task.id}
+                            onSelect={() => onSelectTask(task)} onStatusChange={handleStatusChangeWrapped} onUpdateTask={onUpdateTask} projectName={project?.name}
+                            rolloverDays={rolloverMap.get(task.id)}
+                            ancestorTrail={buildAncestorTrail(task, tasks)}
+                            dropIndicator={overItemId === task.id ? dropLinePosition : null}
+                            justDropped={justDroppedId === task.id} />
+                        );
+                      })}
+                    </div>
+                  )}
                 </ServiceGroupDropZone>
               );
             })}
