@@ -81,6 +81,7 @@ const Index = () => {
   const [projectViewTab, setProjectViewTab] = useState<'tasks' | 'notes'>('tasks');
   const [isNotesView, setIsNotesView] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
+  const [singleFocusTask, setSingleFocusTask] = useState<Task | null>(null);
   const { expandedSections, toggleSection, expandSection, isSectionExpanded } = useSectionPreferences(session?.user?.id);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [activeTaskDragId, setActiveTaskDragId] = useState<string | null>(null);
