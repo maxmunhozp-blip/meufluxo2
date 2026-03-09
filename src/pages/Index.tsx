@@ -1614,6 +1614,12 @@ const Index = () => {
                 onReorderDocuments={reorderDocuments}
                 workspaceId={activeWorkspaceId || ''}
               />
+            ) : projectViewTab === 'hours' ? (
+              <TimeReportView
+                projectId={activeProjectId}
+                workspaceId={activeWorkspaceId || ''}
+                tasks={taskList}
+              />
             ) : (
             <>
             
