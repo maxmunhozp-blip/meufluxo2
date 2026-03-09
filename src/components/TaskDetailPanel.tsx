@@ -1061,6 +1061,19 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
                 </button>
               )}
             </MetaRow>
+            {(() => {
+              const totalSec = timeByTask?.get(task.id) || 0;
+              const formatted = formatFocusedTime(totalSec);
+              if (!formatted) return null;
+              return (
+                <MetaRow label="Tempo focado">
+                  <div className="flex items-center gap-1.5 h-8 text-[13px]" style={{ color: 'var(--text-primary)' }}>
+                    <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-placeholder)' }} />
+                    {formatted}
+                  </div>
+                </MetaRow>
+              );
+            })()}
           </div>
 
           {/* Tabs: Anexos | Atividade */}
