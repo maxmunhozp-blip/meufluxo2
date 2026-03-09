@@ -144,6 +144,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const commentAttachmentOps = useCommentAttachmentOps(shared);
   const serviceTagOps = useServiceTagOps(shared);
   const { exportData, importData } = useDataExport(projectsState, sectionsState, tasksState);
+  const documentOps = useDocumentOps({ session, activeWorkspaceId, documentsState, setDocumentsState });
 
   // ── Initial Data Fetch ──
   useEffect(() => {
