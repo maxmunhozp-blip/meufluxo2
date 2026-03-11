@@ -682,6 +682,7 @@ export function MyDayView({
       status: sub.status,
       parentTaskId: sub.parentTaskId,
       dayPeriod: sub.dayPeriod || parent.dayPeriod || 'morning',
+      serviceTagId: sub.serviceTagId || parent.serviceTagId,
       position: (sub as any).position != null ? (sub as any).position : (parent.position ?? 0) * 100 + index,
     });
 
