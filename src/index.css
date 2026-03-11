@@ -829,7 +829,7 @@ aside ~ div {
 
 /* Project names — boosted contrast only in light-contrast theme */
 [data-theme="light-contrast"] .sidebar-container .sidebar-project-name {
-  color: #F0F2FA !important;
+  color: #C8CCE0 !important;
 }
 
 /* Respect prefers-reduced-motion */
