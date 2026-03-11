@@ -187,7 +187,7 @@ function SortableProjectItem({
           onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
           className="flex items-center justify-center flex-shrink-0"
           style={{ width: 24, height: 24, minWidth: 24, minHeight: 24, borderRadius: 4 }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-overlay)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--sidebar-hover-bg, var(--bg-hover))'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
           <ChevronRight
