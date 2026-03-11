@@ -130,10 +130,11 @@ export function useTaskOps(deps: SharedState) {
   }, [activeWorkspaceId, session]);
 
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
-    await supabase.from('tasks').update({ status }).eq('id', id);
-    const completedAt = status === 'done' ? new Date().toISOString() : undefined;
+    const completedAt = status === 'done' ? new Date().toISOString() : null;
+    await supabase.from('tasks').update({ status, completed_at: completedAt }).eq('id', id);
+    const completedAtLocal = completedAt || undefined;
     setTasksState(prev => prev.map(t => {
-      if (t.id === id) return { ...t, status, completedAt };
+      if (t.id === id) return { ...t, status, completedAt: completedAtLocal };
       return {
         ...t, subtasks: (t.subtasks || []).map(s => {
           if (s.id === id) return { ...s, status };
