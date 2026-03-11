@@ -493,11 +493,11 @@
     --sidebar-separator: 232 18% 22%;
     --sidebar-label: 225 10% 48%;
 
-    /* Sidebar-scoped semantic text — boosted contrast for accessibility */
-    --sidebar-text-primary: #F0F2FA;
-    --sidebar-text-secondary: #A0A6C4;
-    --sidebar-text-tertiary: #B0B5CE;
-    --sidebar-text-placeholder: #4A5078;
+    /* Sidebar-scoped semantic text — pure cool blue-grey, zero warm cast */
+    --sidebar-text-primary: #DEE1F0;
+    --sidebar-text-secondary: #7E84A4;
+    --sidebar-text-tertiary: #8B90B0;
+    --sidebar-text-placeholder: #3E4468;
 
     /* Sidebar search input — subtle tone-on-tone */
     --sidebar-input-bg: hsla(232, 24%, 17%, 1);
