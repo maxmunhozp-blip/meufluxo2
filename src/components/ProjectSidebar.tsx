@@ -205,7 +205,7 @@ function SortableProjectItem({
           className="flex-shrink-0 hover:scale-125 transition-transform"
           style={{ width: 6, height: 6, borderRadius: '50%', background: project.color, marginRight: 4, opacity: 'var(--project-dot-opacity, 1)' as any }}
         />
-        <span className="truncate flex-1 text-left" style={{ lineHeight: 1.5 }} onClick={onSelect}>{project.name}</span>
+        <span className="truncate flex-1 text-left sidebar-project-name" style={{ lineHeight: 1.5 }} onClick={onSelect}>{project.name}</span>
         {/* Drop hint */}
         {isDragOver && (
           <span className="text-[10px] font-medium whitespace-nowrap flex-shrink-0" style={{ color: 'var(--accent-blue)' }}>
