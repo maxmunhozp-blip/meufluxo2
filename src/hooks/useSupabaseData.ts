@@ -179,7 +179,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
 
       if (wsIds.length > 0) {
         const { data: wsData } = await supabase.from('workspaces').select('*').in('id', wsIds);
-        setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id, clientsLabel: (w as any).clients_label || 'Clientes' })));
+        setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id, clientsLabel: (w as any).clients_label || 'Clientes', plan: (w.plan as 'free' | 'pro') || 'free' })));
       }
 
       const wsId = wsIds[0] || null;

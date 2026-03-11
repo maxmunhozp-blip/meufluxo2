@@ -26,6 +26,7 @@ export interface Workspace {
   name: string;
   ownerId: string;
   clientsLabel: string;
+  plan: 'free' | 'pro';
 }
 
 // ─── DB → App Mappers ──────────────────────────────────────

@@ -93,7 +93,7 @@ export function useWorkspaceOps(deps: SharedState) {
     await supabase.from('workspace_members').insert({
       workspace_id: data.id, user_id: session.user.id, role: 'owner', accepted_at: new Date().toISOString(),
     });
-    const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id, clientsLabel: (data as any).clients_label || 'Clientes' };
+    const newWs: Workspace = { id: data.id, name: data.name, ownerId: data.owner_id, clientsLabel: (data as any).clients_label || 'Clientes', plan: (data.plan as 'free' | 'pro') || 'free' };
     setWorkspacesState(prev => [...prev, newWs]);
     toast.success('Workspace criado!');
     switchWorkspace(data.id);
