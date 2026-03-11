@@ -287,9 +287,10 @@ export function useTaskOps(deps: SharedState) {
     if (updates.name !== undefined) dbUpdates.title = updates.name;
     if (updates.status !== undefined) { dbUpdates.status = updates.status; dbUpdates.completed_at = updates.status === 'done' ? new Date().toISOString() : null; }
     await supabase.from('tasks').update(dbUpdates).eq('id', subtaskId);
+    const completedAt = updates.status === 'done' ? new Date().toISOString() : undefined;
     const applyUpdates = (s: Subtask): Subtask => ({
       ...s,
-      ...(s.id === subtaskId ? { ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) } : {}),
+      ...(s.id === subtaskId ? { ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status, completedAt } : {}) } : {}),
       subtasks: s.subtasks ? s.subtasks.map(applyUpdates) : undefined,
     });
     setTasksState(prev => prev.map(t => ({
