@@ -130,14 +130,14 @@ export function useTaskOps(deps: SharedState) {
   }, [activeWorkspaceId, session]);
 
   const updateTaskStatus = useCallback(async (id: string, status: TaskStatus) => {
-    const completedAt = status === 'done' ? new Date().toISOString() : null;
-    await supabase.from('tasks').update({ status, completed_at: completedAt }).eq('id', id);
+    await supabase.from('tasks').update({ status }).eq('id', id);
+    const completedAt = status === 'done' ? new Date().toISOString() : undefined;
     setTasksState(prev => prev.map(t => {
-      if (t.id === id) return { ...t, status, completedAt: completedAt || undefined };
+      if (t.id === id) return { ...t, status, completedAt };
       return {
         ...t, subtasks: (t.subtasks || []).map(s => {
-          if (s.id === id) return { ...s, status, completedAt: completedAt || undefined };
-          return { ...s, subtasks: (s.subtasks || []).map(ss => ss.id === id ? { ...ss, status, completedAt: completedAt || undefined } : ss) };
+          if (s.id === id) return { ...s, status };
+          return { ...s, subtasks: (s.subtasks || []).map(ss => ss.id === id ? { ...ss, status } : ss) };
         }),
       };
     }));
@@ -287,10 +287,9 @@ export function useTaskOps(deps: SharedState) {
     if (updates.name !== undefined) dbUpdates.title = updates.name;
     if (updates.status !== undefined) { dbUpdates.status = updates.status; dbUpdates.completed_at = updates.status === 'done' ? new Date().toISOString() : null; }
     await supabase.from('tasks').update(dbUpdates).eq('id', subtaskId);
-    const completedAt = updates.status === 'done' ? new Date().toISOString() : undefined;
     const applyUpdates = (s: Subtask): Subtask => ({
       ...s,
-      ...(s.id === subtaskId ? { ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status, completedAt } : {}) } : {}),
+      ...(s.id === subtaskId ? { ...(updates.name !== undefined ? { name: updates.name } : {}), ...(updates.status !== undefined ? { status: updates.status } : {}) } : {}),
       subtasks: s.subtasks ? s.subtasks.map(applyUpdates) : undefined,
     });
     setTasksState(prev => prev.map(t => ({
