@@ -827,6 +827,11 @@ aside ~ div {
   background: hsla(232, 22%, 25%, 1) !important;
 }
 
+/* Project names — boosted contrast only in light-contrast theme */
+[data-theme="light-contrast"] .sidebar-container .sidebar-project-name {
+  color: #F0F2FA !important;
+}
+
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
