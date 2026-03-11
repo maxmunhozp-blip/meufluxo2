@@ -182,7 +182,7 @@
     --temporal-today-hover: #1D4ED8;
 
     /* Project dot opacity — softer in dark */
-    --project-dot-opacity: 0.45;
+    --project-dot-opacity: 0.7;
 
     /* Search button opacity — subtler in dark */
     --search-btn-opacity: 0.5;
