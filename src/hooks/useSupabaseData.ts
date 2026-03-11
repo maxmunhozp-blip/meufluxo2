@@ -578,6 +578,11 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'project_documents' }, (payload) => {
         setDocumentsState(prev => prev.filter(x => x.id !== (payload.old as any).id));
       })
+      // Workspaces (plan changes etc.)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'workspaces' }, (payload) => {
+        const w = payload.new as any;
+        setWorkspacesState(prev => prev.map(x => x.id === w.id ? { ...x, name: w.name, plan: w.plan || 'free', clientsLabel: w.clients_label || 'Clientes' } : x));
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
