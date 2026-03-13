@@ -1565,6 +1565,7 @@ const Index = () => {
                           rolloverCount: row.rollover_count || 0,
                           originalDueDate: row.original_due_date || undefined,
                           position: row.position ?? 0,
+                          reminderTime: row.reminder_time || undefined,
                           subtasks: [],
                           members: (row.task_members || []).map((m: any) => ({
                             id: m.id, taskId: m.task_id, userId: m.user_id
