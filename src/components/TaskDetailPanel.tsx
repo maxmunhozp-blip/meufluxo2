@@ -1086,35 +1086,10 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
               <DatePickerInline value={localTask.scheduledDate} onChange={(val) => pushUpdate({ ...localTask, scheduledDate: val })} placeholder="Quando vai fazer?" clearLabel="Limpar" />
             </MetaRow>
             <MetaRow label="Horário">
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="flex items-center gap-1.5 h-8 min-w-[96px] px-1.5 rounded cursor-pointer"
-                  style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-input)' }}
-                  onClick={openReminderTimePicker}
-                >
-                  <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
-                  <input
-                    ref={reminderTimeInputRef}
-                    type="time"
-                    value={localTask.reminderTime || ''}
-                    onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
-                    onClick={(e) => { e.stopPropagation(); openReminderTimePicker(); }}
-                    className="task-time-input h-8 min-w-[64px] bg-transparent text-[13px] border-none focus:outline-none cursor-pointer tabular-nums"
-                    style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
-                  />
-                </div>
-                {localTask.reminderTime && (
-                  <button
-                    onClick={() => pushUpdate({ ...localTask, reminderTime: undefined })}
-                    className="text-[11px] px-1.5 py-0.5 rounded transition-colors"
-                    style={{ color: 'var(--text-tertiary)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                  >
-                    Limpar
-                  </button>
-                )}
-              </div>
+              <TimePicker
+                value={localTask.reminderTime}
+                onChange={(val) => pushUpdate({ ...localTask, reminderTime: val })}
+              />
             </MetaRow>
             <MetaRow label="Entregar até">
               <DatePickerInline value={localTask.dueDate} onChange={(val) => pushUpdate({ ...localTask, dueDate: val })} placeholder="Sem prazo" clearLabel="Limpar" showRelative />
