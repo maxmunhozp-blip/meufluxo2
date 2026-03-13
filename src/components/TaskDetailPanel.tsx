@@ -873,6 +873,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const newSubRef = useRef<HTMLInputElement>(null);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const reminderTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setLocalTask(task); setCommentText(''); setAddingSubtask(false); setNewSubtaskName(''); }, [task.id]);
   useEffect(() => { setLocalTask(prev => ({ ...prev, subtasks: task.subtasks, members: task.members })); }, [task.subtasks, task.members]);
@@ -886,6 +887,15 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { onUpdateTask(latestTaskRef.current); debounceRef.current = null; }, 500);
   }, [onUpdateTask]);
+
+  const openReminderTimePicker = useCallback(() => {
+    const input = reminderTimeInputRef.current;
+    if (!input) return;
+    input.focus();
+    if (typeof (input as any).showPicker === 'function') {
+      try { (input as any).showPicker(); } catch (_) { /* no-op */ }
+    }
+  }, []);
 
   useEffect(() => { return () => { if (debounceRef.current) { clearTimeout(debounceRef.current); onUpdateTask(latestTaskRef.current); } }; }, [onUpdateTask]);
   useEffect(() => { const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, [onClose]);
@@ -1076,17 +1086,22 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
             <MetaRow label="Horário">
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-tertiary)' }} />
-                <input
-                  ref={el => { if (el) el.dataset.timeInput = 'true'; }}
-                  type="time"
-                  value={localTask.reminderTime || ''}
-                  onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
-                  onClick={(e) => { (e.target as HTMLInputElement).showPicker?.(); }}
-                  className="h-8 bg-transparent text-[13px] border-none focus:outline-none cursor-pointer"
-                  style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
-                  placeholder="--:--"
-                />
+                <div
+                  className="flex items-center gap-1.5 h-8 min-w-[96px] px-1.5 rounded cursor-pointer"
+                  style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-input)' }}
+                  onClick={openReminderTimePicker}
+                >
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
+                  <input
+                    ref={reminderTimeInputRef}
+                    type="time"
+                    value={localTask.reminderTime || ''}
+                    onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
+                    onClick={(e) => { e.stopPropagation(); openReminderTimePicker(); }}
+                    className="task-time-input h-8 min-w-[64px] bg-transparent text-[13px] border-none focus:outline-none cursor-pointer tabular-nums"
+                    style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
+                  />
+                </div>
                 {localTask.reminderTime && (
                   <button
                     onClick={() => pushUpdate({ ...localTask, reminderTime: undefined })}
