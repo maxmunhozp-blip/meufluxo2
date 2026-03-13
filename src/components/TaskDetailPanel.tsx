@@ -888,15 +888,6 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
     debounceRef.current = setTimeout(() => { onUpdateTask(latestTaskRef.current); debounceRef.current = null; }, 500);
   }, [onUpdateTask]);
 
-  const openReminderTimePicker = useCallback(() => {
-    const input = reminderTimeInputRef.current;
-    if (!input) return;
-    input.focus();
-    if (typeof (input as any).showPicker === 'function') {
-      try { (input as any).showPicker(); } catch (_) { /* no-op */ }
-    }
-  }, []);
-
   useEffect(() => { return () => { if (debounceRef.current) { clearTimeout(debounceRef.current); onUpdateTask(latestTaskRef.current); } }; }, [onUpdateTask]);
   useEffect(() => { const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, [onClose]);
 
