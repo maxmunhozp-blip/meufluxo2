@@ -873,6 +873,7 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const newSubRef = useRef<HTMLInputElement>(null);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const reminderTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setLocalTask(task); setCommentText(''); setAddingSubtask(false); setNewSubtaskName(''); }, [task.id]);
   useEffect(() => { setLocalTask(prev => ({ ...prev, subtasks: task.subtasks, members: task.members })); }, [task.subtasks, task.members]);
@@ -886,6 +887,15 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { onUpdateTask(latestTaskRef.current); debounceRef.current = null; }, 500);
   }, [onUpdateTask]);
+
+  const openReminderTimePicker = useCallback(() => {
+    const input = reminderTimeInputRef.current;
+    if (!input) return;
+    input.focus();
+    if (typeof (input as any).showPicker === 'function') {
+      try { (input as any).showPicker(); } catch (_) { /* no-op */ }
+    }
+  }, []);
 
   useEffect(() => { return () => { if (debounceRef.current) { clearTimeout(debounceRef.current); onUpdateTask(latestTaskRef.current); } }; }, [onUpdateTask]);
   useEffect(() => { const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, [onClose]);
