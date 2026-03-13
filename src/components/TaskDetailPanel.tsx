@@ -1086,17 +1086,22 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
             <MetaRow label="Horário">
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-tertiary)' }} />
-                <input
-                  ref={el => { if (el) el.dataset.timeInput = 'true'; }}
-                  type="time"
-                  value={localTask.reminderTime || ''}
-                  onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
-                  onClick={(e) => { (e.target as HTMLInputElement).showPicker?.(); }}
-                  className="h-8 bg-transparent text-[13px] border-none focus:outline-none cursor-pointer"
-                  style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
-                  placeholder="--:--"
-                />
+                <div
+                  className="flex items-center gap-1.5 h-8 min-w-[96px] px-1.5 rounded cursor-pointer"
+                  style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-input)' }}
+                  onClick={openReminderTimePicker}
+                >
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
+                  <input
+                    ref={reminderTimeInputRef}
+                    type="time"
+                    value={localTask.reminderTime || ''}
+                    onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
+                    onClick={(e) => { e.stopPropagation(); openReminderTimePicker(); }}
+                    className="task-time-input h-8 min-w-[64px] bg-transparent text-[13px] border-none focus:outline-none cursor-pointer tabular-nums"
+                    style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
+                  />
+                </div>
                 {localTask.reminderTime && (
                   <button
                     onClick={() => pushUpdate({ ...localTask, reminderTime: undefined })}
