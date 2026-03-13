@@ -65,6 +65,7 @@ export function useTaskOps(deps: SharedState) {
       section_id: task.section, day_period: task.dayPeriod ?? undefined,
       recurrence_type: task.recurrenceType || null, recurrence_config: (task.recurrenceConfig as any) || null,
       service_tag_id: task.serviceTagId || null, parent_task_id: task.parentTaskId || null,
+      reminder_time: task.reminderTime || null,
     };
     if (task.manuallyMoved !== undefined) updates.manually_moved = task.manuallyMoved;
     if (task.displayMonth) updates.display_month = task.displayMonth;

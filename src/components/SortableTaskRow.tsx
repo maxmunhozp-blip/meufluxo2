@@ -325,6 +325,9 @@ export function SortableTaskRow({ task, isSelected, isFocused, selectedSubtaskId
                   )}
                 </div>
               )}
+              {task.reminderTime && (
+                <span className="flex-shrink-0 text-[10px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>{task.reminderTime}</span>
+              )}
               {task.recurrenceType && (
                 <span title="Tarefa recorrente"><Repeat className="w-3 h-3 text-primary/60 flex-shrink-0" /></span>
               )}
