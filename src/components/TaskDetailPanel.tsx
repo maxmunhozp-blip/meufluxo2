@@ -1076,12 +1076,16 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             </MetaRow>
             <MetaRow label="Horário">
               <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-tertiary)' }} />
                 <input
+                  ref={el => { if (el) el.dataset.timeInput = 'true'; }}
                   type="time"
                   value={localTask.reminderTime || ''}
                   onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
-                  className="h-8 bg-transparent text-[13px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
-                  style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
+                  onClick={(e) => { (e.target as HTMLInputElement).showPicker?.(); }}
+                  className="h-8 bg-transparent text-[13px] border-none focus:outline-none cursor-pointer"
+                  style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)', colorScheme: 'auto' }}
+                  placeholder="--:--"
                 />
                 {localTask.reminderTime && (
                   <button
