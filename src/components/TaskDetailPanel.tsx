@@ -1092,7 +1092,17 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             <MetaRow label="Repetir">
               {isPro ? (
                 <RecurrencePicker recurrenceType={localTask.recurrenceType || null} recurrenceConfig={localTask.recurrenceConfig}
-                  onChange={(type, config) => pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config })} />
+                  onChange={(type, config) => {
+                    pushUpdate({ ...localTask, recurrenceType: type, recurrenceConfig: config });
+                    // Trigger recurring task generation immediately when recurrence is set
+                    if (type) {
+                      setTimeout(() => {
+                        supabase.functions.invoke('generate-recurring-tasks').catch(err =>
+                          console.warn('[RecurrencePicker] Failed to trigger generation:', err)
+                        );
+                      }, 1500); // Wait for task update to persist
+                    }
+                  }} />
               ) : (
                 <button onClick={onUpgrade} className="h-8 px-2 text-[12px] rounded flex items-center gap-1.5 transition-colors"
                   style={{ color: 'var(--text-secondary)' }}
