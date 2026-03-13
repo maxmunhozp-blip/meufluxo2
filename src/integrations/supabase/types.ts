@@ -631,6 +631,7 @@ export type Database = {
           project_id: string
           recurrence_config: Json | null
           recurrence_type: string | null
+          reminder_time: string | null
           rollover_count: number
           scheduled_date: string | null
           section_id: string
@@ -661,6 +662,7 @@ export type Database = {
           project_id: string
           recurrence_config?: Json | null
           recurrence_type?: string | null
+          reminder_time?: string | null
           rollover_count?: number
           scheduled_date?: string | null
           section_id: string
@@ -691,6 +693,7 @@ export type Database = {
           project_id?: string
           recurrence_config?: Json | null
           recurrence_type?: string | null
+          reminder_time?: string | null
           rollover_count?: number
           scheduled_date?: string | null
           section_id?: string

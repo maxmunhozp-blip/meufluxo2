@@ -27,6 +27,7 @@ export interface Subtask {
   serviceTagId?: string;
   dayPeriod?: string;
   depth?: number;
+  reminderTime?: string; // HH:MM format, display-only reminder
   members?: TaskMember[];
   subtasks?: Subtask[];
   comments?: Comment[];
@@ -96,6 +97,7 @@ export interface Task {
   completedAt?: string; // ISO timestamp when task was marked as done
   manuallyMoved?: boolean; // true if user explicitly dragged this task to a period
   depth?: number; // 0-3, max depth for subtask hierarchy
+  reminderTime?: string; // HH:MM format, display-only reminder
 }
 
 export interface Section {

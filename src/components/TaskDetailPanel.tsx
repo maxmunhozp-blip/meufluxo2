@@ -1074,6 +1074,28 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
             <MetaRow label="Fazer em">
               <DatePickerInline value={localTask.scheduledDate} onChange={(val) => pushUpdate({ ...localTask, scheduledDate: val })} placeholder="Quando vai fazer?" clearLabel="Limpar" />
             </MetaRow>
+            <MetaRow label="Horário">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="time"
+                  value={localTask.reminderTime || ''}
+                  onChange={(e) => pushUpdate({ ...localTask, reminderTime: e.target.value || undefined })}
+                  className="h-8 bg-transparent text-[13px] border-none focus:outline-none cursor-pointer [color-scheme:dark]"
+                  style={{ color: localTask.reminderTime ? 'var(--text-primary)' : 'var(--text-placeholder)' }}
+                />
+                {localTask.reminderTime && (
+                  <button
+                    onClick={() => pushUpdate({ ...localTask, reminderTime: undefined })}
+                    className="text-[11px] px-1.5 py-0.5 rounded transition-colors"
+                    style={{ color: 'var(--text-tertiary)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+            </MetaRow>
             <MetaRow label="Entregar até">
               <DatePickerInline value={localTask.dueDate} onChange={(val) => pushUpdate({ ...localTask, dueDate: val })} placeholder="Sem prazo" clearLabel="Limpar" showRelative />
             </MetaRow>

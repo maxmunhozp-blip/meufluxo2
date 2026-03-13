@@ -190,6 +190,7 @@ function DayTaskCard({
         {showProjectBadge && projectName && (
           <span className="flex-shrink-0 ml-1 px-1.5 py-0.5 rounded" style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg-elevated)' }}>{projectName}</span>
         )}
+        {task.reminderTime && <span className="flex-shrink-0 ml-1 text-[10px] tabular-nums" style={{ color: 'var(--text-placeholder)' }}>{task.reminderTime}</span>}
         {task.recurrenceType && <Repeat className="w-3 h-3 flex-shrink-0 ml-2" style={{ color: 'var(--text-tertiary)' }} />}
       </div>
       {contextMenu && (() => {
