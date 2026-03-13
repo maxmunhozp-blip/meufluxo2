@@ -27,6 +27,7 @@ export interface Subtask {
   serviceTagId?: string;
   dayPeriod?: string;
   depth?: number;
+  reminderTime?: string; // HH:MM format, display-only reminder
   members?: TaskMember[];
   subtasks?: Subtask[];
   comments?: Comment[];
