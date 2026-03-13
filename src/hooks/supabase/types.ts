@@ -72,6 +72,7 @@ export function mapDbTask(row: any): Task {
     completedAt: row.completed_at || undefined,
     manuallyMoved: row.manually_moved ?? false,
     depth: row.depth ?? 0,
+    reminderTime: row.reminder_time || undefined,
   };
 }
 
