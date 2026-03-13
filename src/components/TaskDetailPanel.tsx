@@ -874,7 +874,6 @@ export function TaskDetailPanel({ task, sections, profiles, comments: allComment
   const newSubRef = useRef<HTMLInputElement>(null);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const reminderTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setLocalTask(task); setCommentText(''); setAddingSubtask(false); setNewSubtaskName(''); }, [task.id]);
   useEffect(() => { setLocalTask(prev => ({ ...prev, subtasks: task.subtasks, members: task.members })); }, [task.subtasks, task.members]);
