@@ -373,6 +373,24 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew,
           />
         </div>
       )}
+
+      {/* Attachments Panel */}
+      {showAttachments && userId && (
+        <div
+          className="flex-shrink-0 overflow-hidden"
+          style={{
+            width: 320,
+            borderLeft: '1px solid var(--border-subtle)',
+            background: 'var(--bg-base)',
+          }}
+        >
+          <DocumentAttachments
+            documentId={doc.id}
+            workspaceId={doc.workspaceId}
+            userId={userId}
+          />
+        </div>
+      )}
     </div>
   );
 }
