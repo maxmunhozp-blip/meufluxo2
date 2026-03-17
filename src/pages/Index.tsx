@@ -136,16 +136,18 @@ const Index = () => {
     });
   }, [activeProjectId]);
 
-  // Restore focus mode after reload
+  // Restore focus mode after reload (run once when tasks finish loading)
+  const focusRestoredRef = useRef(false);
   useEffect(() => {
-    if (loading || !taskList.length) return;
+    if (loading || !taskList.length || focusRestoredRef.current) return;
+    focusRestoredRef.current = true;
     const savedId = sessionStorage.getItem('meufluxo-focus-task-id');
     if (savedId && !singleFocusTask) {
       const found = taskList.find(t => t.id === savedId);
       if (found) _setSingleFocusTask(found);
       else sessionStorage.removeItem('meufluxo-focus-task-id');
     }
-  }, [loading, taskList]);
+  }, [loading, taskList.length]);
 
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
