@@ -21,6 +21,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const [showHistory, setShowHistory] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(false);
   const currentTitleRef = useRef(doc.title);
