@@ -76,7 +76,13 @@ const Index = () => {
   const [confirmDialog, confirm] = useConfirmAction();
   const deleteSectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [activeProjectId, setActiveProjectId] = useState('');
+  const [activeProjectId, setActiveProjectId] = useState(() => {
+    try {
+      return localStorage.getItem('meufluxo-active-project-id') || '';
+    } catch {
+      return '';
+    }
+  });
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -228,12 +234,22 @@ const Index = () => {
     return () => clearTimeout(timeout);
   }, [session, loading, navigate]);
 
-  // Set active project when projects load
+  // Keep active project in sync with the current workspace
   useEffect(() => {
-    if (projects.length > 0 && !projects.find(p => p.id === activeProjectId)) {
-      setActiveProjectId(projects[0].id);
+    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
+    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
+
+    if (workspaceProjects.length === 0) {
+      setActiveProjectId('');
+      return;
     }
-  }, [projects, activeProjectId]);
+
+    if (!hasActiveProjectInWorkspace) {
+      const nextProjectId = workspaceProjects[0].id;
+      setActiveProjectId(nextProjectId);
+      localStorage.setItem('meufluxo-active-project-id', nextProjectId);
+    }
+  }, [projects, activeProjectId, activeWorkspaceId]);
 
   const activeProject = projects.find(p => p.id === activeProjectId);
 
@@ -435,6 +451,7 @@ const Index = () => {
 
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
+    localStorage.setItem('meufluxo-active-project-id', id);
     setSelectedTaskId(null);
     setProjectViewTab('tasks');
     setFocusedTaskId(null);
@@ -589,6 +606,7 @@ const Index = () => {
     try {
       const id = await createProject(name, color);
       setActiveProjectId(id);
+      localStorage.setItem('meufluxo-active-project-id', id);
     } catch (err) {
       console.error('Erro ao criar projeto:', err);
     }
@@ -601,10 +619,13 @@ const Index = () => {
   const handleDeleteProject = useCallback(async (id: string) => {
     await deleteProjectFn(id);
     if (activeProjectId === id) {
-      const remaining = projects.filter(p => p.id !== id);
-      setActiveProjectId(remaining[0]?.id || '');
+      const remaining = projects.filter(p => p.id !== id && p.workspaceId === activeWorkspaceId);
+      const nextProjectId = remaining[0]?.id || '';
+      setActiveProjectId(nextProjectId);
+      if (nextProjectId) localStorage.setItem('meufluxo-active-project-id', nextProjectId);
+      else localStorage.removeItem('meufluxo-active-project-id');
     }
-  }, [deleteProjectFn, activeProjectId, projects]);
+  }, [deleteProjectFn, activeProjectId, projects, activeWorkspaceId]);
 
   const handleChangeColor = useCallback((id: string, color: string) => {
     changeProjectColor(id, color);
@@ -711,6 +732,7 @@ const Index = () => {
   const handleDuplicateProject = useCallback(async (id: string, mode: 'sections' | 'tasks' | 'both') => {
     const newId = await duplicateProject(id, mode);
     setActiveProjectId(newId);
+    localStorage.setItem('meufluxo-active-project-id', newId);
     return newId;
   }, [duplicateProject]);
 
