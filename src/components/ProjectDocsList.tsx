@@ -338,6 +338,7 @@ export function ProjectDocsList({
         onUpdateDocument={onUpdateDocument}
         onBack={() => { setSelectedDocId(null); setIsNewDoc(false); }}
         isNew={isNewDoc}
+        userId={currentUserId}
       />
     );
   }
