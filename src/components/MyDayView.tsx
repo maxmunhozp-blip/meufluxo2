@@ -687,47 +687,93 @@ export function MyDayView({
       position: (sub as any).position != null ? (sub as any).position : (parent.position ?? 0) * 100 + index,
     });
 
-    tasks.forEach(t => {
-      if (t.parentTaskId) return;
-      let isScheduled = false;
-      if (t.scheduledDate === selectedDateStr) isScheduled = true;
-      else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
-      if (isScheduled) {
-        scheduled.push(t);
-        scheduledIds.add(t.id);
-      }
+    const wasCompletedOnSelectedDate = (item: { status: TaskStatus; completedAt?: string }) => (
+      item.status === 'done' && !!item.completedAt && isSameDay(parseISO(item.completedAt), selectedDate)
+    );
 
-      // Check subtasks scheduled for selected date (or due today without scheduled)
-      const findScheduledSubtasks = (subs: any[], parent: Task) => {
-        subs.forEach((sub, idx) => {
-          let subScheduled = false;
-          if (sub.scheduledDate === selectedDateStr) subScheduled = true;
-          else if (sub.dueDate === selectedDateStr && !sub.scheduledDate) subScheduled = true;
-          if (subScheduled) {
-            const promoted = promoteSubtask(sub, parent, idx);
-            scheduled.push(promoted);
-            scheduledIds.add(sub.id);
-          }
-          if (sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
-        });
-      };
-      if (t.subtasks) findScheduledSubtasks(t.subtasks, t);
-    });
+    const isOverdueForToday = (item: { scheduledDate?: string; dueDate?: string; rolloverCount?: number }) => {
+      if (item.scheduledDate && item.scheduledDate < selectedDateStr) {
+        return differenceInCalendarDays(todayStart, parseISO(item.scheduledDate));
+      }
+      if (!item.scheduledDate && item.dueDate) {
+        const dueDate = parseISO(item.dueDate);
+        if (isBefore(startOfDay(dueDate), todayStart)) {
+          return item.rolloverCount && item.rolloverCount > 0
+            ? item.rolloverCount
+            : differenceInCalendarDays(todayStart, dueDate);
+        }
+      }
+      return 0;
+    };
 
     const overdue: Task[] = [];
     const rMap = new Map<string, number>();
-    if (viewingToday) {
-      // Overdue rollover only applies when viewing today
-      // Helper to check overdue subtasks — defined once outside loop
-      const findOverdueSubtasks = (subs: any[], parent: Task) => {
+
+    tasks.forEach(t => {
+      if (t.parentTaskId) return;
+
+      const topLevelCompletedOnSelectedDate = wasCompletedOnSelectedDate(t);
+      let isScheduled = false;
+
+      if (topLevelCompletedOnSelectedDate) {
+        const overdueDays = viewingToday ? isOverdueForToday(t) : 0;
+        if (overdueDays > 0) {
+          rMap.set(t.id, overdueDays);
+          overdue.push(t);
+        } else {
+          scheduled.push(t);
+          scheduledIds.add(t.id);
+        }
+        isScheduled = true;
+      } else if (t.status !== 'done') {
+        if (t.scheduledDate === selectedDateStr) isScheduled = true;
+        else if (t.dueDate === selectedDateStr && !t.scheduledDate) isScheduled = true;
+        if (isScheduled) {
+          scheduled.push(t);
+          scheduledIds.add(t.id);
+        }
+      }
+
+      const findScheduledSubtasks = (subs: Subtask[], parent: Task) => {
         subs.forEach((sub, idx) => {
-          // Always recurse into nested subtasks first
-          if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
-          if (scheduledIds.has(sub.id)) return;
-          if (sub.status === 'done') {
-            const completedToday = sub.completedAt && isSameDay(parseISO(sub.completedAt), new Date());
-            if (!completedToday) return;
+          const subCompletedOnSelectedDate = wasCompletedOnSelectedDate(sub);
+          let subScheduled = false;
+
+          if (subCompletedOnSelectedDate) {
+            const promoted = promoteSubtask(sub, parent, idx);
+            const overdueDays = viewingToday ? isOverdueForToday(sub) : 0;
+            if (overdueDays > 0) {
+              rMap.set(sub.id, overdueDays);
+              overdue.push({ ...promoted });
+            } else {
+              scheduled.push(promoted);
+              scheduledIds.add(sub.id);
+            }
+            subScheduled = true;
+          } else if (sub.status !== 'done') {
+            if (sub.scheduledDate === selectedDateStr) subScheduled = true;
+            else if (sub.dueDate === selectedDateStr && !sub.scheduledDate) subScheduled = true;
+            if (subScheduled) {
+              const promoted = promoteSubtask(sub, parent, idx);
+              scheduled.push(promoted);
+              scheduledIds.add(sub.id);
+            }
           }
+
+          if (!subScheduled && sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
+          else if (subScheduled && sub.subtasks) findScheduledSubtasks(sub.subtasks, parent);
+        });
+      };
+
+      if (t.subtasks) findScheduledSubtasks(t.subtasks, t);
+    });
+
+    if (viewingToday) {
+      const findOverdueSubtasks = (subs: Subtask[], parent: Task) => {
+        subs.forEach((sub, idx) => {
+          if (sub.subtasks) findOverdueSubtasks(sub.subtasks, parent);
+          if (scheduledIds.has(sub.id) || sub.status === 'done') return;
+
           if (sub.scheduledDate && sub.scheduledDate < selectedDateStr) {
             const days = differenceInCalendarDays(todayStart, parseISO(sub.scheduledDate));
             if (days > 0) {
@@ -749,16 +795,9 @@ export function MyDayView({
 
       tasks.forEach(t => {
         if (t.parentTaskId) return;
-
-        // Always check subtasks for overdue BEFORE early-returning on parent
         if (t.subtasks) findOverdueSubtasks(t.subtasks, t);
+        if (t.status === 'done' || scheduledIds.has(t.id)) return;
 
-        // Now handle parent task itself
-        if (t.status === 'done') {
-          const completedToday = t.completedAt && isSameDay(parseISO(t.completedAt), new Date());
-          if (!completedToday) return;
-        }
-        if (scheduledIds.has(t.id)) return;
         if (t.scheduledDate && t.scheduledDate < selectedDateStr) {
           const days = differenceInCalendarDays(todayStart, parseISO(t.scheduledDate));
           if (days > 0) {
@@ -767,6 +806,7 @@ export function MyDayView({
           }
           return;
         }
+
         if (!t.scheduledDate && t.dueDate) {
           const dueDate = parseISO(t.dueDate);
           if (isBefore(startOfDay(dueDate), todayStart)) {
@@ -777,8 +817,9 @@ export function MyDayView({
         }
       });
     }
+
     return { todayTasks: [...overdue, ...scheduled], rolloverMap: rMap };
-  }, [tasks, selectedDateStr, viewingToday]);
+  }, [tasks, selectedDate, selectedDateStr, viewingToday]);
 
   todayTasksRef.current = todayTasks;
 
