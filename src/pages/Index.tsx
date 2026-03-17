@@ -76,13 +76,15 @@ const Index = () => {
   const [confirmDialog, confirm] = useConfirmAction();
   const deleteSectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [activeProjectId, setActiveProjectId] = useState(() => {
+  const [activeProjectIdsByWorkspace, setActiveProjectIdsByWorkspace] = useState<Record<string, string>>(() => {
     try {
-      return localStorage.getItem('meufluxo-active-project-id') || '';
+      const raw = localStorage.getItem('meufluxo-active-projects-by-workspace');
+      return raw ? JSON.parse(raw) : {};
     } catch {
-      return '';
+      return {};
     }
   });
+  const [activeProjectId, setActiveProjectId] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
