@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History, ImagePlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History, ImagePlus, Loader2, Paperclip } from 'lucide-react';
 import { ProjectDocument } from '@/types/document';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { DocumentAttachments } from './DocumentAttachments';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -10,15 +11,17 @@ interface DocumentEditorProps {
   onUpdateDocument: (doc: Partial<ProjectDocument> & { id: string }) => Promise<void>;
   onBack: () => void;
   isNew?: boolean;
+  userId?: string;
 }
 
-export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
+export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew, userId }: DocumentEditorProps) {
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
   const [uploading, setUploading] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -251,7 +254,8 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     { icon: Link2, action: insertLink, title: 'Link' },
     { icon: uploading ? Loader2 : ImagePlus, action: handleImageButtonClick, title: 'Imagem', disabled: uploading },
     { type: 'separator' as const },
-    { icon: History, action: () => setShowHistory(prev => !prev), title: 'Histórico', format: showHistory ? 'history' : undefined },
+    { icon: Paperclip, action: () => { setShowAttachments(prev => !prev); if (!showAttachments) setShowHistory(false); }, title: 'Anexos', format: showAttachments ? 'attachments' : undefined },
+    { icon: History, action: () => { setShowHistory(prev => !prev); if (!showHistory) setShowAttachments(false); }, title: 'Histórico', format: showHistory ? 'history' : undefined },
   ];
 
   return (
@@ -296,7 +300,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
               return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
             }
             const { icon: Icon, action, title, format, disabled } = btn as any;
-            const isActive = format && (format === 'history' ? showHistory : activeFormats.has(format));
+            const isActive = format && (format === 'history' ? showHistory : format === 'attachments' ? showAttachments : activeFormats.has(format));
             return (
               <button
                 key={title}
@@ -366,6 +370,24 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
             documentId={doc.id}
             onRestore={handleRestoreVersion}
             onClose={() => setShowHistory(false)}
+          />
+        </div>
+      )}
+
+      {/* Attachments Panel */}
+      {showAttachments && userId && (
+        <div
+          className="flex-shrink-0 overflow-hidden"
+          style={{
+            width: 320,
+            borderLeft: '1px solid var(--border-subtle)',
+            background: 'var(--bg-base)',
+          }}
+        >
+          <DocumentAttachments
+            documentId={doc.id}
+            workspaceId={doc.workspaceId}
+            userId={userId}
           />
         </div>
       )}

@@ -163,6 +163,13 @@ export function ProjectDocsList({
 }: ProjectDocsListProps) {
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [isNewDoc, setIsNewDoc] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setCurrentUserId(data.session?.user?.id);
+    });
+  }, []);
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -331,6 +338,7 @@ export function ProjectDocsList({
         onUpdateDocument={onUpdateDocument}
         onBack={() => { setSelectedDocId(null); setIsNewDoc(false); }}
         isNew={isNewDoc}
+        userId={currentUserId}
       />
     );
   }
