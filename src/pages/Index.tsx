@@ -646,10 +646,9 @@ const Index = () => {
       const remaining = projects.filter(p => p.id !== id && p.workspaceId === activeWorkspaceId);
       const nextProjectId = remaining[0]?.id || '';
       setActiveProjectId(nextProjectId);
-      if (nextProjectId) localStorage.setItem('meufluxo-active-project-id', nextProjectId);
-      else localStorage.removeItem('meufluxo-active-project-id');
+      persistActiveProjectForWorkspace(activeWorkspaceId, nextProjectId);
     }
-  }, [deleteProjectFn, activeProjectId, projects, activeWorkspaceId]);
+  }, [deleteProjectFn, activeProjectId, projects, activeWorkspaceId, persistActiveProjectForWorkspace]);
 
   const handleChangeColor = useCallback((id: string, color: string) => {
     changeProjectColor(id, color);
