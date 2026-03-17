@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History, ImagePlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History, ImagePlus, Loader2, Paperclip } from 'lucide-react';
 import { ProjectDocument } from '@/types/document';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { DocumentAttachments } from './DocumentAttachments';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
