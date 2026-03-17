@@ -13,7 +13,7 @@ interface DocumentEditorProps {
 export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
