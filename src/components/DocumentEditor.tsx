@@ -16,18 +16,30 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(false);
+  const currentTitleRef = useRef(doc.title);
+  const currentPinnedRef = useRef(doc.pinned);
+  const lastSavedSnapshotRef = useRef('');
+
+  const buildSnapshot = useCallback((nextTitle: string, nextHtml: string, nextPinned: boolean) => {
+    return JSON.stringify({ title: nextTitle, html: nextHtml, pinned: nextPinned });
+  }, []);
+
+  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML || '', []);
 
   // Load content into editor
   useEffect(() => {
     isLoadingRef.current = true;
     setTitle(doc.title);
     setPinned(doc.pinned);
+    currentTitleRef.current = doc.title;
+    currentPinnedRef.current = doc.pinned;
     const html = doc.content?.html || '';
     if (editorRef.current) editorRef.current.innerHTML = html;
+    lastSavedSnapshotRef.current = buildSnapshot(doc.title, html, doc.pinned);
     isLoadingRef.current = false;
-  }, [doc.id]);
+  }, [doc.id, doc.title, doc.pinned, doc.content, buildSnapshot]);
 
   // Auto-focus title for new documents
   useEffect(() => {
@@ -37,9 +49,10 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     }
   }, [doc.id, isNew]);
 
-  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML || '', []);
-
   const save = useCallback(async (t: string, html: string, p: boolean) => {
+    const nextSnapshot = buildSnapshot(t, html, p);
+    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+
     setSaveStatus('saving');
     try {
       const tempDiv = document.createElement('div');
@@ -51,34 +64,59 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
         content: { html, text: plainText } as any,
         pinned: p,
       });
+      lastSavedSnapshotRef.current = nextSnapshot;
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('idle');
     }
-  }, [doc.id, onUpdateDocument]);
+  }, [buildSnapshot, doc.id, onUpdateDocument]);
+
+  const flushPendingSave = useCallback(() => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+
+    const html = getEditorHtml();
+    const nextSnapshot = buildSnapshot(currentTitleRef.current, html, currentPinnedRef.current);
+    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+
+    void save(currentTitleRef.current, html, currentPinnedRef.current);
+  }, [buildSnapshot, getEditorHtml, save]);
 
   const triggerAutoSave = useCallback((t: string, html: string, p: boolean) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => save(t, html, p), 1000);
   }, [save]);
 
+  useEffect(() => {
+    const handleFlush = () => flushPendingSave();
+    window.addEventListener('meufluxo:flush-pending-doc-saves', handleFlush);
+    return () => {
+      window.removeEventListener('meufluxo:flush-pending-doc-saves', handleFlush);
+      flushPendingSave();
+    };
+  }, [flushPendingSave]);
+
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    triggerAutoSave(val, getEditorHtml(), pinned);
+    currentTitleRef.current = val;
+    triggerAutoSave(val, getEditorHtml(), currentPinnedRef.current);
   };
 
   const handleContentInput = () => {
     if (isLoadingRef.current) return;
     const html = getEditorHtml();
-    triggerAutoSave(title, html, pinned);
+    triggerAutoSave(currentTitleRef.current, html, currentPinnedRef.current);
     updateActiveFormats();
   };
 
   const togglePin = () => {
-    const newPinned = !pinned;
+    const newPinned = !currentPinnedRef.current;
+    currentPinnedRef.current = newPinned;
     setPinned(newPinned);
-    save(title, getEditorHtml(), newPinned);
+    void save(currentTitleRef.current, getEditorHtml(), newPinned);
   };
 
   const updateActiveFormats = useCallback(() => {
@@ -143,7 +181,6 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
-      {/* Header */}
       <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
@@ -165,7 +202,6 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
         </div>
       </div>
 
-      {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-4 py-1.5 flex-shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
         {toolbarButtons.map((btn, i) => {
           if ('type' in btn && btn.type === 'separator') {
@@ -192,7 +228,6 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
         })}
       </div>
 
-      {/* Editor body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <input
           ref={titleRef}
