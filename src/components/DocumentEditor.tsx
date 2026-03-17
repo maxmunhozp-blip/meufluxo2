@@ -217,8 +217,19 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
             Voltar
           </button>
           <div className="flex items-center gap-2">
+            {saveStatus === 'unsaved' && (
+              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--accent-orange, #f59e0b)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--accent-orange, #f59e0b)' }} />
+                Não salvo
+              </span>
+            )}
             {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvando...</span>}
-            {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvo</span>}
+            {saveStatus === 'saved' && (
+              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--accent-green, #22c55e)' }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-green, #22c55e)' }} />
+                Salvo
+              </span>
+            )}
             <button onClick={togglePin} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
               style={{ color: pinned ? 'var(--accent-blue)' : 'var(--text-placeholder)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
