@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2 } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History } from 'lucide-react';
 import { ProjectDocument } from '@/types/document';
+import { DocumentVersionHistory } from './DocumentVersionHistory';
 
 interface DocumentEditorProps {
   document: ProjectDocument;
