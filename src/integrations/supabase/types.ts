@@ -132,6 +132,51 @@ export type Database = {
           },
         ]
       }
+      document_versions: {
+        Row: {
+          content: Json | null
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          title: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          title: string
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          title?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "project_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_instances: {
         Row: {
           created_at: string | null
