@@ -13,7 +13,7 @@ interface DocumentEditorProps {
 export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -99,6 +99,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   const triggerAutoSave = useCallback((t: string, html: string, p: boolean) => {
     currentHtmlRef.current = html;
+    setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => save(t, html, p), 1000);
   }, [save]);
@@ -216,8 +217,19 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
             Voltar
           </button>
           <div className="flex items-center gap-2">
+            {saveStatus === 'unsaved' && (
+              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--accent-orange, #f59e0b)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--accent-orange, #f59e0b)' }} />
+                Não salvo
+              </span>
+            )}
             {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvando...</span>}
-            {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvo</span>}
+            {saveStatus === 'saved' && (
+              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--accent-green, #22c55e)' }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-green, #22c55e)' }} />
+                Salvo
+              </span>
+            )}
             <button onClick={togglePin} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
               style={{ color: pinned ? 'var(--accent-blue)' : 'var(--text-placeholder)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
