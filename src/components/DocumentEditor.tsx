@@ -185,96 +185,127 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     }
   };
 
+  const handleRestoreVersion = useCallback((restoredTitle: string, restoredContent: Record<string, any>) => {
+    const html = restoredContent?.html || '';
+    setTitle(restoredTitle);
+    currentTitleRef.current = restoredTitle;
+    currentHtmlRef.current = html;
+    if (editorRef.current) editorRef.current.innerHTML = html;
+    void save(restoredTitle, html, currentPinnedRef.current);
+  }, [save]);
+
   const toolbarButtons = [
     { icon: Bold, action: () => execFormat('bold'), title: 'Negrito', format: 'bold' },
     { icon: Italic, action: () => execFormat('italic'), title: 'Itálico', format: 'italic' },
     { type: 'separator' as const },
     { icon: CheckSquare, action: insertCheckbox, title: 'Checklist' },
     { icon: Link2, action: insertLink, title: 'Link' },
+    { type: 'separator' as const },
+    { icon: History, action: () => setShowHistory(prev => !prev), title: 'Histórico', format: showHistory ? 'history' : undefined },
   ];
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
-      <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </button>
-        <div className="flex items-center gap-2">
-          {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvando...</span>}
-          {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvo</span>}
-          <button onClick={togglePin} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
-            style={{ color: pinned ? 'var(--accent-blue)' : 'var(--text-placeholder)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+    <div className="flex flex-1 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
-            {pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
           </button>
+          <div className="flex items-center gap-2">
+            {saveStatus === 'saving' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvando...</span>}
+            {saveStatus === 'saved' && <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>Salvo</span>}
+            <button onClick={togglePin} className="w-7 h-7 flex items-center justify-center rounded transition-colors"
+              style={{ color: pinned ? 'var(--accent-blue)' : 'var(--text-placeholder)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              {pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-0.5 px-4 py-1.5 flex-shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
+          {toolbarButtons.map((btn, i) => {
+            if ('type' in btn && btn.type === 'separator') {
+              return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
+            }
+            const { icon: Icon, action, title, format } = btn as any;
+            const isActive = format && (format === 'history' ? showHistory : activeFormats.has(format));
+            return (
+              <button
+                key={title}
+                onClick={action}
+                title={title}
+                className="w-7 h-7 flex items-center justify-center rounded transition-all"
+                style={{
+                  color: isActive ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--accent-subtle)' : 'transparent',
+                }}
+                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+              >
+                <Icon className="w-3.5 h-3.5" />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <input
+            ref={titleRef}
+            type="text"
+            value={title}
+            onChange={e => handleTitleChange(e.target.value)}
+            placeholder="Sem título"
+            className="w-full bg-transparent outline-none font-bold"
+            style={{ fontSize: 20, color: 'var(--text-primary)' }}
+          />
+
+          <div
+            ref={editorRef}
+            className="note-rich-editor"
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleContentInput}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            onClick={handleEditorClick}
+            onMouseUp={updateActiveFormats}
+            onKeyUp={updateActiveFormats}
+            data-placeholder="Comece a escrever..."
+            style={{
+              minHeight: 300,
+              outline: 'none',
+              color: 'var(--text-primary)',
+              fontSize: 14,
+              lineHeight: 1.75,
+              caretColor: 'var(--accent-blue)',
+            }}
+          />
         </div>
       </div>
 
-      <div className="flex items-center gap-0.5 px-4 py-1.5 flex-shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
-        {toolbarButtons.map((btn, i) => {
-          if ('type' in btn && btn.type === 'separator') {
-            return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
-          }
-          const { icon: Icon, action, title, format } = btn as any;
-          const isActive = format && activeFormats.has(format);
-          return (
-            <button
-              key={title}
-              onClick={action}
-              title={title}
-              className="w-7 h-7 flex items-center justify-center rounded transition-all"
-              style={{
-                color: isActive ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                background: isActive ? 'var(--accent-subtle)' : 'transparent',
-              }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
-            >
-              <Icon className="w-3.5 h-3.5" />
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <input
-          ref={titleRef}
-          type="text"
-          value={title}
-          onChange={e => handleTitleChange(e.target.value)}
-          placeholder="Sem título"
-          className="w-full bg-transparent outline-none font-bold"
-          style={{ fontSize: 20, color: 'var(--text-primary)' }}
-        />
-
+      {/* Version History Panel */}
+      {showHistory && (
         <div
-          ref={editorRef}
-          className="note-rich-editor"
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleContentInput}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          onClick={handleEditorClick}
-          onMouseUp={updateActiveFormats}
-          onKeyUp={updateActiveFormats}
-          data-placeholder="Comece a escrever..."
+          className="flex-shrink-0 overflow-hidden"
           style={{
-            minHeight: 300,
-            outline: 'none',
-            color: 'var(--text-primary)',
-            fontSize: 14,
-            lineHeight: 1.75,
-            caretColor: 'var(--accent-blue)',
+            width: 320,
+            borderLeft: '1px solid var(--border-subtle)',
+            background: 'var(--bg-base)',
           }}
-        />
-      </div>
+        >
+          <DocumentVersionHistory
+            documentId={doc.id}
+            onRestore={handleRestoreVersion}
+            onClose={() => setShowHistory(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
