@@ -234,12 +234,22 @@ const Index = () => {
     return () => clearTimeout(timeout);
   }, [session, loading, navigate]);
 
-  // Set active project when projects load
+  // Keep active project in sync with the current workspace
   useEffect(() => {
-    if (projects.length > 0 && !projects.find(p => p.id === activeProjectId)) {
-      setActiveProjectId(projects[0].id);
+    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
+    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
+
+    if (workspaceProjects.length === 0) {
+      setActiveProjectId('');
+      return;
     }
-  }, [projects, activeProjectId]);
+
+    if (!hasActiveProjectInWorkspace) {
+      const nextProjectId = workspaceProjects[0].id;
+      setActiveProjectId(nextProjectId);
+      localStorage.setItem('meufluxo-active-project-id', nextProjectId);
+    }
+  }, [projects, activeProjectId, activeWorkspaceId]);
 
   const activeProject = projects.find(p => p.id === activeProjectId);
 
