@@ -56,8 +56,9 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   const save = useCallback(async (t: string, html: string, p: boolean) => {
     const nextSnapshot = buildSnapshot(t, html, p);
-    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+    if (nextSnapshot === lastSavedSnapshotRef.current || nextSnapshot === savingSnapshotRef.current) return;
 
+    savingSnapshotRef.current = nextSnapshot;
     setSaveStatus('saving');
     try {
       const tempDiv = document.createElement('div');
@@ -74,6 +75,10 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('idle');
+    } finally {
+      if (savingSnapshotRef.current === nextSnapshot) {
+        savingSnapshotRef.current = '';
+      }
     }
   }, [buildSnapshot, doc.id, onUpdateDocument]);
 
@@ -83,14 +88,15 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
       saveTimerRef.current = null;
     }
 
-    const html = getEditorHtml();
+    const html = currentHtmlRef.current;
     const nextSnapshot = buildSnapshot(currentTitleRef.current, html, currentPinnedRef.current);
-    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+    if (nextSnapshot === lastSavedSnapshotRef.current || nextSnapshot === savingSnapshotRef.current) return;
 
     void save(currentTitleRef.current, html, currentPinnedRef.current);
-  }, [buildSnapshot, getEditorHtml, save]);
+  }, [buildSnapshot, save]);
 
   const triggerAutoSave = useCallback((t: string, html: string, p: boolean) => {
+    currentHtmlRef.current = html;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => save(t, html, p), 1000);
   }, [save]);
@@ -107,12 +113,13 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const handleTitleChange = (val: string) => {
     setTitle(val);
     currentTitleRef.current = val;
-    triggerAutoSave(val, getEditorHtml(), currentPinnedRef.current);
+    triggerAutoSave(val, currentHtmlRef.current, currentPinnedRef.current);
   };
 
   const handleContentInput = () => {
     if (isLoadingRef.current) return;
     const html = getEditorHtml();
+    currentHtmlRef.current = html;
     triggerAutoSave(currentTitleRef.current, html, currentPinnedRef.current);
     updateActiveFormats();
   };
