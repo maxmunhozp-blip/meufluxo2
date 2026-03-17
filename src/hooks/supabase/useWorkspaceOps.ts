@@ -5,6 +5,8 @@ import { SharedState, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDoc
 import type { Task } from '@/types/task';
 import type { ProjectDocument } from '@/types/document';
 
+const ACTIVE_WORKSPACE_STORAGE_KEY = 'meufluxo-active-workspace-id';
+
 interface WorkspaceOpsExtra {
   setDocumentsState: React.Dispatch<React.SetStateAction<ProjectDocument[]>>;
   setTimeEntriesState: React.Dispatch<React.SetStateAction<{ task_id: string; duration_seconds: number }[]>>;
