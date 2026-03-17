@@ -207,11 +207,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id, clientsLabel: (w as any).clients_label || 'Clientes', plan: (w.plan as 'free' | 'pro') || 'free' })));
       }
 
-      // Restore persisted workspace or fall back to first
-      const savedWsId = localStorage.getItem('meufluxo-active-workspace-id');
-      const wsId = (savedWsId && wsIds.includes(savedWsId)) ? savedWsId : (wsIds[0] || null);
+      // Restore persisted workspace with strong preference for the current state/local storage before any fallback
+      const storedWorkspaceId = readStoredWorkspaceId();
+      const preferredWorkspaceId = activeWorkspaceId || storedWorkspaceId;
+      const wsId = preferredWorkspaceId && wsIds.includes(preferredWorkspaceId)
+        ? preferredWorkspaceId
+        : (wsIds[0] || null);
+
       setActiveWorkspaceId(wsId);
-      if (wsId) localStorage.setItem('meufluxo-active-workspace-id', wsId);
+      writeStoredWorkspaceId(wsId);
 
       if (wsId) {
         const { data: allWsMembers } = await supabase
