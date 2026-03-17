@@ -165,6 +165,39 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     if (url) execFormat('createLink', url);
   };
 
+  const uploadAndInsertImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Apenas imagens são permitidas'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem muito grande (máx 5MB)'); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const filePath = `docs/${doc.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('notes-images')
+        .upload(filePath, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const url = `${SUPABASE_URL}/storage/v1/object/public/notes-images/${filePath}`;
+      editorRef.current?.focus();
+      document.execCommand('insertHTML', false,
+        `<img src="${url}" alt="imagem" style="max-width:100%;max-height:400px;border-radius:6px;margin:8px 0;" /><br/>`
+      );
+      handleContentInput();
+    } catch {
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploading(false);
+    }
+  }, [doc.id, handleContentInput]);
+
+  const handleImageButtonClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadAndInsertImage(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'b') { e.preventDefault(); execFormat('bold'); }
@@ -182,6 +215,17 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
+    // Check for pasted images first
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) uploadAndInsertImage(file);
+        return;
+      }
+    }
+    // Strip HTML from pasted text
     const htmlData = e.clipboardData.getData('text/html');
     if (htmlData) {
       e.preventDefault();
