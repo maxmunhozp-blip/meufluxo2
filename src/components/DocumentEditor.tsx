@@ -14,7 +14,7 @@ interface DocumentEditorProps {
   userId?: string;
 }
 
-export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
+export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew, userId }: DocumentEditorProps) {
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
