@@ -20,6 +20,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const [uploading, setUploading] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
