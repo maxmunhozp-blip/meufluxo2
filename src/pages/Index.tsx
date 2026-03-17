@@ -76,7 +76,13 @@ const Index = () => {
   const [confirmDialog, confirm] = useConfirmAction();
   const deleteSectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [activeProjectId, setActiveProjectId] = useState('');
+  const [activeProjectId, setActiveProjectId] = useState(() => {
+    try {
+      return localStorage.getItem('meufluxo-active-project-id') || '';
+    } catch {
+      return '';
+    }
+  });
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
