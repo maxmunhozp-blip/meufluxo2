@@ -202,49 +202,85 @@ export function DocumentAttachments({ documentId, workspaceId, userId }: Documen
         {attachments.map(att => {
           const Icon = getFileIcon(att.contentType, att.fileName);
           const isImage = att.contentType?.startsWith('image/');
+          const isVideo = att.contentType?.startsWith('video/');
+          const isAudio = att.contentType?.startsWith('audio/');
+          const isPdf = att.contentType?.includes('pdf') || att.fileName.endsWith('.pdf');
+          const hasPreview = isImage || isVideo || isAudio || isPdf;
 
           return (
             <div
               key={att.id}
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-md group transition-colors"
-              style={{ background: 'transparent' }}
+              className="rounded-lg group transition-colors mb-1.5 overflow-hidden"
+              style={{ background: 'transparent', border: '1px solid var(--border-subtle)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {isImage ? (
-                <img
+              {/* Inline preview */}
+              {isImage && (
+                <a href={att.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <img
+                    src={att.url}
+                    alt={att.fileName}
+                    className="w-full max-h-40 object-cover rounded-t-lg"
+                    loading="lazy"
+                  />
+                </a>
+              )}
+              {isVideo && (
+                <video
                   src={att.url}
-                  alt={att.fileName}
-                  className="w-9 h-9 rounded object-cover flex-shrink-0"
-                  style={{ border: '1px solid var(--border-subtle)' }}
+                  controls
+                  preload="metadata"
+                  className="w-full max-h-44 rounded-t-lg"
+                  style={{ background: '#000' }}
                 />
-              ) : (
-                <div className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-surface)' }}>
-                  <Icon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              )}
+              {isAudio && (
+                <div className="px-3 pt-3">
+                  <audio src={att.url} controls preload="metadata" className="w-full h-8" />
                 </div>
               )}
-              <a
-                href={att.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 min-w-0"
-              >
-                <div className="text-xs truncate hover:underline" style={{ color: 'var(--text-primary)' }}>
-                  {att.fileName}
-                </div>
-                <div className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>
-                  {formatFileSize(att.fileSize)}
-                </div>
-              </a>
-              <button
-                onClick={() => handleDelete(att)}
-                className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--text-placeholder)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-red, #ef4444)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {isPdf && (
+                <a href={att.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <div
+                    className="flex items-center justify-center py-5 rounded-t-lg"
+                    style={{ background: 'var(--bg-surface)' }}
+                  >
+                    <FileText className="w-8 h-8" style={{ color: 'hsl(0, 70%, 55%)' }} />
+                  </div>
+                </a>
+              )}
+
+              {/* Info row */}
+              <div className="flex items-center gap-2 px-2.5 py-2">
+                {!hasPreview && (
+                  <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-surface)' }}>
+                    <Icon className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                  </div>
+                )}
+                <a
+                  href={att.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 min-w-0"
+                >
+                  <div className="text-xs truncate hover:underline" style={{ color: 'var(--text-primary)' }}>
+                    {att.fileName}
+                  </div>
+                  <div className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>
+                    {formatFileSize(att.fileSize)}
+                  </div>
+                </a>
+                <button
+                  onClick={() => handleDelete(att)}
+                  className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: 'var(--text-placeholder)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-red, #ef4444)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-placeholder)'; }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           );
         })}
