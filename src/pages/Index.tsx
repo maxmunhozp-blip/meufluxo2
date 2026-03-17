@@ -475,7 +475,7 @@ const Index = () => {
 
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
-    localStorage.setItem('meufluxo-active-project-id', id);
+    persistActiveProjectForWorkspace(activeWorkspaceId, id);
     setSelectedTaskId(null);
     setProjectViewTab('tasks');
     setFocusedTaskId(null);
