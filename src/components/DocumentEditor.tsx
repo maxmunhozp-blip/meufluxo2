@@ -249,6 +249,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     { type: 'separator' as const },
     { icon: CheckSquare, action: insertCheckbox, title: 'Checklist' },
     { icon: Link2, action: insertLink, title: 'Link' },
+    { icon: uploading ? Loader2 : ImagePlus, action: handleImageButtonClick, title: 'Imagem', disabled: uploading },
     { type: 'separator' as const },
     { icon: History, action: () => setShowHistory(prev => !prev), title: 'Histórico', format: showHistory ? 'history' : undefined },
   ];
