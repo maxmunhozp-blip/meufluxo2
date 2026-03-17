@@ -300,7 +300,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew,
               return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
             }
             const { icon: Icon, action, title, format, disabled } = btn as any;
-            const isActive = format && (format === 'history' ? showHistory : activeFormats.has(format));
+            const isActive = format && (format === 'history' ? showHistory : format === 'attachments' ? showAttachments : activeFormats.has(format));
             return (
               <button
                 key={title}
