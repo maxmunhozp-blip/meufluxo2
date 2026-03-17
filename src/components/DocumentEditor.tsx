@@ -20,13 +20,15 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const isLoadingRef = useRef(false);
   const currentTitleRef = useRef(doc.title);
   const currentPinnedRef = useRef(doc.pinned);
+  const currentHtmlRef = useRef(doc.content?.html || '');
   const lastSavedSnapshotRef = useRef('');
+  const savingSnapshotRef = useRef('');
 
   const buildSnapshot = useCallback((nextTitle: string, nextHtml: string, nextPinned: boolean) => {
     return JSON.stringify({ title: nextTitle, html: nextHtml, pinned: nextPinned });
   }, []);
 
-  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML || '', []);
+  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML ?? currentHtmlRef.current, []);
 
   // Load content into editor
   useEffect(() => {
@@ -36,8 +38,11 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     currentTitleRef.current = doc.title;
     currentPinnedRef.current = doc.pinned;
     const html = doc.content?.html || '';
+    currentHtmlRef.current = html;
     if (editorRef.current) editorRef.current.innerHTML = html;
-    lastSavedSnapshotRef.current = buildSnapshot(doc.title, html, doc.pinned);
+    const snapshot = buildSnapshot(doc.title, html, doc.pinned);
+    lastSavedSnapshotRef.current = snapshot;
+    savingSnapshotRef.current = '';
     isLoadingRef.current = false;
   }, [doc.id, doc.title, doc.pinned, doc.content, buildSnapshot]);
 
@@ -51,8 +56,9 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   const save = useCallback(async (t: string, html: string, p: boolean) => {
     const nextSnapshot = buildSnapshot(t, html, p);
-    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+    if (nextSnapshot === lastSavedSnapshotRef.current || nextSnapshot === savingSnapshotRef.current) return;
 
+    savingSnapshotRef.current = nextSnapshot;
     setSaveStatus('saving');
     try {
       const tempDiv = document.createElement('div');
@@ -69,6 +75,10 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('idle');
+    } finally {
+      if (savingSnapshotRef.current === nextSnapshot) {
+        savingSnapshotRef.current = '';
+      }
     }
   }, [buildSnapshot, doc.id, onUpdateDocument]);
 
@@ -78,14 +88,15 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
       saveTimerRef.current = null;
     }
 
-    const html = getEditorHtml();
+    const html = currentHtmlRef.current;
     const nextSnapshot = buildSnapshot(currentTitleRef.current, html, currentPinnedRef.current);
-    if (nextSnapshot === lastSavedSnapshotRef.current) return;
+    if (nextSnapshot === lastSavedSnapshotRef.current || nextSnapshot === savingSnapshotRef.current) return;
 
     void save(currentTitleRef.current, html, currentPinnedRef.current);
-  }, [buildSnapshot, getEditorHtml, save]);
+  }, [buildSnapshot, save]);
 
   const triggerAutoSave = useCallback((t: string, html: string, p: boolean) => {
+    currentHtmlRef.current = html;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => save(t, html, p), 1000);
   }, [save]);
@@ -102,12 +113,13 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const handleTitleChange = (val: string) => {
     setTitle(val);
     currentTitleRef.current = val;
-    triggerAutoSave(val, getEditorHtml(), currentPinnedRef.current);
+    triggerAutoSave(val, currentHtmlRef.current, currentPinnedRef.current);
   };
 
   const handleContentInput = () => {
     if (isLoadingRef.current) return;
     const html = getEditorHtml();
+    currentHtmlRef.current = html;
     triggerAutoSave(currentTitleRef.current, html, currentPinnedRef.current);
     updateActiveFormats();
   };
