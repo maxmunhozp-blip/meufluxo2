@@ -20,13 +20,15 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const isLoadingRef = useRef(false);
   const currentTitleRef = useRef(doc.title);
   const currentPinnedRef = useRef(doc.pinned);
+  const currentHtmlRef = useRef(doc.content?.html || '');
   const lastSavedSnapshotRef = useRef('');
+  const savingSnapshotRef = useRef('');
 
   const buildSnapshot = useCallback((nextTitle: string, nextHtml: string, nextPinned: boolean) => {
     return JSON.stringify({ title: nextTitle, html: nextHtml, pinned: nextPinned });
   }, []);
 
-  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML || '', []);
+  const getEditorHtml = useCallback(() => editorRef.current?.innerHTML ?? currentHtmlRef.current, []);
 
   // Load content into editor
   useEffect(() => {
