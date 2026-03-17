@@ -1,10 +1,16 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { SharedState, Workspace, mapDbProject, mapDbSection, mapDbTask } from './types';
+import { SharedState, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDocument } from './types';
 import type { Task } from '@/types/task';
+import type { ProjectDocument } from '@/types/document';
 
-export function useWorkspaceOps(deps: SharedState) {
+interface WorkspaceOpsExtra {
+  setDocumentsState: React.Dispatch<React.SetStateAction<ProjectDocument[]>>;
+  setTimeEntriesState: React.Dispatch<React.SetStateAction<{ task_id: string; duration_seconds: number }[]>>;
+}
+
+export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
   const {
     session, activeWorkspaceId, workspacesState, workspaceMembersState, projectMembersState,
     setWorkspacesState, setWorkspaceMembersState, setProjectsState, setSectionsState,
