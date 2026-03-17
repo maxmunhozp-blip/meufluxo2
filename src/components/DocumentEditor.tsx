@@ -15,6 +15,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const [pinned, setPinned] = useState(doc.pinned);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
+  const [showHistory, setShowHistory] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
