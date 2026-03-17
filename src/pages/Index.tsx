@@ -236,22 +236,44 @@ const Index = () => {
     return () => clearTimeout(timeout);
   }, [session, loading, navigate]);
 
+  const persistActiveProjectForWorkspace = useCallback((workspaceId: string | null, projectId: string) => {
+    if (!workspaceId) return;
+    setActiveProjectIdsByWorkspace(prev => {
+      const next = projectId ? { ...prev, [workspaceId]: projectId } : Object.fromEntries(Object.entries(prev).filter(([key]) => key !== workspaceId));
+      localStorage.setItem('meufluxo-active-projects-by-workspace', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   // Keep active project in sync with the current workspace
   useEffect(() => {
-    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
-    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
-
-    if (workspaceProjects.length === 0) {
+    if (!activeWorkspaceId) {
       setActiveProjectId('');
       return;
     }
 
-    if (!hasActiveProjectInWorkspace) {
-      const nextProjectId = workspaceProjects[0].id;
-      setActiveProjectId(nextProjectId);
-      localStorage.setItem('meufluxo-active-project-id', nextProjectId);
+    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
+    const persistedProjectId = activeProjectIdsByWorkspace[activeWorkspaceId];
+    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
+    const hasPersistedProjectInWorkspace = workspaceProjects.some(p => p.id === persistedProjectId);
+
+    if (workspaceProjects.length === 0) {
+      setActiveProjectId('');
+      persistActiveProjectForWorkspace(activeWorkspaceId, '');
+      return;
     }
-  }, [projects, activeProjectId, activeWorkspaceId]);
+
+    if (hasActiveProjectInWorkspace) {
+      if (persistedProjectId !== activeProjectId) {
+        persistActiveProjectForWorkspace(activeWorkspaceId, activeProjectId);
+      }
+      return;
+    }
+
+    const nextProjectId = hasPersistedProjectInWorkspace ? persistedProjectId : workspaceProjects[0].id;
+    setActiveProjectId(nextProjectId);
+    persistActiveProjectForWorkspace(activeWorkspaceId, nextProjectId);
+  }, [projects, activeProjectId, activeWorkspaceId, activeProjectIdsByWorkspace, persistActiveProjectForWorkspace]);
 
   const activeProject = projects.find(p => p.id === activeProjectId);
 
