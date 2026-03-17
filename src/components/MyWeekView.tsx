@@ -797,9 +797,17 @@ export function MyWeekView({
       map[format(d, 'yyyy-MM-dd')] = [];
     });
 
+    // Helper: get the effective date key for a task (done tasks use completedAt date)
+    const getTaskDateKey = (t: { status: TaskStatus; completedAt?: string; scheduledDate?: string; dueDate?: string }) => {
+      if (t.status === 'done' && t.completedAt) {
+        return format(parseISO(t.completedAt), 'yyyy-MM-dd');
+      }
+      return t.scheduledDate || t.dueDate;
+    };
+
     tasks.forEach(t => {
       if (t.parentTaskId) return;
-      const dateKey = t.scheduledDate || t.dueDate;
+      const dateKey = getTaskDateKey(t);
       if (!dateKey) return;
       if (map[dateKey] !== undefined) {
         map[dateKey].push(t);
@@ -812,7 +820,8 @@ export function MyWeekView({
       const collectSubs = (subs: Subtask[], parent: Task) => {
         for (let i = 0; i < subs.length; i++) {
           const sub = subs[i];
-          const dateKey = sub.scheduledDate || sub.dueDate;
+          const subCompletedAt = (sub as any).completedAt;
+          const dateKey = getTaskDateKey({ status: sub.status, completedAt: subCompletedAt, scheduledDate: sub.scheduledDate, dueDate: sub.dueDate });
           if (dateKey && map[dateKey] !== undefined) {
             const pseudo: Task = {
               id: sub.id, name: sub.name, status: sub.status,
@@ -821,6 +830,7 @@ export function MyWeekView({
               section: sub.section, projectId: sub.projectId || parent.projectId,
               parentTaskId: sub.parentTaskId, members: sub.members, subtasks: sub.subtasks,
               position: (sub as any).position != null ? (sub as any).position : (parent.position ?? 0) * 100 + i,
+              completedAt: subCompletedAt,
             };
             if (!map[dateKey].some(e => e.id === sub.id)) map[dateKey].push(pseudo);
           }

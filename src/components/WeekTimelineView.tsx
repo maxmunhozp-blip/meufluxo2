@@ -195,10 +195,18 @@ export function WeekTimelineView({
     const map: Record<string, Task[]> = {};
     weekDateStrs.forEach(d => { map[d] = []; });
 
+    // Helper: done tasks use completedAt date
+    const getTaskDateKey = (t: { status: TaskStatus; completedAt?: string; scheduledDate?: string; dueDate?: string }) => {
+      if (t.status === 'done' && t.completedAt) {
+        return format(parseISO(t.completedAt), 'yyyy-MM-dd');
+      }
+      return t.scheduledDate || t.dueDate;
+    };
+
     // Top-level tasks
     tasks.forEach(t => {
       if (t.parentTaskId) return;
-      const dateKey = t.scheduledDate || t.dueDate;
+      const dateKey = getTaskDateKey(t);
       if (dateKey && map[dateKey] !== undefined) {
         map[dateKey].push(t);
       }
@@ -210,7 +218,8 @@ export function WeekTimelineView({
       const collectSubs = (subs: typeof t.subtasks) => {
         if (!subs) return;
         for (const sub of subs) {
-          const subDate = sub.scheduledDate || sub.dueDate;
+          const subCompletedAt = (sub as any).completedAt;
+          const subDate = getTaskDateKey({ status: sub.status, completedAt: subCompletedAt, scheduledDate: sub.scheduledDate, dueDate: sub.dueDate });
           if (subDate && map[subDate] !== undefined) {
             if (!map[subDate].some(r => r.id === sub.id)) {
               map[subDate].push({
@@ -220,6 +229,7 @@ export function WeekTimelineView({
                 section: sub.section, projectId: sub.projectId || t.projectId,
                 parentTaskId: sub.parentTaskId, members: sub.members,
                 subtasks: sub.subtasks,
+                completedAt: subCompletedAt,
               });
             }
           }
