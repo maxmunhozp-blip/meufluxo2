@@ -630,11 +630,11 @@ const Index = () => {
     try {
       const id = await createProject(name, color);
       setActiveProjectId(id);
-      localStorage.setItem('meufluxo-active-project-id', id);
+      persistActiveProjectForWorkspace(activeWorkspaceId, id);
     } catch (err) {
       console.error('Erro ao criar projeto:', err);
     }
-  }, [createProject]);
+  }, [createProject, activeWorkspaceId, persistActiveProjectForWorkspace]);
 
   const handleRenameProject = useCallback((id: string, name: string) => {
     renameProject(id, name);
