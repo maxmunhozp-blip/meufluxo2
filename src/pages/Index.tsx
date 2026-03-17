@@ -76,13 +76,15 @@ const Index = () => {
   const [confirmDialog, confirm] = useConfirmAction();
   const deleteSectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [activeProjectId, setActiveProjectId] = useState(() => {
+  const [activeProjectIdsByWorkspace, setActiveProjectIdsByWorkspace] = useState<Record<string, string>>(() => {
     try {
-      return localStorage.getItem('meufluxo-active-project-id') || '';
+      const raw = localStorage.getItem('meufluxo-active-projects-by-workspace');
+      return raw ? JSON.parse(raw) : {};
     } catch {
-      return '';
+      return {};
     }
   });
+  const [activeProjectId, setActiveProjectId] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [creatingSectionId, setCreatingSectionId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -234,22 +236,44 @@ const Index = () => {
     return () => clearTimeout(timeout);
   }, [session, loading, navigate]);
 
+  const persistActiveProjectForWorkspace = useCallback((workspaceId: string | null, projectId: string) => {
+    if (!workspaceId) return;
+    setActiveProjectIdsByWorkspace(prev => {
+      const next = projectId ? { ...prev, [workspaceId]: projectId } : Object.fromEntries(Object.entries(prev).filter(([key]) => key !== workspaceId));
+      localStorage.setItem('meufluxo-active-projects-by-workspace', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   // Keep active project in sync with the current workspace
   useEffect(() => {
-    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
-    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
-
-    if (workspaceProjects.length === 0) {
+    if (!activeWorkspaceId) {
       setActiveProjectId('');
       return;
     }
 
-    if (!hasActiveProjectInWorkspace) {
-      const nextProjectId = workspaceProjects[0].id;
-      setActiveProjectId(nextProjectId);
-      localStorage.setItem('meufluxo-active-project-id', nextProjectId);
+    const workspaceProjects = projects.filter(p => p.workspaceId === activeWorkspaceId);
+    const persistedProjectId = activeProjectIdsByWorkspace[activeWorkspaceId];
+    const hasActiveProjectInWorkspace = workspaceProjects.some(p => p.id === activeProjectId);
+    const hasPersistedProjectInWorkspace = workspaceProjects.some(p => p.id === persistedProjectId);
+
+    if (workspaceProjects.length === 0) {
+      setActiveProjectId('');
+      persistActiveProjectForWorkspace(activeWorkspaceId, '');
+      return;
     }
-  }, [projects, activeProjectId, activeWorkspaceId]);
+
+    if (hasActiveProjectInWorkspace) {
+      if (persistedProjectId !== activeProjectId) {
+        persistActiveProjectForWorkspace(activeWorkspaceId, activeProjectId);
+      }
+      return;
+    }
+
+    const nextProjectId = hasPersistedProjectInWorkspace ? persistedProjectId : workspaceProjects[0].id;
+    setActiveProjectId(nextProjectId);
+    persistActiveProjectForWorkspace(activeWorkspaceId, nextProjectId);
+  }, [projects, activeProjectId, activeWorkspaceId, activeProjectIdsByWorkspace, persistActiveProjectForWorkspace]);
 
   const activeProject = projects.find(p => p.id === activeProjectId);
 
@@ -451,7 +475,7 @@ const Index = () => {
 
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
-    localStorage.setItem('meufluxo-active-project-id', id);
+    persistActiveProjectForWorkspace(activeWorkspaceId, id);
     setSelectedTaskId(null);
     setProjectViewTab('tasks');
     setFocusedTaskId(null);
@@ -606,11 +630,11 @@ const Index = () => {
     try {
       const id = await createProject(name, color);
       setActiveProjectId(id);
-      localStorage.setItem('meufluxo-active-project-id', id);
+      persistActiveProjectForWorkspace(activeWorkspaceId, id);
     } catch (err) {
       console.error('Erro ao criar projeto:', err);
     }
-  }, [createProject]);
+  }, [createProject, activeWorkspaceId, persistActiveProjectForWorkspace]);
 
   const handleRenameProject = useCallback((id: string, name: string) => {
     renameProject(id, name);
@@ -622,10 +646,9 @@ const Index = () => {
       const remaining = projects.filter(p => p.id !== id && p.workspaceId === activeWorkspaceId);
       const nextProjectId = remaining[0]?.id || '';
       setActiveProjectId(nextProjectId);
-      if (nextProjectId) localStorage.setItem('meufluxo-active-project-id', nextProjectId);
-      else localStorage.removeItem('meufluxo-active-project-id');
+      persistActiveProjectForWorkspace(activeWorkspaceId, nextProjectId);
     }
-  }, [deleteProjectFn, activeProjectId, projects, activeWorkspaceId]);
+  }, [deleteProjectFn, activeProjectId, projects, activeWorkspaceId, persistActiveProjectForWorkspace]);
 
   const handleChangeColor = useCallback((id: string, color: string) => {
     changeProjectColor(id, color);
@@ -732,7 +755,7 @@ const Index = () => {
   const handleDuplicateProject = useCallback(async (id: string, mode: 'sections' | 'tasks' | 'both') => {
     const newId = await duplicateProject(id, mode);
     setActiveProjectId(newId);
-    localStorage.setItem('meufluxo-active-project-id', newId);
+    persistActiveProjectForWorkspace(activeWorkspaceId, newId);
     return newId;
   }, [duplicateProject]);
 
