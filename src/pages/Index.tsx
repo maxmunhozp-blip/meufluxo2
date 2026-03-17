@@ -755,7 +755,7 @@ const Index = () => {
   const handleDuplicateProject = useCallback(async (id: string, mode: 'sections' | 'tasks' | 'both') => {
     const newId = await duplicateProject(id, mode);
     setActiveProjectId(newId);
-    localStorage.setItem('meufluxo-active-project-id', newId);
+    persistActiveProjectForWorkspace(activeWorkspaceId, newId);
     return newId;
   }, [duplicateProject]);
 
