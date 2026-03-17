@@ -11,6 +11,7 @@ interface DocumentEditorProps {
   onUpdateDocument: (doc: Partial<ProjectDocument> & { id: string }) => Promise<void>;
   onBack: () => void;
   isNew?: boolean;
+  userId?: string;
 }
 
 export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew }: DocumentEditorProps) {
