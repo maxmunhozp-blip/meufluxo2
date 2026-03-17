@@ -214,13 +214,17 @@ const Index = () => {
 
   // Auth guard (single instance — see line ~1133)
 
-  // Failsafe timeout
+  // Auth guard – only redirect when we're sure there's no session (avoid redirect on token refresh / tab switch)
+  const sessionCheckedRef = useRef(false);
   useEffect(() => {
+    if (loading) return; // still loading, don't decide yet
+    if (session) { sessionCheckedRef.current = true; return; }
+    // If we had a session before and now it's gone, or never had one after load
     const timeout = setTimeout(() => {
       if (!session) navigate('/auth', { replace: true });
-    }, 5000);
+    }, sessionCheckedRef.current ? 1500 : 5000);
     return () => clearTimeout(timeout);
-  }, [session, navigate]);
+  }, [session, loading, navigate]);
 
   // Set active project when projects load
   useEffect(() => {

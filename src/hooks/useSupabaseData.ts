@@ -589,7 +589,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [session, sessionChecked]);
+  }, [sessionUserId, sessionChecked]);
 
   // ── Legacy Setters (DnD compatibility) ──
   const setProjects = useCallback((fn: (prev: Project[]) => Project[]) => setProjectsState(prev => fn(prev)), []);
