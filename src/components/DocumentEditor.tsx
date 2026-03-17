@@ -38,8 +38,11 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     currentTitleRef.current = doc.title;
     currentPinnedRef.current = doc.pinned;
     const html = doc.content?.html || '';
+    currentHtmlRef.current = html;
     if (editorRef.current) editorRef.current.innerHTML = html;
-    lastSavedSnapshotRef.current = buildSnapshot(doc.title, html, doc.pinned);
+    const snapshot = buildSnapshot(doc.title, html, doc.pinned);
+    lastSavedSnapshotRef.current = snapshot;
+    savingSnapshotRef.current = '';
     isLoadingRef.current = false;
   }, [doc.id, doc.title, doc.pinned, doc.content, buildSnapshot]);
 
