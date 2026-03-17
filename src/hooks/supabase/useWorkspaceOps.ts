@@ -13,8 +13,8 @@ interface WorkspaceOpsExtra {
 export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
   const {
     session, activeWorkspaceId, workspacesState, workspaceMembersState, projectMembersState,
-    setWorkspacesState, setWorkspaceMembersState, setProjectsState, setSectionsState,
-    setTasksState, setActiveWorkspaceId, setLoading, setShowUpgradeModal, planLimits,
+    setWorkspacesState, setWorkspaceMembersState, setProjectMembersState, setProjectsState, setSectionsState,
+    setTasksState, setActiveWorkspaceId, setLoading, setShowUpgradeModal, planLimits, setServiceTagsState,
   } = deps;
 
   const switchWorkspace = useCallback((workspaceId: string) => {

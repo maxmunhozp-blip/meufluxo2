@@ -145,7 +145,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   };
 
   // ── Domain Hooks ──
-  const workspaceOps = useWorkspaceOps(shared);
+  const workspaceOps = useWorkspaceOps(shared, { setDocumentsState, setTimeEntriesState });
   const projectOps = useProjectOps(shared);
   const sectionOps = useSectionOps(shared);
   const taskOps = useTaskOps(shared);
