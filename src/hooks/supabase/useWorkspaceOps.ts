@@ -12,6 +12,10 @@ export function useWorkspaceOps(deps: SharedState) {
   } = deps;
 
   const switchWorkspace = useCallback((workspaceId: string) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('meufluxo:flush-pending-doc-saves'));
+    }
+
     setActiveWorkspaceId(workspaceId);
     setLoading(true);
     Promise.all([
