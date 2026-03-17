@@ -23,13 +23,19 @@ export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
     }
 
     setActiveWorkspaceId(workspaceId);
+    localStorage.setItem('meufluxo-active-workspace-id', workspaceId);
     setLoading(true);
     Promise.all([
       supabase.from('projects').select('*').eq('workspace_id', workspaceId).eq('archived', false).order('position').order('created_at'),
       supabase.from('sections').select('*').eq('workspace_id', workspaceId).order('position'),
       supabase.from('tasks').select('*').eq('workspace_id', workspaceId).is('parent_task_id', null).order('position'),
       supabase.from('tasks').select('*').eq('workspace_id', workspaceId).not('parent_task_id', 'is', null).order('position'),
-    ]).then(([projectsRes, sectionsRes, tasksRes, subtasksRes]) => {
+      supabase.from('project_documents').select('*').eq('workspace_id', workspaceId).order('position'),
+      supabase.from('service_tags').select('*').eq('workspace_id', workspaceId).order('position'),
+      supabase.from('time_entries').select('task_id, duration_seconds').eq('workspace_id', workspaceId),
+      supabase.from('workspace_members').select('id, user_id, role, accepted_at').eq('workspace_id', workspaceId),
+      supabase.from('project_members').select('project_id, user_id'),
+    ]).then(([projectsRes, sectionsRes, tasksRes, subtasksRes, docsRes, tagsRes, timeRes, membersRes, projMembersRes]) => {
       setProjectsState((projectsRes.data || []).map(mapDbProject));
       setSectionsState((sectionsRes.data || []).map(mapDbSection));
       const mappedTasks = (tasksRes.data || []).map(mapDbTask);
@@ -44,6 +50,27 @@ export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
         }
       });
       setTasksState(Array.from(taskMap.values()));
+
+      // Documents
+      extra.setDocumentsState((docsRes.data as any[] || []).map(mapDbDocument));
+
+      // Service tags
+      setServiceTagsState((tagsRes.data || []).map((t: any) => ({
+        id: t.id, name: t.name, icon: t.icon, workspaceId: t.workspace_id, position: t.position,
+      })));
+
+      // Time entries
+      extra.setTimeEntriesState((timeRes.data || []) as any[]);
+
+      // Workspace members
+      setWorkspaceMembersState((membersRes.data || []).map((m: any) => ({
+        id: m.id, userId: m.user_id, fullName: null, avatarUrl: null,
+        role: m.role as 'owner' | 'admin' | 'member', acceptedAt: m.accepted_at,
+      })));
+
+      // Project members
+      setProjectMembersState((projMembersRes.data || []).map((pm: any) => ({ projectId: pm.project_id, userId: pm.user_id })));
+
       setLoading(false);
     });
   }, []);
