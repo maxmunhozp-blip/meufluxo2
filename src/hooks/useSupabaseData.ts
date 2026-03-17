@@ -112,7 +112,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const { session, sessionChecked, isSuperAdmin } = useAuth();
 
   // ── Shared State ──
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
+    try { return localStorage.getItem('meufluxo-active-workspace-id') || null; } catch { return null; }
+  });
   const [workspacesState, setWorkspacesState] = useState<Workspace[]>([]);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
   const [sectionsState, setSectionsState] = useState<Section[]>([]);
@@ -143,7 +145,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   };
 
   // ── Domain Hooks ──
-  const workspaceOps = useWorkspaceOps(shared);
+  const workspaceOps = useWorkspaceOps(shared, { setDocumentsState, setTimeEntriesState });
   const projectOps = useProjectOps(shared);
   const sectionOps = useSectionOps(shared);
   const taskOps = useTaskOps(shared);
@@ -185,8 +187,11 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id, clientsLabel: (w as any).clients_label || 'Clientes', plan: (w.plan as 'free' | 'pro') || 'free' })));
       }
 
-      const wsId = wsIds[0] || null;
+      // Restore persisted workspace or fall back to first
+      const savedWsId = localStorage.getItem('meufluxo-active-workspace-id');
+      const wsId = (savedWsId && wsIds.includes(savedWsId)) ? savedWsId : (wsIds[0] || null);
       setActiveWorkspaceId(wsId);
+      if (wsId) localStorage.setItem('meufluxo-active-workspace-id', wsId);
 
       if (wsId) {
         const { data: allWsMembers } = await supabase
