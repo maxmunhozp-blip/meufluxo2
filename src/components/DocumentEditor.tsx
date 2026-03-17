@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History } from 'lucide-react';
+import { ArrowLeft, Pin, PinOff, Bold, Italic, CheckSquare, Link2, History, ImagePlus, Loader2 } from 'lucide-react';
 import { ProjectDocument } from '@/types/document';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DocumentEditorProps {
   document: ProjectDocument;
@@ -14,10 +16,12 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   const [title, setTitle] = useState(doc.title);
   const [pinned, setPinned] = useState(doc.pinned);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
+  const [uploading, setUploading] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(false);
   const currentTitleRef = useRef(doc.title);
@@ -161,6 +165,39 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     if (url) execFormat('createLink', url);
   };
 
+  const uploadAndInsertImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Apenas imagens são permitidas'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem muito grande (máx 5MB)'); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const filePath = `docs/${doc.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('notes-images')
+        .upload(filePath, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const url = `${SUPABASE_URL}/storage/v1/object/public/notes-images/${filePath}`;
+      editorRef.current?.focus();
+      document.execCommand('insertHTML', false,
+        `<img src="${url}" alt="imagem" style="max-width:100%;max-height:400px;border-radius:6px;margin:8px 0;" /><br/>`
+      );
+      handleContentInput();
+    } catch {
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploading(false);
+    }
+  }, [doc.id, handleContentInput]);
+
+  const handleImageButtonClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadAndInsertImage(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'b') { e.preventDefault(); execFormat('bold'); }
@@ -178,6 +215,17 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
+    // Check for pasted images first
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) uploadAndInsertImage(file);
+        return;
+      }
+    }
+    // Strip HTML from pasted text
     const htmlData = e.clipboardData.getData('text/html');
     if (htmlData) {
       e.preventDefault();
@@ -201,12 +249,14 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     { type: 'separator' as const },
     { icon: CheckSquare, action: insertCheckbox, title: 'Checklist' },
     { icon: Link2, action: insertLink, title: 'Link' },
+    { icon: uploading ? Loader2 : ImagePlus, action: handleImageButtonClick, title: 'Imagem', disabled: uploading },
     { type: 'separator' as const },
     { icon: History, action: () => setShowHistory(prev => !prev), title: 'Histórico', format: showHistory ? 'history' : undefined },
   ];
 
   return (
     <div className="flex flex-1 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
@@ -245,22 +295,23 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
             if ('type' in btn && btn.type === 'separator') {
               return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
             }
-            const { icon: Icon, action, title, format } = btn as any;
+            const { icon: Icon, action, title, format, disabled } = btn as any;
             const isActive = format && (format === 'history' ? showHistory : activeFormats.has(format));
             return (
               <button
                 key={title}
                 onClick={action}
                 title={title}
-                className="w-7 h-7 flex items-center justify-center rounded transition-all"
+                disabled={disabled}
+                className={`w-7 h-7 flex items-center justify-center rounded transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{
                   color: isActive ? 'var(--accent-blue)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--accent-subtle)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+                onMouseEnter={e => { if (!isActive && !disabled) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+                onMouseLeave={e => { if (!isActive && !disabled) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className={`w-3.5 h-3.5 ${disabled ? 'animate-spin' : ''}`} />
               </button>
             );
           })}
