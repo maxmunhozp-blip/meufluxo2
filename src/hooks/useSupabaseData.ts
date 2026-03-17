@@ -161,10 +161,13 @@ export function useSupabaseData(): UseSupabaseDataReturn {
     return map;
   }, [timeEntriesState]);
 
+  // ── Track user id to avoid refetch on token refresh ──
+  const sessionUserId = session?.user?.id;
+
   // ── Initial Data Fetch ──
   useEffect(() => {
     if (!sessionChecked) return;
-    if (!session) { setLoading(false); return; }
+    if (!sessionUserId) { setLoading(false); return; }
 
     const fetchAll = async () => {
       setLoading(true);
