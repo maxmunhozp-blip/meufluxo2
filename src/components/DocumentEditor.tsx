@@ -256,6 +256,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   return (
     <div className="flex flex-1 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center justify-between h-12 px-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <button onClick={onBack} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
