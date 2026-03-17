@@ -136,16 +136,18 @@ const Index = () => {
     });
   }, [activeProjectId]);
 
-  // Restore focus mode after reload
+  // Restore focus mode after reload (run once when tasks finish loading)
+  const focusRestoredRef = useRef(false);
   useEffect(() => {
-    if (loading || !taskList.length) return;
+    if (loading || !taskList.length || focusRestoredRef.current) return;
+    focusRestoredRef.current = true;
     const savedId = sessionStorage.getItem('meufluxo-focus-task-id');
     if (savedId && !singleFocusTask) {
       const found = taskList.find(t => t.id === savedId);
       if (found) _setSingleFocusTask(found);
       else sessionStorage.removeItem('meufluxo-focus-task-id');
     }
-  }, [loading, taskList]);
+  }, [loading, taskList.length]);
 
   const [fadingOutTaskId, setFadingOutTaskId] = useState<string | null>(null);
 
@@ -214,13 +216,17 @@ const Index = () => {
 
   // Auth guard (single instance — see line ~1133)
 
-  // Failsafe timeout
+  // Auth guard – only redirect when we're sure there's no session (avoid redirect on token refresh / tab switch)
+  const sessionCheckedRef = useRef(false);
   useEffect(() => {
+    if (loading) return; // still loading, don't decide yet
+    if (session) { sessionCheckedRef.current = true; return; }
+    // If we had a session before and now it's gone, or never had one after load
     const timeout = setTimeout(() => {
       if (!session) navigate('/auth', { replace: true });
-    }, 5000);
+    }, sessionCheckedRef.current ? 1500 : 5000);
     return () => clearTimeout(timeout);
-  }, [session, navigate]);
+  }, [session, loading, navigate]);
 
   // Set active project when projects load
   useEffect(() => {
