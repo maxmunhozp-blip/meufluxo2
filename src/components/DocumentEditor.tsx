@@ -99,6 +99,7 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
 
   const triggerAutoSave = useCallback((t: string, html: string, p: boolean) => {
     currentHtmlRef.current = html;
+    setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => save(t, html, p), 1000);
   }, [save]);
