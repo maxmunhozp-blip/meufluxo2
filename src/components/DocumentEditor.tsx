@@ -253,7 +253,8 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
     { icon: Link2, action: insertLink, title: 'Link' },
     { icon: uploading ? Loader2 : ImagePlus, action: handleImageButtonClick, title: 'Imagem', disabled: uploading },
     { type: 'separator' as const },
-    { icon: History, action: () => setShowHistory(prev => !prev), title: 'Histórico', format: showHistory ? 'history' : undefined },
+    { icon: Paperclip, action: () => { setShowAttachments(prev => !prev); if (!showAttachments) setShowHistory(false); }, title: 'Anexos', format: showAttachments ? 'attachments' : undefined },
+    { icon: History, action: () => { setShowHistory(prev => !prev); if (!showHistory) setShowAttachments(false); }, title: 'Histórico', format: showHistory ? 'history' : undefined },
   ];
 
   return (
