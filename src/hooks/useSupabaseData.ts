@@ -112,7 +112,9 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const { session, sessionChecked, isSuperAdmin } = useAuth();
 
   // ── Shared State ──
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
+    try { return localStorage.getItem('meufluxo-active-workspace-id') || null; } catch { return null; }
+  });
   const [workspacesState, setWorkspacesState] = useState<Workspace[]>([]);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
   const [sectionsState, setSectionsState] = useState<Section[]>([]);
