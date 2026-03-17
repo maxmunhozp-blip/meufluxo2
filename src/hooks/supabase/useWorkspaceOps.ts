@@ -25,7 +25,11 @@ export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
     }
 
     setActiveWorkspaceId(workspaceId);
-    localStorage.setItem('meufluxo-active-workspace-id', workspaceId);
+    try {
+      localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceId);
+    } catch {
+      // noop
+    }
     setLoading(true);
     Promise.all([
       supabase.from('projects').select('*').eq('workspace_id', workspaceId).eq('archived', false).order('position').order('created_at'),
