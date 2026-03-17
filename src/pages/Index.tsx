@@ -605,6 +605,7 @@ const Index = () => {
     try {
       const id = await createProject(name, color);
       setActiveProjectId(id);
+      localStorage.setItem('meufluxo-active-project-id', id);
     } catch (err) {
       console.error('Erro ao criar projeto:', err);
     }
