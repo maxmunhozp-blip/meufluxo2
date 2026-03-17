@@ -132,6 +132,57 @@ export type Database = {
           },
         ]
       }
+      document_attachments: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          document_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          document_id: string
+          file_name: string
+          file_path: string
+          file_size?: number
+          id?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          document_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_attachments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "project_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_attachments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_versions: {
         Row: {
           content: Json | null
