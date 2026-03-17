@@ -6,6 +6,28 @@ import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
 
+const ACTIVE_WORKSPACE_STORAGE_KEY = 'meufluxo-active-workspace-id';
+
+function readStoredWorkspaceId() {
+  try {
+    return localStorage.getItem(ACTIVE_WORKSPACE_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredWorkspaceId(workspaceId: string | null) {
+  try {
+    if (workspaceId) {
+      localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceId);
+    } else {
+      localStorage.removeItem(ACTIVE_WORKSPACE_STORAGE_KEY);
+    }
+  } catch {
+    // noop
+  }
+}
+
 // ─── Domain Hooks ──────────────────────────────────────────
 import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDocument, SharedState } from './supabase/types';
 import { useAuth } from './supabase/useAuth';
