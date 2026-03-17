@@ -33,6 +33,20 @@ export function useDocumentOps(deps: DocumentOpsState) {
   }, [session, documentsState]);
 
   const updateDocument = useCallback(async (doc: Partial<ProjectDocument> & { id: string }) => {
+    // Save version snapshot before updating (only when content changes)
+    if (doc.content !== undefined && session?.user?.id) {
+      const existing = documentsState.find(d => d.id === doc.id);
+      if (existing && existing.content?.html && existing.content.html !== doc.content?.html) {
+        supabase.from('document_versions' as any).insert({
+          document_id: doc.id,
+          workspace_id: existing.workspaceId,
+          title: existing.title,
+          content: existing.content,
+          created_by: session.user.id,
+        }).then(() => {}); // fire and forget
+      }
+    }
+
     // Optimistic update
     setDocumentsState(prev => prev.map(d => d.id === doc.id ? { ...d, ...doc, updatedAt: new Date().toISOString() } : d));
 
@@ -44,7 +58,7 @@ export function useDocumentOps(deps: DocumentOpsState) {
 
     const { error } = await supabase.from('project_documents').update(updatePayload).eq('id', doc.id);
     if (error) throw error;
-  }, []);
+  }, [session, documentsState]);
 
   const deleteDocument = useCallback(async (id: string) => {
     setDocumentsState(prev => prev.filter(d => d.id !== id));
