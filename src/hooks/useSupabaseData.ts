@@ -6,6 +6,28 @@ import type { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { usePlanLimits, PlanLimits, PlanType } from './usePlanLimits';
 
+const ACTIVE_WORKSPACE_STORAGE_KEY = 'meufluxo-active-workspace-id';
+
+function readStoredWorkspaceId() {
+  try {
+    return localStorage.getItem(ACTIVE_WORKSPACE_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredWorkspaceId(workspaceId: string | null) {
+  try {
+    if (workspaceId) {
+      localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceId);
+    } else {
+      localStorage.removeItem(ACTIVE_WORKSPACE_STORAGE_KEY);
+    }
+  } catch {
+    // noop
+  }
+}
+
 // ─── Domain Hooks ──────────────────────────────────────────
 import { Profile, WorkspaceMember, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDocument, SharedState } from './supabase/types';
 import { useAuth } from './supabase/useAuth';
@@ -112,9 +134,7 @@ export function useSupabaseData(): UseSupabaseDataReturn {
   const { session, sessionChecked, isSuperAdmin } = useAuth();
 
   // ── Shared State ──
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
-    try { return localStorage.getItem('meufluxo-active-workspace-id') || null; } catch { return null; }
-  });
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => readStoredWorkspaceId());
   const [workspacesState, setWorkspacesState] = useState<Workspace[]>([]);
   const [projectsState, setProjectsState] = useState<Project[]>([]);
   const [sectionsState, setSectionsState] = useState<Section[]>([]);
@@ -187,11 +207,15 @@ export function useSupabaseData(): UseSupabaseDataReturn {
         setWorkspacesState((wsData || []).map(w => ({ id: w.id, name: w.name, ownerId: w.owner_id, clientsLabel: (w as any).clients_label || 'Clientes', plan: (w.plan as 'free' | 'pro') || 'free' })));
       }
 
-      // Restore persisted workspace or fall back to first
-      const savedWsId = localStorage.getItem('meufluxo-active-workspace-id');
-      const wsId = (savedWsId && wsIds.includes(savedWsId)) ? savedWsId : (wsIds[0] || null);
+      // Restore persisted workspace with strong preference for the current state/local storage before any fallback
+      const storedWorkspaceId = readStoredWorkspaceId();
+      const preferredWorkspaceId = activeWorkspaceId || storedWorkspaceId;
+      const wsId = preferredWorkspaceId && wsIds.includes(preferredWorkspaceId)
+        ? preferredWorkspaceId
+        : (wsIds[0] || null);
+
       setActiveWorkspaceId(wsId);
-      if (wsId) localStorage.setItem('meufluxo-active-workspace-id', wsId);
+      writeStoredWorkspaceId(wsId);
 
       if (wsId) {
         const { data: allWsMembers } = await supabase

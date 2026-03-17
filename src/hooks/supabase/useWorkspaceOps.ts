@@ -5,6 +5,8 @@ import { SharedState, Workspace, mapDbProject, mapDbSection, mapDbTask, mapDbDoc
 import type { Task } from '@/types/task';
 import type { ProjectDocument } from '@/types/document';
 
+const ACTIVE_WORKSPACE_STORAGE_KEY = 'meufluxo-active-workspace-id';
+
 interface WorkspaceOpsExtra {
   setDocumentsState: React.Dispatch<React.SetStateAction<ProjectDocument[]>>;
   setTimeEntriesState: React.Dispatch<React.SetStateAction<{ task_id: string; duration_seconds: number }[]>>;
@@ -23,7 +25,11 @@ export function useWorkspaceOps(deps: SharedState, extra: WorkspaceOpsExtra) {
     }
 
     setActiveWorkspaceId(workspaceId);
-    localStorage.setItem('meufluxo-active-workspace-id', workspaceId);
+    try {
+      localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceId);
+    } catch {
+      // noop
+    }
     setLoading(true);
     Promise.all([
       supabase.from('projects').select('*').eq('workspace_id', workspaceId).eq('archived', false).order('position').order('created_at'),
