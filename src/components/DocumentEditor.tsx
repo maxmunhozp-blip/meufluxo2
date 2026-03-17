@@ -295,22 +295,23 @@ export function DocumentEditor({ document: doc, onUpdateDocument, onBack, isNew 
             if ('type' in btn && btn.type === 'separator') {
               return <div key={`sep-${i}`} className="w-px h-4 mx-1" style={{ background: 'var(--border-subtle)' }} />;
             }
-            const { icon: Icon, action, title, format } = btn as any;
+            const { icon: Icon, action, title, format, disabled } = btn as any;
             const isActive = format && (format === 'history' ? showHistory : activeFormats.has(format));
             return (
               <button
                 key={title}
                 onClick={action}
                 title={title}
-                className="w-7 h-7 flex items-center justify-center rounded transition-all"
+                disabled={disabled}
+                className={`w-7 h-7 flex items-center justify-center rounded transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{
                   color: isActive ? 'var(--accent-blue)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--accent-subtle)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+                onMouseEnter={e => { if (!isActive && !disabled) { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+                onMouseLeave={e => { if (!isActive && !disabled) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className={`w-3.5 h-3.5 ${disabled ? 'animate-spin' : ''}`} />
               </button>
             );
           })}
